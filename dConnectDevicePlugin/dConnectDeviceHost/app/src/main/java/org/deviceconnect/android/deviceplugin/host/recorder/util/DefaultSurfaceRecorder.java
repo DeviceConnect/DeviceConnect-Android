@@ -101,8 +101,16 @@ public class DefaultSurfaceRecorder implements SurfaceRecorder {
     private void setUpMediaRecorder(final File outputFile) throws IOException {
         int rotation = getWindowManager().getDefaultDisplay().getRotation();
 
+        if (DEBUG) {
+            Log.d(TAG, "VideoSize: " + mVideoSize.getWidth() + "x" + mVideoSize.getHeight());
+            Log.d(TAG, "OutputFile: " + outputFile.getAbsolutePath());
+            Log.d(TAG, "Facing: " + mFacing.getName());
+            Log.d(TAG, "SensorOrientation: " + mSensorOrientation);
+            Log.d(TAG, "DisplayRotation: " + rotation);
+        }
+
         mMediaRecorder = new MediaRecorder();
-        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mMediaRecorder.setOutputFile(outputFile.getAbsolutePath());
@@ -141,14 +149,6 @@ public class DefaultSurfaceRecorder implements SurfaceRecorder {
         hint = orientations.get(rotation);
         mMediaRecorder.setOrientationHint(hint);
         mMediaRecorder.prepare();
-        if (DEBUG) {
-            Log.d(TAG, "VideoSize: " + mVideoSize.getWidth() + "x" + mVideoSize.getHeight());
-            Log.d(TAG, "OutputFile: " + outputFile.getAbsolutePath());
-            Log.d(TAG, "Facing: " + mFacing.getName());
-            Log.d(TAG, "SensorOrientation: " + mSensorOrientation);
-            Log.d(TAG, "DisplayRotation: " + rotation);
-            Log.d(TAG, "OrientationHint: " + hint);
-        }
     }
 
     private WindowManager getWindowManager() {
@@ -170,7 +170,7 @@ public class DefaultSurfaceRecorder implements SurfaceRecorder {
                     setUpMediaRecorder(mOutputFile);
                     mMediaRecorder.start();
                     listener.onRecordingStart();
-                } catch (IllegalStateException | IOException e) {
+                } catch (Exception e) {
                     listener.onRecordingStartError(e);
                 }
             };
@@ -186,8 +186,14 @@ public class DefaultSurfaceRecorder implements SurfaceRecorder {
         if (mIsRecording) {
             mIsRecording = false;
             r = () -> {
-                mMediaRecorder.stop();
-                mMediaRecorder.reset();
+                if (mMediaRecorder != null) {
+                    try {
+                        mMediaRecorder.stop();
+                        mMediaRecorder.reset();
+                    } catch (Exception e) {
+                        // ignore.
+                    }
+                }
                 listener.onRecordingStop();
             };
         } else {

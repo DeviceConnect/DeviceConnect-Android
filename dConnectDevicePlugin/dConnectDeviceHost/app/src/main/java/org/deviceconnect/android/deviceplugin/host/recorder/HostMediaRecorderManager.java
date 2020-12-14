@@ -33,6 +33,21 @@ import java.util.List;
  */
 public class HostMediaRecorderManager {
     /**
+     * レコーディング停止アクションを定義.
+     */
+    public static final String ACTION_STOP_RECORDING = "org.deviceconnect.android.deviceplugin.host.STOP_RECORDING";
+
+    /**
+     * オーバーレイ削除用アクションを定義.
+     */
+    public static final String ACTION_STOP_PREVIEW = "org.deviceconnect.android.deviceplugin.host.STOP_PREVIEW";
+
+    /**
+     * レコーダのIDを格納するためのキーを定義.
+     */
+    public static final String KEY_RECORDER_ID = "recorder_id";
+
+    /**
      * List of HostMediaRecorder.
      */
     private final List<HostMediaRecorder> mRecorders = new ArrayList<>();
@@ -76,8 +91,10 @@ public class HostMediaRecorderManager {
                         }
                     }
                 }
-            } else if (PreviewServerProvider.DELETE_PREVIEW_ACTION.equals(action)) {
-                stopPreviewServer(intent.getStringExtra(PreviewServerProvider.EXTRA_CAMERA_ID));
+            } else if (ACTION_STOP_PREVIEW.equals(action)) {
+                stopPreviewServer(intent.getStringExtra(KEY_RECORDER_ID));
+            } else if (ACTION_STOP_RECORDING.equals(action)) {
+                stopRecording(intent.getStringExtra(KEY_RECORDER_ID));
             }
         }
     };
@@ -105,7 +122,7 @@ public class HostMediaRecorderManager {
         }
 
         if (checkMicrophone()) {
-            createAudioRecorders();
+            createAudioRecorders(mFileManager);
         }
 
         if (checkMediaProjection()) {
@@ -119,8 +136,8 @@ public class HostMediaRecorderManager {
         }
     }
 
-    private void createAudioRecorders() {
-        mRecorders.add(new HostAudioRecorder(getContext()));
+    private void createAudioRecorders(final FileManager fileMgr) {
+        mRecorders.add(new HostAudioRecorder(getContext(), fileMgr));
     }
 
     private void createScreenCastRecorder(final FileManager fileMgr) {
@@ -163,7 +180,8 @@ public class HostMediaRecorderManager {
     public void start() {
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
-        filter.addAction(PreviewServerProvider.DELETE_PREVIEW_ACTION);
+        filter.addAction(ACTION_STOP_PREVIEW);
+        filter.addAction(ACTION_STOP_RECORDING);
         getContext().registerReceiver(mBroadcastReceiver, filter);
     }
 
@@ -334,7 +352,7 @@ public class HostMediaRecorderManager {
     /**
      * 指定された ID のレコーダのプレビューを停止します.
      *
-     * @param id レコーダのID
+     * @param id レコーダの ID
      */
     public void stopPreviewServer(final String id) {
         if (id == null) {
@@ -350,6 +368,28 @@ public class HostMediaRecorderManager {
         }
     }
 
+    /**
+     * 指定された ID のレコードの録音・録画を停止します.
+     *
+     * @param id レコードの ID
+     */
+    public void stopRecording(final String id) {
+        if (id == null) {
+            return;
+        }
+
+        HostMediaRecorder recorder = getRecorder(id);
+        if (recorder instanceof HostDeviceStreamRecorder) {
+            HostDeviceStreamRecorder streamRecorder = (HostDeviceStreamRecorder) recorder;
+            streamRecorder.stopRecording(null);
+        }
+    }
+
+    /**
+     * MediaProjection がサポートされている確認します.
+     *
+     * @return MediaProjection がサポートされている場合はtrue、それ以外はfalse
+     */
     public static boolean isSupportedMediaProjection() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
     }

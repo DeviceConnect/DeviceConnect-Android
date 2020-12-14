@@ -166,6 +166,8 @@ public interface HostMediaRecorder {
     }
 
     class Settings {
+        // 映像
+        private boolean mVideoEnabled = true;
         private Size mPictureSize;
         private Size mPreviewSize;
         private Integer mPreviewMaxFrameRate = 30;
@@ -182,6 +184,7 @@ public interface HostMediaRecorder {
         private Integer mPreviewSampleRate;
         private Integer mPreviewChannel;
         private boolean mUseAEC;
+        private String mAudioMimeType = "audio/aac";
 
         // ポート
         private Map<String, Integer> mPorts = new HashMap<>();
@@ -202,6 +205,8 @@ public interface HostMediaRecorder {
                 PropertyUtil property = new PropertyUtil();
                 property.load(file);
 
+                // 映像
+                mVideoEnabled = property.getBoolean("video_enabled", true);
                 mPictureSize = property.getSize("picture_size_width","picture_size_height");
                 mPreviewSize = property.getSize("preview_size_width", "preview_size_height");
                 mPreviewMaxFrameRate = property.getInteger("preview_framerate", 30);
@@ -218,6 +223,7 @@ public interface HostMediaRecorder {
                 mPreviewSampleRate = property.getInteger("preview_audio_sample_rate", 8000);
                 mPreviewChannel = property.getInteger("preview_audio_channel", 1);
                 mUseAEC = property.getBoolean("preview_audio_aec", false);
+                mAudioMimeType = property.getString("preview_audio_mime_type", "audio/aac");
 
                 // ポート
                 for (String key : property.getKeys()) {
@@ -241,6 +247,9 @@ public interface HostMediaRecorder {
         public void save(File file) {
             try {
                 PropertyUtil property = new PropertyUtil();
+
+                // 映像
+                property.put("video_enabled", mVideoEnabled);
                 property.put("picture_size_width", "picture_size_height", mPictureSize);
                 property.put("preview_size_width", "preview_size_height", mPreviewSize);
                 property.put("preview_framerate", mPreviewMaxFrameRate);
@@ -259,6 +268,7 @@ public interface HostMediaRecorder {
                 property.put("preview_audio_sample_rate", mPreviewSampleRate);
                 property.put("preview_audio_channel", mPreviewChannel);
                 property.put("preview_audio_aec", mUseAEC);
+                property.put("preview_audio_mime_type", mAudioMimeType);
 
                 // ポート
                 for (String key : mPorts.keySet()) {

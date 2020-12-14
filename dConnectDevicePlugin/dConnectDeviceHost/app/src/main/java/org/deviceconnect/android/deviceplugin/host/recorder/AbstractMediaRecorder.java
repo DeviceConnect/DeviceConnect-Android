@@ -1,9 +1,3 @@
-/*
- HostDevicePreviewServer.java
- Copyright (c) 2014 NTT DOCOMO,INC.
- Released under the MIT license
- http://opensource.org/licenses/mit-license.php
- */
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.app.Notification;
@@ -13,28 +7,45 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
+import org.deviceconnect.android.provider.FileManager;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.io.File;
 
-/**
- * Host Device Preview Server.
- *
- * @author NTT DOCOMO, INC.
- */
-public abstract class AbstractPreviewServerProvider implements PreviewServerProvider {
+public abstract class AbstractMediaRecorder implements HostMediaRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder {
+    /**
+     * ログ出力用タグ.
+     */
+    private static final String TAG = "host.dplugin";
+
+    /**
+     * デバッグフラグ.
+     */
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+
     /**
      * コンテキスト.
      */
     private Context mContext;
+
+    /**
+     * ファイルマネージャ.
+     */
+    private FileManager mFileManager;
+
+    /**
+     * ファイルを Android 端末内で共有するためのクラス.
+     */
+    private MediaSharing mMediaSharing = MediaSharing.getInstance();
 
     /**
      * 通知ID.
@@ -42,130 +53,24 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     private int mNotificationId;
 
     /**
-     * プレビュー配信サーバーのリスト.
-     */
-    private final List<PreviewServer> mPreviewServers = new ArrayList<>();
-
-    /**
-     * プレビュー配信を行うレコーダ.
-     */
-    private HostMediaRecorder mRecorder;
-
-    /**
-     * Notification 表示フラグ.
-     */
-    private boolean mIsRunning;
-
-    /**
      * コンストラクタ.
-     * @param context コンテキスト
      */
-    public AbstractPreviewServerProvider(final Context context, final HostMediaRecorder recorder, final int notificationId) {
+    public AbstractMediaRecorder(Context context, int notificationId, FileManager fileManager) {
         mContext = context;
-        mRecorder = recorder;
         mNotificationId = notificationId;
-        mIsRunning = false;
+        mFileManager = fileManager;
     }
 
-    // PreviewServerProvider
-
-    @Override
-    public List<String> getSupportedMimeType() {
-        List<String> mimeType = new ArrayList<>();
-        for (PreviewServer server : getServers()) {
-            mimeType.add(server.getMimeType());
-        }
-        return mimeType;
+    public Context getContext() {
+        return mContext;
     }
 
-    @Override
-    public void addServer(PreviewServer server) {
-        mPreviewServers.add(server);
-    }
-
-    @Override
-    public List<PreviewServer> getServers() {
-        return mPreviewServers;
-    }
-
-    @Override
-    public PreviewServer getServerByMimeType(String mimeType) {
-        for (PreviewServer server : getServers()) {
-            if (server.getMimeType().equalsIgnoreCase(mimeType)) {
-                return server;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public boolean isRunning() {
-        return mIsRunning;
-    }
-
-    @Override
-    public List<PreviewServer> startServers() {
-        List<PreviewServer> results = new ArrayList<>();
-
-        CountDownLatch latch = new CountDownLatch(mPreviewServers.size());
-        for (PreviewServer server : mPreviewServers) {
-            server.startWebServer(new PreviewServer.OnWebServerStartCallback() {
-                @Override
-                public void onStart(@NonNull String uri) {
-                    results.add(server);
-                    latch.countDown();
-                }
-
-                @Override
-                public void onFail() {
-                    latch.countDown();
-                }
-            });
-        }
-
-        try {
-            latch.await(5, TimeUnit.SECONDS);
-            if (results.size() > 0) {
-                sendNotification(mRecorder.getId(), mRecorder.getName());
-                mIsRunning = true;
-            }
-        } catch (InterruptedException e) {
-            // ignore.
-        }
-        return results;
-    }
-
-    @Override
-    public void stopServers() {
-        hideNotification(mRecorder.getId());
-
-        for (PreviewServer server : getServers()) {
-            server.stopWebServer();
-        }
-
-        mIsRunning = false;
-    }
-
-    @Override
-    public List<PreviewServer> requestSyncFrame() {
-        List<PreviewServer> result = new ArrayList<>();
-        for (PreviewServer server : getServers()) {
-            if (server.requestSyncFrame()) {
-                result.add(server);
-            }
-        }
-        return result;
-    }
-
-    @Override
-    public void onConfigChange() {
-        for (PreviewServer server : getServers()) {
-            server.onConfigChange();
-        }
+    public FileManager getFileManager() {
+        return mFileManager;
     }
 
     /**
-     * NotificationIdを取得します.
+     * NotificationId を取得します.
      *
      * @return NotificationId
      */
@@ -174,11 +79,11 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     }
 
     /**
-     * プレビュー配信サーバ停止用の Notification を削除します.
+     * レコーディング停止用の Notification を削除します.
      *
      * @param id notification を識別する ID
      */
-    private void hideNotification(String id) {
+    public void hideNotification(String id) {
         NotificationManager manager = (NotificationManager) mContext
                 .getSystemService(Service.NOTIFICATION_SERVICE);
         if (manager != null) {
@@ -187,14 +92,14 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     }
 
     /**
-     * プレビュー配信サーバ停止用の Notification を送信します.
+     * レコーディング停止用の Notification を送信します.
      *
      * @param id notification を識別する ID
      * @param name 名前
      */
-    private void sendNotification(String id, String name) {
+    public void sendNotificationForStopRecording(String id, String name) {
         PendingIntent contentIntent = createPendingIntent(id);
-        Notification notification = createNotification(contentIntent, null, name);
+        Notification notification = createNotificationForStopRecording(contentIntent, null, name);
         NotificationManager manager = (NotificationManager) mContext
                 .getSystemService(Service.NOTIFICATION_SERVICE);
         if (manager != null) {
@@ -206,7 +111,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
                         NotificationManager.IMPORTANCE_LOW);
                 channel.setDescription(mContext.getResources().getString(R.string.overlay_preview_content_message));
                 manager.createNotificationChannel(channel);
-                notification = createNotification(contentIntent, channelId, name);
+                notification = createNotificationForStopRecording(contentIntent, channelId, name);
             }
             manager.notify(id, getNotificationId(), notification);
         }
@@ -220,7 +125,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
      * @param name 名前
      * @return Notification
      */
-    protected Notification createNotification(final PendingIntent pendingIntent, final String channelId, String name) {
+    protected Notification createNotificationForStopRecording(final PendingIntent pendingIntent, final String channelId, String name) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext());
             builder.setContentIntent(pendingIntent);
@@ -260,8 +165,72 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
      */
     private PendingIntent createPendingIntent(String id) {
         Intent intent = new Intent();
-        intent.setAction(HostMediaRecorderManager.ACTION_STOP_PREVIEW);
+        intent.setAction(HostMediaRecorderManager.ACTION_STOP_RECORDING);
         intent.putExtra(HostMediaRecorderManager.KEY_RECORDER_ID, id);
         return PendingIntent.getBroadcast(mContext, getNotificationId(), intent, 0);
+    }
+
+    protected void storePhoto(String filename, byte[] jpeg, OnPhotoEventListener listener) {
+        mFileManager.saveFile(filename, jpeg, true, new FileManager.SaveFileCallback() {
+            @Override
+            public void onSuccess(@NonNull final String uri) {
+                if (DEBUG) {
+                    Log.d(TAG, "Saved photo: uri=" + uri);
+                }
+
+                String photoFilePath = mFileManager.getBasePath().getAbsolutePath() + "/" + uri;
+                registerPhoto(new File(mFileManager.getBasePath(), filename));
+
+                if (listener != null) {
+                    listener.onTakePhoto(uri, photoFilePath, MIME_TYPE_JPEG);
+                }
+            }
+
+            @Override
+            public void onFail(@NonNull final Throwable e) {
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to save photo", e);
+                }
+
+                if (listener != null) {
+                    listener.onFailedTakePhoto(e.getMessage());
+                }
+            }
+        });
+    }
+
+    protected void registerVideo(final File videoFile) {
+        Uri uri = mMediaSharing.shareVideo(mContext, videoFile, mFileManager);
+        if (DEBUG) {
+            String filePath = videoFile.getAbsolutePath();
+            if (uri != null) {
+                Log.d(TAG, "Registered video: filePath=" + filePath + ", uri=" + uri.getPath());
+            } else {
+                Log.e(TAG, "Failed to register video: file=" + filePath);
+            }
+        }
+    }
+
+    protected void registerPhoto(final File photoFile) {
+        Uri uri = mMediaSharing.sharePhoto(mContext, photoFile);
+        if (DEBUG) {
+            if (uri != null) {
+                Log.d(TAG, "Registered photo: uri=" + uri.getPath());
+            } else {
+                Log.e(TAG, "Failed to register photo: file=" + photoFile.getAbsolutePath());
+            }
+        }
+    }
+
+    protected void registerAudio(final File audioFile) {
+        Uri uri = mMediaSharing.shareAudio(mContext, audioFile);
+        if (DEBUG) {
+            String filePath = audioFile.getAbsolutePath();
+            if (uri != null) {
+                Log.d(TAG, "Registered audio: filePath=" + filePath + ", uri=" + uri.getPath());
+            } else {
+                Log.e(TAG, "Failed to register audio: file=" + filePath);
+            }
+        }
     }
 }

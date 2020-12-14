@@ -11,7 +11,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.media.ImageReader;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -25,12 +24,11 @@ import android.view.WindowManager;
 import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceMP4Recorder;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -53,8 +51,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author NTT DOCOMO, INC.
  */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder {
-
+public class ScreenCastRecorder extends AbstractMediaRecorder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "host.dplugin";
 
@@ -75,9 +72,8 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     private final ScreenCastManager mScreenCastMgr;
     private final ExecutorService mPhotoThread = Executors.newFixedThreadPool(4);
     private final Handler mImageReaderHandler = new Handler(Looper.getMainLooper());
-    private final FileManager mFileMgr;
-    private final MediaSharing mMediaSharing = MediaSharing.getInstance();
     private final Settings mSettings = new Settings();
+    private MP4Recorder mMP4Recorder;
 
     private ScreenCastPreviewServerProvider mScreenCastPreviewServerProvider;
     private ScreenCastBroadcasterProvider mScreenCastBroadcasterProvider;
@@ -86,8 +82,8 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     private State mState = State.INACTIVE;
 
     public ScreenCastRecorder(final Context context, final FileManager fileMgr) {
+        super(context, 2, fileMgr);
         mContext = context;
-        mFileMgr = fileMgr;
 
         initSupportedSettings();
 
@@ -161,10 +157,6 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
         return new Size(width, height);
     }
 
-    public Context getContext() {
-        return mContext;
-    }
-
     @Override
     public EGLSurfaceDrawingThread getSurfaceDrawingThread() {
         return mScreenCastSurfaceDrawingThread;
@@ -216,6 +208,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
 
     @Override
     public State getState() {
+        // TODO ステート管理
         return mState;
     }
 
@@ -302,10 +295,12 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
 
     @Override
     public void startRecording(RecordingListener listener) {
+        startRecordingInternal(listener);
     }
 
     @Override
     public void stopRecording(StoppingListener listener) {
+        stopRecordingInternal(listener);
     }
 
     @Override
@@ -318,7 +313,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
 
     @Override
     public String getStreamMimeType() {
-        return null;
+        return "video/mp4";
     }
 
     @Override
@@ -368,26 +363,14 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-            byte[] media = baos.toByteArray();
-            String filename = createNewFileName();
-            // 常に新しいファイル名になるため重複はない。そのため、Overwrite フラグを true にする。
-            mFileMgr.saveFile(filename, media, true, new FileManager.SaveFileCallback() {
-                @Override
-                public void onSuccess(@NonNull final String uri) {
-                    mState = State.INACTIVE;
-                    registerPhoto(new File(mFileMgr.getBasePath(), filename));
-                    listener.onTakePhoto(uri, null, MIME_TYPE_JPEG);
-                }
+            storePhoto(createNewFileName(), baos.toByteArray(), listener);
 
-                @Override
-                public void onFail(@NonNull final Throwable throwable) {
-                    mState = State.INACTIVE;
-                    listener.onFailedTakePhoto(throwable.getMessage());
-                }
-            });
+            mState = State.INACTIVE;
         } catch (OutOfMemoryError e) {
+            mState = State.ERROR;
             listener.onFailedTakePhoto("Out of memory.");
         } catch (Exception e) {
+            mState = State.ERROR;
             listener.onFailedTakePhoto("Taking screenshot is shutdown.");
         }
     }
@@ -396,14 +379,88 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
         return FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + FILE_EXTENSION;
     }
 
-    private void registerPhoto(final File photoFile) {
-        Uri uri = mMediaSharing.sharePhoto(getContext(), photoFile);
-        if (DEBUG) {
-            if (uri != null) {
-                Log.d(TAG, "Registered screen: uri=" + uri.getPath());
-            } else {
-                Log.e(TAG, "Failed to register screen: file=" + photoFile.getAbsolutePath());
-            }
+    /**
+     * 録画を行います.
+     *
+     * @param listener 録画開始結果を通知するリスナー
+     */
+    private void startRecordingInternal(final RecordingListener listener) {
+        if (mMP4Recorder != null) {
+            listener.onFailed(this, "Recording has started already.");
+            return;
         }
+
+        File filePath = new File(getFileManager().getBasePath(), generateVideoFileName());
+        mMP4Recorder = new SurfaceMP4Recorder(filePath, mSettings, mScreenCastSurfaceDrawingThread);
+        mMP4Recorder.start(new MP4Recorder.OnRecordingStartListener() {
+            @Override
+            public void onRecordingStart() {
+                mState = State.RECORDING;
+
+                if (listener != null) {
+                    listener.onRecorded(ScreenCastRecorder.this, mMP4Recorder.getOutputFile().getAbsolutePath());
+                }
+            }
+
+            @Override
+            public void onRecordingStartError(Throwable e) {
+                if (mMP4Recorder != null) {
+                    mMP4Recorder.release();
+                    mMP4Recorder = null;
+                }
+
+                if (listener != null) {
+                    listener.onFailed(ScreenCastRecorder.this,
+                            "Failed to start recording because of camera problem: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    /**
+     * 録画停止を行います.
+     *
+     * @param listener 録画停止結果を通知するリスナー
+     */
+    private void stopRecordingInternal(final StoppingListener listener) {
+        if (mMP4Recorder == null) {
+            listener.onFailed(this, "Recording has stopped already.");
+            return;
+        }
+
+        mState = State.INACTIVE;
+
+        mMP4Recorder.stop(new MP4Recorder.OnRecordingStopListener() {
+            @Override
+            public void onRecordingStop() {
+                File videoFile = mMP4Recorder.getOutputFile();
+
+                registerVideo(videoFile);
+
+                if (listener != null) {
+                    listener.onStopped(ScreenCastRecorder.this, videoFile.getAbsolutePath());
+                }
+
+                mMP4Recorder.release();
+                mMP4Recorder = null;
+            }
+
+            @Override
+            public void onRecordingStopError(Throwable e) {
+                if (listener != null) {
+                    listener.onFailed(ScreenCastRecorder.this,
+                            "Failed to stop recording for unexpected error: " + e.getMessage());
+                }
+
+                if (mMP4Recorder != null) {
+                    mMP4Recorder.release();
+                    mMP4Recorder = null;
+                }
+            }
+        });
+    }
+
+    private String generateVideoFileName() {
+        return "android_screen_" + mSimpleDateFormat.format(new Date()) + ".mp4";
     }
 }

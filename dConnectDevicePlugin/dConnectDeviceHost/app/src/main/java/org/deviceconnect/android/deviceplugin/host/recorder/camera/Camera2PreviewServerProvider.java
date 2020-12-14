@@ -50,6 +50,11 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
     private static final String HIDE_OVERLAY_PREVIEW_ACTION = "org.deviceconnect.android.deviceplugin.host.HIDE_OVERLAY_PREVIEW";
 
     /**
+     * カメラIDを定義.
+     */
+    private static final String EXTRA_CAMERA_ID = "extrea_camer_id";
+
+    /**
      * プレビュー配信サーバ停止用 Notification の識別子を定義.
      *
      * <p>

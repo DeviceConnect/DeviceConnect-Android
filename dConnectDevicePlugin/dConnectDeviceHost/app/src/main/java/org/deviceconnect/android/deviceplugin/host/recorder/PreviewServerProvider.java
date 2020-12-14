@@ -10,16 +10,6 @@ import java.util.List;
 
 public interface PreviewServerProvider {
     /**
-     * オーバーレイ削除用アクションを定義.
-     */
-    String DELETE_PREVIEW_ACTION = "org.deviceconnect.android.deviceplugin.host.DELETE_PREVIEW";
-
-    /**
-     * カメラを識別するIDのキー名を定義.
-     */
-    String EXTRA_CAMERA_ID = "cameraId";
-
-    /**
      * プレビューで配信するマイムタイプを取得します.
      *
      * @return プレビューで配信するマイムタイプ

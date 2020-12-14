@@ -11,7 +11,6 @@ import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraCharacteristics;
 import android.media.Image;
 import android.media.ImageReader;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -26,19 +25,15 @@ import androidx.annotation.NonNull;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.deviceplugin.host.camera.Camera2Helper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.DefaultSurfaceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.ImageUtil;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceMP4Recorder;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -49,7 +44,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder {
+public class Camera2Recorder extends AbstractMediaRecorder {
     /**
      * ログ出力用タグ.
      */
@@ -107,9 +102,9 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
     private final FileManager mFileManager;
 
     /**
-     * {@link SurfaceRecorder} のインスタンス.
+     * MP4レコーダ.
      */
-    private SurfaceRecorder mSurfaceRecorder;
+    private MP4Recorder mMP4Recorder;
 
     /**
      * カメラ操作オブジェクト.
@@ -142,11 +137,6 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
     private int mCurrentRotation;
 
     /**
-     * ファイルを Android 端末内で共有するためのクラス.
-     */
-    private final MediaSharing mMediaSharing = MediaSharing.getInstance();
-
-    /**
      * プレビュー配信サーバを管理するクラス.
      */
     private Camera2PreviewServerProvider mCamera2PreviewServerProvider;
@@ -172,6 +162,11 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
     private final Settings mSettings = new Settings();
 
     /**
+     * レコーダの状態.
+     */
+    private State mState = State.INACTIVE;
+
+    /**
      * コンストラクタ.
      *
      * @param context コンテキスト
@@ -181,6 +176,7 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
     public Camera2Recorder(final @NonNull Context context,
                            final @NonNull CameraWrapper camera,
                            final @NonNull FileManager fileManager) {
+        super(context, 1, fileManager);
         mContext = context;
         mFileManager = fileManager;
         mCameraWrapper = camera;
@@ -212,10 +208,6 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         mSettings.setSupportedPictureSizes(new ArrayList<>(options.getSupportedPictureSizeList()));
         mSettings.setSupportedFps(options.getSupportedFpsList());
         mSettings.setSupportedWhiteBalances(options.getSupportedWhiteBalanceList());
-    }
-
-    public Context getContext() {
-        return mContext;
     }
 
     public CameraWrapper getCameraWrapper() {
@@ -284,14 +276,16 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
 
     @Override
     public State getState() {
-        if (mCameraWrapper.isRecording() || mCameraWrapper.isTakingStillImage()) {
-            return State.RECORDING;
-        }
-        // Preview用のNotificationが表示されている場合は、カメラをPreviewで占有しているものと判断する。
-        if (mCamera2PreviewServerProvider.isRunning()) {
-            return State.PREVIEW;
-        }
-        return State.INACTIVE;
+//        if (mCameraWrapper.isRecording() || mCameraWrapper.isTakingStillImage()) {
+//            return State.RECORDING;
+//        }
+//        // Preview用のNotificationが表示されている場合は、カメラをPreviewで占有しているものと判断する。
+//        if (mCamera2PreviewServerProvider.isRunning()) {
+//            return State.PREVIEW;
+//        }
+//        return State.INACTIVE;
+        // TODO: ステート管理
+        return mState;
     }
 
     @Override
@@ -559,7 +553,17 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
                     listener.onFailedTakePhoto("Failed to acquire image.");
                     return;
                 }
-                storePhoto(photo, listener);
+
+                byte[] jpeg = ImageUtil.convertToJPEG(photo);
+                int deviceRotation = ROTATIONS.get(mCurrentRotation);
+                int cameraRotation = mCameraWrapper.getSensorOrientation();
+                int degrees = (360 - deviceRotation + cameraRotation) % 360;
+                if (mFacing == CameraFacing.FRONT) {
+                    degrees = (180 - degrees) % 360;
+                }
+                jpeg = ImageUtil.rotateJPEG(jpeg, PHOTO_JPEG_QUALITY, degrees);
+                storePhoto(createNewFileName(), jpeg, listener);
+
                 photo.close();
             }, mPhotoHandler);
             mCameraWrapper.takeStillImage(stillImageReader.getSurface());
@@ -572,95 +576,42 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
     }
 
     /**
-     * 撮影した静止画をファイルに保存します.
-     *
-     * @param image 撮影された静止画
-     * @param listener 静止画の撮影結果を通知するリスナー
-     */
-    private void storePhoto(final Image image, final OnPhotoEventListener listener) {
-        if (DEBUG) {
-            Log.d(TAG, "storePhoto: screen orientation: " + Camera2Helper.getScreenOrientation(mContext));
-        }
-
-        byte[] jpeg = ImageUtil.convertToJPEG(image);
-        int deviceRotation = ROTATIONS.get(mCurrentRotation);
-        int cameraRotation = mCameraWrapper.getSensorOrientation();
-        int degrees = (360 - deviceRotation + cameraRotation) % 360;
-        if (mFacing == CameraFacing.FRONT) {
-            degrees = (180 - degrees) % 360;
-        }
-
-        jpeg = ImageUtil.rotateJPEG(jpeg, PHOTO_JPEG_QUALITY, degrees);
-
-        final String filename = createNewFileName();
-        mFileManager.saveFile(filename, jpeg, true, new FileManager.SaveFileCallback() {
-            @Override
-            public void onSuccess(@NonNull final String uri) {
-                if (DEBUG) {
-                    Log.d(TAG, "Saved photo: uri=" + uri);
-                }
-
-                String photoFilePath = mFileManager.getBasePath().getAbsolutePath() + "/" + uri;
-                registerPhoto(new File(mFileManager.getBasePath(), filename));
-                listener.onTakePhoto(uri, photoFilePath, MIME_TYPE_JPEG);
-            }
-
-            @Override
-            public void onFail(@NonNull final Throwable e) {
-                if (DEBUG) {
-                    Log.e(TAG, "Failed to save photo", e);
-                }
-
-                listener.onFailedTakePhoto(e.getMessage());
-            }
-        });
-    }
-
-    /**
      * 録画を行います.
      *
      * @param listener 録画開始結果を通知するリスナー
      */
     private void startRecordingInternal(final RecordingListener listener) {
-        if (mSurfaceRecorder != null) {
+        if (mMP4Recorder != null) {
             listener.onFailed(this, "Recording has started already.");
             return;
         }
 
-        try {
-            mSurfaceRecorder = new DefaultSurfaceRecorder(
-                    mContext,
-                    mFacing,
-                    mCameraWrapper.getSensorOrientation(),
-                    mCameraWrapper.getOptions().getPictureSize(),
-                    mFileManager.getBasePath());
-            mSurfaceRecorder.start(new SurfaceRecorder.OnRecordingStartListener() {
-                @Override
-                public void onRecordingStart() {
-                    try {
-                        mCameraWrapper.startRecording(mSurfaceRecorder.getInputSurface(), false);
-                        listener.onRecorded(Camera2Recorder.this, mSurfaceRecorder.getOutputFile().getAbsolutePath());
-                    } catch (CameraWrapperException e) {
-                        listener.onFailed(Camera2Recorder.this,
-                                "Failed to start recording because of camera problem: " + e.getMessage());
-                    }
-                }
+        File filePath = new File(mFileManager.getBasePath(), generateVideoFileName());
+        mMP4Recorder = new SurfaceMP4Recorder(filePath, mSettings, mCameraSurfaceDrawingThread);
+        mMP4Recorder.start(new MP4Recorder.OnRecordingStartListener() {
+            @Override
+            public void onRecordingStart() {
+                mState = State.RECORDING;
 
-                @Override
-                public void onRecordingStartError(final Throwable e) {
-                    if (DEBUG) {
-                        Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
-                    }
-                    listener.onFailed(Camera2Recorder.this,
-                            "Failed to start recording for unexpected problem: " + e.getMessage());
+                sendNotificationForStopRecording(getId(), getName());
+
+                if (listener != null) {
+                    listener.onRecorded(Camera2Recorder.this, mMP4Recorder.getOutputFile().getAbsolutePath());
                 }
-            });
-        } catch (Throwable e) {
-            if (DEBUG) {
-                Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
             }
-            listener.onFailed(this, "Failed to start recording for unexpected problem: " + e.getMessage());
-        }
+
+            @Override
+            public void onRecordingStartError(Throwable e) {
+                if (mMP4Recorder != null) {
+                    mMP4Recorder.release();
+                    mMP4Recorder = null;
+                }
+                if (listener != null) {
+                    listener.onFailed(Camera2Recorder.this,
+                            "Failed to start recording because of camera problem: " + e.getMessage());
+                }
+            }
+        });
     }
 
     /**
@@ -669,61 +620,47 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
      * @param listener 録画停止結果を通知するリスナー
      */
     private void stopRecordingInternal(final StoppingListener listener) {
-        if (mSurfaceRecorder == null) {
+        if (mMP4Recorder == null) {
             listener.onFailed(this, "Recording has stopped already.");
             return;
         }
 
-        try {
-            mCameraWrapper.stopRecording();
-            mSurfaceRecorder.stop(new SurfaceRecorder.OnRecordingStopListener() {
-                @Override
-                public void onRecordingStop() {
-                    File videoFile = mSurfaceRecorder.getOutputFile();
-                    mSurfaceRecorder = null;
+        mState = State.INACTIVE;
 
-                    registerVideo(videoFile);
-                    listener.onStopped(Camera2Recorder.this, videoFile.getName());
+        hideNotification(getId());
+
+        mMP4Recorder.stop(new MP4Recorder.OnRecordingStopListener() {
+            @Override
+            public void onRecordingStop() {
+                File videoFile = mMP4Recorder.getOutputFile();
+
+                registerVideo(videoFile);
+
+                if (listener != null) {
+                    listener.onStopped(Camera2Recorder.this, videoFile.getAbsolutePath());
                 }
 
-                @Override
-                public void onRecordingStopError(Throwable e) {
-                    if (DEBUG) {
-                        Log.e(TAG, "Failed to stop recording for unexpected error.", e);
-                    }
+                mMP4Recorder.release();
+                mMP4Recorder = null;
+            }
+
+            @Override
+            public void onRecordingStopError(Throwable e) {
+                if (listener != null) {
                     listener.onFailed(Camera2Recorder.this,
                             "Failed to stop recording for unexpected error: " + e.getMessage());
                 }
-            });
-        } catch (CameraWrapperException e) {
-            if (DEBUG) {
-                Log.w(TAG, "Failed to stop recording.", e);
+
+                if (mMP4Recorder != null) {
+                    mMP4Recorder.release();
+                    mMP4Recorder = null;
+                }
             }
-            listener.onFailed(this, "Failed to stop recording: " + e.getMessage());
-        }
+        });
     }
 
-    private void registerVideo(final File videoFile) {
-        Uri uri = mMediaSharing.shareVideo(mContext, videoFile, mFileManager);
-        if (DEBUG) {
-            String filePath = videoFile.getAbsolutePath();
-            if (uri != null) {
-                Log.d(TAG, "Registered video: filePath=" + filePath + ", uri=" + uri.getPath());
-            } else {
-                Log.e(TAG, "Failed to register video: file=" + filePath);
-            }
-        }
-    }
-
-    private void registerPhoto(final File photoFile) {
-        Uri uri = mMediaSharing.sharePhoto(mContext, photoFile);
-        if (DEBUG) {
-            if (uri != null) {
-                Log.d(TAG, "Registered photo: uri=" + uri.getPath());
-            } else {
-                Log.e(TAG, "Failed to register photo: file=" + photoFile.getAbsolutePath());
-            }
-        }
+    private String generateVideoFileName() {
+        return "android_video_" + DATE_FORMAT.format(new Date()) + ".mp4";
     }
 
     /**

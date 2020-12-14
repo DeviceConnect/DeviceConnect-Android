@@ -7,18 +7,11 @@
 
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Size;
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
-import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
@@ -45,8 +38,6 @@ import java.util.List;
 
 import javax.net.ssl.SSLContext;
 
-import static org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst.SEND_VIDEO_TO_HOSTDP;
-
 /**
  * MediaStream Recording Profile.
  *
@@ -63,23 +54,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
      * ファイル管理クラス.
      */
     private final FileManager mFileManager;
-
-    /**
-     * KeyEventProfileActivity からの KeyEvent を中継する Broadcast Receiver.
-     */
-    private BroadcastReceiver mAudioEventBR = new BroadcastReceiver() {
-        @Override
-        public void onReceive(final Context context, final Intent intent) {
-            if (intent.getAction().equals(SEND_VIDEO_TO_HOSTDP)) {
-                String serviceId = intent.getStringExtra(VideoConst.EXTRA_SERVICE_ID);
-                HostMediaRecorder.State state = (HostMediaRecorder.State) intent.getSerializableExtra(VideoConst.EXTRA_VIDEO_RECORDER_STATE);
-                Uri uri = intent.getParcelableExtra(VideoConst.EXTRA_URI);
-                String path = intent.getStringExtra(VideoConst.EXTRA_FILE_NAME);
-                String u = uri != null ? uri.toString() : null;
-                sendEventForRecordingChange(serviceId, state, u, path, "audio/aac", "");
-            }
-        }
-    };
 
     private final DConnectApi mGetMediaRecorderApi = new GetApi() {
         @Override
@@ -388,9 +362,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         public boolean onRequest(final Intent request, final Intent response) {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                IntentFilter filter = new IntentFilter(VideoConst.SEND_VIDEO_TO_HOSTDP);
-                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mAudioEventBR, filter);
-
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
@@ -410,7 +381,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         public boolean onRequest(final Intent request, final Intent response) {
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
-                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mAudioEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
@@ -1053,5 +1023,4 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             getPluginContext().sendEvent(intent, evt.getAccessToken());
         }
     }
-
 }

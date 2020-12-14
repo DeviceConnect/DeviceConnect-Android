@@ -6,31 +6,24 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder.audio;
 
-import android.Manifest;
 import android.content.Context;
-import android.media.MediaRecorder;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.AudioMP4Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,25 +35,12 @@ import java.util.Locale;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRecorder {
+public class HostAudioRecorder extends AbstractMediaRecorder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "host.dplugin";
     private static final String ID = "audio";
     private static final String NAME = "AndroidHost Audio Recorder";
     private static final String MIME_TYPE = "audio/aac";
-
-    private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
-    private final Context mContext;
-
-    /**
-     * MediaRecoder.
-     */
-    private MediaRecorder mMediaRecorder;
-
-    /**
-     * フォルダURI.
-     */
-    private File mFile;
 
     /**
      * マイムタイプ一覧を定義.
@@ -71,14 +51,23 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
         }
     };
 
-    private State mState = State.INACTIVE;
+    private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
+    private final Context mContext;
 
-    private final MediaSharing mMediaSharing = MediaSharing.getInstance();
+    /**
+     * MP4レコーダ.
+     */
+    private MP4Recorder mMP4Recorder;
+
+    private Settings mSettings = new Settings();
 
     private AudioPreviewServerProvider mAudioPreviewServerProvider;
     private AudioBroadcasterProvider mAudioBroadcasterProvider;
 
-    public HostAudioRecorder(final Context context) {
+    private State mState = State.INACTIVE;
+
+    public HostAudioRecorder(final Context context, FileManager fileManager) {
+        super(context, 3, fileManager);
         mContext = context;
     }
 
@@ -161,6 +150,30 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
         });
     }
 
+    // HostDevicePhotoRecorder
+
+    @Override
+    public void takePhoto(OnPhotoEventListener listener) {
+    }
+
+    @Override
+    public void turnOnFlashLight(@NonNull TurnOnFlashLightListener listener, @NonNull Handler handler) {
+    }
+
+    @Override
+    public void turnOffFlashLight(@NonNull TurnOffFlashLightListener listener, @NonNull Handler handler) {
+    }
+
+    @Override
+    public boolean isFlashLightState() {
+        return false;
+    }
+
+    @Override
+    public boolean isUseFlashLight() {
+        return false;
+    }
+
     // HostDeviceStreamRecorder
 
     @Override
@@ -183,17 +196,16 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
         if (getState() != State.INACTIVE) {
             listener.onFailed(this, "MediaRecorder is already recording.");
         } else {
-            requestPermissions(new PermissionUtility.PermissionRequestCallback() {
+            requestPermission(new PermissionCallback() {
                 @Override
-                public void onSuccess() {
-                    startRecordingInternal(generateAudioFileName(), listener);
+                public void onAllowed() {
+                    startRecordingInternal(listener);
                 }
 
                 @Override
-                public void onFail(@NonNull String deniedPermission) {
+                public void onDisallowed() {
                     mState = State.ERROR;
-                    listener.onFailed(HostAudioRecorder.this,
-                            "Permission " + deniedPermission + " not granted.");
+                    listener.onFailed(HostAudioRecorder.this, "Permission not granted.");
                 }
             });
         }
@@ -204,18 +216,7 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
         if (getState() == State.INACTIVE) {
             listener.onFailed(this, "MediaRecorder is not running.");
         } else {
-            mState = State.INACTIVE;
-            if (listener != null) {
-                if (mMediaRecorder != null) {
-                    mMediaRecorder.stop();
-                    releaseMediaRecorder();
-                    registerAudio(mFile);
-                    listener.onStopped(this, mFile.getName());
-                } else {
-                    listener.onFailed(this, "Failed to Stop recording.");
-                }
-            }
-            mFile = null;
+            stopRecordingInternal(listener);
         }
     }
 
@@ -226,7 +227,7 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
 
     @Override
     public void pauseRecording() {
-        if (mMediaRecorder == null) {
+        if (mMP4Recorder == null) {
             return;
         }
 
@@ -235,18 +236,14 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
         }
 
         if (canPauseRecording()) {
-            try {
-                mMediaRecorder.pause();
-                mState = State.PAUSED;
-            } catch (IllegalStateException e) {
-                // ignore.
-            }
+            mMP4Recorder.pause();
+            mState = State.PAUSED;
         }
     }
 
     @Override
     public void resumeRecording() {
-        if (mMediaRecorder == null) {
+        if (mMP4Recorder == null) {
             return;
         }
 
@@ -255,12 +252,8 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
         }
 
         if (canPauseRecording()) {
-            try {
-                mMediaRecorder.resume();
-                mState = State.RECORDING;
-            } catch (IllegalStateException e) {
-                // ignore.
-            }
+            mMP4Recorder.resume();
+            mState = State.RECORDING;
         }
     }
 
@@ -275,65 +268,84 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
         return "android_audio_" + mSimpleDateFormat.format(new Date()) + AudioConst.FORMAT_TYPE;
     }
 
-    private void requestPermissions(PermissionUtility.PermissionRequestCallback callback) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PermissionUtility.requestPermissions(mContext, new Handler(Looper.getMainLooper()),
-                    new String[]{
-                            Manifest.permission.RECORD_AUDIO,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE
-                    },
-                    callback);
-        } else {
-            callback.onSuccess();
+    /**
+     * 録画を行います.
+     *
+     * @param listener 録画開始結果を通知するリスナー
+     */
+    private void startRecordingInternal(final RecordingListener listener) {
+        if (mMP4Recorder != null) {
+            listener.onFailed(this, "Recording has started already.");
+            return;
         }
-    }
 
-    private void startRecordingInternal(final String fileName, final RecordingListener listener) {
-        try {
-            initAudioContext(fileName);
-            listener.onRecorded(this, fileName);
-        } catch (Exception e) {
-            releaseMediaRecorder();
-            mState = State.ERROR;
-            listener.onFailed(this, e.getClass().getSimpleName() + ": " + e.getLocalizedMessage());
-        }
-    }
+        File filePath = new File(getFileManager().getBasePath(), generateAudioFileName());
+        mMP4Recorder = new AudioMP4Recorder(filePath, mSettings);
+        mMP4Recorder.start(new MP4Recorder.OnRecordingStartListener() {
+            @Override
+            public void onRecordingStart() {
+                mState = State.RECORDING;
 
-    private void initAudioContext(final String fileName) throws IOException {
-        FileManager fileMgr = new FileManager(mContext, HostFileProvider.class.getName());
-        mFile = new File(fileMgr.getBasePath(), fileName);
+                if (listener != null) {
+                    listener.onRecorded(HostAudioRecorder.this, mMP4Recorder.getOutputFile().getAbsolutePath());
+                }
+            }
 
-        mMediaRecorder = new MediaRecorder();
-        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mMediaRecorder.setOutputFile(mFile.toString());
-        mMediaRecorder.prepare();
-        mMediaRecorder.start();
+            @Override
+            public void onRecordingStartError(Throwable e) {
+                if (mMP4Recorder != null) {
+                    mMP4Recorder.release();
+                    mMP4Recorder = null;
+                }
 
-        mState = State.RECORDING;
+                if (listener != null) {
+                    listener.onFailed(HostAudioRecorder.this,
+                            "Failed to start recording because of camera problem: " + e.getMessage());
+                }
+            }
+        });
     }
 
     /**
-     * MediaRecorderを解放.
+     * 録画停止を行います.
+     *
+     * @param listener 録画停止結果を通知するリスナー
      */
-    private void releaseMediaRecorder() {
-        if (mMediaRecorder != null) {
-            mMediaRecorder.reset();
-            mMediaRecorder.release();
-            mMediaRecorder = null;
+    private void stopRecordingInternal(final StoppingListener listener) {
+        if (mMP4Recorder == null) {
+            listener.onFailed(this, "Recording has stopped already.");
+            return;
         }
-    }
 
-    private void registerAudio(final File audioFile) {
-        Uri uri = mMediaSharing.shareAudio(mContext, audioFile);
-        if (DEBUG) {
-            String filePath = audioFile.getAbsolutePath();
-            if (uri != null) {
-                Log.d(TAG, "Registered audio: filePath=" + filePath + ", uri=" + uri.getPath());
-            } else {
-                Log.e(TAG, "Failed to register audio: file=" + filePath);
+        mState = State.INACTIVE;
+
+        mMP4Recorder.stop(new MP4Recorder.OnRecordingStopListener() {
+            @Override
+            public void onRecordingStop() {
+                File videoFile = mMP4Recorder.getOutputFile();
+
+                registerVideo(videoFile);
+
+                if (listener != null) {
+                    listener.onStopped(HostAudioRecorder.this, videoFile.getAbsolutePath());
+                }
+
+                mMP4Recorder.release();
+                mMP4Recorder = null;
             }
-        }
+
+            @Override
+            public void onRecordingStopError(Throwable e) {
+                if (listener != null) {
+                    listener.onFailed(HostAudioRecorder.this,
+                            "Failed to stop recording for unexpected error: " + e.getMessage());
+                }
+
+                if (mMP4Recorder != null) {
+                    mMP4Recorder.release();
+                    mMP4Recorder = null;
+                }
+            }
+        });
     }
 }

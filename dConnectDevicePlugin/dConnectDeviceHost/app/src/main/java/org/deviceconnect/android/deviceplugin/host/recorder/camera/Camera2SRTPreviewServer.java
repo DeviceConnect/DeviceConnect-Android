@@ -15,9 +15,7 @@ import org.deviceconnect.android.libsrt.server.SRTSession;
 import java.io.IOException;
 
 public class Camera2SRTPreviewServer extends Camera2PreviewServer {
-
     private static final boolean DEBUG = BuildConfig.DEBUG;
-
     private static final String TAG = "CameraSRT";
 
     /**

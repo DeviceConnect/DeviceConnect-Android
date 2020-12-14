@@ -25,34 +25,41 @@ public final class NetworkUtil {
      */
     public static String getIPAddress(final Context context) {
         Context appContext = context.getApplicationContext();
-        WifiManager wifiManager = (WifiManager) appContext.getSystemService(Context.WIFI_SERVICE);
         ConnectivityManager cManager = (ConnectivityManager) appContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cManager == null) {
+            return "0.0.0.0";
+        }
+
         NetworkInfo network = cManager.getActiveNetworkInfo();
         String en0Ip = null;
         if (network != null) {
-            switch (network.getType()) {
-                case ConnectivityManager.TYPE_ETHERNET:
-                    try {
-                        for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
-                            NetworkInterface intf = en.nextElement();
-                            for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
-                                InetAddress inetAddress = enumIpAddr.nextElement();
-                                if (inetAddress instanceof Inet4Address
-                                        && !inetAddress.getHostAddress().equals("127.0.0.1")) {
-                                    en0Ip = inetAddress.getHostAddress();
-                                    break;
-                                }
+            if (network.getType() == ConnectivityManager.TYPE_ETHERNET) {
+                try {
+                    for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
+                        NetworkInterface intf = en.nextElement();
+                        for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+                            InetAddress inetAddress = enumIpAddr.nextElement();
+                            if (inetAddress instanceof Inet4Address
+                                    && !inetAddress.getHostAddress().equals("127.0.0.1")) {
+                                en0Ip = inetAddress.getHostAddress();
+                                break;
                             }
                         }
-                    } catch (SocketException e) {
-                        Log.e("Host", "Get Ethernet IP Error", e);
                     }
+                } catch (SocketException e) {
+                    Log.e("Host", "Get Ethernet IP Error", e);
+                }
             }
         }
 
         if (en0Ip != null) {
             return en0Ip;
         } else {
+            WifiManager wifiManager = (WifiManager) appContext.getSystemService(Context.WIFI_SERVICE);
+            if (wifiManager == null) {
+                return "0.0.0.0";
+            }
+
             int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
             return String.format(Locale.getDefault(), "%d.%d.%d.%d",
                     (ipAddress & 0xff), (ipAddress >> 8 & 0xff),

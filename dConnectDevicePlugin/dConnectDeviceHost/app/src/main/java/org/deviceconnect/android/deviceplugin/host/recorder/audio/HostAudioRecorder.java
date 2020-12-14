@@ -71,7 +71,7 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
         }
     };
 
-    private RecorderState mState = RecorderState.INACTIVE;
+    private State mState = State.INACTIVE;
 
     private final MediaSharing mMediaSharing = MediaSharing.getInstance();
 
@@ -113,7 +113,7 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
     }
 
     @Override
-    public RecorderState getState() {
+    public State getState() {
         return mState;
     }
 
@@ -180,19 +180,31 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
 
     @Override
     public synchronized void startRecording(final RecordingListener listener) {
-        if (getState() == RecorderState.RECORDING) {
+        if (getState() != State.INACTIVE) {
             listener.onFailed(this, "MediaRecorder is already recording.");
         } else {
-            requestPermissions(generateAudioFileName(), listener);
+            requestPermissions(new PermissionUtility.PermissionRequestCallback() {
+                @Override
+                public void onSuccess() {
+                    startRecordingInternal(generateAudioFileName(), listener);
+                }
+
+                @Override
+                public void onFail(@NonNull String deniedPermission) {
+                    mState = State.ERROR;
+                    listener.onFailed(HostAudioRecorder.this,
+                            "Permission " + deniedPermission + " not granted.");
+                }
+            });
         }
     }
 
     @Override
     public synchronized void stopRecording(final StoppingListener listener) {
-        if (getState() == RecorderState.INACTIVE) {
+        if (getState() == State.INACTIVE) {
             listener.onFailed(this, "MediaRecorder is not running.");
         } else {
-            mState = RecorderState.INACTIVE;
+            mState = State.INACTIVE;
             if (listener != null) {
                 if (mMediaRecorder != null) {
                     mMediaRecorder.stop();
@@ -218,14 +230,14 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
             return;
         }
 
-        if (getState() != RecorderState.RECORDING) {
+        if (getState() != State.RECORDING) {
             return;
         }
 
         if (canPauseRecording()) {
             try {
                 mMediaRecorder.pause();
-                mState = RecorderState.PAUSED;
+                mState = State.PAUSED;
             } catch (IllegalStateException e) {
                 // ignore.
             }
@@ -238,14 +250,14 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
             return;
         }
 
-        if (getState() != RecorderState.PAUSED) {
+        if (getState() != State.PAUSED) {
             return;
         }
 
         if (canPauseRecording()) {
             try {
                 mMediaRecorder.resume();
-                mState = RecorderState.RECORDING;
+                mState = State.RECORDING;
             } catch (IllegalStateException e) {
                 // ignore.
             }
@@ -263,41 +275,31 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
         return "android_audio_" + mSimpleDateFormat.format(new Date()) + AudioConst.FORMAT_TYPE;
     }
 
-    private void requestPermissions(final String fileName, final RecordingListener listener) {
+    private void requestPermissions(PermissionUtility.PermissionRequestCallback callback) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PermissionUtility.requestPermissions(mContext, new Handler(Looper.getMainLooper()),
-                    new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    new PermissionUtility.PermissionRequestCallback() {
-                        @Override
-                        public void onSuccess() {
-                            startRecordingInternal(fileName, listener);
-                        }
-
-                        @Override
-                        public void onFail(@NonNull String deniedPermission) {
-                            mState = RecorderState.ERROR;
-                            listener.onFailed(HostAudioRecorder.this,
-                                    "Permission " + deniedPermission + " not granted.");
-                        }
-                    });
+                    new String[]{
+                            Manifest.permission.RECORD_AUDIO,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    },
+                    callback);
         } else {
-            startRecordingInternal(fileName, listener);
+            callback.onSuccess();
         }
     }
 
     private void startRecordingInternal(final String fileName, final RecordingListener listener) {
         try {
-            initAudioContext(fileName, listener);
-            mState = RecorderState.RECORDING;
+            initAudioContext(fileName);
             listener.onRecorded(this, fileName);
         } catch (Exception e) {
             releaseMediaRecorder();
-            mState = RecorderState.ERROR;
+            mState = State.ERROR;
             listener.onFailed(this, e.getClass().getSimpleName() + ": " + e.getLocalizedMessage());
         }
     }
 
-    private void initAudioContext(final String fileName, final RecordingListener listener) throws IOException {
+    private void initAudioContext(final String fileName) throws IOException {
         FileManager fileMgr = new FileManager(mContext, HostFileProvider.class.getName());
         mFile = new File(fileMgr.getBasePath(), fileName);
 
@@ -308,6 +310,8 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
         mMediaRecorder.setOutputFile(mFile.toString());
         mMediaRecorder.prepare();
         mMediaRecorder.start();
+
+        mState = State.RECORDING;
     }
 
     /**

@@ -81,9 +81,7 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
             }
 
             mMJPEGServer = new MJPEGServer();
-            if (sslContext != null) {
-                mMJPEGServer.setSSLContext(sslContext);
-            }
+            mMJPEGServer.setSSLContext(sslContext);
             mMJPEGServer.setServerName(SERVER_NAME);
             mMJPEGServer.setServerPort(getPort());
             mMJPEGServer.setCallback(mCallback);

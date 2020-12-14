@@ -7,10 +7,7 @@
 
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import android.bluetooth.BluetoothAdapter;
-import android.content.Context;
 import android.content.Intent;
-import android.net.wifi.WifiManager;
 import android.nfc.NfcAdapter;
 import android.os.Build;
 import android.os.Bundle;
@@ -293,7 +290,11 @@ public class HostConnectionProfile extends ConnectionProfile {
      */
     public HostConnectionProfile(HostConnectionManager manager) {
         mHostConnectionManager = manager;
-        mHostConnectionManager.setHostConnectionEventListener(new HostConnectionManager.ConnectionEventListener() {
+        mHostConnectionManager.addHostConnectionEventListener(new HostConnectionManager.ConnectionEventListener() {
+            @Override
+            public void onChangedMobileNetwork(int type) {
+            }
+
             @Override
             public void onChangedWifiStatus() {
                 postOnChangedWifiStatus();

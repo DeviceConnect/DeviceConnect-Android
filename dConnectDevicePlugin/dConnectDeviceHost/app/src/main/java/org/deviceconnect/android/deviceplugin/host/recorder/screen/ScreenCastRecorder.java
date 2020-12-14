@@ -83,7 +83,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     private ScreenCastBroadcasterProvider mScreenCastBroadcasterProvider;
     private ScreenCastSurfaceDrawingThread mScreenCastSurfaceDrawingThread;
 
-    private RecorderState mState = RecorderState.INACTIVE;
+    private State mState = State.INACTIVE;
 
     public ScreenCastRecorder(final Context context, final FileManager fileMgr) {
         mContext = context;
@@ -215,7 +215,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     }
 
     @Override
-    public RecorderState getState() {
+    public State getState() {
         return mState;
     }
 
@@ -342,7 +342,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
 
     private void takePhotoInternal(final @NonNull OnPhotoEventListener listener) {
         try {
-            mState = RecorderState.RECORDING;
+            mState = State.RECORDING;
 
             Size size = mSettings.getPictureSize();
             int w = size.getWidth();
@@ -361,7 +361,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
 
             Bitmap bitmap = screenshot.get();
             if (bitmap == null) {
-                mState = RecorderState.INACTIVE;
+                mState = State.INACTIVE;
                 listener.onFailedTakePhoto("Failed to take screenshot.");
                 return;
             }
@@ -374,14 +374,14 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
             mFileMgr.saveFile(filename, media, true, new FileManager.SaveFileCallback() {
                 @Override
                 public void onSuccess(@NonNull final String uri) {
-                    mState = RecorderState.INACTIVE;
+                    mState = State.INACTIVE;
                     registerPhoto(new File(mFileMgr.getBasePath(), filename));
                     listener.onTakePhoto(uri, null, MIME_TYPE_JPEG);
                 }
 
                 @Override
                 public void onFail(@NonNull final Throwable throwable) {
-                    mState = RecorderState.INACTIVE;
+                    mState = State.INACTIVE;
                     listener.onFailedTakePhoto(throwable.getMessage());
                 }
             });

@@ -214,6 +214,10 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         mSettings.setSupportedWhiteBalances(options.getSupportedWhiteBalanceList());
     }
 
+    public Context getContext() {
+        return mContext;
+    }
+
     public CameraWrapper getCameraWrapper() {
         return mCameraWrapper;
     }
@@ -279,15 +283,15 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
     }
 
     @Override
-    public RecorderState getState() {
+    public State getState() {
         if (mCameraWrapper.isRecording() || mCameraWrapper.isTakingStillImage()) {
-            return RecorderState.RECORDING;
+            return State.RECORDING;
         }
         // Preview用のNotificationが表示されている場合は、カメラをPreviewで占有しているものと判断する。
         if (mCamera2PreviewServerProvider.isRunning()) {
-            return RecorderState.PREVIEW;
+            return State.PREVIEW;
         }
-        return RecorderState.INACTIVE;
+        return State.INACTIVE;
     }
 
     @Override

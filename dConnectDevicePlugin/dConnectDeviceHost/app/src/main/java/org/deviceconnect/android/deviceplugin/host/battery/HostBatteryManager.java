@@ -34,6 +34,9 @@ public class HostBatteryManager {
     /** チャージフラグ. */
     private boolean mChargingFlag;
 
+    /** バッテリーの温度. */
+    private float mTemperature;
+
     /** バッテリーの状態 不明. */
     public static final int BATTERY_STATUS_UNKNOWN = 1;
 
@@ -110,15 +113,13 @@ public class HostBatteryManager {
             mStatusBattery = HostBatteryManager.BATTERY_STATUS_UNKNOWN;
             mValueLevel = 0;
             mValueScale = 0;
+            mTemperature = 0;
             return;
         }
 
         // バッテリーの変化を取得
         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
         switch (status) {
-        case BatteryManager.BATTERY_STATUS_UNKNOWN:
-            mStatusBattery = HostBatteryManager.BATTERY_STATUS_UNKNOWN;
-            break;
         case BatteryManager.BATTERY_STATUS_CHARGING:
             mStatusBattery = HostBatteryManager.BATTERY_STATUS_CHARGING;
             break;
@@ -131,6 +132,7 @@ public class HostBatteryManager {
         case BatteryManager.BATTERY_STATUS_FULL:
             mStatusBattery = HostBatteryManager.BATTERY_STATUS_FULL;
             break;
+        case BatteryManager.BATTERY_STATUS_UNKNOWN:
         default:
             mStatusBattery = HostBatteryManager.BATTERY_STATUS_UNKNOWN;
             break;
@@ -155,6 +157,10 @@ public class HostBatteryManager {
         // バッテリー残量
         mValueLevel = batteryStatus.getIntExtra("level", 0);
         mValueScale = batteryStatus.getIntExtra("scale", 0);
+
+        // バッテリーの温度
+        int raw = batteryStatus.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1);
+        mTemperature = raw / 10.0f;
     }
 
     /**
@@ -254,6 +260,14 @@ public class HostBatteryManager {
      */
     public boolean isChargingFlag() {
         return mChargingFlag;
+    }
+
+    /**
+     * バッテリー温度を取得.
+     * @return バッテリー温度
+     */
+    public float getTemperature() {
+        return mTemperature;
     }
 
     /**

@@ -81,7 +81,7 @@ public interface HostMediaRecorder {
      *
      * @return MediaRecorder の状態
      */
-    RecorderState getState();
+    State getState();
 
     /**
      * HostMediaRecorder の設定を取得します.
@@ -138,7 +138,7 @@ public interface HostMediaRecorder {
     /**
      * MediaRecorder の状態.
      */
-    enum RecorderState {
+    enum State {
         /**
          * 動作していない.
          */

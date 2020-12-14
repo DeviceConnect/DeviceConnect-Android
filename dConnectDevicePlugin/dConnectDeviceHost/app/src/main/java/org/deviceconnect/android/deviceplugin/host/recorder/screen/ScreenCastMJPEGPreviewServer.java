@@ -47,7 +47,6 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
         return mUsesSSLContext;
     }
 
-
     @Override
     public String getUri() {
         return mMJPEGServer == null ? null : mMJPEGServer.getUri();
@@ -67,9 +66,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
                 return;
             }
             mMJPEGServer = new MJPEGServer();
-            if (sslContext != null) {
-                mMJPEGServer.setSSLContext(sslContext);
-            }
+            mMJPEGServer.setSSLContext(sslContext);
             mMJPEGServer.setServerName("HostDevicePlugin Server");
             mMJPEGServer.setServerPort(getPort());
             mMJPEGServer.setCallback(mCallback);

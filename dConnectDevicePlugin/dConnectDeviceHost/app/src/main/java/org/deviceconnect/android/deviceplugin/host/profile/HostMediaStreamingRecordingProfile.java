@@ -17,6 +17,7 @@ import android.util.Size;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
@@ -36,6 +37,7 @@ import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -52,7 +54,6 @@ import static org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst
  */
 @SuppressWarnings("deprecation")
 public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProfile {
-
     /**
      * レコーダー管理クラス.
      */
@@ -70,14 +71,12 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         @Override
         public void onReceive(final Context context, final Intent intent) {
             if (intent.getAction().equals(SEND_VIDEO_TO_HOSTDP)) {
-
                 String serviceId = intent.getStringExtra(VideoConst.EXTRA_SERVICE_ID);
-                HostMediaRecorder.RecorderState state =
-                        (HostMediaRecorder.RecorderState) intent.getSerializableExtra(VideoConst.EXTRA_VIDEO_RECORDER_STATE);
+                HostMediaRecorder.State state = (HostMediaRecorder.State) intent.getSerializableExtra(VideoConst.EXTRA_VIDEO_RECORDER_STATE);
                 Uri uri = intent.getParcelableExtra(VideoConst.EXTRA_URI);
                 String path = intent.getStringExtra(VideoConst.EXTRA_FILE_NAME);
                 String u = uri != null ? uri.toString() : null;
-                mRecorderMgr.sendEventForRecordingChange(serviceId, state, u, path, "audio/aac", "");
+                sendEventForRecordingChange(serviceId, state, u, path, "audio/aac", "");
             }
         }
     };
@@ -104,17 +103,16 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     List<Bundle> recorders = new LinkedList<>();
                     for (HostMediaRecorder recorder : mRecorderMgr.getRecorders()) {
                         HostMediaRecorder.Settings settings = recorder.getSettings();
+
                         Bundle info = new Bundle();
                         setRecorderId(info, recorder.getId());
                         setRecorderName(info, recorder.getName());
                         setRecorderMIMEType(info, recorder.getMimeType());
-                        switch (recorder.getState()) {
-                            case RECORDING:
-                                setRecorderState(info, RecorderState.RECORDING);
-                                break;
-                            default:
-                                setRecorderState(info, RecorderState.INACTIVE);
-                                break;
+
+                        if (recorder.getState() == HostMediaRecorder.State.RECORDING) {
+                            setRecorderState(info, RecorderState.RECORDING);
+                        } else {
+                            setRecorderState(info, RecorderState.INACTIVE);
                         }
 
                         if (recorder.getMimeType().startsWith("image/") || recorder.getMimeType().startsWith("video/")) {
@@ -220,13 +218,13 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
             HostMediaRecorder.Settings settings = recorder.getSettings();
 
-            if (!supportsMimeType(recorder, mimeType)) {
+            if (!isSupportsMimeType(recorder, mimeType)) {
                 MessageUtils.setInvalidRequestParameterError(response, "MIME-Type " + mimeType + " is unsupported.");
                 return;
             }
 
-            if (recorder.getState() != HostMediaRecorder.RecorderState.INACTIVE
-                && recorder.getState() != HostMediaRecorder.RecorderState.PREVIEW) {
+            if (recorder.getState() != HostMediaRecorder.State.INACTIVE
+                && recorder.getState() != HostMediaRecorder.State.PREVIEW) {
                 MessageUtils.setInvalidRequestParameterError(response, "settings of active target cannot be changed.");
                 return;
             }
@@ -520,20 +518,18 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                 @Override
                 public void onAllowed() {
-                    // TODO SSL対応
-//                    HostDevicePlugin plugin = (HostDevicePlugin) get();
-//                    plugin.getSSLContext(new HostDevicePlugin.SSLContextCallback() {
-//                        @Override
-//                        public void onGet(final SSLContext sslContext) {
-//                            startPreviewServers(sslContext, response, recorder);
-//                        }
-//
-//                        @Override
-//                        public void onError() {
-//                            startPreviewServers(null, response, recorder);
-//                        }
-//                    });
-                    startPreviewServers(null, response, recorder);
+                    HostDevicePlugin plugin = getHostDevicePlugin();
+                    plugin.getSSLContext(new HostDevicePlugin.SSLContextCallback() {
+                        @Override
+                        public void onGet(final SSLContext sslContext) {
+                            startPreviewServers(sslContext, response, recorder);
+                        }
+
+                        @Override
+                        public void onError() {
+                            startPreviewServers(null, response, recorder);
+                        }
+                    });
                 }
 
                 @Override
@@ -687,12 +683,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         }
                     }
                     setResult(response, DConnectMessage.RESULT_OK);
-                    sendResponse(response);
                 } else {
                     // RecorderがRTSPをサポートしていない場合はエラーを返す。
                     MessageUtils.setIllegalDeviceStateError(response, "Unsupported.");
-                    sendResponse(response);
                 }
+                sendResponse(response);
             }
 
             @Override
@@ -703,7 +698,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         });
         return false;
     }
-
 
     private final DConnectApi mPostRecordApi = new PostApi() {
 
@@ -721,6 +715,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
+
             if (mRecorderMgr.usingPreviewOrStreamingRecorder(recorder.getId())) {
                 MessageUtils.setInvalidRequestParameterError(response, "Another target in using.");
                 return true;
@@ -732,8 +727,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
-            if (recorder.getState() != HostMediaRecorder.RecorderState.INACTIVE
-                && recorder.getState() != HostMediaRecorder.RecorderState.PREVIEW) {
+            if (recorder.getState() != HostMediaRecorder.State.INACTIVE
+                && recorder.getState() != HostMediaRecorder.State.PREVIEW) {
                 MessageUtils.setIllegalDeviceStateError(response,
                         recorder.getName() + " is already running.");
                 return true;
@@ -751,7 +746,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             setUri(response, mFileManager.getContentUri() + "/" + fileName);
                             sendResponse(response);
 
-                            mRecorderMgr.sendEventForRecordingChange(getServiceID(request), recorder.getState(),
+                            sendEventForRecordingChange(getServiceID(request), recorder.getState(),
                                     mFileManager.getContentUri() + "/" + fileName,
                                     "/" + fileName, recorder.getMimeType(), null);
                         }
@@ -760,7 +755,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         public void onFailed(final HostDeviceStreamRecorder recorder, final String errorMessage) {
                             MessageUtils.setIllegalServerStateError(response, errorMessage);
                             sendResponse(response);
-                            mRecorderMgr.sendEventForRecordingChange(getServiceID(request), HostMediaRecorder.RecorderState.ERROR,"",
+                            sendEventForRecordingChange(getServiceID(request), HostMediaRecorder.State.ERROR,"",
                                     "", recorder.getStreamMimeType(), errorMessage);
                         }
                     });
@@ -792,13 +787,14 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
+
             if (!(recorder instanceof HostDeviceStreamRecorder)) {
                 MessageUtils.setNotSupportAttributeError(response,
                         "target does not support stream recording.");
                 return true;
             }
 
-            if (recorder.getState() == HostMediaRecorder.RecorderState.INACTIVE) {
+            if (recorder.getState() == HostMediaRecorder.State.INACTIVE) {
                 MessageUtils.setIllegalDeviceStateError(response, "recorder is stopped already.");
                 return true;
             }
@@ -815,7 +811,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             setUri(response, mFileManager.getContentUri() + "/" + fileName);
                             sendResponse(response);
 
-                            mRecorderMgr.sendEventForRecordingChange(getServiceID(request), recorder.getState(),
+                            sendEventForRecordingChange(getServiceID(request), recorder.getState(),
                                     mFileManager.getContentUri() + "/" + fileName,
                                     "/" + fileName, recorder.getMimeType(), null);
                         }
@@ -824,7 +820,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         public void onFailed(HostDeviceStreamRecorder recorder, String errorMessage) {
                             MessageUtils.setIllegalServerStateError(response, errorMessage);
                             sendResponse(response);
-                            mRecorderMgr.sendEventForRecordingChange(getServiceID(request), HostMediaRecorder.RecorderState.ERROR,"",
+                            sendEventForRecordingChange(getServiceID(request), HostMediaRecorder.State.ERROR,"",
                                     "", recorder.getStreamMimeType(), errorMessage);
                         }
                     });
@@ -871,7 +867,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
-            if (recorder.getState() != HostMediaRecorder.RecorderState.RECORDING) {
+            if (recorder.getState() != HostMediaRecorder.State.RECORDING) {
                 MessageUtils.setIllegalDeviceStateError(response);
                 return true;
             }
@@ -927,7 +923,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
-            if (recorder.getState() != HostMediaRecorder.RecorderState.PAUSED) {
+            if (recorder.getState() != HostMediaRecorder.State.PAUSED) {
                 MessageUtils.setIllegalDeviceStateError(response);
                 return true;
             }
@@ -954,6 +950,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     public HostMediaStreamingRecordingProfile(final HostMediaRecorderManager mgr, final FileManager fileMgr) {
         mRecorderMgr = mgr;
         mFileManager = fileMgr;
+
         addApi(mGetMediaRecorderApi);
         addApi(mGetOptionsApi);
         addApi(mPutOptionsApi);
@@ -973,8 +970,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         addApi(mDeletePreviewMuteApi);
     }
 
-    private static void setSupportedImageSizes(final Intent response,
-                                               final List<Size> sizes) {
+    private HostDevicePlugin getHostDevicePlugin() {
+        return (HostDevicePlugin) getContext();
+     }
+
+    private static void setSupportedImageSizes(final Intent response, final List<Size> sizes) {
         Bundle[] array = new Bundle[sizes.size()];
         int i = 0;
         for (Size size : sizes) {
@@ -986,8 +986,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         setImageSizes(response, array);
     }
 
-    private static void setSupportedPreviewSizes(final Intent response,
-                                                 final List<Size> sizes) {
+    private static void setSupportedPreviewSizes(final Intent response, final List<Size> sizes) {
         Bundle[] array = new Bundle[sizes.size()];
         int i = 0;
         for (Size size : sizes) {
@@ -999,7 +998,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         setPreviewSizes(response, array);
     }
 
-    private boolean supportsMimeType(final HostMediaRecorder recorder, final String mimeType) {
+    private boolean isSupportsMimeType(final HostMediaRecorder recorder, final String mimeType) {
         for (String supportedMimeType : recorder.getSupportedMimeTypes()) {
             if (supportedMimeType.equals(mimeType)) {
                 return true;
@@ -1007,7 +1006,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
         return false;
     }
-
 
     /**
      * MIMEタイプを設定する.
@@ -1018,4 +1016,42 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     public static void setMIMEType(final Intent response, final List<String> mimeType) {
         response.putExtra(PARAM_MIME_TYPE, mimeType.toArray(new String[mimeType.size()]));
     }
+
+    @SuppressWarnings("deprecation")
+    public void sendEventForRecordingChange(final String serviceId, final HostMediaRecorder.State state,
+                                            final String uri, final String path,
+                                            final String mimeType, final String errorMessage) {
+        List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,
+                MediaStreamRecordingProfile.PROFILE_NAME, null,
+                MediaStreamRecordingProfile.ATTRIBUTE_ON_RECORDING_CHANGE);
+
+        Bundle record = new Bundle();
+        switch (state) {
+            case RECORDING:
+                MediaStreamRecordingProfile.setStatus(record, MediaStreamRecordingProfileConstants.RecordingState.RECORDING);
+                break;
+            case INACTIVE:
+                MediaStreamRecordingProfile.setStatus(record, MediaStreamRecordingProfileConstants.RecordingState.STOP);
+                break;
+            case ERROR:
+                MediaStreamRecordingProfile.setStatus(record, MediaStreamRecordingProfileConstants.RecordingState.ERROR);
+                break;
+            default:
+                MediaStreamRecordingProfile.setStatus(record, MediaStreamRecordingProfileConstants.RecordingState.UNKNOWN);
+                break;
+        }
+        record.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
+        record.putString(MediaStreamRecordingProfile.PARAM_PATH, path);
+        record.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, mimeType);
+        if (errorMessage != null) {
+            record.putString(MediaStreamRecordingProfile.PARAM_ERROR_MESSAGE, errorMessage);
+        }
+
+        for (Event evt : evts) {
+            Intent intent = EventManager.createEventMessage(evt);
+            intent.putExtra(MediaStreamRecordingProfile.PARAM_MEDIA, record);
+            getPluginContext().sendEvent(intent, evt.getAccessToken());
+        }
+    }
+
 }

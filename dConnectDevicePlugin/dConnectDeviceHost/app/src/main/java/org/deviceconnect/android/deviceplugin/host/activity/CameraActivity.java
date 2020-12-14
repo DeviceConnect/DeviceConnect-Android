@@ -7,6 +7,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
@@ -70,6 +71,9 @@ public class CameraActivity extends HostDevicePluginBindActivity {
                 }
             }
         });
+
+        // 明示的に画面を OFF にさせない
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override

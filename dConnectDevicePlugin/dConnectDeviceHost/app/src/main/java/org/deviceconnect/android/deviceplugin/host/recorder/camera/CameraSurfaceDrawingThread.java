@@ -62,7 +62,6 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
 
     @Override
     public void start() {
-        // カメラの設定を行う
         HostMediaRecorder.Settings settings = mRecorder.getSettings();
         Size previewSize = settings.getPreviewSize();
         int width = isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();

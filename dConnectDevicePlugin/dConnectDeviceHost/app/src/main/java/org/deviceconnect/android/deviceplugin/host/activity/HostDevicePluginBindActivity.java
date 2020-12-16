@@ -1,6 +1,5 @@
 package org.deviceconnect.android.deviceplugin.host.activity;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -10,10 +9,13 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.DisplayMetrics;
 import android.view.Surface;
+import android.view.View;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 
-public class HostDevicePluginBindActivity extends Activity {
+public class HostDevicePluginBindActivity extends AppCompatActivity {
     /**
      * 接続している HostDevicePlugin のインスタンス.
      */
@@ -91,6 +93,7 @@ public class HostDevicePluginBindActivity extends Activity {
         if (mIsBound) {
             unbindService(mConnection);
             mIsBound = false;
+            onUnbindService();
         }
     }
 
@@ -104,6 +107,7 @@ public class HostDevicePluginBindActivity extends Activity {
         @Override
         public void onServiceDisconnected(ComponentName name) {
             mHostDevicePlugin = null;
+            mIsBound = false;
             onUnbindService();
         }
     };
@@ -175,5 +179,48 @@ public class HostDevicePluginBindActivity extends Activity {
                     return ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
             }
         }
+    }
+
+    protected void hideSystemUI() {
+        // Enables regular immersive mode.
+        // For "lean back" mode, remove SYSTEM_UI_FLAG_IMMERSIVE.
+        // Or for "sticky immersive," replace it with SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                        // Set the content to appear under the system bars so that the
+                        // content doesn't resize when the system bars hide and show.
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        // Hide the nav bar and status bar
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
+
+        int uiOptions = View.SYSTEM_UI_FLAG_LOW_PROFILE;
+        decorView.setSystemUiVisibility(uiOptions);
+    }
+
+    // Shows the system bars by removing all the flags
+    // except for the ones that make the content appear under the system bars.
+    protected void showSystemUI() {
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+    }
+
+
+    public interface OnHostDevicePluginListener {
+        /**
+         * HostDevicePlugin に接続されたことを通知します.
+         */
+        void onBindService();
+
+        /**
+         * HostDevicePlugin から切断されたことを通知します.
+         */
+        void onUnbindService();
     }
 }

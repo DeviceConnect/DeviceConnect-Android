@@ -32,4 +32,14 @@ public class AudioRTMPBroadcaster implements Broadcaster {
     public void stop() {
 
     }
+
+    @Override
+    public void setMute(boolean mute) {
+
+    }
+
+    @Override
+    public boolean isMute() {
+        return false;
+    }
 }

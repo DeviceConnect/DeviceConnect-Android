@@ -27,6 +27,7 @@ import androidx.core.app.NotificationCompat;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.OverlayManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.OverlayPermissionActivity;
@@ -110,10 +111,12 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
         mRecorder = recorder;
         mOverlayManager = new OverlayManager(mContext);
 
-        addServer(new Camera2MJPEGPreviewServer(context, false, recorder, 11000 + num, mOnEventListener));
-        addServer(new Camera2MJPEGPreviewServer(context, true, recorder, 11100 + num, mOnEventListener));
-        addServer(new Camera2RTSPPreviewServer(context, recorder, 12000 + num, mOnEventListener));
-        addServer(new Camera2SRTPreviewServer(context, recorder, 13000 + num, mOnEventListener));
+        HostMediaRecorder.Settings settings = recorder.getSettings();
+
+        addServer(new Camera2MJPEGPreviewServer(context, recorder, false, settings.getMjpegPort(), mOnEventListener));
+        addServer(new Camera2MJPEGPreviewServer(context, recorder, true, settings.getMjpegSSLPort(), mOnEventListener));
+        addServer(new Camera2RTSPPreviewServer(context, recorder, settings.getRtspPort(), mOnEventListener));
+        addServer(new Camera2SRTPreviewServer(context, recorder, settings.getSrtPort(), mOnEventListener));
     }
 
     @Override

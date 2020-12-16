@@ -1,9 +1,9 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
-import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.H264VideoStream;
+import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.H265VideoStream;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 
-public class CameraH265VideoStream extends H264VideoStream {
+public class CameraH265VideoStream extends H265VideoStream {
     /**
      * 映像用エンコーダ.
      */

@@ -1,0 +1,412 @@
+package org.deviceconnect.android.deviceplugin.host.activity.camera;
+
+import android.app.Activity;
+import android.hardware.camera2.CameraMetadata;
+import android.os.Bundle;
+import android.text.InputType;
+import android.util.Log;
+import android.util.Size;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+
+import androidx.annotation.NonNull;
+import androidx.preference.EditTextPreference;
+import androidx.preference.ListPreference;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.SwitchPreferenceCompat;
+
+import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
+import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+public class CameraSettingsFragment extends PreferenceFragmentCompat implements CameraActivity.OnHostDevicePluginListener {
+    private HostMediaRecorderManager mMediaRecorderManager;
+    private HostMediaRecorder mMediaRecorder;
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = super.onCreateView(inflater, container, savedInstanceState);
+        if (view != null) {
+            view.setBackgroundColor(getResources().getColor(android.R.color.white));
+        }
+        return view;
+    }
+
+    @Override
+    public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+        setPreferencesFromResource(R.xml.settings_host_camera, rootKey);
+
+        HostDevicePlugin plugin = getHostDevicePlugin();
+        if (plugin != null) {
+            mMediaRecorderManager = plugin.getHostMediaRecorderManager();
+            mMediaRecorder = mMediaRecorderManager.getRecorder(getRecorderId());
+            HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
+
+            setPictureSizePreference(settings);
+            setPreviewSizePreference(settings);
+            setPreviewFrameRatePreference(settings);
+            setPreviewBitratePreference(settings);
+            setPreviewIFrameIntervalPreference(settings);
+            setPreviewVideoEncoderPreference(settings);
+            setPreviewWhiteBalancePreference(settings);
+
+            setAudioEnabledPreference(settings);
+            setAudioBitRatePreference(settings);
+            setAudioSampleRatePreference(settings);
+            setAudioChannelPreference(settings);
+            setAudioEchoCancelerPreference(settings);
+
+            setMotionJPEGPortPreference(settings);
+            setMotionJPEGQualityPreference(settings);
+            setRTSPPortPreference(settings);
+            setSRTPPortPreference(settings);
+        }
+    }
+
+    @Override
+    public void onBindService() {
+    }
+
+    @Override
+    public void onUnbindService() {
+    }
+
+    /**
+     * レコード ID を取得します.
+     *
+     * @return レコード ID
+     */
+    private String getRecorderId() {
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            return bundle.getString("recorder_id");
+        }
+        return null;
+    }
+
+    /**
+     * 接続されている HostDevicePlugin のインスタンスを取得します.
+     *
+     * 接続されていない場合には null を返却します。
+     *
+     * @return HostDevicePlugin のインスタンス
+     */
+    public HostDevicePlugin getHostDevicePlugin() {
+        Activity activity = getActivity();
+        if (activity instanceof CameraActivity) {
+            return ((CameraActivity) activity).getHostDevicePlugin();
+        }
+        return null;
+    }
+
+    /**
+     * 指定されたキーに対応する入力フォームを数値のみ入力可能に設定します.
+     *
+     * @param key キー
+     */
+    private void setInputTypeNumber(String key) {
+        EditTextPreference editTextPreference = findPreference(key);
+        if (editTextPreference != null) {
+            editTextPreference.setOnBindEditTextListener((editText) ->
+                    editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED));
+            editTextPreference.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
+        }
+    }
+
+    /**
+     * 静止画の解像度の Preference を作成します.
+     *
+     * @param settings レコーダの設定
+     */
+    private void setPictureSizePreference(HostMediaRecorder.Settings settings) {
+        ListPreference pref = findPreference("camera_picture_size");
+        if (pref != null) {
+            String value = pref.getValue();
+            if (value == null) {
+                Size preview = settings.getPreviewSize();
+                pref.setValue(getPreviewSizeSettingValue(preview));
+            }
+            pref.setVisible(true);
+
+            List<Size> previewSizes = getSupportedPictureSizes(settings);
+            List<String> entryValues = new ArrayList<>();
+            for (Size preview : previewSizes) {
+                entryValues.add(getPreviewSizeSettingValue(preview));
+            }
+
+            pref.setEntries(entryValues.toArray(new String[0]));
+            pref.setEntryValues(entryValues.toArray(new String[0]));
+        }
+    }
+
+    /**
+     * プレビューの解像度 Preference を作成します.
+     *
+     * @param settings レコーダの設定
+     */
+    private void setPreviewSizePreference(HostMediaRecorder.Settings settings) {
+        ListPreference pref = findPreference("camera_preview_size");
+        if (pref != null) {
+            String value = pref.getValue();
+            if (value == null) {
+                Size preview = settings.getPreviewSize();
+                pref.setValue(getPreviewSizeSettingValue(preview));
+            }
+            pref.setVisible(true);
+
+            List<Size> previewSizes = getSupportedPreviewSizes(settings);
+            List<String> entryValues = new ArrayList<>();
+            for (Size preview : previewSizes) {
+                entryValues.add(getPreviewSizeSettingValue(preview));
+            }
+
+            pref.setEntries(entryValues.toArray(new String[0]));
+            pref.setEntryValues(entryValues.toArray(new String[0]));
+        }
+    }
+
+    /**
+     * フレームレートの入力フォームを作成します.
+     */
+    private void setPreviewFrameRatePreference(HostMediaRecorder.Settings settings) {
+        EditTextPreference pref = findPreference("encoder_frame_rate");
+        if (pref != null) {
+            // 0 以上の整数値以外の入力を禁止する
+            pref.setOnBindEditTextListener((@NonNull EditText editText) ->
+                    editText.setInputType(InputType.TYPE_CLASS_NUMBER));
+            pref.setText(String.valueOf(settings.getPreviewMaxFrameRate()));
+        }
+    }
+
+    /**
+     * ビットレートの入力フォームを作成します.
+     */
+    private void setPreviewBitratePreference(HostMediaRecorder.Settings settings) {
+        EditTextPreference pref = findPreference("encoder_bitrate");
+        if (pref != null) {
+            // 0 以上の実数値以外の入力を禁止する
+            pref.setOnBindEditTextListener((@NonNull EditText editText) ->
+                    editText.setInputType(InputType.TYPE_CLASS_NUMBER
+                            | InputType.TYPE_NUMBER_FLAG_DECIMAL));
+            pref.setText(String.valueOf(settings.getPreviewBitRate()));
+        }
+    }
+
+    /**
+     * キーフレームインターバルの入力フォームを作成します.
+     */
+    private void setPreviewIFrameIntervalPreference(HostMediaRecorder.Settings settings) {
+        EditTextPreference pref = findPreference("encoder_i_frame_interval");
+        if (pref != null) {
+            // 0 以上の実数値以外の入力を禁止する
+            pref.setOnBindEditTextListener((@NonNull EditText editText) ->
+                    editText.setInputType(InputType.TYPE_CLASS_NUMBER
+                            | InputType.TYPE_NUMBER_FLAG_DECIMAL));
+            pref.setText(String.valueOf(settings.getPreviewKeyFrameInterval()));
+        }
+    }
+
+    private void setPreviewVideoEncoderPreference(HostMediaRecorder.Settings settings) {
+        ListPreference pref = findPreference("encoder_name");
+        if (pref != null) {
+            pref.setValue(settings.getPreviewMimeType());
+        }
+    }
+
+    private void setPreviewWhiteBalancePreference(HostMediaRecorder.Settings settings) {
+        ListPreference pref = findPreference("camera_white_balance");
+        if (pref != null) {
+            List<String> entryNames = new ArrayList<>();
+            List<String> entryValues = new ArrayList<>();
+            for (Integer mode : settings.getSupportedWhiteBalances()) {
+                switch (mode) {
+                    case CameraMetadata.CONTROL_AWB_MODE_OFF:
+                        entryNames.add("OFF");
+                        break;
+                    case CameraMetadata.CONTROL_AWB_MODE_AUTO:
+                        entryNames.add("AUTO");
+                        break;
+                    case CameraMetadata.CONTROL_AWB_MODE_INCANDESCENT:
+                        entryNames.add("INCANDESCENT");
+                        break;
+                    case CameraMetadata.CONTROL_AWB_MODE_FLUORESCENT:
+                        entryNames.add("FLUORESCENT");
+                        break;
+                    case CameraMetadata.CONTROL_AWB_MODE_WARM_FLUORESCENT:
+                        entryNames.add("WARM_FLUORESCENT");
+                        break;
+                    case CameraMetadata.CONTROL_AWB_MODE_DAYLIGHT:
+                        entryNames.add("DAYLIGHT");
+                        break;
+                    case CameraMetadata.CONTROL_AWB_MODE_CLOUDY_DAYLIGHT:
+                        entryNames.add("CLOUDY_DAYLIGHT");
+                        break;
+                    case CameraMetadata.CONTROL_AWB_MODE_TWILIGHT:
+                        entryNames.add("TWILIGHT");
+                        break;
+                    case CameraMetadata.CONTROL_AWB_MODE_SHADE:
+                        entryNames.add("SHADE");
+                        break;
+                }
+                entryValues.add(String.valueOf(mode));
+            }
+            pref.setEntries(entryNames.toArray(new String[0]));
+            pref.setEntryValues(entryValues.toArray(new String[0]));
+            pref.setValue(String.valueOf(settings.getPreviewWhiteBalance()));
+        }
+    }
+
+    private void setAudioEnabledPreference(HostMediaRecorder.Settings settings) {
+        SwitchPreferenceCompat pref = findPreference("audio_enable");
+        if (pref != null) {
+            pref.setChecked(settings.isAudioEnabled());
+        }
+    }
+
+    private void setAudioBitRatePreference(HostMediaRecorder.Settings settings) {
+        EditTextPreference pref = findPreference("audio_bitrate");
+        if (pref != null) {
+            // 0 以上の実数値以外の入力を禁止する
+            pref.setOnBindEditTextListener((@NonNull EditText editText) ->
+                    editText.setInputType(InputType.TYPE_CLASS_NUMBER
+                            | InputType.TYPE_NUMBER_FLAG_DECIMAL));
+            pref.setText(String.valueOf(settings.getPreviewAudioBitRate()));
+        }
+    }
+
+    private void setAudioSampleRatePreference(HostMediaRecorder.Settings settings) {
+        ListPreference pref = findPreference("audio_sampling_rate");
+        if (pref != null) {
+            pref.setValue(String.valueOf(settings.getPreviewSampleRate()));
+        }
+    }
+
+    private void setAudioChannelPreference(HostMediaRecorder.Settings settings) {
+        EditTextPreference pref = findPreference("audio_channel");
+        if (pref != null) {
+            // 0 以上の実数値以外の入力を禁止する
+            pref.setOnBindEditTextListener((@NonNull EditText editText) ->
+                    editText.setInputType(InputType.TYPE_CLASS_NUMBER
+                            | InputType.TYPE_NUMBER_FLAG_DECIMAL));
+            pref.setText(String.valueOf(settings.getPreviewChannel()));
+        }
+    }
+
+    private void setAudioEchoCancelerPreference(HostMediaRecorder.Settings settings) {
+        SwitchPreferenceCompat pref = findPreference("audio_echo_canceler");
+        if (pref != null) {
+            pref.setChecked(settings.isUseAEC());
+        }
+    }
+
+
+    private void setMotionJPEGPortPreference(HostMediaRecorder.Settings settings) {
+        EditTextPreference pref = findPreference("motion_jpeg_port");
+        if (pref != null) {
+            // 0 以上の実数値以外の入力を禁止する
+            pref.setOnBindEditTextListener((@NonNull EditText editText) ->
+                    editText.setInputType(InputType.TYPE_CLASS_NUMBER
+                            | InputType.TYPE_NUMBER_FLAG_DECIMAL));
+            pref.setText(String.valueOf(settings.getMjpegPort()));
+        }
+    }
+    private void setMotionJPEGQualityPreference(HostMediaRecorder.Settings settings) {
+        EditTextPreference pref = findPreference("motion_jpeg_quality");
+        if (pref != null) {
+            // 0 以上の実数値以外の入力を禁止する
+            pref.setOnBindEditTextListener((@NonNull EditText editText) ->
+                    editText.setInputType(InputType.TYPE_CLASS_NUMBER
+                            | InputType.TYPE_NUMBER_FLAG_DECIMAL));
+            pref.setText(String.valueOf(settings.getPreviewQuality()));
+        }
+    }
+
+    private void setRTSPPortPreference(HostMediaRecorder.Settings settings) {
+        EditTextPreference pref = findPreference("rtsp_port");
+        if (pref != null) {
+            // 0 以上の実数値以外の入力を禁止する
+            pref.setOnBindEditTextListener((@NonNull EditText editText) ->
+                    editText.setInputType(InputType.TYPE_CLASS_NUMBER
+                            | InputType.TYPE_NUMBER_FLAG_DECIMAL));
+            pref.setText(String.valueOf(settings.getRtspPort()));
+        }
+    }
+
+    private void setSRTPPortPreference(HostMediaRecorder.Settings settings) {
+        EditTextPreference pref = findPreference("srt_port");
+        if (pref != null) {
+            // 0 以上の実数値以外の入力を禁止する
+            pref.setOnBindEditTextListener((@NonNull EditText editText) ->
+                    editText.setInputType(InputType.TYPE_CLASS_NUMBER
+                            | InputType.TYPE_NUMBER_FLAG_DECIMAL));
+            pref.setText(String.valueOf(settings.getSrtPort()));
+        }
+    }
+
+
+    /**
+     * カメラID に対応したカメラデバイスがサポートしている写真サイズのリストを取得します.
+     *
+     * @param settings レコーダ
+     * @return サポートしているプレビューサイズのリスト
+     */
+    @NonNull
+    private static List<Size> getSupportedPictureSizes(HostMediaRecorder.Settings settings) {
+        List<Size> previewSizes = new ArrayList<>();
+        if (settings != null) {
+            previewSizes.addAll(settings.getSupportedPictureSizes());
+            Collections.sort(previewSizes, SIZE_COMPARATOR);
+        }
+        return previewSizes;
+    }
+
+    /**
+     * カメラID に対応したカメラデバイスがサポートしているプレビューサイズのリストを取得します.
+     *
+     * @param settings レコーダ
+     * @return サポートしているプレビューサイズのリスト
+     */
+    @NonNull
+    private static List<Size> getSupportedPreviewSizes(HostMediaRecorder.Settings settings) {
+        List<Size> previewSizes = new ArrayList<>();
+        if (settings != null) {
+            previewSizes.addAll(settings.getSupportedPreviewSizes());
+            Collections.sort(previewSizes, SIZE_COMPARATOR);
+        }
+        return previewSizes;
+    }
+
+    /**
+     * プレビューのサイズを文字列に変換します.
+     *
+     * @param previewSize プレビューサイズ
+     * @return 文字列
+     */
+    private String getPreviewSizeSettingValue(Size previewSize) {
+        return previewSize.getWidth() + " x " + previewSize.getHeight();
+    }
+
+    /**
+     * サイズの小さい方からソートを行うための比較演算子.
+     */
+    private static final Comparator<Size> SIZE_COMPARATOR = (lhs, rhs) -> {
+        // We cast here to ensure the multiplications won't overflow
+        return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
+                (long) rhs.getWidth() * rhs.getHeight());
+    };
+
+    private Preference.OnPreferenceChangeListener mOnPreferenceChangeListener = (preference, newValue) -> {
+        String key = preference.getKey();
+        Log.e("ABC", "################ " + key + " " + newValue);
+        return true;
+    };
+}

@@ -39,29 +39,29 @@ public final class PropertyUtil {
     }
 
     public void put(String key, int value) {
-        mProperties.put(key, String.valueOf(value));
+        mProperties.setProperty(key, String.valueOf(value));
     }
 
     public void put(String key, float value) {
-        mProperties.put(key, String.valueOf(value));
+        mProperties.setProperty(key, String.valueOf(value));
     }
 
     public void put(String key, boolean value) {
-        mProperties.put(key, String.valueOf(value));
+        mProperties.setProperty(key, String.valueOf(value));
     }
 
     public void put(String key, String value) {
-        mProperties.put(key, value);
+        mProperties.setProperty(key, value);
     }
 
     public void put(String widthKey, String heightKey, Size size) {
-        mProperties.put(widthKey, size.getWidth());
-        mProperties.put(heightKey, size.getHeight());
+        mProperties.setProperty(widthKey, String.valueOf(size.getWidth()));
+        mProperties.setProperty(heightKey, String.valueOf(size.getHeight()));
     }
 
     public void put(String lowerKey, String upperKey, Range<Integer> range) {
-        mProperties.put(lowerKey, range.getLower());
-        mProperties.put(upperKey, range.getUpper());
+        mProperties.setProperty(lowerKey, String.valueOf(range.getLower()));
+        mProperties.setProperty(upperKey, String.valueOf(range.getUpper()));
     }
 
     public int getInteger(String key, int defaultValue) {

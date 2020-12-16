@@ -127,6 +127,24 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
     }
 
     @Override
+    public void setMute(boolean mute) {
+        if (mRtmpClient != null) {
+            mRtmpClient.setMute(mute);
+            if (mRtmpClient.isRunning()) {
+                mRtmpClient.restartAudioEncoder();
+            }
+        }
+    }
+
+    @Override
+    public boolean isMute() {
+        if (mRtmpClient != null) {
+            return mRtmpClient.isMute();
+        }
+        return false;
+    }
+
+    @Override
     public String getMimeType() {
         return "";
     }

@@ -208,6 +208,28 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         mSettings.setSupportedPictureSizes(new ArrayList<>(options.getSupportedPictureSizeList()));
         mSettings.setSupportedFps(options.getSupportedFpsList());
         mSettings.setSupportedWhiteBalances(options.getSupportedWhiteBalanceList());
+
+        File file = new File(mContext.getCacheDir(), getId());
+        if (!mSettings.load(file)) {
+            mSettings.setPictureSize(options.getDefaultPictureSize());
+            mSettings.setPreviewSize(options.getDefaultPreviewSize());
+            mSettings.setPreviewBitRate(2 * 1024 * 1024);
+            mSettings.setPreviewMaxFrameRate(30);
+            mSettings.setPreviewKeyFrameInterval(1);
+
+            mSettings.setAudioEnabled(false);
+            mSettings.setPreviewAudioBitRate(64 * 1024);
+            mSettings.setPreviewSampleRate(8000);
+            mSettings.setPreviewChannel(1);
+            mSettings.setUseAEC(true);
+
+            mSettings.setMjpegPort(11000 + mFacing.mValue);
+            mSettings.setMjpegSSLPort(11100 + mFacing.mValue);
+            mSettings.setRtspPort(12000 + mFacing.mValue);
+            mSettings.setSrtPort(13000 + mFacing.mValue);
+
+            mSettings.save(file);
+        }
     }
 
     public CameraWrapper getCameraWrapper() {
@@ -224,20 +246,6 @@ public class Camera2Recorder extends AbstractMediaRecorder {
 
     @Override
     public synchronized void initialize() {
-        if (!mSettings.load(new File(mContext.getCacheDir(), getId()))) {
-            CameraWrapper.Options options = mCameraWrapper.getOptions();
-            mSettings.setPictureSize(options.getDefaultPictureSize());
-            mSettings.setPreviewSize(options.getDefaultPreviewSize());
-            mSettings.setPreviewBitRate(2 * 1024 * 1024);
-            mSettings.setPreviewMaxFrameRate(30);
-            mSettings.setPreviewKeyFrameInterval(1);
-
-            mSettings.setAudioEnabled(false);
-            mSettings.setPreviewAudioBitRate(64 * 1024);
-            mSettings.setPreviewSampleRate(8000);
-            mSettings.setPreviewChannel(1);
-            mSettings.setUseAEC(true);
-        }
     }
 
     @Override
@@ -633,27 +641,25 @@ public class Camera2Recorder extends AbstractMediaRecorder {
             @Override
             public void onRecordingStop() {
                 File videoFile = mMP4Recorder.getOutputFile();
-
                 registerVideo(videoFile);
+                mMP4Recorder.release();
+                mMP4Recorder = null;
 
                 if (listener != null) {
                     listener.onStopped(Camera2Recorder.this, videoFile.getAbsolutePath());
                 }
-
-                mMP4Recorder.release();
-                mMP4Recorder = null;
             }
 
             @Override
             public void onRecordingStopError(Throwable e) {
-                if (listener != null) {
-                    listener.onFailed(Camera2Recorder.this,
-                            "Failed to stop recording for unexpected error: " + e.getMessage());
-                }
-
                 if (mMP4Recorder != null) {
                     mMP4Recorder.release();
                     mMP4Recorder = null;
+                }
+
+                if (listener != null) {
+                    listener.onFailed(Camera2Recorder.this,
+                            "Failed to stop recording for unexpected error: " + e.getMessage());
                 }
             }
         });

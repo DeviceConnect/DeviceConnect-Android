@@ -77,8 +77,11 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                 }
 
                 if (mHostMediaRecorder != null) {
-                    MessageUtils.setIllegalDeviceStateError(response, "LiveStreaming is already running.");
-                    return true;
+                    BroadcasterProvider provider = mHostMediaRecorder.getBroadcasterProvider();
+                    if (provider != null && provider.isRunning()) {
+                        MessageUtils.setIllegalDeviceStateError(response, "LiveStreaming is already running.");
+                        return true;
+                    }
                 }
 
                 String broadcastURI = request.getStringExtra(PARAM_KEY_BROADCAST);
@@ -117,11 +120,23 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                         settings.setPreviewMaxFrameRate(frameRate);
                     }
 
+                    // 映像が有効な時の音声設定を行う
                     if (!VIDEO_URI_FALSE.equals(video)) {
-                        settings.setAudioEnabled(VIDEO_URI_TRUE.equals(audio));
+                        settings.setAudioEnabled(AUDIO_URI_TRUE.equals(audio));
                     }
                 } catch (Exception e) {
                     MessageUtils.setInvalidRequestParameterError(response, "Parameter is invalid.");
+                    return true;
+                }
+
+                BroadcasterProvider provider = recorder.getBroadcasterProvider();
+                if (provider == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "Not support.");
+                    return true;
+                }
+
+                if (provider.isRunning()) {
+                    MessageUtils.setIllegalDeviceStateError(response, "recorder already running.");
                     return true;
                 }
 
@@ -129,22 +144,23 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     @Override
                     public void onAllowed() {
                         String testURI = "rtmp://192.168.11.7:1935/live/abc";
-
-                        BroadcasterProvider provider = recorder.getBroadcasterProvider();
                         provider.startBroadcaster(testURI, new BroadcasterProvider.OnBroadcasterListener() {
                             @Override
                             public void onStarted() {
                                 sendResponse(response);
+                                postOnStart(provider.getBroadcaster());
                             }
 
                             @Override
                             public void onStopped() {
+                                postOnStop(provider.getBroadcaster());
                             }
 
                             @Override
                             public void onError(Exception e) {
                                 MessageUtils.setUnknownError(response, "e" + e.toString());
                                 sendResponse(response);
+                                postOnError(provider.getBroadcaster());
                             }
                         });
                     }
@@ -172,14 +188,14 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     Log.d(TAG, "onRequest() : put /stop");
                 }
 
-                // TODO
+                if (mHostMediaRecorder != null) {
+                    BroadcasterProvider provider = mHostMediaRecorder.getBroadcasterProvider();
+                    if (provider != null) {
+                        provider.stopBroadcaster();
+                    }
+                }
+                mHostMediaRecorder = null;
 
-//                if (mHostMediaRecorder != null) {
-//                    mHostMediaRecorder.stopBroadcaster();
-//                    mHostMediaRecorder = null;
-//                } else {
-//                    MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
-//                }
                 return true;
             }
         });
@@ -196,12 +212,18 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     Log.d(TAG, "onRequest() : get /onStatusChange");
                 }
 
-                // TODO
-
-//                if (mHostMediaRecorder != null) {
-//                    Bundle streaming = createStreamingBundle(mHostMediaRecorder.getBroadcaster(), "streaming");
-//                    response.putExtra(PARAM_KEY_STREAMING, streaming);
-//                }
+                Bundle streaming;
+                if (mHostMediaRecorder != null) {
+                    BroadcasterProvider provider = mHostMediaRecorder.getBroadcasterProvider();
+                    if (provider != null && provider.isRunning()) {
+                        streaming = createStreamingBundle(provider.getBroadcaster(), "streaming");
+                    } else {
+                        streaming = createStreamingBundle(null, "stop");
+                    }
+                } else {
+                    streaming = createStreamingBundle(null, "stop");
+                }
+                response.putExtra(PARAM_KEY_STREAMING, streaming);
 
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
@@ -269,31 +291,16 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                 }
 
                 if (mHostMediaRecorder != null) {
+                    BroadcasterProvider provider = mHostMediaRecorder.getBroadcasterProvider();
+                    if (provider != null) {
+                        Broadcaster broadcaster = provider.getBroadcaster();
+                        broadcaster.setMute(true);
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    }
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
                 }
 
-                // TODO 実装すること
-
-//                if (mHostDeviceLiveStreamRecorder != null) {
-//                    ((HostMediaRecorder) mHostDeviceLiveStreamRecorder)
-//                            .requestPermission(new HostMediaRecorder.PermissionCallback() {
-//                                @Override
-//                                public void onAllowed() {
-//                                    mHostDeviceLiveStreamRecorder.setMute(true);
-//                                    setResult(response, DConnectMessage.RESULT_OK);
-//                                    sendResponse(response);
-//                                }
-//
-//                                @Override
-//                                public void onDisallowed() {
-//                                    MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
-//                                    sendResponse(response);
-//                                }
-//                            });
-//                    return false;
-//                } else {
-//                    MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
-//                    return true;
-//                }
                 return true;
             }
         });
@@ -310,29 +317,17 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     Log.d(TAG, "onRequest() : delete /mute");
                 }
 
-                // TODO 実装すること
+                if (mHostMediaRecorder != null) {
+                    BroadcasterProvider provider = mHostMediaRecorder.getBroadcasterProvider();
+                    if (provider != null) {
+                        Broadcaster broadcaster = provider.getBroadcaster();
+                        broadcaster.setMute(false);
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    }
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
+                }
 
-//                if (mHostDeviceLiveStreamRecorder != null) {
-//                    ((HostMediaRecorder) mHostDeviceLiveStreamRecorder)
-//                            .requestPermission(new HostMediaRecorder.PermissionCallback() {
-//                                @Override
-//                                public void onAllowed() {
-//                                    mHostDeviceLiveStreamRecorder.setMute(false);
-//                                    setResult(response, DConnectMessage.RESULT_OK);
-//                                    sendResponse(response);
-//                                }
-//
-//                                @Override
-//                                public void onDisallowed() {
-//                                    MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
-//                                    sendResponse(response);
-//                                }
-//                            });
-//                    return false;
-//                } else {
-//                    MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
-//                    return true;
-//                }
                 return true;
             }
         });
@@ -345,14 +340,14 @@ public class HostLiveStreamingProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                // TODO 実装すること
-
-//                if (mHostDeviceLiveStreamRecorder != null) {
-//                    response.putExtra(PARAM_KEY_MUTE, mHostDeviceLiveStreamRecorder.isMute());
-//                    setResult(response, DConnectMessage.RESULT_OK);
-//                } else {
-//                    MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
-//                }
+                if (mHostMediaRecorder != null) {
+                    BroadcasterProvider provider = mHostMediaRecorder.getBroadcasterProvider();
+                    if (provider != null) {
+                        response.putExtra(PARAM_KEY_MUTE, provider.getBroadcaster().isMute());
+                    }
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
+                }
                 return true;
             }
         });
@@ -385,20 +380,23 @@ public class HostLiveStreamingProfile extends DConnectProfile {
     }
 
     private Bundle createStreamingBundle(Broadcaster broadcaster, String status) {
-        HostMediaRecorder.Settings settings = mHostMediaRecorder.getSettings();
-
         Bundle streaming = new Bundle();
-        streaming.putString(PARAM_KEY_URI, broadcaster.getBroadcastURI());
+        if (broadcaster != null) {
+            streaming.putString(PARAM_KEY_URI, broadcaster.getBroadcastURI());
+        }
         streaming.putString(PARAM_KEY_STATUS, status);
 
-        Bundle video = new Bundle();
-        video.putString(PARAM_KEY_URI, mHostMediaRecorder.getId());
-        video.putInt(PARAM_KEY_WIDTH, settings.getPreviewSize().getWidth());
-        video.putInt(PARAM_KEY_HEIGHT, settings.getPreviewSize().getHeight());
-        video.putInt(PARAM_KEY_BITRATE, settings.getPreviewBitRate());
-        video.putInt(PARAM_KEY_FRAME_RATE, settings.getPreviewMaxFrameRate());
-        video.putString(PARAM_KEY_MIME_TYPE, broadcaster.getMimeType());
-        streaming.putParcelable(PARAM_KEY_VIDEO, video);
+        if (broadcaster != null) {
+            HostMediaRecorder.Settings settings = mHostMediaRecorder.getSettings();
+            Bundle video = new Bundle();
+            video.putString(PARAM_KEY_URI, mHostMediaRecorder.getId());
+            video.putInt(PARAM_KEY_WIDTH, settings.getPreviewSize().getWidth());
+            video.putInt(PARAM_KEY_HEIGHT, settings.getPreviewSize().getHeight());
+            video.putInt(PARAM_KEY_BITRATE, settings.getPreviewBitRate());
+            video.putInt(PARAM_KEY_FRAME_RATE, settings.getPreviewMaxFrameRate());
+            video.putString(PARAM_KEY_MIME_TYPE, broadcaster.getMimeType());
+            streaming.putParcelable(PARAM_KEY_VIDEO, video);
+        }
 
         return streaming;
     }

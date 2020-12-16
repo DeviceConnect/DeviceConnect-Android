@@ -84,7 +84,7 @@
             android:theme="@style/AppCompatTheme" />
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.profile.CanvasProfileActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:excludeFromRecents="true"
             android:exported="false"
@@ -93,7 +93,7 @@
             android:theme="@style/AppCompatTheme" />
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.activity.TouchProfileActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.profile.TouchProfileActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleInstance"
@@ -101,7 +101,7 @@
             android:theme="@style/AppCompatTheme" />
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.activity.KeyEventProfileActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.profile.KeyEventProfileActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleInstance"
@@ -127,9 +127,11 @@
             android:theme="@style/AppTheme.Translucent" />
 
         <!-- カメラの画面を表示するための Activity -->
-        <activity android:name=".activity.CameraActivity"
+        <activity
+            android:name=".activity.camera.CameraActivity"
+            android:exported="true"
             android:label="Host Camera"
-            android:exported="true">
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -150,7 +152,7 @@
             android:exported="true">
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
-                android:resource="@xml/org_deviceconnect_android_deviceplugin_host"/>
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_host" />
         </service>
 
         <!-- Device Connect API リクエストのレシーバー -->
@@ -164,16 +166,16 @@
             android:exported="true">
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
-                android:resource="@xml/org_deviceconnect_android_deviceplugin_host"/>
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_host" />
             <intent-filter>
-                <action android:name="org.deviceconnect.action.GET"/>
-                <action android:name="org.deviceconnect.action.PUT"/>
-                <action android:name="org.deviceconnect.action.POST"/>
-                <action android:name="org.deviceconnect.action.DELETE"/>
+                <action android:name="org.deviceconnect.action.GET" />
+                <action android:name="org.deviceconnect.action.PUT" />
+                <action android:name="org.deviceconnect.action.POST" />
+                <action android:name="org.deviceconnect.action.DELETE" />
 
                 <!-- uninstall notification -->
-                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
-                <data android:scheme="package"/>
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED" />
+                <data android:scheme="package" />
             </intent-filter>
         </receiver>
 

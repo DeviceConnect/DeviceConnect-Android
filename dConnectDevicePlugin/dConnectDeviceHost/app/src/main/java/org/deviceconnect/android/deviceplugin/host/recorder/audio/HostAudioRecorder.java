@@ -69,6 +69,11 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     public HostAudioRecorder(final Context context, FileManager fileManager) {
         super(context, 3, fileManager);
         mContext = context;
+
+        initSettings();
+    }
+
+    private void initSettings() {
     }
 
     @Override
@@ -214,7 +219,9 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     @Override
     public synchronized void stopRecording(final StoppingListener listener) {
         if (getState() == State.INACTIVE) {
-            listener.onFailed(this, "MediaRecorder is not running.");
+            if (listener != null) {
+                listener.onFailed(this, "MediaRecorder is not running.");
+            }
         } else {
             stopRecordingInternal(listener);
         }
@@ -323,27 +330,25 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
             @Override
             public void onRecordingStop() {
                 File videoFile = mMP4Recorder.getOutputFile();
-
                 registerVideo(videoFile);
+                mMP4Recorder.release();
+                mMP4Recorder = null;
 
                 if (listener != null) {
                     listener.onStopped(HostAudioRecorder.this, videoFile.getAbsolutePath());
                 }
-
-                mMP4Recorder.release();
-                mMP4Recorder = null;
             }
 
             @Override
             public void onRecordingStopError(Throwable e) {
-                if (listener != null) {
-                    listener.onFailed(HostAudioRecorder.this,
-                            "Failed to stop recording for unexpected error: " + e.getMessage());
-                }
-
                 if (mMP4Recorder != null) {
                     mMP4Recorder.release();
                     mMP4Recorder = null;
+                }
+
+                if (listener != null) {
+                    listener.onFailed(HostAudioRecorder.this,
+                            "Failed to stop recording for unexpected error: " + e.getMessage());
                 }
             }
         });

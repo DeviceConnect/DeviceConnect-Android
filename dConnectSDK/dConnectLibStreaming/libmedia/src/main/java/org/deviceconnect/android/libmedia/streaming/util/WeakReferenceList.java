@@ -1,12 +1,32 @@
 package org.deviceconnect.android.libmedia.streaming.util;
 
+import android.util.Log;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 public class WeakReferenceList<T> implements Iterable<T> {
     private List<WeakReference<T>> mList = new ArrayList<>();
+
+    public List<T> get() {
+        List<T> ret = new ArrayList<>(mList.size());
+        List<WeakReference<T>> removeList = new LinkedList<>();
+        for (WeakReference<T> ref : mList) {
+            T item = ref.get();
+            if (item == null) {
+                removeList.add(ref);
+            } else {
+                ret.add(item);
+            }
+        }
+        for (WeakReference<T> ref : removeList) {
+            mList.remove(ref);
+        }
+        return ret;
+    }
 
     public void add(T value) {
         mList.add(new WeakReference<>(value));
@@ -19,6 +39,10 @@ public class WeakReferenceList<T> implements Iterable<T> {
                 iterator.remove();
             }
         }
+    }
+
+    public int size() {
+        return mList.size();
     }
 
     public void clear() {
@@ -56,6 +80,11 @@ public class WeakReferenceList<T> implements Iterable<T> {
                 WeakReference<T> value = mIterator.next();
                 if (value.get() != null) {
                     return value.get();
+                }
+                try {
+                    throw new RuntimeException();
+                } catch (Exception e) {
+                    Log.e("ABC", "$$$$$$$$$$$$$$ remove ", e);
                 }
                 mIterator.remove();
             }

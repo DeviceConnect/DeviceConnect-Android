@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation_graph"
+    app:startDestination="@id/host_camera_main_fragment">
+
+    <fragment
+        android:id="@+id/host_camera_main_fragment"
+        android:name="org.deviceconnect.android.deviceplugin.host.activity.camera.CameraMainFragment"
+        android:label="host_camera_main_fragment"
+        tools:layout="@layout/fragment_host_camera_main">
+
+        <action
+            android:id="@+id/action_main_to_settings"
+            app:destination="@id/host_camera_settings_fragment"
+            app:enterAnim="@anim/nav_slide_enter_anim"
+            app:exitAnim="@anim/nav_slide_exit_anim"
+            app:popEnterAnim="@anim/nav_slide_pop_enter_anim"
+            app:popExitAnim="@anim/nav_slide_pop_exit_anim" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/host_camera_settings_fragment"
+        android:name="org.deviceconnect.android.deviceplugin.host.activity.camera.CameraSettingsFragment"
+        android:label="host_camera_settings_fragment">
+
+    </fragment>
+
+</navigation>

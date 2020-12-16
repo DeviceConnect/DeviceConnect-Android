@@ -283,6 +283,22 @@ public class HostConnectionProfile extends ConnectionProfile {
         }
     };
 
+    private final HostConnectionManager.ConnectionEventListener mConnectionListener = new HostConnectionManager.ConnectionEventListener() {
+        @Override
+        public void onChangedMobileNetwork(int type) {
+        }
+
+        @Override
+        public void onChangedWifiStatus() {
+            postOnChangedWifiStatus();
+        }
+
+        @Override
+        public void onChangedBluetoothStatus() {
+            postOnChangedBluetoothStatus();
+        }
+    };
+
     /**
      * コンストラクタ.
      * 
@@ -290,21 +306,7 @@ public class HostConnectionProfile extends ConnectionProfile {
      */
     public HostConnectionProfile(HostConnectionManager manager) {
         mHostConnectionManager = manager;
-        mHostConnectionManager.addHostConnectionEventListener(new HostConnectionManager.ConnectionEventListener() {
-            @Override
-            public void onChangedMobileNetwork(int type) {
-            }
-
-            @Override
-            public void onChangedWifiStatus() {
-                postOnChangedWifiStatus();
-            }
-
-            @Override
-            public void onChangedBluetoothStatus() {
-                postOnChangedBluetoothStatus();
-            }
-        });
+        mHostConnectionManager.addHostConnectionEventListener(mConnectionListener);
 
         addApi(mGetWifiApi);
         addApi(mGetBluetoothApi);

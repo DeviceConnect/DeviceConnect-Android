@@ -36,7 +36,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
      */
     private MJPEGServer mMJPEGServer;
 
-    ScreenCastMJPEGPreviewServer(Context context, boolean isSSL, ScreenCastRecorder recorder, int port) {
+    ScreenCastMJPEGPreviewServer(Context context, ScreenCastRecorder recorder, boolean isSSL, int port) {
         super(context, recorder);
         mUsesSSLContext = isSSL;
         mRecorder = recorder;

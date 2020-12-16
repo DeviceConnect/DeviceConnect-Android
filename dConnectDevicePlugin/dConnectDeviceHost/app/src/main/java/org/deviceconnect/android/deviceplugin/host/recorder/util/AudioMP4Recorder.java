@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.util;
 
 import android.media.MediaRecorder;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 
@@ -21,14 +22,13 @@ public class AudioMP4Recorder extends MP4Recorder {
 
         // TODO 録音するときの設定を可変にすること。
 
-        MediaRecorder mMediaRecorder = new MediaRecorder();
-        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
-        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mMediaRecorder.setOutputFile(outputFile.getAbsolutePath());
-        mMediaRecorder.prepare();
-        mMediaRecorder.start();
-        return mMediaRecorder;
+        MediaRecorder mediaRecorder = new MediaRecorder();
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        mediaRecorder.setOutputFile(outputFile.getAbsolutePath());
+        mediaRecorder.prepare();
+        return mediaRecorder;
     }
 
     @Override

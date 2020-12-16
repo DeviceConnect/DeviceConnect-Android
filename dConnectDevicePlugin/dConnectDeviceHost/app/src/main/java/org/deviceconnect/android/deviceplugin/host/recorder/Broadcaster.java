@@ -1,6 +1,11 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
 public interface Broadcaster {
+    /**
+     * マイムタイプを取得します.
+     *
+     * @return マイムタイプ
+     */
     String getMimeType();
 
     /**
@@ -33,6 +38,20 @@ public interface Broadcaster {
      * ブロードキャストを停止します.
      */
     void stop();
+
+    /**
+     * ミュート設定を行います.
+     *
+     * @param mute ミュートにする場合にはtrue、それ以外はfalse
+     */
+    void setMute(boolean mute);
+
+    /**
+     * ミュート設定を取得します.
+     *
+     * @return ミュートの場合はtrue、それ以外はfalse
+     */
+    boolean isMute();
 
     interface OnBroadcasterEventListener {
         void onStarted();

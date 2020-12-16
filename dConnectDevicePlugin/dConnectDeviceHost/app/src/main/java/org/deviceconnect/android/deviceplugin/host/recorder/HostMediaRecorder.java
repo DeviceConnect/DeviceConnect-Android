@@ -173,17 +173,17 @@ public interface HostMediaRecorder {
         private Integer mPreviewMaxFrameRate = 30;
         private Integer mPreviewBitRate = 2 * 1024 * 1024;
         private Integer mPreviewKeyFrameInterval = 1;
-        private Integer mPreviewWhiteBalance;
+        private Integer mPreviewWhiteBalance = 0;
         private Range<Integer> mFps;
         private Integer mPreviewQuality = 80;
         private String mPreviewMimeType = "video/avc";
 
         // 音声
         private boolean mAudioEnabled;
-        private Integer mPreviewAudioBitRate;
-        private Integer mPreviewSampleRate;
-        private Integer mPreviewChannel;
-        private boolean mUseAEC;
+        private Integer mPreviewAudioBitRate = 64 * 1024;
+        private Integer mPreviewSampleRate = 8000;
+        private Integer mPreviewChannel = 1;
+        private boolean mUseAEC = true;
         private String mAudioMimeType = "audio/aac";
 
         // ポート
@@ -258,7 +258,9 @@ public interface HostMediaRecorder {
                 if (mFps != null) {
                     property.put("picture_fps_min", "picture_fps_max", mFps);
                 }
-                property.put("preview_white_balance", mPreviewWhiteBalance);
+                if (mPreviewWhiteBalance != null) {
+                    property.put("preview_white_balance", mPreviewWhiteBalance);
+                }
                 property.put("preview_quality", mPreviewQuality);
                 property.put("preview_mime_type", mPreviewMimeType);
 
@@ -274,7 +276,7 @@ public interface HostMediaRecorder {
                 for (String key : mPorts.keySet()) {
                     Integer value = mPorts.get(key);
                     if (value != null) {
-                        property.put("preview_port_" + key, value);
+                        property.put("preview_port_" + key, String.valueOf(value));
                     }
                 }
 
@@ -744,6 +746,38 @@ public interface HostMediaRecorder {
          */
         public void setUseAEC(boolean used) {
             mUseAEC = used;
+        }
+
+        public Integer getMjpegPort() {
+            return mPorts.get("mjpeg_port");
+        }
+
+        public void setMjpegPort(int port) {
+            mPorts.put("mjpeg_port", port);
+        }
+
+        public Integer getMjpegSSLPort() {
+            return mPorts.get("mjpeg_ssl_port");
+        }
+
+        public void setMjpegSSLPort(int port) {
+            mPorts.put("mjpeg_ssl_port", port);
+        }
+
+        public Integer getRtspPort() {
+            return mPorts.get("rtsp_port");
+        }
+
+        public void setRtspPort(int port) {
+            mPorts.put("rtsp_port", port);
+        }
+
+        public Integer getSrtPort() {
+            return mPorts.get("srt_port");
+        }
+
+        public void setSrtPort(int port) {
+            mPorts.put("srt_port", port);
         }
     }
 }

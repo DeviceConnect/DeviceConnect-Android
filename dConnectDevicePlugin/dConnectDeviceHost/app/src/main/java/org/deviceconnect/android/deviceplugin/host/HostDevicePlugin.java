@@ -299,7 +299,7 @@ public class HostDevicePlugin extends DConnectMessageService {
                 return;
             }
             mSSLContext = createSSLContext(keyStore, DEFAULT_PASSWORD);
-        } catch (GeneralSecurityException e) {
+        } catch (Exception e) {
             mLogger.log(Level.SEVERE, "Failed to update keystore", e);
         }
     }
@@ -311,6 +311,14 @@ public class HostDevicePlugin extends DConnectMessageService {
      */
     public HostMediaRecorderManager getHostMediaRecorderManager() {
         return mRecorderMgr;
+    }
+
+    public HostBatteryManager getHostBatteryManager() {
+        return mHostBatteryManager;
+    }
+
+    public HostConnectionManager getHostConnectionManager() {
+        return mHostConnectionManager;
     }
 
     // SSL

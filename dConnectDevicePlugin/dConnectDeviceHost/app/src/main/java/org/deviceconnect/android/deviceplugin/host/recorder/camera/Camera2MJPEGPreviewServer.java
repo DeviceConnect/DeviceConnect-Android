@@ -47,7 +47,7 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
      */
     private MJPEGServer mMJPEGServer;
 
-    Camera2MJPEGPreviewServer(Context context, boolean isSSL, Camera2Recorder recorder, int port, OnEventListener listener) {
+    Camera2MJPEGPreviewServer(Context context, Camera2Recorder recorder, boolean isSSL, int port, OnEventListener listener) {
         super(context, recorder);
         mUsesSSLContext = isSSL;
         setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));

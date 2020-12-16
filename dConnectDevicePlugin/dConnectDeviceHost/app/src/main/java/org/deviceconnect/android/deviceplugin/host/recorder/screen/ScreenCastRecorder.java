@@ -126,6 +126,28 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         List<Range<Integer>> supportFps = new ArrayList<>();
         supportFps.add(new Range<>(30, 30));
         mSettings.setSupportedFps(supportFps);
+
+        File file = new File(mContext.getCacheDir(), getId());
+        if (!mSettings.load(file)) {
+            mSettings.setPreviewSize(mSettings.getSupportedPreviewSizes().get(0));
+            mSettings.setPictureSize(mSettings.getSupportedPictureSizes().get(0));
+            mSettings.setPreviewBitRate(2 * 1024 * 1024);
+            mSettings.setPreviewMaxFrameRate(30);
+            mSettings.setPreviewKeyFrameInterval(1);
+
+            mSettings.setAudioEnabled(false);
+            mSettings.setPreviewAudioBitRate(64 * 1024);
+            mSettings.setPreviewSampleRate(8000);
+            mSettings.setPreviewChannel(1);
+            mSettings.setUseAEC(true);
+
+            mSettings.setMjpegPort(21000);
+            mSettings.setMjpegSSLPort(21100);
+            mSettings.setRtspPort(22000);
+            mSettings.setSrtPort(23000);
+
+            mSettings.save(file);
+        }
     }
 
     /**
@@ -164,13 +186,6 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
     @Override
     public void initialize() {
-        if (!mSettings.load(new File(mContext.getCacheDir(), getId()))) {
-            mSettings.setPreviewSize(mSettings.getSupportedPreviewSizes().get(0));
-            mSettings.setPictureSize(mSettings.getSupportedPictureSizes().get(0));
-            mSettings.setPreviewMaxFrameRate(30);
-            mSettings.setPreviewBitRate(2 * 1024 * 1024);
-            mSettings.setPreviewKeyFrameInterval(1);
-        }
     }
 
     @Override
@@ -434,27 +449,25 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
             @Override
             public void onRecordingStop() {
                 File videoFile = mMP4Recorder.getOutputFile();
-
                 registerVideo(videoFile);
+                mMP4Recorder.release();
+                mMP4Recorder = null;
 
                 if (listener != null) {
                     listener.onStopped(ScreenCastRecorder.this, videoFile.getAbsolutePath());
                 }
-
-                mMP4Recorder.release();
-                mMP4Recorder = null;
             }
 
             @Override
             public void onRecordingStopError(Throwable e) {
-                if (listener != null) {
-                    listener.onFailed(ScreenCastRecorder.this,
-                            "Failed to stop recording for unexpected error: " + e.getMessage());
-                }
-
                 if (mMP4Recorder != null) {
                     mMP4Recorder.release();
                     mMP4Recorder = null;
+                }
+
+                if (listener != null) {
+                    listener.onFailed(ScreenCastRecorder.this,
+                            "Failed to stop recording for unexpected error: " + e.getMessage());
                 }
             }
         });

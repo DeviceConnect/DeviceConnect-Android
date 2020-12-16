@@ -1,6 +1,8 @@
 package org.deviceconnect.android.deviceplugin.host.connection;
 
 import android.annotation.TargetApi;
+import android.app.usage.NetworkStats;
+import android.app.usage.NetworkStatsManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,6 +13,7 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.RemoteException;
 import android.telephony.CellSignalStrength;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
@@ -34,8 +37,7 @@ public class HostConnectionManager {
     private BluetoothAdapter mBluetoothAdapter;
     private TelephonyManager mTelephonyManager;
     private ConnectivityManager mConnectivityManager;
-
-    private HostNetworkStatsManager mHostNetworkStatsManager;
+    private NetworkStatsManager mNetworkStatsManager;
 
     private final WeakReferenceList<ConnectionEventListener> mConnectionEventListeners = new WeakReferenceList<>();
 
@@ -71,24 +73,7 @@ public class HostConnectionManager {
         @TargetApi(Build.VERSION_CODES.R)
         @Override
         public void onDisplayInfoChanged(@NonNull TelephonyDisplayInfo info) {
-            int type = info.getOverrideNetworkType();
-            switch (type) {
-                case TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_LTE_ADVANCED_PRO:
-                    // LTE Advanced Pro（5Ge)
-                    postOnChangeMobileNetwork(type);
-                    break;
-                case TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_NSA:
-                    // 5G Sub-6
-                    postOnChangeMobileNetwork(type);
-                    break;
-                case TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_NSA_MMWAVE:
-                    // 5G ミリ波
-                    postOnChangeMobileNetwork(type);
-                    break;
-                default:
-                    // 5G 以外
-                    break;
-            }
+            postOnChangeMobileNetwork(info.getOverrideNetworkType());
         }
 
         @Override
@@ -144,7 +129,10 @@ public class HostConnectionManager {
             mTelephonyManager.listen(mPhoneStateListener, events);
         }
 
-        mHostNetworkStatsManager = new HostNetworkStatsManager(mPluginContext.getContext());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mNetworkStatsManager = (NetworkStatsManager) mPluginContext.getContext()
+                    .getSystemService(Context.NETWORK_STATS_SERVICE);
+        }
     }
 
     public void destroy() {
@@ -248,6 +236,126 @@ public class HostConnectionManager {
         // Bluetoothが機能していないときはBluetooth LEも機能しない扱いに。
         return (mPluginContext.getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
                 && mBluetoothAdapter.isEnabled());
+    }
+
+
+    @TargetApi(Build.VERSION_CODES.M)
+    public Stats getNetworkStats(long startTime, long endTime) {
+        Stats stats = new Stats();
+
+//        TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+//        String subscriberID = tm.getSubscriberId();
+//        NetworkStats networkStatsByApp = networkStatsManager.queryDetailsForUid(
+//              ConnectivityManager.TYPE_MOBILE, subscriberID, start, end, uid);
+
+        stats.mStartTime = startTime;
+        stats.mEndTime = endTime;
+        try (NetworkStats result = mNetworkStatsManager.querySummary(
+                ConnectivityManager.TYPE_WIFI, null, startTime, endTime)) {
+            NetworkStats.Bucket bucket = new NetworkStats.Bucket();
+            while (result.hasNextBucket()) {
+                result.getNextBucket(bucket);
+                if (bucket.getUid() == android.os.Process.myUid()) {
+                    stats.mTotalTxPackets += bucket.getTxPackets();
+                    stats.mTotalRxPackets += bucket.getRxPackets();
+                    stats.mTotalTxBytes += bucket.getTxBytes();
+                    stats.mTotalRxBytes += bucket.getRxBytes();
+                }
+            }
+        } catch (RemoteException | SecurityException e) {
+            throw new RuntimeException(e);
+        }
+        return stats;
+    }
+
+    public static class Stats {
+        private long mStartTime;
+        private long mEndTime;
+
+        private long mTotalTxPackets;
+        private long mTotalRxPackets;
+        private long mTotalTxBytes;
+        private long mTotalRxBytes;
+
+        /**
+         * 計測開始時間を取得します.
+         *
+         * @return 計測開始時間
+         */
+        public long getStartTime() {
+            return mStartTime;
+        }
+
+        /**
+         * 計測終了時間を取得します.
+         *
+         * @return 計測終了時間
+         */
+        public long getEndTime() {
+            return mEndTime;
+        }
+
+        /**
+         * 送信パケット数を取得します.
+         *
+         * @return 送信パケット数
+         */
+        public long getTotalTxPackets() {
+            return mTotalTxPackets;
+        }
+
+        /**
+         * 受信パケット数を取得します.
+         *
+         * @return 受信パケット数
+         */
+        public long getTotalRxPackets() {
+            return mTotalRxPackets;
+        }
+
+        /**
+         * 送信バイト数を取得します.
+         *
+         * @return 送信バイト数
+         */
+        public long getTotalTxBytes() {
+            return mTotalTxBytes;
+        }
+
+        /**
+         * 受信バイト数を取得します.
+         *
+         * @return 受信バイト数
+         */
+        public long getTotalRxBytes() {
+            return mTotalRxBytes;
+        }
+
+        /**
+         * データ送信のビットレートを取得します.
+         *
+         * @return データ送信のビットレート
+         */
+        public long getTxBitRate() {
+            return 8 * mTotalTxBytes / ((mEndTime - mStartTime) / 1000);
+        }
+
+        /**
+         * データ受信のビットレートを取得します.
+         *
+         * @return データ受信のビットレート
+         */
+        public long getRxBitRate() {
+            return 8 * mTotalRxBytes / ((mEndTime - mStartTime) / 1000);
+        }
+
+        @Override
+        public String toString() {
+            return "totalTxPackets: " + mTotalTxPackets + "\n"
+                    +  "totalRxPackets: " + mTotalRxPackets + "\n"
+                    +  "totalTxBytes: " + mTotalTxBytes + "\n"
+                    +  "totalRxBytes: " + mTotalRxBytes + "\n";
+        }
     }
 
     private void postOnChangeMobileNetwork(int type) {

@@ -126,7 +126,7 @@ public class OverlayManager {
 
         LayoutInflater inflater = LayoutInflater.from(mContext);
         mOverlayView = inflater.inflate(R.layout.host_preview_overlay, null);
-        SurfaceView surfaceView = mOverlayView.findViewById(R.id.fragment_host_preview_surface_view);
+        SurfaceView surfaceView = mOverlayView.findViewById(R.id.preview_surface_view);
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder surfaceHolder) {
@@ -187,7 +187,7 @@ public class OverlayManager {
             int cameraWidth = isSwappedDimensions ? previewSize.getHeight() : previewSize.getWidth();
             int cameraHeight = isSwappedDimensions ? previewSize.getWidth() : previewSize.getHeight();
 
-            SurfaceView surfaceView = mOverlayView.findViewById(R.id.fragment_host_preview_surface_view);
+            SurfaceView surfaceView = mOverlayView.findViewById(R.id.preview_surface_view);
             Size viewSize = new Size(mOverlayLayoutManager.getDisplayWidth(), mOverlayLayoutManager.getDisplayHeight());
             Size changeSize = calculateViewSize(cameraWidth, cameraHeight, viewSize);
             surfaceView.getHolder().setFixedSize(previewSize.getWidth(), previewSize.getHeight());

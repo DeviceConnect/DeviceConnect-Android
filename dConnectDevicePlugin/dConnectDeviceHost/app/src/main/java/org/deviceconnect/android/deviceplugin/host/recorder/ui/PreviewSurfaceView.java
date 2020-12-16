@@ -38,9 +38,9 @@ public class PreviewSurfaceView extends FrameLayout {
      */
     public void adjustSurfaceView(boolean isSwappedDimensions, Size previewSize) {
         post(() -> {
-            View root = findViewById(R.id.fragment_host_preview_root);
+            View root = findViewById(R.id.preview_root);
 
-            SurfaceView surfaceView = root.findViewById(R.id.fragment_host_preview_surface_view);
+            SurfaceView surfaceView = root.findViewById(R.id.preview_surface_view);
             int cameraWidth = isSwappedDimensions ? previewSize.getHeight() : previewSize.getWidth();
             int cameraHeight = isSwappedDimensions ? previewSize.getWidth() : previewSize.getHeight();
             Size viewSize = new Size(root.getWidth(), root.getHeight());

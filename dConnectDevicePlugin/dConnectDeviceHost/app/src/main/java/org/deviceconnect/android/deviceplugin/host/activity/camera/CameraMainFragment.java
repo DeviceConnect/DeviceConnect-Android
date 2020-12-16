@@ -85,7 +85,7 @@ public class CameraMainFragment extends CameraBaseFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_host_camera_main, container, false);
 
-        SurfaceView surfaceView = view.findViewById(R.id.fragment_host_preview_surface_view);
+        SurfaceView surfaceView = view.findViewById(R.id.preview_surface_view);
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
@@ -237,6 +237,7 @@ public class CameraMainFragment extends CameraBaseFragment {
             if (view != null) {
                 TextView t = view.findViewById(R.id.fragment_host_network_type);
                 if (t != null) {
+                    // TODO: ネットワーク表示
                     switch (type) {
                         case TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_LTE_CA:
                             t.setText("LTE CA");
@@ -294,7 +295,8 @@ public class CameraMainFragment extends CameraBaseFragment {
             if (view != null) {
                 PreviewSurfaceView surfaceView = view.findViewById(R.id.fragment_host_camera_surface_view);
                 if (surfaceView != null) {
-                    surfaceView.adjustSurfaceView(mEGLSurfaceDrawingThread.isSwappedDimensions(), mMediaRecorder.getSettings().getPreviewSize());
+                    surfaceView.adjustSurfaceView(mEGLSurfaceDrawingThread.isSwappedDimensions(),
+                            mMediaRecorder.getSettings().getPreviewSize());
                 }
             }
         });

@@ -3,7 +3,6 @@ package org.deviceconnect.android.deviceplugin.host.activity.camera;
 import android.os.Bundle;
 import android.telephony.TelephonyDisplayInfo;
 import android.util.Log;
-import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -22,6 +21,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderMan
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.ui.PreviewSurfaceView;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
@@ -85,7 +85,7 @@ public class CameraMainFragment extends CameraBaseFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_host_camera_main, container, false);
 
-        SurfaceView surfaceView = view.findViewById(R.id.fragment_host_camera_surface_view);
+        SurfaceView surfaceView = view.findViewById(R.id.fragment_host_preview_surface_view);
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
@@ -109,6 +109,11 @@ public class CameraMainFragment extends CameraBaseFragment {
                 }
             }
         });
+
+        view.findViewById(R.id.fragment_rotation_button).setOnClickListener(
+                v -> {
+                    toggleScreenRotation();
+                });
 
         view.findViewById(R.id.fragment_camera_button).setOnClickListener(
                 v -> {
@@ -159,7 +164,7 @@ public class CameraMainFragment extends CameraBaseFragment {
         mHostConnectionManager.addHostConnectionEventListener(mConnectionEventListener);
 
         mMediaRecorderManager = getHostDevicePlugin().getHostMediaRecorderManager();
-        setRecorder(null);
+        setRecorder(getRecorderId());
 
         startTimer();
     }
@@ -284,7 +289,15 @@ public class CameraMainFragment extends CameraBaseFragment {
             return;
         }
         mEGLSurfaceDrawingThread.addEGLSurfaceBase(surface);
-        runOnUiThread(() -> adjustSurfaceView(mEGLSurfaceDrawingThread.isSwappedDimensions()));
+        runOnUiThread(() -> {
+            View view = getView();
+            if (view != null) {
+                PreviewSurfaceView surfaceView = view.findViewById(R.id.fragment_host_camera_surface_view);
+                if (surfaceView != null) {
+                    surfaceView.adjustSurfaceView(mEGLSurfaceDrawingThread.isSwappedDimensions(), mMediaRecorder.getSettings().getPreviewSize());
+                }
+            }
+        });
     }
 
     private void setRecorder(String recorderId) {
@@ -326,55 +339,5 @@ public class CameraMainFragment extends CameraBaseFragment {
                 // TODO: 起動できなかった場合の処理
             }
         }
-    }
-
-    /**
-     * Surface のサイズを画面のサイズに合わせて調整します.
-     *
-     * @param isSwappedDimensions 縦横の切り替えフラグ
-     */
-    private void adjustSurfaceView(boolean isSwappedDimensions) {
-        runOnUiThread(() -> {
-            View root = getView();
-            if (root == null) {
-                return;
-            }
-
-            HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
-            Size previewSize = settings.getPreviewSize();
-
-            SurfaceView surfaceView = root.findViewById(R.id.fragment_host_camera_surface_view);
-            int cameraWidth = isSwappedDimensions ? previewSize.getHeight() : previewSize.getWidth();
-            int cameraHeight = isSwappedDimensions ? previewSize.getWidth() : previewSize.getHeight();
-            Size viewSize = new Size(root.getWidth(), root.getHeight());
-            Size changeSize = calculateViewSize(cameraWidth, cameraHeight, viewSize);
-
-            ViewGroup.LayoutParams layoutParams = surfaceView.getLayoutParams();
-            layoutParams.width = changeSize.getWidth();
-            layoutParams.height = changeSize.getHeight();
-            surfaceView.setLayoutParams(layoutParams);
-
-            surfaceView.getHolder().setFixedSize(previewSize.getWidth(), previewSize.getHeight());
-        });
-    }
-
-    /**
-     * 指定された View のサイズにフィットするサイズを計算します.
-     *
-     * @param width 横幅
-     * @param height 縦幅
-     * @param viewSize View のサイズ
-     * @return View にフィットするサイズ
-     */
-    private Size calculateViewSize(int width, int height, Size viewSize) {
-        int h =  (int) (height * (viewSize.getWidth() / (float) width));
-        if (viewSize.getHeight() < h) {
-            int w = (int) (width * (viewSize.getHeight() / (float) height));
-            if (w % 2 != 0) {
-                w--;
-            }
-            return new Size(w, viewSize.getHeight());
-        }
-        return new Size(viewSize.getWidth(), h);
     }
 }

@@ -4,9 +4,10 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
+
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
@@ -15,8 +16,6 @@ import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.MicAACLAT
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStream;
 
 import java.io.IOException;
-
-import androidx.annotation.RequiresApi;
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class Camera2RTSPPreviewServer extends Camera2PreviewServer {
@@ -43,11 +42,10 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
      */
     private RtspServer mRtspServer;
 
-    Camera2RTSPPreviewServer(Context context, Camera2Recorder recorder, int port, OnEventListener onEventListener) {
+    Camera2RTSPPreviewServer(Context context, Camera2Recorder recorder, int port) {
         super(context, recorder);
         mRecorder = recorder;
-        setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));
-        setOnEventListener(onEventListener);
+        setPort(port);
     }
 
     @Override

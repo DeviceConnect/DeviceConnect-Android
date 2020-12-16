@@ -8,7 +8,6 @@ import androidx.annotation.RequiresApi;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
@@ -40,7 +39,7 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
 
     ScreenCastRTSPPreviewServer(Context context, ScreenCastRecorder recorder, int port) {
         super(context, recorder);
-        setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));
+        setPort(port);
     }
 
     @Override

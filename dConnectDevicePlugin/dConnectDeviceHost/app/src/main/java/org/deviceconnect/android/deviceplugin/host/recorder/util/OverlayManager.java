@@ -1,315 +1,309 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.util;
 
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.graphics.PixelFormat;
-import android.graphics.Point;
-import android.os.Build;
-import android.provider.Settings;
-import android.view.Display;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Size;
+import android.view.LayoutInflater;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
-import android.view.WindowManager;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
 /**
  * オーバーレイに表示する View の管理を行うクラス.
  */
 public class OverlayManager {
+    /**
+     * プレビュー確認用オーバレイ用アクションを定義.
+     */
+    private static final String SHOW_OVERLAY_PREVIEW_ACTION = "org.deviceconnect.android.deviceplugin.host.SHOW_OVERLAY_PREVIEW";
 
     /**
-     * このクラスが属するコンテキスト.
+     * プレビュー確認用オーバレイ用アクションを定義.
      */
+    private static final String HIDE_OVERLAY_PREVIEW_ACTION = "org.deviceconnect.android.deviceplugin.host.HIDE_OVERLAY_PREVIEW";
+
+    /**
+     * カメラIDを定義.
+     */
+    private static final String EXTRA_CAMERA_ID = "extrea_camer_id";
+
     private Context mContext;
 
     /**
-     * Android の Window 管理クラス.
+     * オーバーレイのレイアウトを管理するクラス.
      */
-    private WindowManager mWindowManager;
+    private OverlayLayoutManager mOverlayLayoutManager;
 
     /**
-     * ディスプレイの解像度.
+     * プレビューを表示する SurfaceView.
      */
-    private final Point mDisplaySize = new Point();
+    private View mOverlayView;
 
     /**
-     * ディスプレイの横幅の半分の値.
+     * UI スレッドで動作するハンドラ.
      */
-    private int mDisplayWidthHalf;
+    private Handler mHandler = new Handler(Looper.getMainLooper());
 
-    /**
-     * ディスプレイの縦幅の半分の値.
-     */
-    private int mDisplayHeightHalf;
+    private HostMediaRecorder mRecorder;
+    private EGLSurfaceDrawingThread mEGLSurfaceDrawingThread;
+    private Surface mSurface;
 
-    /**
-     * オーバーレイに追加した View を格納するマップ.
-     */
-    private final List<View> mViewList = new ArrayList<>();
-
-    /**
-     * コンストラクタ.
-     *
-     * @param context このクラスが属するコンテキスト
-     */
-    public OverlayManager(Context context) {
-        mContext = context;
-        mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        if (mWindowManager == null) {
-            throw new RuntimeException("WindowManager is not supported.");
-        }
-        update();
-    }
-
-    /**
-     * コンテキストを取得します.
-     * @return コンテキスト
-     */
-    public Context getContext() {
-        return mContext;
-    }
-
-    /**
-     * 画面サイズの更新処理を行います.
-     *
-     * <p>
-     * 画面が回転した場合などに呼び出して、画面サイズを更新します。
-     * </p>
-     */
-    public void update() {
-        Display display = mWindowManager.getDefaultDisplay();
-        display.getSize(mDisplaySize);
-
-        mDisplayWidthHalf = mDisplaySize.x / 2;
-        mDisplayHeightHalf = mDisplaySize.y / 2;
-    }
-
-    /**
-     * ディスプレイの横幅を取得します.
-     *
-     * @return ディスプレイの横幅
-     */
-    public int getDisplayWidth() {
-        return mDisplaySize.x;
-    }
-
-    /**
-     * ディスプレイの縦幅を取得します.
-     *
-     * @return ディスプレイの縦幅
-     */
-    public int getDisplayHeight() {
-        return mDisplaySize.y;
-    }
-
-    /**
-     * 指定されたタグ名の View が存在するか確認します.
-     *
-     * @param name タグ名
-     * @return 存在する場合はtrue、それ以外はfalse
-     */
-    public boolean hasViewByTag(String name) {
-        return getViewByTag(name) != null;
-    }
-
-    /**
-     * タグ名が一致する View を取得します.
-     *
-     * @param name タグ名
-     * @return タグ名が一致した View
-     */
-    public View getViewByTag(String name) {
-        synchronized (mViewList) {
-            for (View view : mViewList) {
-                OverlayTag overlayTag = (OverlayTag) view.getTag();
-                if (name.equals(overlayTag.mName)) {
-                    return view;
+    private final EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
+        @Override
+        public void onStarted() {
+            if (mSurface != null) {
+                if (mEGLSurfaceDrawingThread.findEGLSurfaceBaseByTag(mSurface) != null) {
+                    return;
                 }
+                mEGLSurfaceDrawingThread.addEGLSurfaceBase(mSurface);
             }
         }
-        return null;
-    }
 
-    /**
-     * View をオーバーレイに追加します.
-     *
-     * <p>
-     * 同じタグ名の View が追加されている場合には、
-     * 以前の View を削除してから View を追加します。
-     * </p>
-     *
-     * @param view 追加する View
-     * @param x    追加する View を配置する x 座標
-     * @param y    追加する View を配置する y 座標
-     * @param w    追加する View の横幅
-     * @param h    追加する View の縦幅
-     * @param name 追加する View のタグ名
-     */
-    public void addView(View view, int x, int y, int w, int h, String name) {
-        if (hasViewByTag(name)) {
-            removeView(name);
+        @Override
+        public void onStopped() {
         }
 
-        WindowManager.LayoutParams params = createLayoutParams(w, h);
+        @Override
+        public void onError(Exception e) {
+        }
 
-        params.x = x - mDisplayWidthHalf + w / 2;
-        params.y = y - mDisplayHeightHalf + h / 2;
+        @Override
+        public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
+            // ignore.
+        }
+    };
 
-        view.setTag(new OverlayTag(name, x, y, w, h));
+    public OverlayManager(Context context, HostMediaRecorder recorder) {
+        mContext = context;
+        mRecorder = recorder;
+        mOverlayLayoutManager = new OverlayLayoutManager(context);
+    }
 
-        mWindowManager.addView(view, params);
+    public void destroy() {
+        unregisterBroadcastReceiver();
+        mHandler.post(this::hideOverlay);
+    }
 
-        synchronized (mViewList) {
-            mViewList.add(view);
+    public void onConfigChange() {
+        if (mOverlayView != null) {
+            // 画面が回転したので、オーバーレイのレイアウトも調整
+            mOverlayLayoutManager.update();
+            mOverlayLayoutManager.updateView(mOverlayView,
+                    0,
+                    0,
+                    mOverlayLayoutManager.getDisplayWidth(),
+                    mOverlayLayoutManager.getDisplayHeight());
+
+            if (mEGLSurfaceDrawingThread != null) {
+                adjustSurfaceView(mEGLSurfaceDrawingThread.isSwappedDimensions());
+            }
         }
     }
 
-    /**
-     * タグ名に対応する View を配置を更新します.
-     *
-     * @param name 配置を変更する View のタグ名
-     * @param x 新しい x 座標
-     * @param y 新しい y 座標
-     * @param w 新しい横幅
-     * @param h 新しい縦幅
-     */
-    public void updateView(String name, int x, int y, int w, int h) {
-        updateView(getViewByTag(name), x, y, w, h);
-    }
-
-    /**
-     * View を配置を更新します.
-     *
-     * @param view 配置を変更する View
-     * @param x 新しい x 座標
-     * @param y 新しい y 座標
-     * @param w 新しい横幅
-     * @param h 新しい縦幅
-     */
-    public void updateView(View view, int x, int y, int w, int h) {
-        if (view == null) {
+    public void showOverlay() {
+        if (mOverlayView != null) {
             return;
         }
 
-        WindowManager.LayoutParams params = createLayoutParams(w, h);
+        // Notification を閉じるイベントを送信
+        mContext.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
 
-        params.x = x - mDisplayWidthHalf + w / 2;
-        params.y = y - mDisplayHeightHalf + h / 2;
-
-        OverlayTag overlayTag = (OverlayTag) view.getTag();
-        overlayTag.update(x, y, w, h);
-
-        mWindowManager.updateViewLayout(view, params);
-    }
-
-    /**
-     * タグ名に対応する View をオーバーレイから削除します.
-     *
-     * @param name 削除する View のタグ名
-     */
-    public void removeView(String name) {
-       removeView(getViewByTag(name));
-    }
-
-    /**
-     * View をオーバーレイから削除します.
-     *
-     * @param view 削除する View
-     */
-    public void removeView(View view) {
-        if (view == null) {
+        if (!mOverlayLayoutManager.isOverlayAllowed()) {
+            openOverlayPermissionActivity();
             return;
         }
 
-        synchronized (mViewList) {
-            mViewList.remove(view);
+        LayoutInflater inflater = LayoutInflater.from(mContext);
+        mOverlayView = inflater.inflate(R.layout.host_preview_overlay, null);
+        SurfaceView surfaceView = mOverlayView.findViewById(R.id.fragment_host_preview_surface_view);
+        surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(SurfaceHolder surfaceHolder) {
+                mSurface = surfaceHolder.getSurface();
+                mEGLSurfaceDrawingThread = mRecorder.getSurfaceDrawingThread();
+                mEGLSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
+                mEGLSurfaceDrawingThread.start();
+
+                if (mEGLSurfaceDrawingThread != null) {
+                    adjustSurfaceView(mEGLSurfaceDrawingThread.isSwappedDimensions());
+                }
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
+            }
+
+            @Override
+            public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+            }
+        });
+
+        mOverlayLayoutManager.addView(mOverlayView,
+                0,
+                0,
+                mOverlayLayoutManager.getDisplayWidth(),
+                mOverlayLayoutManager.getDisplayHeight(),
+                "overlay-" + mRecorder.getId());
+    }
+
+    public void hideOverlay() {
+        if (mOverlayView == null) {
+            return;
         }
 
+        if (mEGLSurfaceDrawingThread != null) {
+            mEGLSurfaceDrawingThread.removeEGLSurfaceBase(mSurface);
+            mEGLSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
+            mEGLSurfaceDrawingThread.stop(false);
+            mEGLSurfaceDrawingThread = null;
+        }
+        mOverlayLayoutManager.removeAllViews();
+        mOverlayView = null;
+    }
+
+    /**
+     * プレビューのサイズを View に収まるように調整します.
+     *
+     * @param isSwappedDimensions 縦横の幅をスワップする場合はtrue、それ以外はfalse
+     */
+    private synchronized void adjustSurfaceView(boolean isSwappedDimensions) {
+        if (mOverlayView == null) {
+            return;
+        }
+
+        mHandler.post(() -> {
+            Size previewSize = mRecorder.getSettings().getPreviewSize();
+            int cameraWidth = isSwappedDimensions ? previewSize.getHeight() : previewSize.getWidth();
+            int cameraHeight = isSwappedDimensions ? previewSize.getWidth() : previewSize.getHeight();
+
+            SurfaceView surfaceView = mOverlayView.findViewById(R.id.fragment_host_preview_surface_view);
+            Size viewSize = new Size(mOverlayLayoutManager.getDisplayWidth(), mOverlayLayoutManager.getDisplayHeight());
+            Size changeSize = calculateViewSize(cameraWidth, cameraHeight, viewSize);
+            surfaceView.getHolder().setFixedSize(previewSize.getWidth(), previewSize.getHeight());
+
+            mOverlayLayoutManager.updateView(mOverlayView,
+                    0,
+                    0,
+                    changeSize.getWidth(),
+                    changeSize.getHeight());
+
+//            TextView textView = mOverlayView.findViewById(R.id.text_view);
+//            textView.setVisibility(mCameraPreviewFlag ? View.VISIBLE : View.GONE);
+        });
+    }
+
+    /**
+     * viewSize のサイズに収まるように width と height の値を計算します.
+     *
+     * @param width    横幅
+     * @param height   縦幅
+     * @param viewSize Viewのサイズ
+     * @return viewSize に収まるように計算された縦横のサイズ
+     */
+    private android.util.Size calculateViewSize(int width, int height, android.util.Size viewSize) {
+        int h = (int) (height * (viewSize.getWidth() / (float) width));
+        if (viewSize.getHeight() < h) {
+            int w = (int) (width * (viewSize.getHeight() / (float) height));
+            if (w % 2 != 0) {
+                w--;
+            }
+            return new android.util.Size(w, viewSize.getHeight());
+        }
+        return new android.util.Size(viewSize.getWidth(), h);
+    }
+
+    /**
+     * オーバーレイの許可を求めるための Activity を開きます.
+     */
+    private void openOverlayPermissionActivity() {
+        Intent intent = new Intent();
+        intent.setClass(mContext, OverlayPermissionActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        mContext.startActivity(intent);
+    }
+
+    private int getNotificationId() {
+        return 1111;
+    }
+
+    /**
+     * 画面にプレビューを表示するための PendingIntent を作成します.
+     * @param id カメラID
+     * @return PendingIntent
+     */
+    public PendingIntent createShowActionIntent(String id) {
+        Intent intent = new Intent();
+        intent.setAction(SHOW_OVERLAY_PREVIEW_ACTION);
+        intent.putExtra(EXTRA_CAMERA_ID, id);
+        return PendingIntent.getBroadcast(mContext, getNotificationId(), intent, 0);
+    }
+
+    /**
+     * 画面にプレビューを非表示にするための PendingIntent を作成します.
+     *
+     * @param id カメラID
+     * @return PendingIntent
+     */
+    public PendingIntent createHideActionIntent(String id) {
+        Intent intent = new Intent();
+        intent.setAction(HIDE_OVERLAY_PREVIEW_ACTION);
+        intent.putExtra(EXTRA_CAMERA_ID, id);
+        return PendingIntent.getBroadcast(mContext, getNotificationId(), intent, 0);
+    }
+
+    /**
+     * 画面にプレビューを表示するためのアクションを受け取るための BroadcastReceiver を登録します.
+     */
+    public void registerBroadcastReceiver() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(SHOW_OVERLAY_PREVIEW_ACTION);
+        filter.addAction(HIDE_OVERLAY_PREVIEW_ACTION);
+        mContext.registerReceiver(mBroadcastReceiver, filter);
+    }
+
+    /**
+     * 画面にプレビューを表示するためのアクションを受け取るための BroadcastReceiver を解除します.
+     */
+    public void unregisterBroadcastReceiver() {
         try {
-            mWindowManager.removeViewImmediate(view);
+            mContext.unregisterReceiver(mBroadcastReceiver);
         } catch (Exception e) {
             // ignore.
         }
     }
 
     /**
-     * オーバーレイに追加されている全ての View を削除します。
+     * 画面にプレビューを表示するためのアクションを受け取るための BroadcastReceiver.
      */
-    public void removeAllViews() {
-        List<View> views = getViewList();
-        for (View view : views) {
-            removeView(view);
-        }
-        synchronized (mViewList) {
-            mViewList.clear();
-        }
-    }
+    private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent == null || mRecorder == null) {
+                return;
+            }
 
-    /**
-     * オーバーレイに追加されている View のリストを取得します.
-     *
-     * @return View のリスト
-     */
-    private List<View> getViewList() {
-        synchronized (mViewList) {
-            return new ArrayList<>(mViewList);
-        }
-    }
+            String cameraId = intent.getStringExtra(EXTRA_CAMERA_ID);
+            if (!mRecorder.getId().equals(cameraId)) {
+                return;
+            }
 
-    /**
-     * オーバーレイ用の WindowManager.LayoutParams を作成します.
-     *
-     * @param w 横幅
-     * @param h 縦幅
-     * @return WindowManager.LayoutParams のインスタンス
-     */
-    private WindowManager.LayoutParams createLayoutParams(int w, int h) {
-        int type;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-        } else {
-            type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+            String action = intent.getAction();
+            if (SHOW_OVERLAY_PREVIEW_ACTION.equals(action)) {
+                mHandler.post(() -> showOverlay());
+            } else if (HIDE_OVERLAY_PREVIEW_ACTION.equals(action)) {
+                mHandler.post(() -> hideOverlay());
+            }
         }
-        return new WindowManager.LayoutParams(
-                w, h, type,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                        | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                PixelFormat.TRANSLUCENT);
-    }
-
-    /**
-     * オーバーレイの表示許可を確認します.
-     *
-     * @return オーバーレイの表示許可がある場合はtrue、それ以外はfalse
-     */
-    public boolean isOverlayAllowed() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return Settings.canDrawOverlays(mContext);
-        } else {
-            return true;
-        }
-    }
-
-    private static class OverlayTag {
-        private String mName;
-        private int mX;
-        private int mY;
-        private int mW;
-        private int mH;
-
-        OverlayTag(String name, int x, int y, int w, int h) {
-            mName = name;
-            mX = x;
-            mY = y;
-            mW = w;
-            mH = h;
-        }
-        void update(int x, int y, int w, int h) {
-            mX = x;
-            mY = y;
-            mW = w;
-            mH = h;
-        }
-    }
+    };
 }

@@ -33,11 +33,10 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
      */
     private SRTServer mSRTServer;
 
-    Camera2SRTPreviewServer(final Context context, final Camera2Recorder recorder, final int port, final OnEventListener listener) {
+    Camera2SRTPreviewServer(final Context context, final Camera2Recorder recorder, final int port) {
         super(context, recorder);
         mRecorder = recorder;
-        setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));
-        setOnEventListener(listener);
+        setPort(port);
     }
 
     @Override

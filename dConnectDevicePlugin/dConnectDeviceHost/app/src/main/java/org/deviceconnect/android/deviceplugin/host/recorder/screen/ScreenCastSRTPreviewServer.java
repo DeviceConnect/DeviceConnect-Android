@@ -26,9 +26,7 @@ import java.io.IOException;
  * @author NTT DOCOMO, INC.
  */
 class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
-
     private static final boolean DEBUG = BuildConfig.DEBUG;
-
     private static final String TAG = "CameraSRT";
 
     /**
@@ -45,7 +43,7 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
 
     ScreenCastSRTPreviewServer(final Context context, final ScreenCastRecorder recorder, final int port) {
         super(context, recorder);
-        setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));
+        setPort(port);
     }
 
     @Override

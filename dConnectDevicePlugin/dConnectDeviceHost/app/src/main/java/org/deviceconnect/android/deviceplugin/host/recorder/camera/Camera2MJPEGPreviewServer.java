@@ -11,7 +11,6 @@ import android.graphics.SurfaceTexture;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGQuality;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
@@ -47,11 +46,10 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
      */
     private MJPEGServer mMJPEGServer;
 
-    Camera2MJPEGPreviewServer(Context context, Camera2Recorder recorder, boolean isSSL, int port, OnEventListener listener) {
+    Camera2MJPEGPreviewServer(Context context, Camera2Recorder recorder, int port, boolean isSSL) {
         super(context, recorder);
         mUsesSSLContext = isSSL;
-        setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));
-        setOnEventListener(listener);
+        setPort(port);
     }
 
     // PreviewServer

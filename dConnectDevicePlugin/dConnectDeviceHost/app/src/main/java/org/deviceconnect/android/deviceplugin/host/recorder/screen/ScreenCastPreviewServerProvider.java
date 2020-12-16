@@ -19,8 +19,8 @@ class ScreenCastPreviewServerProvider extends AbstractPreviewServerProvider {
 
         HostMediaRecorder.Settings settings = recorder.getSettings();
 
-        addServer(new ScreenCastMJPEGPreviewServer(context, recorder, false, settings.getMjpegPort()));
-        addServer(new ScreenCastMJPEGPreviewServer(context, recorder, true, settings.getMjpegSSLPort()));
+        addServer(new ScreenCastMJPEGPreviewServer(context, recorder, settings.getMjpegPort(), false));
+        addServer(new ScreenCastMJPEGPreviewServer(context, recorder, settings.getMjpegSSLPort(), true));
         addServer(new ScreenCastRTSPPreviewServer(context, recorder, settings.getRtspPort()));
         addServer(new ScreenCastSRTPreviewServer(context, recorder, settings.getSrtPort()));
     }

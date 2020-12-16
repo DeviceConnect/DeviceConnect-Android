@@ -194,7 +194,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         mRequestHandler = new Handler(requestThread.getLooper());
 
         mCameraSurfaceDrawingThread = new CameraSurfaceDrawingThread(this);
-        mCamera2PreviewServerProvider = new Camera2PreviewServerProvider(context, this, mFacing.getValue());
+        mCamera2PreviewServerProvider = new Camera2PreviewServerProvider(context, this);
         mBroadcasterProvider = new Camera2BroadcasterProvider(this);
     }
 

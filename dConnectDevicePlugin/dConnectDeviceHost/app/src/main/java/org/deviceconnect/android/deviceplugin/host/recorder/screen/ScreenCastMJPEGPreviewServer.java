@@ -6,7 +6,6 @@ import android.os.Build;
 import android.util.Size;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGQuality;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
@@ -27,21 +26,24 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
      * Android 端末の画面をキャストするクラス.
      */
     protected final ScreenCastRecorder mRecorder;
+
     /**
      * SSLContext を使用するかどうかのフラグ.
      */
     private boolean mUsesSSLContext;
+
     /**
      * MJPEG を配信するサーバ.
      */
     private MJPEGServer mMJPEGServer;
 
-    ScreenCastMJPEGPreviewServer(Context context, ScreenCastRecorder recorder, boolean isSSL, int port) {
+    ScreenCastMJPEGPreviewServer(Context context, ScreenCastRecorder recorder, int port, boolean isSSL) {
         super(context, recorder);
         mUsesSSLContext = isSSL;
         mRecorder = recorder;
-        setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));
+        setPort(port);
     }
+
     @Override
     public boolean usesSSLContext() {
         return mUsesSSLContext;

@@ -37,6 +37,29 @@ public class CameraBaseFragment extends Fragment implements CameraActivity.OnHos
         return null;
     }
 
+    public String getRecorderId() {
+        Activity activity = getActivity();
+        if (activity instanceof CameraActivity) {
+            return ((CameraActivity) activity).getRecorderId();
+        }
+        return null;
+    }
+
+    public void toggleScreenRotation() {
+        Activity activity = getActivity();
+        if (activity instanceof CameraActivity) {
+            ((CameraActivity) activity).toggleScreenRotation();
+        }
+    }
+
+    public boolean isScreenRotationFixed() {
+        Activity activity = getActivity();
+        if (activity instanceof CameraActivity) {
+            return ((CameraActivity) activity).isScreenRotationFixed();
+        }
+        return false;
+    }
+
     /**
      * UI スレッドで Runnable を実行します.
      *

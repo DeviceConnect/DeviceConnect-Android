@@ -20,12 +20,7 @@ public class CameraActivity extends HostDevicePluginBindActivity {
         // 明示的に画面を OFF にさせない
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        Intent intent = getIntent();
-        if (intent != null) {
-            String recorderId = intent.getStringExtra(HostMediaRecorderManager.KEY_RECORDER_ID);
-        }
-
-        toggleScreenRotation();
+//        toggleScreenRotation();
     }
 
     @Override
@@ -64,5 +59,13 @@ public class CameraActivity extends HostDevicePluginBindActivity {
                 ((OnHostDevicePluginListener) f).onUnbindService();
             }
         }
+    }
+
+    public String getRecorderId() {
+        Intent intent = getIntent();
+        if (intent != null) {
+            return intent.getStringExtra(HostMediaRecorderManager.KEY_RECORDER_ID);
+        }
+        return null;
     }
 }

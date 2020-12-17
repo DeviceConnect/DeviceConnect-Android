@@ -611,6 +611,22 @@ public interface HostMediaRecorder {
             mPref.put("preview_audio_aec", used);
         }
 
+        public boolean isBroadcastEnabled() {
+            return mPref.getBoolean("broadcast_enabled", false);
+        }
+
+        public void setBroadcastEnabled(boolean enabled) {
+            mPref.put("broadcast_enabled", enabled);
+        }
+
+        public String getBroadcastURI() {
+            return mPref.getString("broadcast_uri", null);
+        }
+
+        public void setBroadcastURI(String broadcastURI) {
+            mPref.put("broadcast_uri", broadcastURI);
+        }
+
         public Integer getMjpegPort() {
             return mPref.getInteger("mjpeg_port", 0);
         }

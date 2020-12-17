@@ -308,7 +308,9 @@ public class EGLSurfaceDrawingThread {
         SurfaceTextureManager manager = new SurfaceTextureManager();
         // SurfaceTexture に解像度を設定
         SurfaceTexture st = manager.getSurfaceTexture();
-        st.setDefaultBufferSize(mWidth, mHeight);
+        int w = isSwappedDimensions() ? mHeight : mWidth;
+        int h = isSwappedDimensions() ? mWidth : mHeight;
+        st.setDefaultBufferSize(w, h);
         return manager;
     }
 

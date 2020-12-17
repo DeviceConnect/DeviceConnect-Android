@@ -72,7 +72,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     private final ScreenCastManager mScreenCastMgr;
     private final ExecutorService mPhotoThread = Executors.newFixedThreadPool(4);
     private final Handler mImageReaderHandler = new Handler(Looper.getMainLooper());
-    private final Settings mSettings = new Settings();
+    private final Settings mSettings;
     private MP4Recorder mMP4Recorder;
 
     private ScreenCastPreviewServerProvider mScreenCastPreviewServerProvider;
@@ -84,6 +84,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     public ScreenCastRecorder(final Context context, final FileManager fileMgr) {
         super(context, 2, fileMgr);
         mContext = context;
+        mSettings = new Settings(context, this);
 
         initSupportedSettings();
 
@@ -127,13 +128,13 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         supportFps.add(new Range<>(30, 30));
         mSettings.setSupportedFps(supportFps);
 
-        File file = new File(mContext.getCacheDir(), getId());
-        if (!mSettings.load(file)) {
+        if (!mSettings.load()) {
             mSettings.setPreviewSize(mSettings.getSupportedPreviewSizes().get(0));
             mSettings.setPictureSize(mSettings.getSupportedPictureSizes().get(0));
             mSettings.setPreviewBitRate(2 * 1024 * 1024);
             mSettings.setPreviewMaxFrameRate(30);
             mSettings.setPreviewKeyFrameInterval(1);
+            mSettings.setPreviewQuality(80);
 
             mSettings.setAudioEnabled(false);
             mSettings.setPreviewAudioBitRate(64 * 1024);
@@ -146,7 +147,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
             mSettings.setRtspPort(22000);
             mSettings.setSrtPort(23000);
 
-            mSettings.save(file);
+            mSettings.save();
         }
     }
 

@@ -1,7 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.activity.camera;
 
 import android.os.Bundle;
-import android.telephony.TelephonyDisplayInfo;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Surface;
@@ -15,6 +14,7 @@ import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.connection.HostConnectionManager;
+import org.deviceconnect.android.deviceplugin.host.connection.HostTrafficMonitor;
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
@@ -26,8 +26,6 @@ import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import static androidx.navigation.fragment.NavHostFragment.findNavController;
 
@@ -39,7 +37,7 @@ public class CameraMainFragment extends CameraBaseFragment {
     private Surface mSurface;
     private String mRecorderId;
     private int mIndex;
-    private Timer mTimer;
+    private HostTrafficMonitor mMonitor;
 
     private final EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
         @Override
@@ -65,9 +63,9 @@ public class CameraMainFragment extends CameraBaseFragment {
 
     private final HostConnectionManager.ConnectionEventListener mConnectionEventListener = new HostConnectionManager.ConnectionEventListener() {
         @Override
-        public void onChangedMobileNetwork(int type) {
-            Log.e("ABC", "onChangedMobileNetwork: " + type);
-            CameraMainFragment.this.onChangeMobileNetwork(type);
+        public void onChangedNetwork() {
+            Log.e("ABC", "onChangedMobileNetwork: ");
+            CameraMainFragment.this.onChangeMobileNetwork();
         }
 
         @Override
@@ -167,6 +165,8 @@ public class CameraMainFragment extends CameraBaseFragment {
         setRecorder(getRecorderId());
 
         startTimer();
+
+        onChangeMobileNetwork();
     }
 
     @Override
@@ -181,82 +181,79 @@ public class CameraMainFragment extends CameraBaseFragment {
     private static final long INTERVAL_PERIOD = 30 * 1000;
 
     private synchronized void startTimer() {
-        if (mTimer == null) {
-            mTimer = new Timer();
-            mTimer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    onSensor();
+        if (mMonitor == null) {
+            mMonitor = new HostTrafficMonitor(getContext(), INTERVAL_PERIOD);
+            mMonitor.setOnTrafficListener((long rx, long bitrateRx, long tx, long bitrateTx) -> {
+                HostDevicePlugin plugin = getHostDevicePlugin();
+                if (plugin == null) {
+                    return;
                 }
-            }, 0, INTERVAL_PERIOD);
+
+                // バッテリー温度の設定
+                HostBatteryManager battery = plugin.getHostBatteryManager();
+                battery.getBatteryInfo();
+                float temperature = battery.getTemperature();
+
+                runOnUiThread(() -> {
+                    View view = getView();
+                    if (view != null) {
+                        TextView t = view.findViewById(R.id.fragment_host_temperature);
+                        if (t != null) {
+                            t.setText(String.valueOf(temperature));
+                        }
+
+                        TextView b = view.findViewById(R.id.fragment_host_bitrate);
+                        if (b != null) {
+                            b.setText(String.valueOf(tx));
+                        }
+                    }
+                });
+            });
+            mMonitor.startTimer();
         }
     }
 
     private synchronized void stopTimer() {
-        if (mTimer != null) {
-            mTimer.cancel();
-            mTimer = null;
+        if (mMonitor != null) {
+            mMonitor.stopTimer();
+            mMonitor = null;
         }
     }
 
-    private void onSensor() {
-        HostDevicePlugin plugin = getHostDevicePlugin();
-        if (plugin == null) {
-            return;
-        }
-
-        // バッテリー温度の設定
-        HostBatteryManager battery = plugin.getHostBatteryManager();
-        battery.getBatteryInfo();
-        float temperature = battery.getTemperature();
-
-        // ネットワークビットレート
-        HostConnectionManager connection = plugin.getHostConnectionManager();
-        long current = System.currentTimeMillis();
-        HostConnectionManager.Stats stats = connection.getNetworkStats(current - INTERVAL_PERIOD, current);
-
-        runOnUiThread(() -> {
-            View view = getView();
-            if (view != null) {
-                TextView t = view.findViewById(R.id.fragment_host_temperature);
-                if (t != null) {
-                    t.setText(String.valueOf(temperature));
-                }
-
-                TextView b = view.findViewById(R.id.fragment_host_bitrate);
-                if (b != null) {
-                    b.setText(String.valueOf(stats.getTxBitRate()));
-                }
-            }
-        });
-    }
-
-    private void onChangeMobileNetwork(int type) {
+    private void onChangeMobileNetwork() {
         runOnUiThread(() -> {
             View view = getView();
             if (view != null) {
                 TextView t = view.findViewById(R.id.fragment_host_network_type);
                 if (t != null) {
-                    // TODO: ネットワーク表示
-                    switch (type) {
-                        case TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_LTE_CA:
+                    HostConnectionManager.NetworkType n = mHostConnectionManager.getActivityNetwork();
+                    switch (n) {
+                        case TYPE_MOBILE:
+                            t.setText("MOBILE");
+                            break;
+                        case TYPE_WIFI:
+                            t.setText("Wi-Fi");
+                            break;
+                        case TYPE_ETHERNET:
+                            t.setText("Ethernet");
+                            break;
+                        case TYPE_BLUETOOTH:
+                            t.setText("Bluetooth");
+                            break;
+                        case TYPE_LTE_CA:
                             t.setText("LTE CA");
                             break;
-                        case TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_LTE_ADVANCED_PRO:
-                            // LTE Advanced Pro（5Ge)
+                        case TYPE_LTE_ADVANCED_PRO:
                             t.setText("LTE Advanced Pro（5Ge)");
                             break;
-                        case TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_NSA:
-                            // 5G Sub-6
+                        case TYPE_NR_NSA:
                             t.setText("5G Sub-6");
                             break;
-                        case TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_NSA_MMWAVE:
-                            // 5G ミリ波
+                        case TYPE_NR_NSA_MMWAV:
                             t.setText("5G ミリ波");
                             break;
                         default:
-                            // 5G 以外
-                            t.setText("No 5G");
+                            t.setText("No connect");
                             break;
                     }
                 }
@@ -339,6 +336,10 @@ public class CameraMainFragment extends CameraBaseFragment {
             List<PreviewServer> servers = provider.startServers();
             if (servers.isEmpty()) {
                 // TODO: 起動できなかった場合の処理
+            }
+
+            for (PreviewServer s : servers) {
+                s.unMute();
             }
         }
     }

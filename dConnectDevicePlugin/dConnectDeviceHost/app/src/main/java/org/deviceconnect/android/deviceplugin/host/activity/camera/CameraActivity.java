@@ -19,8 +19,6 @@ public class CameraActivity extends HostDevicePluginBindActivity {
 
         // 明示的に画面を OFF にさせない
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-//        toggleScreenRotation();
     }
 
     @Override

@@ -59,7 +59,7 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
      */
     private MP4Recorder mMP4Recorder;
 
-    private Settings mSettings = new Settings();
+    private Settings mSettings;
 
     private AudioPreviewServerProvider mAudioPreviewServerProvider;
     private AudioBroadcasterProvider mAudioBroadcasterProvider;
@@ -69,11 +69,15 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     public HostAudioRecorder(final Context context, FileManager fileManager) {
         super(context, 3, fileManager);
         mContext = context;
+        mSettings = new Settings(context, this);
 
         initSettings();
     }
 
     private void initSettings() {
+        if (!mSettings.load()) {
+            // TODO 初期化処理
+        }
     }
 
     @Override

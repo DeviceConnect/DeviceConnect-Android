@@ -285,7 +285,7 @@ public class HostConnectionProfile extends ConnectionProfile {
 
     private final HostConnectionManager.ConnectionEventListener mConnectionListener = new HostConnectionManager.ConnectionEventListener() {
         @Override
-        public void onChangedMobileNetwork(int type) {
+        public void onChangedNetwork() {
         }
 
         @Override

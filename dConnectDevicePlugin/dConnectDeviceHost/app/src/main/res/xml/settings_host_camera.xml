@@ -19,19 +19,19 @@
             app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
-            app:key="encoder_frame_rate"
+            app:key="preview_framerate"
             app:title="フレームレート (fps)"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
-            app:key="encoder_bitrate"
+            app:key="preview_bitrate"
             app:title="ビットレート (KB)"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
-            app:key="encoder_i_frame_interval"
+            app:key="preview_i_frame_interval"
             app:title="キーフレームインターバル (秒)"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
@@ -40,14 +40,14 @@
             app:entries="@array/video_encoder_names"
             app:entryValues="@array/video_encoder_values"
             app:iconSpaceReserved="false"
-            app:key="encoder_name"
+            app:key="preview_mime_type"
             app:title="エンコーダ"
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
             app:entries="@array/video_white_balance_names"
             app:entryValues="@array/video_white_balance_values"
-            app:key="camera_white_balance"
+            app:key="preview_white_balance"
             app:title="ホワイトバランス"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
@@ -66,14 +66,14 @@
 
         <SwitchPreferenceCompat
             android:defaultValue="false"
-            android:key="audio_enable"
+            android:key="audio_enabled"
             android:title="音声"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
             android:defaultValue="64"
-            android:key="audio_bitrate"
+            android:key="preview_audio_bitrate"
             android:singleLine="true"
             android:title="ビットレート (KB)"
             app:iconSpaceReserved="false"
@@ -83,14 +83,14 @@
             android:defaultValue="@string/settings_audio_sampling_rate"
             android:entries="@array/settings_audio_sampling_rates"
             android:entryValues="@array/settings_audio_sampling_rates"
-            android:key="audio_sampling_rate"
+            android:key="preview_audio_sample_rate"
             android:title="サンプリングレート"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
             android:defaultValue="1"
-            android:key="audio_channel"
+            android:key="preview_audio_channel"
             android:singleLine="true"
             android:title="チャンネル"
             app:iconSpaceReserved="false"
@@ -98,7 +98,7 @@
 
         <SwitchPreferenceCompat
             android:defaultValue="true"
-            android:key="audio_echo_canceler"
+            android:key="preview_audio_aec"
             android:title="エコーキャンセラー"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
@@ -112,7 +112,7 @@
 
         <SwitchPreferenceCompat
             android:defaultValue="false"
-            android:key="audio_enable"
+            android:key="broadcast_enabled"
             android:title="配信"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
@@ -133,16 +133,16 @@
         app:iconSpaceReserved="false">
 
         <EditTextPreference
-            android:defaultValue="1"
-            android:key="motion_jpeg_port"
+            android:defaultValue="0"
+            android:key="mjpeg_port"
             android:singleLine="true"
             android:title="ポート番号"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
-            android:defaultValue="1"
-            android:key="motion_jpeg_quality"
+            android:defaultValue="80"
+            android:key="preview_quality"
             android:singleLine="true"
             android:title="クオリティ (%)"
             app:iconSpaceReserved="false"

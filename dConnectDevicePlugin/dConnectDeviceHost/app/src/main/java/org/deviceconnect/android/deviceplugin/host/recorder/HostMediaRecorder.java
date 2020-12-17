@@ -6,17 +6,14 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
+import android.content.Context;
 import android.util.Range;
 import android.util.Size;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.util.PropertyUtil;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Host プラグインで使用する MediaRecorder のインターフェース.
@@ -166,124 +163,28 @@ public interface HostMediaRecorder {
     }
 
     class Settings {
-        // 映像
-        private boolean mVideoEnabled = true;
-        private Size mPictureSize;
-        private Size mPreviewSize;
-        private Integer mPreviewMaxFrameRate = 30;
-        private Integer mPreviewBitRate = 2 * 1024 * 1024;
-        private Integer mPreviewKeyFrameInterval = 1;
-        private Integer mPreviewWhiteBalance = 0;
-        private Range<Integer> mFps;
-        private Integer mPreviewQuality = 80;
-        private String mPreviewMimeType = "video/avc";
-
-        // 音声
-        private boolean mAudioEnabled;
-        private Integer mPreviewAudioBitRate = 64 * 1024;
-        private Integer mPreviewSampleRate = 8000;
-        private Integer mPreviewChannel = 1;
-        private boolean mUseAEC = true;
-        private String mAudioMimeType = "audio/aac";
-
-        // ポート
-        private Map<String, Integer> mPorts = new HashMap<>();
-
         // サポート範囲
         private List<Size> mSupportedPictureSizes;
         private List<Size> mSupportedPreviewSizes;
         private List<Range<Integer>> mSupportedFps;
         private List<Integer> mSupportedWhiteBalances;
 
-        /**
-         * 設定データを読み込みます.
-         *
-         * @param file 設定データが格納されたファイル
-         */
-        public boolean load(File file) {
-            try {
-                PropertyUtil property = new PropertyUtil();
-                property.load(file);
+        private PropertyUtil mPref;
 
-                // 映像
-                mVideoEnabled = property.getBoolean("video_enabled", true);
-                mPictureSize = property.getSize("picture_size_width","picture_size_height");
-                mPreviewSize = property.getSize("preview_size_width", "preview_size_height");
-                mPreviewMaxFrameRate = property.getInteger("preview_framerate", 30);
-                mPreviewBitRate = property.getInteger("preview_bitrate", 2 * 1024 * 1024);
-                mPreviewKeyFrameInterval = property.getInteger("preview_i_frame_interval", 1);
-                mFps = property.getRange("picture_fps_min", "picture_fps_max");
-                mPreviewWhiteBalance = property.getInteger("preview_white_balance", 0);
-                mPreviewQuality = property.getInteger("preview_quality", 80);
-                mPreviewMimeType = property.getString("preview_mime_type", "video/avc");
-
-                // 音声
-                mAudioEnabled = property.getBoolean("audio_enabled", false);
-                mPreviewAudioBitRate = property.getInteger("preview_audio_bitrate", 64 * 1024);
-                mPreviewSampleRate = property.getInteger("preview_audio_sample_rate", 8000);
-                mPreviewChannel = property.getInteger("preview_audio_channel", 1);
-                mUseAEC = property.getBoolean("preview_audio_aec", false);
-                mAudioMimeType = property.getString("preview_audio_mime_type", "audio/aac");
-
-                // ポート
-                for (String key : property.getKeys()) {
-                    if (key.startsWith("preview_port_")) {
-                        String k = key.substring("preview_port_".length());
-                        mPorts.put(k, property.getInteger(key, 0));
-                    }
-                }
-
-                return true;
-            } catch (IOException e) {
-                return false;
-            }
+        public Settings(Context context, HostMediaRecorder recorder) {
+            mPref = new PropertyUtil(context, recorder.getId());
         }
 
-        /**
-         * 設定データを書き込みます.
-         *
-         * @param file 設定データを書き込むファイル
-         */
-        public void save(File file) {
-            try {
-                PropertyUtil property = new PropertyUtil();
+        public boolean load() {
+            return mPref.getString("test", null) != null;
+        }
 
-                // 映像
-                property.put("video_enabled", mVideoEnabled);
-                property.put("picture_size_width", "picture_size_height", mPictureSize);
-                property.put("preview_size_width", "preview_size_height", mPreviewSize);
-                property.put("preview_framerate", mPreviewMaxFrameRate);
-                property.put("preview_bitrate", mPreviewBitRate);
-                property.put("preview_i_frame_interval", mPreviewKeyFrameInterval);
-                if (mFps != null) {
-                    property.put("picture_fps_min", "picture_fps_max", mFps);
-                }
-                if (mPreviewWhiteBalance != null) {
-                    property.put("preview_white_balance", mPreviewWhiteBalance);
-                }
-                property.put("preview_quality", mPreviewQuality);
-                property.put("preview_mime_type", mPreviewMimeType);
+        public void save() {
+            mPref.put("test", "test");
+        }
 
-                // 音声
-                property.put("audio_enabled", mAudioEnabled);
-                property.put("preview_audio_bitrate", mPreviewAudioBitRate);
-                property.put("preview_audio_sample_rate", mPreviewSampleRate);
-                property.put("preview_audio_channel", mPreviewChannel);
-                property.put("preview_audio_aec", mUseAEC);
-                property.put("preview_audio_mime_type", mAudioMimeType);
-
-                // ポート
-                for (String key : mPorts.keySet()) {
-                    Integer value = mPorts.get(key);
-                    if (value != null) {
-                        property.put("preview_port_" + key, String.valueOf(value));
-                    }
-                }
-
-                property.save(file);
-            } catch (IOException e) {
-                // ignore.
-            }
+        public void clear() {
+            mPref.clear();
         }
 
         /**
@@ -292,7 +193,7 @@ public interface HostMediaRecorder {
          * @return プレビューの配信エンコードのマイムタイプ
          */
         public String getPreviewMimeType() {
-            return mPreviewMimeType;
+            return mPref.getString("preview_mime_type", "video/avc");
         }
 
         /**
@@ -301,7 +202,7 @@ public interface HostMediaRecorder {
          * @param mimeType プレビューの配信エンコードのマイムタイプ
          */
         public void setPreviewMimeType(String mimeType) {
-            mPreviewMimeType = mimeType;
+            mPref.put("preview_mime_type", mimeType);
         }
 
         /**
@@ -310,7 +211,7 @@ public interface HostMediaRecorder {
          * @return 写真サイズ
          */
         public Size getPictureSize() {
-            return mPictureSize;
+            return mPref.getSize("picture_size_width", "picture_size_height");
         }
 
         /**
@@ -324,7 +225,10 @@ public interface HostMediaRecorder {
             if (!isSupportedPictureSize(pictureSize)) {
                 throw new IllegalArgumentException("pictureSize is not supported.");
             }
-            mPictureSize = pictureSize;
+            mPref.put(
+                    "picture_size_width",
+                    "picture_size_height",
+                    pictureSize);
         }
 
         /**
@@ -333,7 +237,7 @@ public interface HostMediaRecorder {
          * @return プレビューサイズ
          */
         public Size getPreviewSize() {
-            return mPreviewSize;
+            return mPref.getSize("preview_size_width", "preview_size_height");
         }
 
         /**
@@ -347,7 +251,7 @@ public interface HostMediaRecorder {
             if (!isSupportedPreviewSize(previewSize)) {
                 throw new IllegalArgumentException("previewSize is not supported.");
             }
-            mPreviewSize = previewSize;
+            mPref.put("preview_size_width", "preview_size_height", previewSize);
         }
 
         /**
@@ -356,7 +260,7 @@ public interface HostMediaRecorder {
          * @return フレームレート
          */
         public int getPreviewMaxFrameRate() {
-            return mPreviewMaxFrameRate;
+            return mPref.getInteger("preview_framerate", 30);
         }
 
         /**
@@ -368,7 +272,7 @@ public interface HostMediaRecorder {
             if (previewMaxFrameRate <= 0) {
                 throw new IllegalArgumentException("previewMaxFrameRate is zero or negative.");
             }
-            mPreviewMaxFrameRate = previewMaxFrameRate;
+            mPref.put("preview_framerate", previewMaxFrameRate);
         }
 
         /**
@@ -377,7 +281,7 @@ public interface HostMediaRecorder {
          * @return ビットレート(byte)
          */
         public int getPreviewBitRate() {
-            return mPreviewBitRate;
+            return mPref.getInteger("preview_bitrate", 2 * 1024 * 1024);
         }
 
         /**
@@ -389,7 +293,7 @@ public interface HostMediaRecorder {
             if (previewBitRate <= 0) {
                 throw new IllegalArgumentException("previewBitRate is zero or negative.");
             }
-            mPreviewBitRate = previewBitRate;
+            mPref.put("preview_bitrate", String.valueOf(previewBitRate));
         }
 
         /**
@@ -398,7 +302,7 @@ public interface HostMediaRecorder {
          * @return キーフレームを発行する間隔(ミリ秒)
          */
         public int getPreviewKeyFrameInterval() {
-            return mPreviewKeyFrameInterval;
+            return mPref.getInteger("preview_i_frame_interval", 1);
         }
 
         /**
@@ -410,7 +314,7 @@ public interface HostMediaRecorder {
             if (previewKeyFrameInterval <= 0) {
                 throw new IllegalArgumentException("previewKeyFrameInterval is zero or negative.");
             }
-            mPreviewKeyFrameInterval = previewKeyFrameInterval;
+            mPref.put("preview_i_frame_interval", previewKeyFrameInterval);
         }
 
         /**
@@ -419,7 +323,7 @@ public interface HostMediaRecorder {
          * @return プレビューの品質
          */
         public int getPreviewQuality() {
-            return mPreviewQuality;
+            return mPref.getInteger("preview_quality", 80);
         }
 
         /**
@@ -437,28 +341,7 @@ public interface HostMediaRecorder {
             if (quality > 100) {
                 throw new IllegalArgumentException("quality is over 100.");
             }
-            mPreviewQuality = quality;
-        }
-
-        /**
-         * 設定されている FPS を取得します.
-         *
-         * @return FPS
-         */
-        public Range<Integer> getFps() {
-            return mFps;
-        }
-
-        /**
-         * FPS を設定します.
-         *
-         * @param fps FPS
-         */
-        public void setFps(Range<Integer> fps) {
-            if (fps != null && !isSupportedFps(fps)) {
-                throw new IllegalArgumentException("fps is unsupported value.");
-            }
-            mFps = fps;
+            mPref.put("preview_quality", quality);
         }
 
         /**
@@ -467,7 +350,7 @@ public interface HostMediaRecorder {
          * @return ホワイトバランス
          */
         public Integer getPreviewWhiteBalance() {
-            return mPreviewWhiteBalance;
+            return mPref.getInteger("preview_white_balance", null);
         }
 
         /**
@@ -479,27 +362,7 @@ public interface HostMediaRecorder {
             if (!isSupportedWhiteBalance(whiteBalance)) {
                 throw new IllegalArgumentException("whiteBalance is unsupported value.");
             }
-            mPreviewWhiteBalance = whiteBalance;
-        }
-
-        /**
-         * ポート番号を取得します.
-         *
-         * @param key ポート番号のキー
-         * @return ポート番号
-         */
-        public Integer getPort(String key) {
-            return mPorts.get(key);
-        }
-
-        /**
-         * ポート番号を設定します.
-         *
-         * @param key ポート番号のキー
-         * @param port ポート番号
-         */
-        public void setPort(String key, Integer port) {
-            mPorts.put(key, port);
+            mPref.put("preview_white_balance", whiteBalance);
         }
 
         /**
@@ -661,7 +524,7 @@ public interface HostMediaRecorder {
          * @return プレビュー音声が有効の場合はtrue、それ以外はfalse
          */
         public boolean isAudioEnabled() {
-            return mAudioEnabled;
+            return mPref.getBoolean("audio_enabled", false);
         }
 
         /**
@@ -670,7 +533,7 @@ public interface HostMediaRecorder {
          * @param enabled プレビュー音声が有効の場合はtrue、それ以外はfalse
          */
         public void setAudioEnabled(boolean enabled) {
-            mAudioEnabled = enabled;
+            mPref.put("audio_enabled", enabled);
         }
 
         /**
@@ -679,7 +542,7 @@ public interface HostMediaRecorder {
          * @return プレビュー音声のビットレート
          */
         public int getPreviewAudioBitRate() {
-            return mPreviewAudioBitRate;
+            return mPref.getInteger("preview_audio_bitrate", 64 * 1024);
         }
 
         /**
@@ -691,7 +554,7 @@ public interface HostMediaRecorder {
             if (bitRate <= 0) {
                 throw new IllegalArgumentException("previewAudioBitRate is zero or negative value.");
             }
-            mPreviewAudioBitRate = bitRate;
+            mPref.put("preview_audio_bitrate", bitRate);
         }
 
         /**
@@ -700,7 +563,7 @@ public interface HostMediaRecorder {
          * @return プレビュー音声のサンプルレート
          */
         public int getPreviewSampleRate() {
-            return mPreviewSampleRate;
+            return mPref.getInteger("preview_audio_sample_rate", 8000);
         }
 
         /**
@@ -709,7 +572,7 @@ public interface HostMediaRecorder {
          * @param sampleRate プレビュー音声のサンプルレート
          */
         public void setPreviewSampleRate(int sampleRate) {
-            mPreviewSampleRate = sampleRate;
+            mPref.put("preview_audio_sample_rate", sampleRate);
         }
 
         /**
@@ -718,7 +581,7 @@ public interface HostMediaRecorder {
          * @return プレビュー音声のチャンネル数
          */
         public int getPreviewChannel() {
-            return mPreviewChannel;
+            return mPref.getInteger("preview_audio_channel", 1);
         }
 
         /**
@@ -727,7 +590,7 @@ public interface HostMediaRecorder {
          * @param channel プレビュー音声のチャンネル数
          */
         public void setPreviewChannel(int channel) {
-            mPreviewChannel = channel;
+            mPref.put("preview_audio_channel", channel);
         }
 
         /**
@@ -736,7 +599,7 @@ public interface HostMediaRecorder {
          * @return プレビュー配信のエコーキャンセラー
          */
         public boolean isUseAEC() {
-            return mUseAEC;
+            return mPref.getBoolean("preview_audio_aec", true);
         }
 
         /**
@@ -745,39 +608,39 @@ public interface HostMediaRecorder {
          * @param used プレビュー配信のエコーキャンセラー
          */
         public void setUseAEC(boolean used) {
-            mUseAEC = used;
+            mPref.put("preview_audio_aec", used);
         }
 
         public Integer getMjpegPort() {
-            return mPorts.get("mjpeg_port");
+            return mPref.getInteger("mjpeg_port", 0);
         }
 
         public void setMjpegPort(int port) {
-            mPorts.put("mjpeg_port", port);
+            mPref.put("mjpeg_port", port);
         }
 
         public Integer getMjpegSSLPort() {
-            return mPorts.get("mjpeg_ssl_port");
+            return mPref.getInteger("mjpeg_ssl_port", 0);
         }
 
         public void setMjpegSSLPort(int port) {
-            mPorts.put("mjpeg_ssl_port", port);
+            mPref.put("mjpeg_ssl_port", port);
         }
 
         public Integer getRtspPort() {
-            return mPorts.get("rtsp_port");
+            return mPref.getInteger("rtsp_port", 0);
         }
 
         public void setRtspPort(int port) {
-            mPorts.put("rtsp_port", port);
+            mPref.put("rtsp_port", port);
         }
 
         public Integer getSrtPort() {
-            return mPorts.get("srt_port");
+            return mPref.getInteger("srt_port", 0);
         }
 
         public void setSrtPort(int port) {
-            mPorts.put("srt_port", port);
+            mPref.put("srt_port", port);
         }
     }
 }

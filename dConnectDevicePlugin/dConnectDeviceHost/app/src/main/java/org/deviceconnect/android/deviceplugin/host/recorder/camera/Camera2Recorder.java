@@ -17,7 +17,6 @@ import android.os.Looper;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.Surface;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -159,7 +158,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     /**
      * レコーダの設定.
      */
-    private final Settings mSettings = new Settings();
+    private final Settings mSettings;
 
     /**
      * レコーダの状態.
@@ -182,6 +181,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         mCameraWrapper = camera;
         mCameraWrapper.setCameraEventListener(this::notifyEventToUser, new Handler(Looper.getMainLooper()));
         mFacing = CameraFacing.detect(mCameraWrapper);
+        mSettings = new Settings(context, this);
 
         initSupportedSettings();
 
@@ -209,13 +209,13 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         mSettings.setSupportedFps(options.getSupportedFpsList());
         mSettings.setSupportedWhiteBalances(options.getSupportedWhiteBalanceList());
 
-        File file = new File(mContext.getCacheDir(), getId());
-        if (!mSettings.load(file)) {
+        if (!mSettings.load()) {
             mSettings.setPictureSize(options.getDefaultPictureSize());
             mSettings.setPreviewSize(options.getDefaultPreviewSize());
             mSettings.setPreviewBitRate(2 * 1024 * 1024);
             mSettings.setPreviewMaxFrameRate(30);
             mSettings.setPreviewKeyFrameInterval(1);
+            mSettings.setPreviewQuality(80);
 
             mSettings.setAudioEnabled(false);
             mSettings.setPreviewAudioBitRate(64 * 1024);
@@ -228,7 +228,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
             mSettings.setRtspPort(12000 + mFacing.mValue);
             mSettings.setSrtPort(13000 + mFacing.mValue);
 
-            mSettings.save(file);
+            mSettings.save();
         }
     }
 
@@ -462,92 +462,6 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     }
 
     /**
-     * 画面の回転を取得します.
-     *
-     * <p>
-     *  取得できる値は以下の通りです。
-     *  <ul>
-     *  <li>Surface.ROTATION_0</li>
-     *  <li>Surface.ROTATION_90</li>
-     *  <li>Surface.ROTATION_180</li>
-     *  <li>Surface.ROTATION_270</li>
-     *  </ul>
-     * </p>
-     *
-     * @return 画面の回転
-     */
-    int getDisplayRotation() {
-        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
-        if (wm == null) {
-            throw new RuntimeException("WindowManager is not supported.");
-        }
-        return wm.getDefaultDisplay().getRotation();
-    }
-
-    /**
-     * 画面の回転に合わせて、カメラの解像度の横幅と縦幅をスワップするか確認します.
-     *
-     * @return 回転する場合はtrue、それ以外はfalse
-     */
-    boolean isSwappedDimensions() {
-        int sensorOrientation = mCameraWrapper.getSensorOrientation();
-        switch (getDisplayRotation()) {
-            case Surface.ROTATION_0:
-            case Surface.ROTATION_180:
-                if (sensorOrientation == 90 || sensorOrientation == 270) {
-                    return true;
-                }
-                break;
-            case Surface.ROTATION_90:
-            case Surface.ROTATION_270:
-                if (sensorOrientation == 0 || sensorOrientation == 180) {
-                    return true;
-                }
-                break;
-            default:
-                break;
-        }
-        return false;
-    }
-
-    /**
-     * プレビュー確認用の Surface を設定します.
-     *
-     * @param surface Surface
-     */
-    void setTargetSurface(Surface surface) {
-        mCameraWrapper.setTargetSurface(surface);
-    }
-
-    /**
-     * プレビュー中か確認します.
-     *
-     * @return プレビュー中の場合はtrue、それ以外はfalse
-     */
-    boolean isPreview() {
-        return mCameraWrapper.isPreview();
-    }
-
-    /**
-     * プレビューを開始します.
-     *
-     * @param previewSurface プレビューを描画する Surface
-     * @throws CameraWrapperException カメラの操作に失敗した場合に発生
-     */
-    void startPreview(final Surface previewSurface) throws CameraWrapperException {
-        mCameraWrapper.startPreview(previewSurface, false);
-    }
-
-    /**
-     * プレビューを停止します.
-     *
-     * @throws CameraWrapperException カメラの操作に失敗した場合に発生
-     */
-    void stopPreview() throws CameraWrapperException {
-        mCameraWrapper.stopPreview();
-    }
-
-    /**
      * 静止画の撮影を行います.
      *
      * @param listener 静止画の撮影結果を通知するリスナー
@@ -718,15 +632,6 @@ public class Camera2Recorder extends AbstractMediaRecorder {
          */
         public int getValue() {
             return mValue;
-        }
-
-        public static CameraFacing facingOf(final int value) {
-            for (CameraFacing facing : CameraFacing.values()) {
-                if (facing.mValue == value) {
-                    return facing;
-                }
-            }
-            return null;
         }
 
         public static CameraFacing detect(CameraWrapper cameraWrapper) {

@@ -1,8 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.connection;
 
 import android.annotation.TargetApi;
-import android.app.usage.NetworkStats;
-import android.app.usage.NetworkStatsManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,9 +9,11 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkInfo;
+import android.net.NetworkRequest;
 import android.net.wifi.WifiManager;
 import android.os.Build;
-import android.os.RemoteException;
 import android.telephony.CellSignalStrength;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
@@ -37,7 +37,7 @@ public class HostConnectionManager {
     private BluetoothAdapter mBluetoothAdapter;
     private TelephonyManager mTelephonyManager;
     private ConnectivityManager mConnectivityManager;
-    private NetworkStatsManager mNetworkStatsManager;
+    private NetworkType mMobileNetworkType = NetworkType.TYPE_NONE;
 
     private final WeakReferenceList<ConnectionEventListener> mConnectionEventListeners = new WeakReferenceList<>();
 
@@ -58,14 +58,13 @@ public class HostConnectionManager {
     private final ConnectivityManager.NetworkCallback mNetworkCallback = new ConnectivityManager.NetworkCallback() {
         @Override
         public void onAvailable(Network network) {
+            postOnChangeNetwork();
         }
 
         @Override
         public void onLost(Network network) {
-        }
-
-        @Override
-        public void onUnavailable() {
+            mMobileNetworkType = NetworkType.TYPE_NONE;
+            postOnChangeNetwork();
         }
     };
 
@@ -73,7 +72,25 @@ public class HostConnectionManager {
         @TargetApi(Build.VERSION_CODES.R)
         @Override
         public void onDisplayInfoChanged(@NonNull TelephonyDisplayInfo info) {
-            postOnChangeMobileNetwork(info.getOverrideNetworkType());
+            switch (info.getOverrideNetworkType()) {
+                case TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_LTE_CA:
+                    mMobileNetworkType = NetworkType.TYPE_LTE_CA;
+                    break;
+                case TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_LTE_ADVANCED_PRO:
+                    mMobileNetworkType = NetworkType.TYPE_LTE_ADVANCED_PRO;
+                    break;
+                case TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_NSA:
+                    mMobileNetworkType = NetworkType.TYPE_NR_NSA;
+                    break;
+                case TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_NSA_MMWAVE:
+                    mMobileNetworkType = NetworkType.TYPE_NR_NSA_MMWAV;
+                    break;
+                case TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NONE:
+                default:
+                    mMobileNetworkType = NetworkType.TYPE_NONE;
+                    break;
+            }
+            postOnChangeNetwork();
         }
 
         @Override
@@ -83,7 +100,6 @@ public class HostConnectionManager {
                     int level = strength.getLevel();
                     switch (level) {
                         case CellSignalStrength.SIGNAL_STRENGTH_NONE_OR_UNKNOWN:
-                            break;
                         case CellSignalStrength.SIGNAL_STRENGTH_POOR:
                         case CellSignalStrength.SIGNAL_STRENGTH_MODERATE:
                         case CellSignalStrength.SIGNAL_STRENGTH_GOOD:
@@ -111,45 +127,13 @@ public class HostConnectionManager {
         mConnectivityManager = (ConnectivityManager) mPluginContext.getContext()
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
-        filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
-        filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        mPluginContext.getContext().registerReceiver(mHostConnectionReceiver, filter);
-
-        mTelephonyManager = (TelephonyManager) mPluginContext.getContext()
-                .getSystemService(Context.TELEPHONY_SERVICE);
-
-        if (mTelephonyManager != null) {
-            int events = PhoneStateListener.LISTEN_SIGNAL_STRENGTHS;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                events |= PhoneStateListener.LISTEN_DISPLAY_INFO_CHANGED;
-            }
-            mTelephonyManager.listen(mPhoneStateListener, events);
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mNetworkStatsManager = (NetworkStatsManager) mPluginContext.getContext()
-                    .getSystemService(Context.NETWORK_STATS_SERVICE);
-        }
+        registerNetworkCallback();
+        registerTelephony();
     }
 
     public void destroy() {
-        try {
-            mPluginContext.getContext().unregisterReceiver(mHostConnectionReceiver);
-        } catch (Exception e) {
-            // ignore.
-        }
-
-        if (mTelephonyManager != null) {
-            try {
-                mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
-            } catch (Exception e) {
-                // ignore.
-            }
-        }
-
+        unregisterNetworkCallback();
+        unregisterTelephony();
         mConnectionEventListeners.clear();
     }
 
@@ -162,6 +146,115 @@ public class HostConnectionManager {
     public void removeHostConnectionEventListener(ConnectionEventListener listener) {
         if (listener != null) {
             mConnectionEventListeners.remove(listener);
+        }
+    }
+
+    public NetworkType getActivityNetwork() {
+        NetworkType networkType = NetworkType.TYPE_NONE;
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            NetworkInfo networkInfo = mConnectivityManager.getActiveNetworkInfo();
+            if (networkInfo != null) {
+                switch (networkInfo.getType()) {
+                    case ConnectivityManager.TYPE_MOBILE:
+                        networkType = NetworkType.TYPE_MOBILE;
+                        break;
+                    case ConnectivityManager.TYPE_WIFI:
+                        networkType = NetworkType.TYPE_WIFI;
+                        break;
+                    case ConnectivityManager.TYPE_ETHERNET:
+                        networkType = NetworkType.TYPE_ETHERNET;
+                        break;
+                    case ConnectivityManager.TYPE_BLUETOOTH:
+                        networkType = NetworkType.TYPE_BLUETOOTH;
+                        break;
+                }
+            }
+        } else {
+            Network n = mConnectivityManager.getActiveNetwork();
+            NetworkCapabilities capabilities = mConnectivityManager.getNetworkCapabilities(n);
+            if (capabilities != null) {
+                boolean isWifi = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI);
+                boolean isMobile = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR);
+                boolean isBluetooth = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH);
+                boolean isEthernet = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET);
+                if (isWifi) {
+                    networkType = NetworkType.TYPE_WIFI;
+                } else if (isEthernet) {
+                    networkType = NetworkType.TYPE_ETHERNET;
+                } else if (isBluetooth) {
+                    networkType = NetworkType.TYPE_BLUETOOTH;
+                } else if (isMobile) {
+                    networkType = NetworkType.TYPE_MOBILE;
+                }
+            } else {
+                return mMobileNetworkType;
+            }
+        }
+
+        return networkType;
+    }
+
+    public enum NetworkType {
+        TYPE_NONE,
+        TYPE_MOBILE,
+        TYPE_WIFI,
+        TYPE_ETHERNET,
+        TYPE_BLUETOOTH,
+        TYPE_LTE_CA,
+        TYPE_LTE_ADVANCED_PRO,
+        TYPE_NR_NSA,
+        TYPE_NR_NSA_MMWAV
+    }
+
+    private void registerTelephony() {
+        mTelephonyManager = (TelephonyManager) mPluginContext.getContext()
+                .getSystemService(Context.TELEPHONY_SERVICE);
+        if (mTelephonyManager != null) {
+            int events = PhoneStateListener.LISTEN_SIGNAL_STRENGTHS;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                events |= PhoneStateListener.LISTEN_DISPLAY_INFO_CHANGED;
+            }
+            mTelephonyManager.listen(mPhoneStateListener, events);
+        }
+    }
+
+    private void unregisterTelephony() {
+        if (mTelephonyManager != null) {
+            try {
+                mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
+            } catch (Exception e) {
+                // ignore.
+            }
+        }
+    }
+
+    private void registerNetworkCallback() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+            filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+            filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
+            filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+            mPluginContext.getContext().registerReceiver(mHostConnectionReceiver, filter);
+        } else {
+            NetworkRequest request = new NetworkRequest.Builder()
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+                    .build();
+            mConnectivityManager.registerNetworkCallback(request, mNetworkCallback);
+        }
+    }
+
+    private void unregisterNetworkCallback() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            try {
+                mPluginContext.getContext().unregisterReceiver(mHostConnectionReceiver);
+            } catch (Exception e) {
+                // ignore.
+            }
+        } else {
+            mConnectivityManager.unregisterNetworkCallback(mNetworkCallback);
         }
     }
 
@@ -238,129 +331,9 @@ public class HostConnectionManager {
                 && mBluetoothAdapter.isEnabled());
     }
 
-
-    @TargetApi(Build.VERSION_CODES.M)
-    public Stats getNetworkStats(long startTime, long endTime) {
-        Stats stats = new Stats();
-
-//        TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-//        String subscriberID = tm.getSubscriberId();
-//        NetworkStats networkStatsByApp = networkStatsManager.queryDetailsForUid(
-//              ConnectivityManager.TYPE_MOBILE, subscriberID, start, end, uid);
-
-        stats.mStartTime = startTime;
-        stats.mEndTime = endTime;
-        try (NetworkStats result = mNetworkStatsManager.querySummary(
-                ConnectivityManager.TYPE_WIFI, null, startTime, endTime)) {
-            NetworkStats.Bucket bucket = new NetworkStats.Bucket();
-            while (result.hasNextBucket()) {
-                result.getNextBucket(bucket);
-                if (bucket.getUid() == android.os.Process.myUid()) {
-                    stats.mTotalTxPackets += bucket.getTxPackets();
-                    stats.mTotalRxPackets += bucket.getRxPackets();
-                    stats.mTotalTxBytes += bucket.getTxBytes();
-                    stats.mTotalRxBytes += bucket.getRxBytes();
-                }
-            }
-        } catch (RemoteException | SecurityException e) {
-            throw new RuntimeException(e);
-        }
-        return stats;
-    }
-
-    public static class Stats {
-        private long mStartTime;
-        private long mEndTime;
-
-        private long mTotalTxPackets;
-        private long mTotalRxPackets;
-        private long mTotalTxBytes;
-        private long mTotalRxBytes;
-
-        /**
-         * 計測開始時間を取得します.
-         *
-         * @return 計測開始時間
-         */
-        public long getStartTime() {
-            return mStartTime;
-        }
-
-        /**
-         * 計測終了時間を取得します.
-         *
-         * @return 計測終了時間
-         */
-        public long getEndTime() {
-            return mEndTime;
-        }
-
-        /**
-         * 送信パケット数を取得します.
-         *
-         * @return 送信パケット数
-         */
-        public long getTotalTxPackets() {
-            return mTotalTxPackets;
-        }
-
-        /**
-         * 受信パケット数を取得します.
-         *
-         * @return 受信パケット数
-         */
-        public long getTotalRxPackets() {
-            return mTotalRxPackets;
-        }
-
-        /**
-         * 送信バイト数を取得します.
-         *
-         * @return 送信バイト数
-         */
-        public long getTotalTxBytes() {
-            return mTotalTxBytes;
-        }
-
-        /**
-         * 受信バイト数を取得します.
-         *
-         * @return 受信バイト数
-         */
-        public long getTotalRxBytes() {
-            return mTotalRxBytes;
-        }
-
-        /**
-         * データ送信のビットレートを取得します.
-         *
-         * @return データ送信のビットレート
-         */
-        public long getTxBitRate() {
-            return 8 * mTotalTxBytes / ((mEndTime - mStartTime) / 1000);
-        }
-
-        /**
-         * データ受信のビットレートを取得します.
-         *
-         * @return データ受信のビットレート
-         */
-        public long getRxBitRate() {
-            return 8 * mTotalRxBytes / ((mEndTime - mStartTime) / 1000);
-        }
-
-        @Override
-        public String toString() {
-            return "totalTxPackets: " + mTotalTxPackets + "\n"
-                    +  "totalRxPackets: " + mTotalRxPackets + "\n"
-                    +  "totalTxBytes: " + mTotalTxBytes + "\n"
-                    +  "totalRxBytes: " + mTotalRxBytes + "\n";
-        }
-    }
-
-    private void postOnChangeMobileNetwork(int type) {
+    private void postOnChangeNetwork() {
         for (ConnectionEventListener l : mConnectionEventListeners) {
-            l.onChangedMobileNetwork(type);
+            l.onChangedNetwork();
         }
     }
 
@@ -377,7 +350,7 @@ public class HostConnectionManager {
     }
 
     public interface ConnectionEventListener {
-        void onChangedMobileNetwork(int type);
+        void onChangedNetwork();
         void onChangedWifiStatus();
         void onChangedBluetoothStatus();
     }

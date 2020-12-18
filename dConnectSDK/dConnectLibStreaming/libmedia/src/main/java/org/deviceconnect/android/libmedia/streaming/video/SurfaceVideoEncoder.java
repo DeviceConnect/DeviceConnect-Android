@@ -126,7 +126,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
         }
         mSurfaceDrawingThread.setSize(quality.getVideoWidth(), quality.getVideoHeight());
         mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
-        if (!isRunningSurfaceDrawingThread()) {
+        if (!mSurfaceDrawingThread.isRunning()) {
             mSurfaceDrawingThread.start();
         }
     }
@@ -143,15 +143,6 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
                 mSurfaceDrawingThread = null;
             }
         }
-    }
-
-    /**
-     * EGLSurfaceDrawingThread が動作している確認します.
-     *
-     * @return EGLSurfaceDrawingThread が動作している場合はtrue、それ以外はfalse
-     */
-    private synchronized boolean isRunningSurfaceDrawingThread() {
-        return mSurfaceDrawingThread != null && mSurfaceDrawingThread.isRunning();
     }
 
     /**

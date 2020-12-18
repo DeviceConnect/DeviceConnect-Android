@@ -22,6 +22,11 @@ public class ScreenCastBroadcasterProvider implements BroadcasterProvider {
     }
 
     @Override
+    public boolean isRunning() {
+        return mBroadcaster != null && mBroadcaster.isRunning();
+    }
+
+    @Override
     public Broadcaster startBroadcaster(String broadcastURI) {
         if (mBroadcaster != null) {
             return mBroadcaster;
@@ -75,7 +80,9 @@ public class ScreenCastBroadcasterProvider implements BroadcasterProvider {
     }
 
     @Override
-    public boolean isRunning() {
-        return mBroadcaster != null && mBroadcaster.isRunning();
+    public void onConfigChange() {
+        if (mBroadcaster != null) {
+            mBroadcaster.onConfigChange();
+        }
     }
 }

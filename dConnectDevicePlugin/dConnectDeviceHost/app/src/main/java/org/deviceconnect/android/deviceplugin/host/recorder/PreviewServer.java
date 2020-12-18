@@ -53,7 +53,7 @@ public interface PreviewServer {
     void stopWebServer();
 
     /**
-     * 画面が回転されたことを通知します.
+     * 設定が変更されたことを通知します.
      */
     void onConfigChange();
 

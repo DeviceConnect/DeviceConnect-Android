@@ -85,4 +85,11 @@ public class Camera2BroadcasterProvider implements BroadcasterProvider {
             mBroadcaster = null;
         }
     }
+
+    @Override
+    public void onConfigChange() {
+        if (mBroadcaster != null) {
+            mBroadcaster.onConfigChange();
+        }
+    }
 }

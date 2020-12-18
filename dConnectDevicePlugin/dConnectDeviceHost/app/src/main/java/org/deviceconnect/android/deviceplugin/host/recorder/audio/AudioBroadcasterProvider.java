@@ -24,6 +24,16 @@ public class AudioBroadcasterProvider implements BroadcasterProvider {
 
     @Override
     public void stopBroadcaster() {
+        if (mBroadcaster != null) {
+            mBroadcaster.stop();
+            mBroadcaster = null;
+        }
+    }
 
+    @Override
+    public void onConfigChange() {
+        if (mBroadcaster != null) {
+            mBroadcaster.onConfigChange();
+        }
     }
 }

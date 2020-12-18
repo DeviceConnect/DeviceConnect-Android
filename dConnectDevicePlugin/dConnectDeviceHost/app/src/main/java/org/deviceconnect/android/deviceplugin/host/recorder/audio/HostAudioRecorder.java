@@ -135,6 +135,10 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     }
 
     @Override
+    public void onConfigChange() {
+    }
+
+    @Override
     public PreviewServerProvider getServerProvider() {
         return mAudioPreviewServerProvider;
     }

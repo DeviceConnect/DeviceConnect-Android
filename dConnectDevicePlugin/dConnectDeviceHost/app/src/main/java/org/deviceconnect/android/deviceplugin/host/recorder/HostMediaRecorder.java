@@ -112,6 +112,11 @@ public interface HostMediaRecorder {
     void onDisplayRotation(int degree);
 
     /**
+     * 設定が変更されたことを通知します.
+     */
+    void onConfigChange();
+
+    /**
      * パーミッションの要求結果を通知するコールバックを設定します.
      *
      * @param callback コールバック
@@ -364,6 +369,22 @@ public interface HostMediaRecorder {
                 throw new IllegalArgumentException("whiteBalance is unsupported value.");
             }
             mPref.put("preview_white_balance", whiteBalance);
+        }
+
+        public boolean isUseSoftwareEncoder() {
+            return mPref.getBoolean("preview_use_software_encoder", false);
+        }
+
+        public void setUseSoftwareEncoder(boolean used) {
+            mPref.put("preview_use_software_encoder", used);
+        }
+
+        public Integer getIntraRefresh() {
+            return mPref.getInteger("preview_intra_refresh", 0);
+        }
+
+        public void setIntraRefresh(int refresh) {
+            mPref.put("preview_intra_refresh", refresh);
         }
 
         /**

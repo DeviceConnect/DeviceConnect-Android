@@ -61,17 +61,21 @@ public class HostTrafficMonitor {
     private void monitoring() {
         Stats stats = getNetworkStats(0, System.currentTimeMillis());
 
+        long rx = 0;
+        long tx = 0;
+        long bitrateRx = 0;
+        long bitrateTx = 0;
+
         if (mStatsList.size() > 1) {
             Stats pre = mStatsList.get(mStatsList.size() - 1);
+            rx = (stats.getTotalRxBytes() - pre.getTotalRxBytes());
+            tx = (stats.getTotalTxBytes() - pre.getTotalTxBytes());
+            bitrateRx = rx / ((stats.getEndTime() - pre.getEndTime()) / 1000);
+            bitrateTx = tx / ((stats.getEndTime() - pre.getEndTime()) / 1000);
+        }
 
-            long rx = (stats.getTotalRxBytes() - pre.getTotalRxBytes());
-            long tx = (stats.getTotalTxBytes() - pre.getTotalTxBytes());
-            long bitrateRx = rx / ((stats.getEndTime() - pre.getEndTime()) / 1000);
-            long bitrateTx = tx / ((stats.getEndTime() - pre.getEndTime()) / 1000);
-
-            if (mOnTrafficListener != null) {
-                mOnTrafficListener.onTraffic(rx, bitrateRx, tx, bitrateTx);
-            }
+        if (mOnTrafficListener != null) {
+            mOnTrafficListener.onTraffic(rx, bitrateRx, tx, bitrateTx);
         }
 
         mStatsList.add(stats);

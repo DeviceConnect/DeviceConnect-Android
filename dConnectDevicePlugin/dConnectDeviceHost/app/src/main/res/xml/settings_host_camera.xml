@@ -44,6 +44,13 @@
             app:title="エンコーダ"
             app:useSimpleSummaryProvider="true" />
 
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="preview_use_software_encoder"
+            android:title="ソフトウェアエンコーダ"
+            app:summary="MediaCodec でソフトウェアエンコーダを優先して使用します。"
+            app:iconSpaceReserved="false" />
+
         <ListPreference
             app:entries="@array/video_white_balance_names"
             app:entryValues="@array/video_white_balance_values"
@@ -53,7 +60,7 @@
             app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
-            app:key="encoder_intra_refresh"
+            app:key="preview_intra_refresh"
             app:title="イントラリフレッシュ"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
@@ -68,8 +75,8 @@
             android:defaultValue="false"
             android:key="audio_enabled"
             android:title="音声"
-            app:iconSpaceReserved="false"
-            app:useSimpleSummaryProvider="true" />
+            app:summary="配信に音声を含めます。"
+            app:iconSpaceReserved="false" />
 
         <EditTextPreference
             android:defaultValue="64"
@@ -114,8 +121,8 @@
             android:defaultValue="false"
             android:key="broadcast_enabled"
             android:title="配信"
-            app:iconSpaceReserved="false"
-            app:useSimpleSummaryProvider="true" />
+            app:summary="Broadcast 配信を優先で行います。"
+            app:iconSpaceReserved="false" />
 
         <EditTextPreference
             android:defaultValue="rtmp://localhost:12345"

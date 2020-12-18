@@ -27,6 +27,7 @@ import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceMP4Recorder;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
@@ -101,6 +102,10 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         if (DEBUG) {
             Log.d(TAG, "ScreenCastSupportedPreviewSize");
         }
+        // MediaCodec でエンコードできる最大解像度を取得
+        // TODO h264, h265 で最大解像度が違う場合はどうするべきか？
+        // TODO ハードウェアエンコーダとソフトウェアエンコーダで最大解像度が違うのはどうするべきか？
+        Size maxSize = CapabilityUtil.getSupportedMaxSize("video/avc");
 
         Size originalSize = getDisplaySize();
 
@@ -117,9 +122,12 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
             int height = (int) (h * scale);
             width += 10 - (width % 10);
             height += 10 - (height % 10);
-            Size previewSize = new Size(width, height);
-            supportPreviewSizes.add(previewSize);
-            supportPictureSizes.add(previewSize);
+
+            Size size = new Size(width, height);
+            supportPictureSizes.add(size);
+            if (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight()) {
+                supportPreviewSizes.add(size);
+            }
         }
         mSettings.setSupportedPreviewSizes(supportPreviewSizes);
         mSettings.setSupportedPictureSizes(supportPictureSizes);
@@ -191,6 +199,8 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
     @Override
     public void clean() {
+        stopRecordingInternal(null);
+        mScreenCastBroadcasterProvider.stopBroadcaster();
         mScreenCastPreviewServerProvider.stopServers();
         mScreenCastMgr.clean();
     }
@@ -245,6 +255,12 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
     @Override
     public void onDisplayRotation(final int rotation) {
+        mScreenCastPreviewServerProvider.onConfigChange();
+    }
+
+    @Override
+    public void onConfigChange() {
+        mScreenCastBroadcasterProvider.onConfigChange();
         mScreenCastPreviewServerProvider.onConfigChange();
     }
 

@@ -11,6 +11,7 @@ public class VideoQuality {
     private int mBitRate = DEFAULT_BIT_RATE;
     private int mFrameRate = DEFAULT_FRAME_RATE;
     private int mIFrameInterval = DEFAULT_IFRAME_INTERVAL;
+    private int mIntraRefresh = 0;
 
     /**
      * ビットレートのモード.
@@ -165,6 +166,14 @@ public class VideoQuality {
      */
     public void setUseSoftwareEncoder(boolean useSoftwareEncoder) {
         mUseSoftwareEncoder = useSoftwareEncoder;
+    }
+
+    public int getIntraRefresh() {
+        return mIntraRefresh;
+    }
+
+    public void setIntraRefresh(int refresh) {
+        mIntraRefresh = refresh;
     }
 
     /**

@@ -236,11 +236,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 settings.setPreviewKeyFrameInterval(previewKeyFrameInterval);
             }
 
-            // 設定をプレビューサーバに反映
-            PreviewServerProvider provider = recorder.getServerProvider();
-            if (provider != null) {
-                provider.onConfigChange();
-            }
+            recorder.onConfigChange();
 
             setResult(response, DConnectMessage.RESULT_OK);
         }

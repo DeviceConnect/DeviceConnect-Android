@@ -162,7 +162,13 @@ public class CameraMainFragment extends CameraBaseFragment {
     public void onResume() {
         super.onResume();
 
+        CameraActivity a = (CameraActivity) getActivity();
+        if (a != null) {
+            a.hideSystemUI();
+        }
+
         if (mMediaRecorder != null) {
+            mMediaRecorder.onConfigChange();
             startEGLSurfaceDrawingThread();
         }
     }
@@ -218,18 +224,29 @@ public class CameraMainFragment extends CameraBaseFragment {
                 HostBatteryManager battery = plugin.getHostBatteryManager();
                 battery.getBatteryInfo();
                 float temperature = battery.getTemperature();
+                int batteryLevel = battery.getBatteryLevel();
 
                 runOnUiThread(() -> {
                     View view = getView();
                     if (view != null) {
+                        TextView l = view.findViewById(R.id.fragment_host_battery);
+                        if (l != null) {
+                            l.setText(batteryLevel + "%");
+                        }
+
                         TextView t = view.findViewById(R.id.fragment_host_temperature);
                         if (t != null) {
-                            t.setText(String.valueOf(temperature));
+                            t.setText(temperature + "℃");
                         }
 
                         TextView b = view.findViewById(R.id.fragment_host_bitrate);
                         if (b != null) {
                             b.setText(String.valueOf(tx));
+                        }
+
+                        View a = view.findViewById(R.id.fragment_host_parameter);
+                        if (a != null) {
+                            a.setVisibility(View.VISIBLE);
                         }
                     }
                 });
@@ -315,6 +332,11 @@ public class CameraMainFragment extends CameraBaseFragment {
             PreviewSurfaceView surfaceView = view.findViewById(R.id.fragment_host_camera_surface_view);
             if (surfaceView != null) {
                 surfaceView.setVisibility(View.INVISIBLE);
+            }
+
+            View a = view.findViewById(R.id.fragment_host_parameter);
+            if (a != null) {
+                a.setVisibility(View.INVISIBLE);
             }
         });
     }

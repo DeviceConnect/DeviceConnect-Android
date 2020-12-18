@@ -38,6 +38,11 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
     }
 
     @Override
+    public String getMimeType() {
+        return "";
+    }
+
+    @Override
     public String getBroadcastURI() {
         return mBroadcastURI;
     }
@@ -145,7 +150,7 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
     }
 
     @Override
-    public String getMimeType() {
-        return "";
+    public void onConfigChange() {
+
     }
 }

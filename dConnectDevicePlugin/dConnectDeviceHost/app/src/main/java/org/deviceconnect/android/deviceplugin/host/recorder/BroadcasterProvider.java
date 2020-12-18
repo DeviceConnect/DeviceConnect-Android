@@ -26,4 +26,9 @@ public interface BroadcasterProvider {
      * ブロードキャスターを停止します.
      */
     void stopBroadcaster();
+
+    /**
+     * 設定が変更されたことを通知します.
+     */
+    void onConfigChange();
 }

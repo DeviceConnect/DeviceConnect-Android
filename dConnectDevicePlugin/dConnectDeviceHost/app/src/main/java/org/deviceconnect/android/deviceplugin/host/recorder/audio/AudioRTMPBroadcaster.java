@@ -42,4 +42,9 @@ public class AudioRTMPBroadcaster implements Broadcaster {
     public boolean isMute() {
         return false;
     }
+
+    @Override
+    public void onConfigChange() {
+
+    }
 }

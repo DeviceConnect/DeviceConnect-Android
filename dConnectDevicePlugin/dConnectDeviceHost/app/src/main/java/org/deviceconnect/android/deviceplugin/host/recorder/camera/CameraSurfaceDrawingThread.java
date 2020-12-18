@@ -1,5 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.util.Size;
 import android.view.Surface;
@@ -67,6 +68,10 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
         int width = isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
         int height = isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
         setSize(width, height);
+        Rect rect = settings.getCutOutSize();
+        if (rect != null) {
+            setCutOutRect(rect);
+        }
         super.start();
     }
 

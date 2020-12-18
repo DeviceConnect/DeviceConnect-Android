@@ -53,6 +53,11 @@ public interface Broadcaster {
      */
     boolean isMute();
 
+    /**
+     * 設定が変更されたことを通知します.
+     */
+    void onConfigChange();
+
     interface OnBroadcasterEventListener {
         void onStarted();
         void onStopped();

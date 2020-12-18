@@ -148,4 +148,9 @@ public class ScreenCastRTMPBroadcaster implements Broadcaster {
         }
         return false;
     }
+
+    @Override
+    public void onConfigChange() {
+
+    }
 }

@@ -58,13 +58,23 @@ public class CameraSettingsFragment extends PreferenceFragmentCompat implements 
         setInputTypeNumber("preview_framerate");
         setInputTypeNumber("preview_bitrate");
         setInputTypeNumber("preview_i_frame_interval");
-        setInputTypeNumber("encoder_intra_refresh");
+        setInputTypeNumber("preview_intra_refresh");
         setInputTypeNumber("preview_audio_bitrate");
         setInputTypeNumber("preview_audio_channel");
         setInputTypeNumber("mjpeg_port");
         setInputTypeNumber("preview_quality");
         setInputTypeNumber("rtsp_port");
         setInputTypeNumber("srt_port");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        CameraActivity a = (CameraActivity) getActivity();
+        if (a != null) {
+            a.showSystemUI();
+        }
     }
 
     @Override

@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
+import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.widget.Toast;
@@ -204,8 +205,19 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     private void initSupportedSettings() {
         CameraWrapper.Options options = mCameraWrapper.getOptions();
 
-        mSettings.setSupportedPreviewSizes(new ArrayList<>(options.getSupportedPreviewSizeList()));
+        // MediaCodec でエンコードできる最大解像度を取得
+        // TODO h264, h265 で最大解像度が違う場合はどうするべきか？
+        // TODO ハードウェアエンコーダとソフトウェアエンコーダで最大解像度が違うのはどうするべきか？
+        Size maxSize = CapabilityUtil.getSupportedMaxSize("video/avc");
+        List<Size> supportPreviewSizes = new ArrayList<>();
+        for (Size size : options.getSupportedPreviewSizeList()) {
+            if (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight()) {
+                supportPreviewSizes.add(size);
+            }
+        }
+
         mSettings.setSupportedPictureSizes(new ArrayList<>(options.getSupportedPictureSizeList()));
+        mSettings.setSupportedPreviewSizes(supportPreviewSizes);
         mSettings.setSupportedFps(options.getSupportedFpsList());
         mSettings.setSupportedWhiteBalances(options.getSupportedWhiteBalanceList());
 
@@ -250,6 +262,8 @@ public class Camera2Recorder extends AbstractMediaRecorder {
 
     @Override
     public synchronized void clean() {
+        stopRecordingInternal(null);
+        mBroadcasterProvider.stopBroadcaster();
         mCamera2PreviewServerProvider.stopServers();
     }
 
@@ -314,6 +328,12 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     @Override
     public void onDisplayRotation(final int degree) {
         mCurrentRotation = degree;
+        mCamera2PreviewServerProvider.onConfigChange();
+    }
+
+    @Override
+    public void onConfigChange() {
+        mBroadcasterProvider.onConfigChange();
         mCamera2PreviewServerProvider.onConfigChange();
     }
 

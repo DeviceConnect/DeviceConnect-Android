@@ -129,6 +129,20 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
     }
 
     /**
+     * 描画する範囲を設定します.
+     *
+     * @param l 左座標
+     * @param t 上座標
+     * @param r 右座標
+     * @param b 下座標
+     * @param width 映像の横幅
+     * @param height 映像の縦幅
+     */
+    public void setCutOutRect(int l, int t, int r, int b, int width, int height) {
+        mTextureRenderer.setDrawingRange(l, t, r, b, width, height);
+    }
+
+    /**
      * Draws the data from SurfaceTexture onto the current EGL surface.
      */
     public void drawImage(int displayRotation) {

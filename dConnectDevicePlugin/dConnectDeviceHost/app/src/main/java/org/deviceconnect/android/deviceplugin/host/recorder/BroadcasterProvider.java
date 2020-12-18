@@ -20,19 +20,10 @@ public interface BroadcasterProvider {
      *
      * @param broadcastURI 配信先の URI
      */
-    void startBroadcaster(String broadcastURI, OnBroadcasterListener listener);
+    Broadcaster startBroadcaster(String broadcastURI);
 
     /**
      * ブロードキャスターを停止します.
      */
     void stopBroadcaster();
-
-    /**
-     * Broadcaster のイベントを通知するリスナー.
-     */
-    interface OnBroadcasterListener {
-        void onStarted();
-        void onStopped();
-        void onError(Exception e);
-    }
 }

@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.util.Range;
 import android.util.Size;
 
@@ -657,6 +658,29 @@ public interface HostMediaRecorder {
 
         public void setSrtPort(int port) {
             mPref.put("srt_port", port);
+        }
+
+        public Rect getCutOutSize() {
+            return mPref.getRect("preview_clip_left",
+                    "preview_clip_top",
+                    "preview_clip_right",
+                    "preview_clip_bottom");
+        }
+
+        public void setCutOutSize(Rect rect) {
+            if (rect == null) {
+                mPref.remove("preview_clip_left");
+                mPref.remove("preview_clip_top");
+                mPref.remove("preview_clip_right");
+                mPref.remove("preview_clip_bottom");
+            } else {
+                mPref.put(
+                        "preview_clip_left",
+                        "preview_clip_top",
+                        "preview_clip_right",
+                        "preview_clip_bottom",
+                        rect);
+            }
         }
     }
 }

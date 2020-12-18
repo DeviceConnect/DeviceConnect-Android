@@ -15,6 +15,7 @@ import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.connection.HostConnectionManager;
 import org.deviceconnect.android.deviceplugin.host.connection.HostTrafficMonitor;
+import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
@@ -38,10 +39,12 @@ public class CameraMainFragment extends CameraBaseFragment {
     private String mRecorderId;
     private int mIndex;
     private HostTrafficMonitor mMonitor;
+    private boolean mDrawFlag = false;
 
     private final EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
         @Override
         public void onStarted() {
+            mDrawFlag = false;
             if (mSurface != null) {
                 addSurface(mSurface);
             }
@@ -57,7 +60,21 @@ public class CameraMainFragment extends CameraBaseFragment {
 
         @Override
         public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
-            // ignore.
+            if (!mDrawFlag) {
+                mDrawFlag = true;
+
+                runOnUiThread(() -> {
+                    View view = getView();
+                    if (view == null) {
+                        return;
+                    }
+
+                    PreviewSurfaceView surfaceView = view.findViewById(R.id.fragment_host_camera_surface_view);
+                    if (surfaceView != null) {
+                        surfaceView.setVisibility(View.VISIBLE);
+                    }
+                });
+            }
         }
     };
 
@@ -162,6 +179,7 @@ public class CameraMainFragment extends CameraBaseFragment {
         mHostConnectionManager.addHostConnectionEventListener(mConnectionEventListener);
 
         mMediaRecorderManager = getHostDevicePlugin().getHostMediaRecorderManager();
+
         setRecorder(getRecorderId());
 
         startTimer();
@@ -176,6 +194,13 @@ public class CameraMainFragment extends CameraBaseFragment {
         }
         stopEGLSurfaceDrawingThread();
         stopTimer();
+    }
+
+    private void setRecorder(String recorderId) {
+        stopEGLSurfaceDrawingThread();
+        mRecorderId = recorderId;
+        mMediaRecorder = mMediaRecorderManager.getRecorder(mRecorderId);
+        startEGLSurfaceDrawingThread();
     }
 
     private static final long INTERVAL_PERIOD = 30 * 1000;
@@ -280,6 +305,18 @@ public class CameraMainFragment extends CameraBaseFragment {
             mEGLSurfaceDrawingThread.stop(false);
             mEGLSurfaceDrawingThread = null;
         }
+
+        runOnUiThread(() -> {
+            View view = getView();
+            if (view == null) {
+                return;
+            }
+
+            PreviewSurfaceView surfaceView = view.findViewById(R.id.fragment_host_camera_surface_view);
+            if (surfaceView != null) {
+                surfaceView.setVisibility(View.INVISIBLE);
+            }
+        });
     }
 
     private void addSurface(Surface surface) {
@@ -287,40 +324,39 @@ public class CameraMainFragment extends CameraBaseFragment {
             return;
         }
         mEGLSurfaceDrawingThread.addEGLSurfaceBase(surface);
+
         runOnUiThread(() -> {
             View view = getView();
             if (view != null) {
                 PreviewSurfaceView surfaceView = view.findViewById(R.id.fragment_host_camera_surface_view);
                 if (surfaceView != null) {
-                    surfaceView.adjustSurfaceView(mEGLSurfaceDrawingThread.isSwappedDimensions(),
+                    surfaceView.fullSurfaceView(mEGLSurfaceDrawingThread.isSwappedDimensions(),
                             mMediaRecorder.getSettings().getPreviewSize());
                 }
             }
         });
     }
 
-    private void setRecorder(String recorderId) {
-        stopEGLSurfaceDrawingThread();
-        mRecorderId = recorderId;
-        mMediaRecorder = mMediaRecorderManager.getRecorder(mRecorderId);
-        startEGLSurfaceDrawingThread();
-    }
-
     private void startBroadcaster() {
         BroadcasterProvider provider = mMediaRecorder.getBroadcasterProvider();
-        provider.startBroadcaster("", new BroadcasterProvider.OnBroadcasterListener() {
-            @Override
-            public void onStarted() {
-            }
+        Broadcaster broadcaster = provider.startBroadcaster("");
+        if (broadcaster != null) {
+            broadcaster.setOnBroadcasterEventListener(new Broadcaster.OnBroadcasterEventListener() {
+                @Override
+                public void onStarted() {
+                }
 
-            @Override
-            public void onStopped() {
-            }
+                @Override
+                public void onStopped() {
+                }
 
-            @Override
-            public void onError(Exception e) {
-            }
-        });
+                @Override
+                public void onError(Exception e) {
+                }
+            });
+        } else {
+            // TODO 起動失敗
+        }
     }
 
     private void stopBroadcaster() {
@@ -336,10 +372,6 @@ public class CameraMainFragment extends CameraBaseFragment {
             List<PreviewServer> servers = provider.startServers();
             if (servers.isEmpty()) {
                 // TODO: 起動できなかった場合の処理
-            }
-
-            for (PreviewServer s : servers) {
-                s.unMute();
             }
         }
     }

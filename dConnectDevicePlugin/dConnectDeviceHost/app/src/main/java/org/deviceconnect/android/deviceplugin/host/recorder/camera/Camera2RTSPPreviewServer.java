@@ -180,9 +180,6 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
                 Log.d(TAG, "RtspServer.Callback#createSession()");
             }
 
-            // カメラを開始することを通知
-//            postOnCameraStarted();
-
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
             HostMediaRecorder.Settings settings = recorder.getSettings();
 
@@ -209,9 +206,6 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "RtspServer.Callback#releaseSession()");
             }
-
-            // カメラを停止したことを通知
-//            postOnCameraStopped();
         }
     };
 }

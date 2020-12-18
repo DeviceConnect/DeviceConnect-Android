@@ -144,25 +144,31 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     @Override
                     public void onAllowed() {
                         String testURI = "rtmp://192.168.11.7:1935/live/abc";
-                        provider.startBroadcaster(testURI, new BroadcasterProvider.OnBroadcasterListener() {
-                            @Override
-                            public void onStarted() {
-                                sendResponse(response);
-                                postOnStart(provider.getBroadcaster());
-                            }
 
-                            @Override
-                            public void onStopped() {
-                                postOnStop(provider.getBroadcaster());
-                            }
+                        Broadcaster broadcaster = provider.startBroadcaster(testURI);
+                        if (broadcaster != null) {
+                            broadcaster.setOnBroadcasterEventListener(new Broadcaster.OnBroadcasterEventListener() {
+                                @Override
+                                public void onStarted() {
+                                }
 
-                            @Override
-                            public void onError(Exception e) {
-                                MessageUtils.setUnknownError(response, "e" + e.toString());
-                                sendResponse(response);
-                                postOnError(provider.getBroadcaster());
-                            }
-                        });
+                                @Override
+                                public void onStopped() {
+                                    postOnStop(provider.getBroadcaster());
+                                }
+
+                                @Override
+                                public void onError(Exception e) {
+                                    postOnError(provider.getBroadcaster());
+                                }
+                            });
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            sendResponse(response);
+                            postOnStart(provider.getBroadcaster());
+                        } else {
+                            MessageUtils.setUnknownError(response, "Failed to start a live streaming.");
+                            sendResponse(response);
+                        }
                     }
 
                     @Override

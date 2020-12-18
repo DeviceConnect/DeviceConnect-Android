@@ -2,6 +2,7 @@ package org.deviceconnect.android.deviceplugin.host.recorder.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Rect;
 import android.util.Size;
 
 import java.util.Set;
@@ -43,6 +44,14 @@ public final class PropertyUtil {
     public void put(String widthKey, String heightKey, Size size) {
         mPref.edit().putString(widthKey, String.valueOf(size.getWidth()))
                 .putString(heightKey, String.valueOf(size.getHeight()))
+                .apply();
+    }
+
+    public void put(String leftKey, String topKey, String rightKey, String bottomKey, Rect rect) {
+        mPref.edit().putString(leftKey, String.valueOf(rect.left))
+                .putString(topKey, String.valueOf(rect.top))
+                .putString(rightKey, String.valueOf(rect.right))
+                .putString(bottomKey, String.valueOf(rect.bottom))
                 .apply();
     }
 
@@ -89,5 +98,24 @@ public final class PropertyUtil {
             }
         }
         return null;
+    }
+
+    public Rect getRect(String leftKey, String topKey, String rightKey, String bottomKey) {
+        String l = mPref.getString(leftKey, null);
+        String t = mPref.getString(topKey, null);
+        String r = mPref.getString(rightKey, null);
+        String b = mPref.getString(bottomKey, null);
+        if (l != null && t != null && r != null && b != null) {
+            try {
+                return new Rect(Integer.parseInt(l), Integer.parseInt(t), Integer.parseInt(r), Integer.parseInt(b));
+            } catch (Exception e) {
+                // ignore.
+            }
+        }
+        return null;
+    }
+
+    public void remove(String key) {
+        mPref.edit().remove(key).apply();
     }
 }

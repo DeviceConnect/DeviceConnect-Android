@@ -31,10 +31,47 @@ public class PreviewSurfaceView extends FrameLayout {
         LayoutInflater.from(context).inflate(R.layout.host_preview_overlay, this);
     }
 
+    public void fullSurfaceView(boolean isSwappedDimensions, Size previewSize) {
+        post(() -> {
+            int gcd = calculatedGcd(previewSize.getWidth(), previewSize.getHeight());
+
+            View root = findViewById(R.id.preview_root);
+            SurfaceView surfaceView = root.findViewById(R.id.preview_surface_view);
+            int cameraWidth = isSwappedDimensions ? previewSize.getHeight() : previewSize.getWidth();
+            int cameraHeight = isSwappedDimensions ? previewSize.getWidth() : previewSize.getHeight();
+
+            int widthRatio = cameraWidth / gcd;
+            int heightRatio = cameraHeight / gcd;
+
+            int largeRate = widthRatio;
+            if (widthRatio < heightRatio) {
+                largeRate = heightRatio;
+            }
+
+            int largeSize = root.getWidth();
+            if (root.getWidth() < root.getHeight()) {
+                largeSize = root.getHeight();
+            }
+
+            int previewGcd = (int) Math.ceil(largeSize / (double) largeRate);
+
+            int width = widthRatio * previewGcd;
+            int height = heightRatio * previewGcd;
+
+            ViewGroup.LayoutParams layoutParams = surfaceView.getLayoutParams();
+            layoutParams.width = width;
+            layoutParams.height = height;
+            surfaceView.setLayoutParams(layoutParams);
+
+            surfaceView.getHolder().setFixedSize(previewSize.getWidth(), previewSize.getHeight());
+        });
+    }
+
     /**
-     * Surface のサイズを画面のサイズに合わせて調整します.
+     * Surface のサイズを画面のサイズに収まるように合わせて調整します.
      *
      * @param isSwappedDimensions 縦横の切り替えフラグ
+     * @param previewSize プレビューのサイズ
      */
     public void adjustSurfaceView(boolean isSwappedDimensions, Size previewSize) {
         post(() -> {
@@ -53,6 +90,14 @@ public class PreviewSurfaceView extends FrameLayout {
 
             surfaceView.getHolder().setFixedSize(previewSize.getWidth(), previewSize.getHeight());
         });
+    }
+
+    private int calculatedGcd(int a, int b) {
+        if (b == 0) {
+            return a;
+        } else {
+            return calculatedGcd(b, a % b);
+        }
     }
 
     /**

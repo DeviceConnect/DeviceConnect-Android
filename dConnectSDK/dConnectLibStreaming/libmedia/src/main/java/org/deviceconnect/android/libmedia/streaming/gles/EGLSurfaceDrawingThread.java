@@ -1,5 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.gles;
 
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.view.Surface;
 
@@ -258,7 +259,7 @@ public class EGLSurfaceDrawingThread {
     /**
      * スレッドを開始します.
      */
-    public void start() {
+    public synchronized void start() {
         if (isRunning()) {
             return;
         }
@@ -290,7 +291,7 @@ public class EGLSurfaceDrawingThread {
      *
      * @param force 強制的に終了する場合は true、それ以外は false
      */
-    public void stop(boolean force) {
+    public synchronized void stop(boolean force) {
         if (mDrawingThread != null) {
             if (force || getEGLSurfaceBaseCount() == 0) {
                 mDrawingThread.terminate();
@@ -310,7 +311,18 @@ public class EGLSurfaceDrawingThread {
         SurfaceTexture st = manager.getSurfaceTexture();
         int w = isSwappedDimensions() ? mHeight : mWidth;
         int h = isSwappedDimensions() ? mWidth : mHeight;
+        if (mCutOutRect != null) {
+            manager.setCutOutRect(
+                    mCutOutRect.left, mCutOutRect.top,
+                    mCutOutRect.right, mCutOutRect.bottom,
+                    w, h);
+            int cutW = (mCutOutRect.right - mCutOutRect.left);
+            int cutH = (mCutOutRect.bottom - mCutOutRect.top);
+            w = isSwappedDimensions() ? cutH : cutW;
+            h = isSwappedDimensions() ? cutW : cutH;
+        }
         st.setDefaultBufferSize(w, h);
+
         return manager;
     }
 
@@ -404,6 +416,12 @@ public class EGLSurfaceDrawingThread {
         for (OnDrawingEventListener l : mOnDrawingEventListeners) {
             l.onDrawn(eglSurfaceBase);
         }
+    }
+
+    private Rect mCutOutRect;
+
+    public void setCutOutRect(Rect rect) {
+        mCutOutRect = rect;
     }
 
     /**

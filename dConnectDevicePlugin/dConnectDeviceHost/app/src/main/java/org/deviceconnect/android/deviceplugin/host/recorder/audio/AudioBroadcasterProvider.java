@@ -18,8 +18,8 @@ public class AudioBroadcasterProvider implements BroadcasterProvider {
     }
 
     @Override
-    public void startBroadcaster(String broadcastURI, OnBroadcasterListener listener) {
-
+    public Broadcaster startBroadcaster(String broadcastURI) {
+        return mBroadcaster;
     }
 
     @Override

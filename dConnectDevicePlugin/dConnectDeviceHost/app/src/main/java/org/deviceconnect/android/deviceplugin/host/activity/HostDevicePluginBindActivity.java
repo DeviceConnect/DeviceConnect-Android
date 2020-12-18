@@ -1,10 +1,12 @@
 package org.deviceconnect.android.deviceplugin.host.activity;
 
+import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.DisplayMetrics;
@@ -34,13 +36,50 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        bindService();
+
+        if (isLaunchManager()) {
+            bindService();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (isLaunchManager()) {
+            bindService();
+        }
     }
 
     @Override
     protected void onDestroy() {
         unbindService();
         super.onDestroy();
+    }
+
+    /**
+     * Manager を起動します.
+     */
+    public void startManager() {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse("gotapi://start/server"));
+        intent.setPackage("org.deviceconnect.android.manager");
+        startActivity(intent);
+    }
+
+    /**
+     * Manager の起動を確認します.
+     *
+     * @return 起動している場合は true、それ以外は false
+     */
+    public boolean isLaunchManager() {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo serviceInfo : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if ("org.deviceconnect.android.manager".equals(serviceInfo.service.getPackageName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -81,6 +120,10 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
      * HostDevicePlugin に接続します.
      */
     public void bindService() {
+        if (mIsBound) {
+            return;
+        }
+
         Intent intent = new Intent(this, HostDevicePlugin.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         mIsBound = true;

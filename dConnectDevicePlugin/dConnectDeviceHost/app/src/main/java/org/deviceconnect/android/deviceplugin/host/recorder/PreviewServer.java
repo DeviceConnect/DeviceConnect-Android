@@ -60,12 +60,7 @@ public interface PreviewServer {
     /**
      * Recorder をミュート状態にする.
      */
-    void mute();
-
-    /**
-     * Recorder のミュート状態を解除する.
-     */
-    void unMute();
+    void setMute(boolean mute);
 
     /**
      * Recorder のミュート状態を返す.

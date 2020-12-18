@@ -111,28 +111,13 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
     }
 
     @Override
-    public void mute() {
-        super.mute();
-        setMute(true);
-    }
-
-    @Override
-    public void unMute() {
-        super.unMute();
-        setMute(false);
-    }
-
-    /**
-     * AudioEncoder にミュート設定を行います.
-     *
-     * @param mute ミュート設定
-     */
-    private void setMute(boolean mute) {
+    public void setMute(boolean mute) {
+        super.setMute(mute);
         if (mSRTServer != null) {
             SRTSession session = mSRTServer.getSRTSession();
             if (session != null) {
                 AudioEncoder audioEncoder = session.getAudioEncoder();
-                if (audioEncoder  != null) {
+                if (audioEncoder != null) {
                     audioEncoder.setMute(mute);
                 }
             }

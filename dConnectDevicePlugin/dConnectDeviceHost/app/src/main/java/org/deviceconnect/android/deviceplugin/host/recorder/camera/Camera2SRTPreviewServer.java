@@ -98,15 +98,18 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
     }
 
     @Override
-    public void mute() {
-        super.mute();
-        setMute(true);
-    }
+    public void setMute(boolean mute) {
+        super.setMute(mute);
 
-    @Override
-    public void unMute() {
-        super.unMute();
-        setMute(false);
+        if (mSRTServer != null) {
+            SRTSession session = mSRTServer.getSRTSession();
+            if (session != null) {
+                AudioEncoder audioEncoder = session.getAudioEncoder();
+                if (audioEncoder  != null) {
+                    audioEncoder.setMute(mute);
+                }
+            }
+        }
     }
 
     // Camera2PreviewServer
@@ -117,23 +120,6 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
             SRTSession session = mSRTServer.getSRTSession();
             if (session != null) {
                 session.restartVideoEncoder();
-            }
-        }
-    }
-
-    /**
-     * AudioEncoder にミュート設定を行います.
-     *
-     * @param mute ミュート設定
-     */
-    private void setMute(boolean mute) {
-        if (mSRTServer != null) {
-            SRTSession session = mSRTServer.getSRTSession();
-            if (session != null) {
-                AudioEncoder audioEncoder = session.getAudioEncoder();
-                if (audioEncoder  != null) {
-                    audioEncoder.setMute(mute);
-                }
             }
         }
     }

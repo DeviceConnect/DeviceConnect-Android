@@ -646,11 +646,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 PreviewServerProvider provider = recorder.getServerProvider();
                 if (provider != null) {
                     for (PreviewServer server : provider.getServers()) {
-                        if (muted) {
-                            server.mute();
-                        } else {
-                            server.unMute();
-                        }
+                        server.setMute(muted);
                     }
                     setResult(response, DConnectMessage.RESULT_OK);
                 } else {

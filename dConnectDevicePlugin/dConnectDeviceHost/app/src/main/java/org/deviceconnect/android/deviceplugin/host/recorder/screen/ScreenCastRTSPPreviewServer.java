@@ -106,23 +106,9 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
     }
 
     @Override
-    public void mute() {
-        super.mute();
-        setMute(true);
-    }
+    public void setMute(boolean mute) {
+        super.setMute(mute);
 
-    @Override
-    public void unMute() {
-        super.unMute();
-        setMute(false);
-    }
-
-    /**
-     * ミュート設定をエンコーダに設定します.
-     *
-     * @param mute ミュートする場合はtrue、それ以外はfalse
-     */
-    private void setMute(boolean mute) {
         if (mRtspServer != null) {
             RtspSession session = mRtspServer.getRtspSession();
             if (session != null) {

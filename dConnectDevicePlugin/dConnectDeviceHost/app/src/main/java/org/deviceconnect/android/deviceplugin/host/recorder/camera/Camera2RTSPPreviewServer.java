@@ -106,15 +106,18 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
     }
 
     @Override
-    public void mute() {
-        super.mute();
-        setMute(true);
-    }
+    public void setMute(boolean mute) {
+        super.setMute(mute);
 
-    @Override
-    public void unMute() {
-        super.unMute();
-        setMute(false);
+        if (mRtspServer != null) {
+            RtspSession session = mRtspServer.getRtspSession();
+            if (session != null) {
+                AudioStream stream = session.getAudioStream();
+                if (stream  != null) {
+                    stream.setMute(mute);
+                }
+            }
+        }
     }
 
     // Camera2PreviewServer
@@ -125,23 +128,6 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
             RtspSession session = mRtspServer.getRtspSession();
             if (session != null) {
                 session.restartVideoStream();
-            }
-        }
-    }
-
-    /**
-     * AudioEncoder にミュート設定を行います.
-     *
-     * @param mute ミュート設定
-     */
-    private void setMute(boolean mute) {
-        if (mRtspServer != null) {
-            RtspSession session = mRtspServer.getRtspSession();
-            if (session != null) {
-                AudioStream stream = session.getAudioStream();
-                if (stream  != null) {
-                    stream.setMute(mute);
-                }
             }
         }
     }

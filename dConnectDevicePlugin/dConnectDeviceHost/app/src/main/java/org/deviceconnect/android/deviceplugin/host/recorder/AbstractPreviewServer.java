@@ -71,13 +71,8 @@ public abstract class AbstractPreviewServer implements PreviewServer {
     }
 
     @Override
-    public void mute() {
-        mMute = true;
-    }
-
-    @Override
-    public void unMute() {
-        mMute = false;
+    public void setMute(boolean mute) {
+        mMute = mute;
     }
 
     @Override

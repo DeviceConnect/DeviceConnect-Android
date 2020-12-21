@@ -54,7 +54,7 @@ public class EGLSurfaceDrawingThread {
         mOnDrawingEventListeners.add(listener);
 
         // すでに開始されている場合には、リスナーのイベントを呼び出します。
-        if (isRunning() && mEGLCore != null) {
+        if (isInitCompleted() && mEGLCore != null) {
             listener.onStarted();
         }
     }
@@ -253,7 +253,7 @@ public class EGLSurfaceDrawingThread {
      * @return 動作中の場合はtrue、それ以外はfalse
      */
     public boolean isRunning() {
-        return mDrawingThread != null && mDrawingThread.isRunning() ;
+        return mDrawingThread != null && mDrawingThread.isRunning();
     }
 
     /**
@@ -298,6 +298,15 @@ public class EGLSurfaceDrawingThread {
                 mDrawingThread = null;
             }
         }
+    }
+
+    /**
+     * 初期化が完了しているか確認します.
+     *
+     * @return 初期化が完了している場合は true、それ以外はfalse
+     */
+    private boolean isInitCompleted() {
+        return mDrawingThread != null && mDrawingThread.isInitCompleted();
     }
 
     /**
@@ -428,10 +437,14 @@ public class EGLSurfaceDrawingThread {
      * 描画処理を行うスレッド.
      */
     private class DrawingThread extends Thread {
+        private static final int STATE_INIT = 1;
+        private static final int STATE_RUNNING = 2;
+        private static final int STATE_STOP = 3;
+
         /**
-         * 停止フラグ.
+         * スレッドの状態.
          */
-        private boolean mStopFlag;
+        private int mState = STATE_INIT;
 
         /**
          * スレッドの動作を確認します.
@@ -439,14 +452,23 @@ public class EGLSurfaceDrawingThread {
          * @return スレッドが動作中の場合は true、それ以外は false
          */
         private boolean isRunning() {
-            return !mStopFlag;
+            return mState != STATE_STOP;
+        }
+
+        /**
+         * 初期化が完了しているか確認します.
+         *
+         * @return 初期化が完了している場合は true、それ以外はfalse
+         */
+        private boolean isInitCompleted() {
+            return mState == STATE_RUNNING;
         }
 
         /**
          * スレッドを終了します.
          */
         private void terminate() {
-            mStopFlag = true;
+            mState = STATE_STOP;
 
             interrupt();
 
@@ -468,8 +490,10 @@ public class EGLSurfaceDrawingThread {
                 onStarted();
                 postOnStarted();
 
+                mState = STATE_RUNNING;
+
                 SurfaceTexture st = mStManager.getSurfaceTexture();
-                while (!mStopFlag) {
+                while (mState == STATE_RUNNING) {
                     mStManager.awaitNewImage();
 
                     synchronized (mEGLSurfaceBases) {
@@ -484,7 +508,7 @@ public class EGLSurfaceDrawingThread {
                     }
                 }
             } catch (Exception e) {
-                if (!mStopFlag) {
+                if (mState != STATE_STOP) {
                     postOnError(e);
                 }
             } finally {
@@ -505,7 +529,7 @@ public class EGLSurfaceDrawingThread {
                     mEGLCore = null;
                 }
 
-                mStopFlag = true;
+                mState = STATE_STOP;
 
                 postOnStopped();
 

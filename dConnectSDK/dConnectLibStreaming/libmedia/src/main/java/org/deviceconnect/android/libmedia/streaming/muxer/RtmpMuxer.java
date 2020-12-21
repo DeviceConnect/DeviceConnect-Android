@@ -97,6 +97,10 @@ public class RtmpMuxer implements IMediaMuxer {
                 super.onConnectionFailedRtmp(reason);
                 result.set(false);
                 latch.countDown();
+
+                if (mOnEventListener != null) {
+                    mOnEventListener.onDisconnected();
+                }
             }
 
             @Override

@@ -102,7 +102,11 @@ public interface HostMediaRecorder {
      */
     BroadcasterProvider getBroadcasterProvider();
 
-    // テスト
+    /**
+     * 描画用オブジェクトを取得します.
+     *
+     * @return EGLSurfaceDrawingThread のインスタンス
+     */
     EGLSurfaceDrawingThread getSurfaceDrawingThread();
 
     /**
@@ -168,6 +172,9 @@ public interface HostMediaRecorder {
         ERROR
     }
 
+    /**
+     * HostMediaRecorder の設定を保持するクラス.
+     */
     class Settings {
         // サポート範囲
         private List<Size> mSupportedPictureSizes;
@@ -371,18 +378,38 @@ public interface HostMediaRecorder {
             mPref.put("preview_white_balance", whiteBalance);
         }
 
+        /**
+         * ソフトウェアエンコーダを優先的に使用するフラグを確認します.
+         *
+         * @return ソフトウェアエンコーダを優先的に使用する場合は true、それ以外は false
+         */
         public boolean isUseSoftwareEncoder() {
             return mPref.getBoolean("preview_use_software_encoder", false);
         }
 
+        /**
+         * ソフトウェアエンコーダを優先的に使用するフラグを設定します.
+         *
+         * @param used ソフトウェアエンコーダを優先的に使用する場合は true、それ以外は false
+         */
         public void setUseSoftwareEncoder(boolean used) {
             mPref.put("preview_use_software_encoder", used);
         }
 
+        /**
+         * イントラリフレッシュのフレーム数を取得します.
+         *
+         * @return イントラリフレッシュのフレーム数
+         */
         public Integer getIntraRefresh() {
             return mPref.getInteger("preview_intra_refresh", 0);
         }
 
+        /**
+         * イントラリフレッシュのフレーム数を設定します.
+         *
+         * @param refresh イントラリフレッシュのフレーム数
+         */
         public void setIntraRefresh(int refresh) {
             mPref.put("preview_intra_refresh", refresh);
         }

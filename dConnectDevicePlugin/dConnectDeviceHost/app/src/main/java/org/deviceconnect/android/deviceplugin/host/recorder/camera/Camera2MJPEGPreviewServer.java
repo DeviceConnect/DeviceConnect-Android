@@ -192,7 +192,6 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "MJPEGServer.Callback#releaseMJPEGEncoder: ");
             }
-            postOnCameraStopped();
         }
     };
 }

@@ -22,14 +22,6 @@ public class CameraActivity extends HostDevicePluginBindActivity {
     }
 
     @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            hideSystemUI();
-        }
-    }
-
-    @Override
     protected void onBindService() {
         for (Fragment f : getSupportFragmentManager ().getFragments()) {
             if (f instanceof NavHostFragment) {

@@ -418,7 +418,9 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
      */
     private void startRecordingInternal(final RecordingListener listener) {
         if (mMP4Recorder != null) {
-            listener.onFailed(this, "Recording has started already.");
+            if (listener != null) {
+                listener.onFailed(this, "Recording has started already.");
+            }
             return;
         }
 
@@ -456,7 +458,9 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
      */
     private void stopRecordingInternal(final StoppingListener listener) {
         if (mMP4Recorder == null) {
-            listener.onFailed(this, "Recording has stopped already.");
+            if (listener != null) {
+                listener.onFailed(this, "Recording has stopped already.");
+            }
             return;
         }
 

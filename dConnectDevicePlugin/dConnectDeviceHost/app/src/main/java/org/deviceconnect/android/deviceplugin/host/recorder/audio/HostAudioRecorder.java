@@ -207,7 +207,9 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     @Override
     public synchronized void startRecording(final RecordingListener listener) {
         if (getState() != State.INACTIVE) {
-            listener.onFailed(this, "MediaRecorder is already recording.");
+            if (listener != null) {
+                listener.onFailed(this, "MediaRecorder is already recording.");
+            }
         } else {
             requestPermission(new PermissionCallback() {
                 @Override
@@ -218,7 +220,9 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
                 @Override
                 public void onDisallowed() {
                     mState = State.ERROR;
-                    listener.onFailed(HostAudioRecorder.this, "Permission not granted.");
+                    if (listener != null) {
+                        listener.onFailed(HostAudioRecorder.this, "Permission not granted.");
+                    }
                 }
             });
         }
@@ -290,7 +294,9 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
      */
     private void startRecordingInternal(final RecordingListener listener) {
         if (mMP4Recorder != null) {
-            listener.onFailed(this, "Recording has started already.");
+            if (listener != null) {
+                listener.onFailed(this, "Recording has started already.");
+            }
             return;
         }
 
@@ -328,7 +334,9 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
      */
     private void stopRecordingInternal(final StoppingListener listener) {
         if (mMP4Recorder == null) {
-            listener.onFailed(this, "Recording has stopped already.");
+            if (listener != null) {
+                listener.onFailed(this, "Recording has stopped already.");
+            }
             return;
         }
 

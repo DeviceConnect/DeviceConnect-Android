@@ -154,8 +154,6 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
                 Log.d(TAG, "SRTServer.Callback#createSession()");
             }
 
-//            postOnCameraStarted();
-
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
             HostMediaRecorder.Settings settings = recorder.getSettings();
 
@@ -181,8 +179,6 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "SRTServer.Callback#releaseSession()");
             }
-
-//            postOnCameraStopped();
         }
     };
 }

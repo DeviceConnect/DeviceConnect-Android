@@ -28,7 +28,7 @@ public class ScreenCastBroadcasterProvider implements BroadcasterProvider {
 
     @Override
     public Broadcaster startBroadcaster(String broadcastURI) {
-        if (mBroadcaster != null) {
+        if (mBroadcaster != null && mBroadcaster.isRunning()) {
             return mBroadcaster;
         }
 

@@ -38,10 +38,10 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (isLaunchManager()) {
+        if (isManagerStarted()) {
             bindService();
         } else {
-            startManager();
+//            startManager();
         }
     }
 
@@ -49,7 +49,7 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
-        if (isLaunchManager()) {
+        if (isManagerStarted()) {
             bindService();
         }
     }
@@ -75,7 +75,7 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
      *
      * @return 起動している場合は true、それ以外は false
      */
-    public boolean isLaunchManager() {
+    public boolean isManagerStarted() {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo serviceInfo : manager.getRunningServices(Integer.MAX_VALUE)) {
             if ("org.deviceconnect.android.manager".equals(serviceInfo.service.getPackageName())) {
@@ -102,7 +102,7 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
      * @return 接続されている場合は true、それ以外は false
      */
     public boolean isBound() {
-        return mIsBound;
+        return mIsBound && mHostDevicePlugin != null;
     }
 
     /**
@@ -126,10 +126,10 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
         if (mIsBound) {
             return;
         }
+        mIsBound = true;
 
         Intent intent = new Intent(this, HostDevicePlugin.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        mIsBound = true;
     }
 
     /**
@@ -227,6 +227,9 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * ステータスバー、ナビゲーションバーを非表示にします.
+     */
     public void hideSystemUI() {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -244,12 +247,12 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
                 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-
         decorView.requestLayout();
     }
 
-    // Shows the system bars by removing all the flags
-    // except for the ones that make the content appear under the system bars.
+    /**
+     * ステータスバー、ナビゲーションバーを表示します.
+     */
     public void showSystemUI() {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -257,9 +260,7 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
         }
 
         View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-        );
+        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
         decorView.requestLayout();
     }
 

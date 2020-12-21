@@ -1,7 +1,5 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
-import android.util.Log;
-
 import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
@@ -83,7 +81,6 @@ public class ScreenCastRTMPBroadcaster implements Broadcaster {
         mRtmpClient.setOnEventListener(new RtmpClient.OnEventListener() {
             @Override
             public void onStarted() {
-                Log.i("ABC", "RtmpClient::onStarted");
                 if (mOnBroadcasterEventListener != null) {
                     mOnBroadcasterEventListener.onStarted();
                 }
@@ -91,7 +88,6 @@ public class ScreenCastRTMPBroadcaster implements Broadcaster {
 
             @Override
             public void onStopped() {
-                Log.i("ABC", "RtmpClient::onStopped");
                 if (mOnBroadcasterEventListener != null) {
                     mOnBroadcasterEventListener.onStopped();
                 }
@@ -99,7 +95,6 @@ public class ScreenCastRTMPBroadcaster implements Broadcaster {
 
             @Override
             public void onError(MediaEncoderException e) {
-                Log.e("ABC", "RtmpClient::onError", e);
                 if (mOnBroadcasterEventListener != null) {
                     mOnBroadcasterEventListener.onError(e);
                 }
@@ -107,17 +102,15 @@ public class ScreenCastRTMPBroadcaster implements Broadcaster {
 
             @Override
             public void onConnected() {
-                Log.i("ABC", "RtmpClient::onConnected");
             }
 
             @Override
             public void onDisconnected() {
-                Log.i("ABC", "RtmpClient::onDisconnected");
+                ScreenCastRTMPBroadcaster.this.stop();
             }
 
             @Override
             public void onNewBitrate(long bitrate) {
-                Log.i("ABC", "RtmpClient::onNewBitrate: " + bitrate);
             }
         });
         mRtmpClient.start();

@@ -4,7 +4,6 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-
 package org.deviceconnect.android.deviceplugin.host.profile;
 
 import android.content.Intent;
@@ -55,6 +54,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
      */
     private final FileManager mFileManager;
 
+    // GET /gotapi/mediaStreamRecording/mediaRecorder
     private final DConnectApi mGetMediaRecorderApi = new GetApi() {
         @Override
         public String getAttribute() {
@@ -127,6 +127,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    // GET /gotapi/mediaStreamRecording/options
     private final DConnectApi mGetOptionsApi = new GetApi() {
         @Override
         public String getAttribute() {
@@ -172,6 +173,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    // PUT /gotapi/mediaStreamRecording/options
     private final DConnectApi mPutOptionsApi = new PutApi() {
         private void setOptions(final Intent request, final Intent response) {
             String target = getTarget(request);
@@ -274,6 +276,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    // POST /gotapi/mediaStreamRecording/preview/requestKeyFrame
     private final DConnectApi mPostPreviewRequestKeyFrameApi = new PostApi() {
 
         @Override
@@ -309,6 +312,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    // PUT /gotapi/mediaStreamRecording/onPhoto
     private final DConnectApi mPutOnPhotoApi = new PutApi() {
 
         @Override
@@ -328,6 +332,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    // DELETE /gotapi/mediaStreamRecording/onPhoto
     private final DConnectApi mDeleteOnPhotoApi = new DeleteApi() {
 
         @Override
@@ -347,6 +352,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    // PUT /gotapi/mediaStreamRecording/onRecordingChange
     private final DConnectApi mPutOnRecordingChangeApi = new PutApi() {
 
         @Override
@@ -366,6 +372,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    // DELETE /gotapi/mediaStreamRecording/onRecordingChange
     private final DConnectApi mDeleteOnRecordingChangeApi = new DeleteApi() {
 
         @Override
@@ -385,6 +392,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    // POST /gotapi/mediaStreamRecording/takePhoto
     private final DConnectApi mPostTakePhotoApi = new PostApi() {
 
         @Override
@@ -460,6 +468,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    // PUT /gotapi/mediaStreamRecording/preview
     private final DConnectApi mPutPreviewApi = new PutApi() {
 
         @Override
@@ -547,6 +556,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         sendResponse(response);
     }
 
+    // DELETE /gotapi/mediaStreamRecording/preview
     private final DConnectApi mDeletePreviewApi = new DeleteApi() {
 
         @Override
@@ -583,6 +593,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    // PUT /gotapi/mediaStreamRecording/preview/mute
     private final DConnectApi mPutPreviewMuteApi = new PutApi() {
 
         @Override
@@ -598,6 +609,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    // DELETE /gotapi/mediaStreamRecording/preview/mute
     private final DConnectApi mDeletePreviewMuteApi = new DeleteApi() {
 
         @Override
@@ -661,6 +673,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         return false;
     }
 
+    // POST /gotapi/mediaStreamRecording/record
     private final DConnectApi mPostRecordApi = new PostApi() {
 
         @Override
@@ -733,6 +746,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    // PUT /gotapi/mediaStreamRecording/stop
     private final DConnectApi mPutStopApi = new PutApi() {
 
         @Override
@@ -799,6 +813,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    // PUT /gotapi/mediaStreamRecording/pause
     private final DConnectApi mPutPauseApi = new PutApi() {
 
         @Override
@@ -854,6 +869,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    // PUT /gotapi/mediaStreamRecording/resume
     private final DConnectApi mPutResumeApi = new PutApi() {
 
         @Override

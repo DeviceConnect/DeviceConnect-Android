@@ -60,6 +60,7 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
     @Override
     public void start() {
         HostMediaRecorder.Settings settings = mRecorder.getSettings();
+        Log.e("ABC", "$$$$$$$$$$ AAA");
 
         CameraVideoEncoder videoEncoder = new CameraVideoEncoder(mRecorder);
         CameraVideoQuality videoQuality = (CameraVideoQuality) videoEncoder.getVideoQuality();
@@ -83,7 +84,6 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
         mRtmpClient.setOnEventListener(new RtmpClient.OnEventListener() {
             @Override
             public void onStarted() {
-                Log.i("ABC", "RtmpClient::onStarted");
                 if (mOnBroadcasterEventListener != null) {
                     mOnBroadcasterEventListener.onStarted();
                 }
@@ -91,7 +91,6 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
 
             @Override
             public void onStopped() {
-                Log.i("ABC", "RtmpClient::onStopped");
                 if (mOnBroadcasterEventListener != null) {
                     mOnBroadcasterEventListener.onStopped();
                 }
@@ -99,7 +98,6 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
 
             @Override
             public void onError(MediaEncoderException e) {
-                Log.e("ABC", "RtmpClient::onError", e);
                 if (mOnBroadcasterEventListener != null) {
                     mOnBroadcasterEventListener.onError(e);
                 }
@@ -107,17 +105,15 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
 
             @Override
             public void onConnected() {
-                Log.i("ABC", "RtmpClient::onConnected");
             }
 
             @Override
             public void onDisconnected() {
-                Log.i("ABC", "RtmpClient::onDisconnected");
+                Camera2RTMPBroadcaster.this.stop();
             }
 
             @Override
             public void onNewBitrate(long bitrate) {
-                Log.i("ABC", "RtmpClient::onNewBitrate: " + bitrate);
             }
         });
         mRtmpClient.start();

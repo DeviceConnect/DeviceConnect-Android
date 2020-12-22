@@ -31,6 +31,11 @@ public class CameraBaseFragment extends Fragment implements CameraActivity.OnHos
     public void onUnbindService() {
     }
 
+    /**
+     * HostDevicePlugin との接続状態を確認します.
+     *
+     * @return 接続中の場合はtrue、それ以外はfalse
+     */
     public boolean isBound() {
         Activity activity = getActivity();
         if (activity instanceof CameraActivity) {
@@ -54,6 +59,11 @@ public class CameraBaseFragment extends Fragment implements CameraActivity.OnHos
         return null;
     }
 
+    /**
+     * レコーダ ID を取得します.
+     *
+     * @return レコーダ ID
+     */
     public String getRecorderId() {
         Activity activity = getActivity();
         if (activity instanceof CameraActivity) {
@@ -62,6 +72,9 @@ public class CameraBaseFragment extends Fragment implements CameraActivity.OnHos
         return null;
     }
 
+    /**
+     * 画面回転固定の設定を切り替えます.
+     */
     public void toggleScreenRotation() {
         Activity activity = getActivity();
         if (activity instanceof CameraActivity) {
@@ -69,6 +82,11 @@ public class CameraBaseFragment extends Fragment implements CameraActivity.OnHos
         }
     }
 
+    /**
+     * 画面回転固定状態を確認します.
+     *
+     * @return 画面回転を固定している場合は true、それ以外は false
+     */
     public boolean isScreenRotationFixed() {
         Activity activity = getActivity();
         if (activity instanceof CameraActivity) {
@@ -86,6 +104,12 @@ public class CameraBaseFragment extends Fragment implements CameraActivity.OnHos
         mUIHandler.post(run);
     }
 
+    /**
+     * Runnable を指定された delay の分だけ後に実行します.
+     *
+     * @param run 実行する Runnable
+     * @param delay 遅延する時間(ミリ秒)
+     */
     public void postDelay(Runnable run, long delay) {
         mUIHandler.postDelayed(run, delay);
     }

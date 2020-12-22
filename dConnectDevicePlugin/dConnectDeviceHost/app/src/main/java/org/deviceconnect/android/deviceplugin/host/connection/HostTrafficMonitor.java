@@ -39,6 +39,9 @@ public class HostTrafficMonitor {
         mOnTrafficListener = listener;
     }
 
+    /**
+     * 通信量のモニタリングを開始します.
+     */
     public void startTimer() {
         if (mTimer == null) {
             mTimer = new Timer();
@@ -51,6 +54,9 @@ public class HostTrafficMonitor {
         }
     }
 
+    /**
+     * 通信量のモニタリングを停止します.
+     */
     public void stopTimer() {
         if (mTimer != null) {
             mTimer.cancel();
@@ -58,6 +64,9 @@ public class HostTrafficMonitor {
         }
     }
 
+    /**
+     * 通信量の取得処理を行います.
+     */
     private void monitoring() {
         Stats stats = getNetworkStats(0, System.currentTimeMillis());
 

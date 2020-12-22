@@ -29,7 +29,6 @@ import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.util.NotificationUtils;
 
 public class HostConnectionManager {
-    /** Notification Id */
     private static final int NOTIFICATION_ID = 3527;
 
     private DevicePluginContext mPluginContext;
@@ -137,18 +136,33 @@ public class HostConnectionManager {
         mConnectionEventListeners.clear();
     }
 
+    /**
+     * 接続イベントをリスナーを追加します.
+     *
+     * @param listener 追加するリスナー
+     */
     public void addHostConnectionEventListener(ConnectionEventListener listener) {
         if (listener != null) {
             mConnectionEventListeners.add(listener);
         }
     }
 
+    /**
+     * 接続イベントをリスナーを削除します.
+     *
+     * @param listener 削除するリスナー
+     */
     public void removeHostConnectionEventListener(ConnectionEventListener listener) {
         if (listener != null) {
             mConnectionEventListeners.remove(listener);
         }
     }
 
+    /**
+     * 有効になっているネットワークタイプを取得します.
+     *
+     * @return ネットワークタイプ
+     */
     public NetworkType getActivityNetwork() {
         NetworkType networkType = NetworkType.TYPE_NONE;
 

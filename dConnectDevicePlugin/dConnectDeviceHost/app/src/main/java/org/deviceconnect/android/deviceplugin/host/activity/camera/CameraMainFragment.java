@@ -104,7 +104,7 @@ public class CameraMainFragment extends CameraBaseFragment {
         SurfaceView surfaceView = view.findViewById(R.id.preview_surface_view);
         surfaceView.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_UP) {
-                toggleView();
+                toggleAdjustView();
             }
             return true;
         });
@@ -141,7 +141,7 @@ public class CameraMainFragment extends CameraBaseFragment {
         view.findViewById(R.id.fragment_host_camera_mute_button).setOnClickListener(v -> toggleMute());
         view.findViewById(R.id.fragment_host_camera_switch_button).setOnClickListener(v -> switchRecorder());
 
-        view.findViewById(R.id.fragment_host_camera_start_button).setOnClickListener(
+        view.findViewById(R.id.fragment_host_camera_toggle_button).setOnClickListener(
                 v -> {
                     if (mMediaRecorder != null) {
                         new Thread(this::togglePreviewServer).start();
@@ -362,6 +362,11 @@ public class CameraMainFragment extends CameraBaseFragment {
         });
     }
 
+    /**
+     * Surface を EGLSurfaceDrawingThread に追加します.
+     *
+     * @param surface 追加する Surface
+     */
     private void addSurface(Surface surface) {
         if (mEGLSurfaceDrawingThread.findEGLSurfaceBaseByTag(surface) != null) {
             return;
@@ -403,7 +408,7 @@ public class CameraMainFragment extends CameraBaseFragment {
         setCameraStartButton();
     }
 
-    private void toggleView() {
+    private void toggleAdjustView() {
         mAdjustViewFlag = !mAdjustViewFlag;
         setCameraSurfaceView();
     }
@@ -431,16 +436,18 @@ public class CameraMainFragment extends CameraBaseFragment {
     private void setCameraSurfaceView() {
         runOnUiThread(() -> {
             View view = getView();
-            if (view != null) {
-                PreviewSurfaceView surfaceView = view.findViewById(R.id.fragment_host_camera_surface_view);
-                if (surfaceView != null && mEGLSurfaceDrawingThread != null) {
-                    if (mAdjustViewFlag) {
-                        surfaceView.adjustSurfaceView(mEGLSurfaceDrawingThread.isSwappedDimensions(),
-                                mMediaRecorder.getSettings().getPreviewSize());
-                    } else {
-                        surfaceView.fullSurfaceView(mEGLSurfaceDrawingThread.isSwappedDimensions(),
-                                mMediaRecorder.getSettings().getPreviewSize());
-                    }
+            if (view == null) {
+                return;
+            }
+
+            PreviewSurfaceView surfaceView = view.findViewById(R.id.fragment_host_camera_surface_view);
+            if (surfaceView != null && mEGLSurfaceDrawingThread != null) {
+                if (mAdjustViewFlag) {
+                    surfaceView.adjustSurfaceView(mEGLSurfaceDrawingThread.isSwappedDimensions(),
+                            mMediaRecorder.getSettings().getPreviewSize());
+                } else {
+                    surfaceView.fullSurfaceView(mEGLSurfaceDrawingThread.isSwappedDimensions(),
+                            mMediaRecorder.getSettings().getPreviewSize());
                 }
             }
         });
@@ -473,7 +480,8 @@ public class CameraMainFragment extends CameraBaseFragment {
 
             ImageButton button = v.findViewById(R.id.fragment_host_camera_mute_button);
             if (button != null) {
-                if (mMuted) {
+                HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
+                if (mMuted || !settings.isAudioEnabled()) {
                     button.setImageResource(R.drawable.ic_baseline_mic_off_24);
                 } else {
                     button.setImageResource(R.drawable.ic_baseline_mic_24);
@@ -489,21 +497,20 @@ public class CameraMainFragment extends CameraBaseFragment {
                 return;
             }
 
-            ImageButton button = v.findViewById(R.id.fragment_host_camera_start_button);
+            ImageButton button = v.findViewById(R.id.fragment_host_camera_toggle_button);
             if (button != null) {
+                boolean running;
                 HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
                 if (settings.isBroadcastEnabled()) {
-                    if (mMediaRecorder.getBroadcasterProvider().isRunning()) {
-                        button.setImageResource(R.drawable.ic_baseline_stop_24);
-                    } else {
-                        button.setImageResource(R.drawable.ic_baseline_play_arrow_24);
-                    }
+                    running = mMediaRecorder.getBroadcasterProvider().isRunning();
                 } else {
-                    if (mMediaRecorder.getServerProvider().isRunning()) {
-                        button.setImageResource(R.drawable.ic_baseline_stop_24);
-                    } else {
-                        button.setImageResource(R.drawable.ic_baseline_play_arrow_24);
-                    }
+                    running = mMediaRecorder.getServerProvider().isRunning();
+                }
+
+                if (running) {
+                    button.setImageResource(R.drawable.ic_baseline_stop_24);
+                } else {
+                    button.setImageResource(R.drawable.ic_baseline_play_arrow_24);
                 }
             }
         });

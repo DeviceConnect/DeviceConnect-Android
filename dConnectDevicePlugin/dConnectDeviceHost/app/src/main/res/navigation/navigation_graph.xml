@@ -40,7 +40,6 @@
     <fragment
         android:id="@+id/host_camera_settings_fragment"
         android:name="org.deviceconnect.android.deviceplugin.host.activity.camera.CameraSettingsFragment"
-        tools:layout="@layout/fragment_host_camera_settings"
         android:label="host_camera_settings_fragment">
 
     </fragment>

@@ -42,7 +42,29 @@ public class CameraSettingsFragment extends PreferenceFragmentCompat implements 
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         getPreferenceManager().setSharedPreferencesName(getRecorderId());
         setPreferencesFromResource(R.xml.settings_host_camera, rootKey);
+    }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (isBound()) {
+            onBindService();
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        CameraActivity a = (CameraActivity) getActivity();
+        if (a != null) {
+            a.showSystemUI();
+        }
+    }
+
+    @Override
+    public void onBindService() {
         HostDevicePlugin plugin = getHostDevicePlugin();
 
         mMediaRecorderManager = plugin.getHostMediaRecorderManager();
@@ -67,26 +89,15 @@ public class CameraSettingsFragment extends PreferenceFragmentCompat implements 
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        CameraActivity a = (CameraActivity) getActivity();
-        if (a != null) {
-            a.showSystemUI();
-        }
-    }
-
-    @Override
-    public void onBindService() {
-    }
-
-    @Override
     public void onUnbindService() {
+    }
+
+    public boolean isBound() {
+        Activity activity = getActivity();
+        if (activity instanceof CameraActivity) {
+            return ((CameraActivity) activity).isBound();
+        }
+        return false;
     }
 
     /**

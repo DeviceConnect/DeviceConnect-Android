@@ -81,7 +81,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:background="@drawable/button_round_black"
-        android:contentDescription="Settings"
+        android:contentDescription="Settings Button"
         android:padding="12dp"
         android:src="@drawable/ic_baseline_settings_24"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -93,7 +93,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:background="@drawable/button_round_black"
-        android:contentDescription="Settings"
+        android:contentDescription="Camera Switch Button"
         android:padding="12dp"
         android:src="@drawable/ic_baseline_switch_camera_24"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -114,14 +114,14 @@
         app:layout_constraintRight_toRightOf="parent">
 
         <ImageButton
-            android:id="@+id/fragment_host_camera_start_button"
+            android:id="@+id/fragment_host_camera_toggle_button"
             style="@android:style/Widget.ImageButton"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_margin="8dp"
-            android:src="@drawable/ic_baseline_play_arrow_24"
             android:background="@drawable/button_round_white"
-            android:contentDescription="TODO"
+            android:contentDescription="Play/Stop Toggle Button"
+            android:src="@drawable/ic_baseline_play_arrow_24"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -133,11 +133,11 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:background="@drawable/button_round"
-            android:contentDescription="rotation"
+            android:contentDescription="Rotation Button"
             android:padding="12dp"
             android:src="@drawable/ic_baseline_sync_24"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/fragment_host_camera_start_button"
+            app:layout_constraintEnd_toStartOf="@id/fragment_host_camera_toggle_button"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -147,12 +147,12 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:background="@drawable/button_round"
-            android:contentDescription="rotation"
+            android:contentDescription="Mute Button"
             android:padding="12dp"
             android:src="@drawable/ic_baseline_mic_24"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/fragment_host_camera_start_button"
+            app:layout_constraintStart_toEndOf="@id/fragment_host_camera_toggle_button"
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

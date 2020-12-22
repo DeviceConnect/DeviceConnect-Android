@@ -163,6 +163,15 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
             server.onConfigChange();
         }
     }
+    /**
+     * Recorder をミュート状態にする.
+     */
+    @Override
+    public void setMute(boolean mute) {
+        for (PreviewServer server : getServers()) {
+            server.setMute(mute);
+        }
+    }
 
     /**
      * NotificationIdを取得します.

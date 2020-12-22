@@ -653,9 +653,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             public void onAllowed() {
                 PreviewServerProvider provider = recorder.getServerProvider();
                 if (provider != null) {
-                    for (PreviewServer server : provider.getServers()) {
-                        server.setMute(muted);
-                    }
+                    provider.setMute(muted);
                     setResult(response, DConnectMessage.RESULT_OK);
                 } else {
                     // RecorderがRTSPをサポートしていない場合はエラーを返す。

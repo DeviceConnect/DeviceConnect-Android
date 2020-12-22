@@ -73,4 +73,9 @@ public interface PreviewServerProvider {
      * 設定が変更されたことを通知します.
      */
     void onConfigChange();
+
+    /**
+     * Recorder をミュート状態にする.
+     */
+    void setMute(boolean mute);
 }

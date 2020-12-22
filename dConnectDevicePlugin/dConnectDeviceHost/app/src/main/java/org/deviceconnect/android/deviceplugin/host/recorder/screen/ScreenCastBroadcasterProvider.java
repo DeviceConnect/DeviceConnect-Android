@@ -85,4 +85,11 @@ public class ScreenCastBroadcasterProvider implements BroadcasterProvider {
             mBroadcaster.onConfigChange();
         }
     }
+
+    @Override
+    public void setMute(boolean mute) {
+        if (mBroadcaster != null) {
+            mBroadcaster.setMute(mute);
+        }
+    }
 }

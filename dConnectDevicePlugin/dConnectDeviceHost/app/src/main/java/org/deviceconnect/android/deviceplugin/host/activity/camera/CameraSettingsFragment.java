@@ -40,15 +40,14 @@ public class CameraSettingsFragment extends PreferenceFragmentCompat implements 
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+        getPreferenceManager().setSharedPreferencesName(getRecorderId());
+        setPreferencesFromResource(R.xml.settings_host_camera, rootKey);
+
         HostDevicePlugin plugin = getHostDevicePlugin();
 
         mMediaRecorderManager = plugin.getHostMediaRecorderManager();
         mMediaRecorder = mMediaRecorderManager.getRecorder(getRecorderId());
         HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
-
-        getPreferenceManager().setSharedPreferencesName(mMediaRecorder.getId());
-
-        setPreferencesFromResource(R.xml.settings_host_camera, rootKey);
 
         setPictureSizePreference(settings);
         setPreviewSizePreference(settings);
@@ -70,6 +69,11 @@ public class CameraSettingsFragment extends PreferenceFragmentCompat implements 
     @Override
     public void onResume() {
         super.onResume();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
 
         CameraActivity a = (CameraActivity) getActivity();
         if (a != null) {

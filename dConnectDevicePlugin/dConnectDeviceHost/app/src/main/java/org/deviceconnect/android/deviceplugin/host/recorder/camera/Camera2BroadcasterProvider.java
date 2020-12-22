@@ -92,4 +92,11 @@ public class Camera2BroadcasterProvider implements BroadcasterProvider {
             mBroadcaster.onConfigChange();
         }
     }
+
+    @Override
+    public void setMute(boolean mute) {
+        if (mBroadcaster != null) {
+            mBroadcaster.setMute(mute);
+        }
+    }
 }

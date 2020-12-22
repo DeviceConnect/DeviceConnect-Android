@@ -37,12 +37,6 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (isManagerStarted()) {
-            bindService();
-        } else {
-//            startManager();
-        }
     }
 
     @Override

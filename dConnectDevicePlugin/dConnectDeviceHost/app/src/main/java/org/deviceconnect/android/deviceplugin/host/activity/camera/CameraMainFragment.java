@@ -43,6 +43,7 @@ public class CameraMainFragment extends CameraBaseFragment {
     private HostTrafficMonitor mMonitor;
     private boolean mDrawFlag = false;
     private boolean mAdjustViewFlag = false;
+    private boolean mMuted = false;
 
     private final EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
         @Override
@@ -137,19 +138,8 @@ public class CameraMainFragment extends CameraBaseFragment {
                     setDisplayRotationButton();
                 });
 
-        view.findViewById(R.id.fragment_host_camera_mute_button).setOnClickListener(
-                v -> {
-                    toggleMute();
-                });
-
-        view.findViewById(R.id.fragment_host_camera_switch_button).setOnClickListener(
-                v -> {
-                    HostMediaRecorder[] recorders = mMediaRecorderManager.getRecorders();
-                    do {
-                        mIndex = (mIndex + 1) % recorders.length;
-                    } while (!(recorders[mIndex] instanceof Camera2Recorder));
-                    setRecorder(recorders[mIndex].getId());
-                });
+        view.findViewById(R.id.fragment_host_camera_mute_button).setOnClickListener(v -> toggleMute());
+        view.findViewById(R.id.fragment_host_camera_switch_button).setOnClickListener(v -> switchRecorder());
 
         view.findViewById(R.id.fragment_host_camera_start_button).setOnClickListener(
                 v -> {
@@ -158,16 +148,7 @@ public class CameraMainFragment extends CameraBaseFragment {
                     }
                 });
 
-        view.findViewById(R.id.fragment_host_camera_settings_button).setOnClickListener(
-                v -> {
-                    Bundle bundle = new Bundle();
-                    if (mRecorderId != null) {
-                        bundle.putString("recorder_id", mRecorderId);
-                    }
-                    findNavController(this).navigate(R.id.action_main_to_settings, bundle);
-                });
-
-        setDisplayRotationButton();
+        view.findViewById(R.id.fragment_host_camera_settings_button).setOnClickListener(v -> gotoCameraSettings());
 
         return view;
     }
@@ -175,42 +156,38 @@ public class CameraMainFragment extends CameraBaseFragment {
     @Override
     public void onResume() {
         super.onResume();
+        refreshUI();
+        startTimer();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
 
         CameraActivity a = (CameraActivity) getActivity();
         if (a != null) {
-            if (a.isManagerStarted()) {
-                runOnUiThread(a::hideSystemUI);
-            }
-
-            if (a.isBound()) {
-                if (mMediaRecorder != null) {
-                    mMediaRecorder.onConfigChange();
-                    startEGLSurfaceDrawingThread();
-                } else {
-                    onBindService();
-                }
-            }
+            a.hideSystemUI();
         }
-
-        refreshUI();
     }
 
     @Override
     public void onPause() {
+        stopTimer();
         stopEGLSurfaceDrawingThread();
         super.onPause();
     }
 
     @Override
     public void onBindService() {
-        mHostConnectionManager = getHostDevicePlugin().getHostConnectionManager();
-        mHostConnectionManager.addHostConnectionEventListener(mConnectionEventListener);
-
-        mMediaRecorderManager = getHostDevicePlugin().getHostMediaRecorderManager();
-
-        setRecorder(getRecorderId());
-
-        startTimer();
+        if (mMediaRecorder != null) {
+            mMediaRecorder.onConfigChange();
+            startEGLSurfaceDrawingThread();
+        } else {
+            mMediaRecorderManager = getHostDevicePlugin().getHostMediaRecorderManager();
+            mHostConnectionManager = getHostDevicePlugin().getHostConnectionManager();
+            mHostConnectionManager.addHostConnectionEventListener(mConnectionEventListener);
+            setRecorder(getRecorderId());
+        }
 
         onChangeMobileNetwork();
     }
@@ -221,15 +198,36 @@ public class CameraMainFragment extends CameraBaseFragment {
             mHostConnectionManager.removeHostConnectionEventListener(mConnectionEventListener);
         }
         stopEGLSurfaceDrawingThread();
-        stopTimer();
+    }
+
+    private void gotoCameraSettings() {
+        Bundle bundle = new Bundle();
+        if (mRecorderId != null) {
+            bundle.putString("recorder_id", mRecorderId);
+        }
+        findNavController(this).navigate(R.id.action_main_to_settings, bundle);
+    }
+
+    private void switchRecorder() {
+        HostMediaRecorder[] recorders = mMediaRecorderManager.getRecorders();
+        do {
+            mIndex = (mIndex + 1) % recorders.length;
+        } while (!(recorders[mIndex] instanceof Camera2Recorder));
+        setRecorder(recorders[mIndex].getId());
     }
 
     private void setRecorder(String recorderId) {
         stopEGLSurfaceDrawingThread();
-        mRecorderId = recorderId;
-        mMediaRecorder = mMediaRecorderManager.getRecorder(mRecorderId);
-        startEGLSurfaceDrawingThread();
-        setCameraStartButton();
+
+        mMediaRecorder = mMediaRecorderManager.getRecorder(recorderId);
+        mRecorderId = mMediaRecorder.getId();
+
+        // 古い端末では、カメラを停止した後に直ぐに開始すると起動できないことがあります。
+        // ここでは、停止から少しだけ開始を送らせておきます。
+        postDelay(() -> {
+            startEGLSurfaceDrawingThread();
+            setCameraStartButton();
+        }, 100);
     }
 
     private static final long INTERVAL_PERIOD = 30 * 1000;
@@ -264,7 +262,7 @@ public class CameraMainFragment extends CameraBaseFragment {
 
                         TextView b = view.findViewById(R.id.fragment_host_camera_bitrate);
                         if (b != null) {
-                            b.setText(String.valueOf(tx));
+                            b.setText(String.valueOf(bitrateTx));
                         }
 
                         View a = view.findViewById(R.id.fragment_host_camera_parameter);
@@ -385,6 +383,8 @@ public class CameraMainFragment extends CameraBaseFragment {
                 Broadcaster broadcaster = provider.startBroadcaster(uri);
                 if (broadcaster == null) {
                     Log.e("ABC", "############## ERROR");
+                } else {
+                    provider.setMute(mMuted);
                 }
             }
         } else {
@@ -395,6 +395,8 @@ public class CameraMainFragment extends CameraBaseFragment {
                 List<PreviewServer> servers = provider.startServers();
                 if (servers.isEmpty()) {
                     // TODO: 起動できなかった場合の処理
+                } else {
+                    provider.setMute(mMuted);
                 }
             }
         }
@@ -402,13 +404,21 @@ public class CameraMainFragment extends CameraBaseFragment {
     }
 
     private void toggleView() {
-
         mAdjustViewFlag = !mAdjustViewFlag;
-
         setCameraSurfaceView();
     }
 
     private void toggleMute() {
+        mMuted = !mMuted;
+
+        if (mMediaRecorder != null) {
+            BroadcasterProvider broadcasterProvider = mMediaRecorder.getBroadcasterProvider();
+            broadcasterProvider.setMute(mMuted);
+
+            PreviewServerProvider previewServerProvider = mMediaRecorder.getServerProvider();
+            previewServerProvider.setMute(mMuted);
+        }
+
         setMuteButton();
     }
 
@@ -423,7 +433,7 @@ public class CameraMainFragment extends CameraBaseFragment {
             View view = getView();
             if (view != null) {
                 PreviewSurfaceView surfaceView = view.findViewById(R.id.fragment_host_camera_surface_view);
-                if (surfaceView != null) {
+                if (surfaceView != null && mEGLSurfaceDrawingThread != null) {
                     if (mAdjustViewFlag) {
                         surfaceView.adjustSurfaceView(mEGLSurfaceDrawingThread.isSwappedDimensions(),
                                 mMediaRecorder.getSettings().getPreviewSize());
@@ -463,7 +473,7 @@ public class CameraMainFragment extends CameraBaseFragment {
 
             ImageButton button = v.findViewById(R.id.fragment_host_camera_mute_button);
             if (button != null) {
-                if (true) {
+                if (mMuted) {
                     button.setImageResource(R.drawable.ic_baseline_mic_off_24);
                 } else {
                     button.setImageResource(R.drawable.ic_baseline_mic_24);

@@ -103,7 +103,7 @@ public class HostTrafficMonitor {
                 }
             }
         } catch (RemoteException | SecurityException e) {
-            throw new RuntimeException(e);
+            // ignore.
         }
 
         return stats;

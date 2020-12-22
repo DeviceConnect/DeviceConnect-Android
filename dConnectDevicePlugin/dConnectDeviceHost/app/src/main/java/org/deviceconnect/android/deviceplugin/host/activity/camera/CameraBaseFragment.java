@@ -15,11 +15,28 @@ public class CameraBaseFragment extends Fragment implements CameraActivity.OnHos
     private Handler mUIHandler = new Handler(Looper.getMainLooper());
 
     @Override
+    public void onResume() {
+        super.onResume();
+
+        if (isBound()) {
+            onBindService();
+        }
+    }
+
+    @Override
     public void onBindService() {
     }
 
     @Override
     public void onUnbindService() {
+    }
+
+    public boolean isBound() {
+        Activity activity = getActivity();
+        if (activity instanceof CameraActivity) {
+            return ((CameraActivity) activity).isBound();
+        }
+        return false;
     }
 
     /**
@@ -67,5 +84,9 @@ public class CameraBaseFragment extends Fragment implements CameraActivity.OnHos
      */
     public void runOnUiThread(Runnable run) {
         mUIHandler.post(run);
+    }
+
+    public void postDelay(Runnable run, long delay) {
+        mUIHandler.postDelayed(run, delay);
     }
 }

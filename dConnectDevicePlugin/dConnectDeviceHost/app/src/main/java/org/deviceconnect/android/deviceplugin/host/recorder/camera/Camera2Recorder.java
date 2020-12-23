@@ -14,7 +14,6 @@ import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
-import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
@@ -23,7 +22,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
@@ -45,16 +43,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class Camera2Recorder extends AbstractMediaRecorder {
-    /**
-     * ログ出力用タグ.
-     */
-    private static final String TAG = "host.dplugin";
-
-    /**
-     * デバッグフラグ.
-     */
-    private static final boolean DEBUG = BuildConfig.DEBUG;
-
     /**
      * カメラターゲットIDの定義.
      */
@@ -102,11 +90,6 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     private final FileManager mFileManager;
 
     /**
-     * MP4レコーダ.
-     */
-    private MP4Recorder mMP4Recorder;
-
-    /**
      * カメラ操作オブジェクト.
      */
     private final CameraWrapper mCameraWrapper;
@@ -115,11 +98,6 @@ public class Camera2Recorder extends AbstractMediaRecorder {
      * カメラの位置.
      */
     private final Camera2Recorder.CameraFacing mFacing;
-
-    /**
-     * リクエストの処理を実行するハンドラ.
-     */
-    private final Handler mRequestHandler;
 
     /**
      * 写真撮影の処理を実行するハンドラ.
@@ -162,11 +140,6 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     private final Settings mSettings;
 
     /**
-     * レコーダの状態.
-     */
-    private State mState = State.INACTIVE;
-
-    /**
      * コンストラクタ.
      *
      * @param context コンテキスト
@@ -189,10 +162,6 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         HandlerThread photoThread = new HandlerThread("host-camera-photo");
         photoThread.start();
         mPhotoHandler = new Handler(photoThread.getLooper());
-
-        HandlerThread requestThread = new HandlerThread("host-camera-request");
-        requestThread.start();
-        mRequestHandler = new Handler(requestThread.getLooper());
 
         mCameraSurfaceDrawingThread = new CameraSurfaceDrawingThread(this);
         mCamera2PreviewServerProvider = new Camera2PreviewServerProvider(context, this);
@@ -252,15 +221,16 @@ public class Camera2Recorder extends AbstractMediaRecorder {
 
     @Override
     public synchronized void clean() {
-        stopRecordingInternal(null);
+        super.clean();
         mBroadcasterProvider.stopBroadcaster();
         mCamera2PreviewServerProvider.stopServers();
+        mCameraSurfaceDrawingThread.stop(true);
     }
 
     @Override
     public void destroy() {
+        super.destroy();
         mPhotoHandler.getLooper().quit();
-        mRequestHandler.getLooper().quit();
     }
 
     @Override
@@ -284,20 +254,6 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         List<String> mimeTypes = mCamera2PreviewServerProvider.getSupportedMimeType();
         mimeTypes.add(0, MIME_TYPE_JPEG);
         return mimeTypes;
-    }
-
-    @Override
-    public State getState() {
-//        if (mCameraWrapper.isRecording() || mCameraWrapper.isTakingStillImage()) {
-//            return State.RECORDING;
-//        }
-//        // Preview用のNotificationが表示されている場合は、カメラをPreviewで占有しているものと判断する。
-//        if (mCamera2PreviewServerProvider.isRunning()) {
-//            return State.PREVIEW;
-//        }
-//        return State.INACTIVE;
-        // TODO: ステート管理
-        return mState;
     }
 
     @Override
@@ -352,20 +308,17 @@ public class Camera2Recorder extends AbstractMediaRecorder {
 
     @Override
     public void takePhoto(final @NonNull OnPhotoEventListener listener) {
-        mRequestHandler.post(() -> takePhotoInternal(listener));
+        postRequestHandler(() -> takePhotoInternal(listener));
     }
 
     @Override
     public void turnOnFlashLight(final @NonNull TurnOnFlashLightListener listener,
                                  final @NonNull Handler handler) {
-        mRequestHandler.post(() -> {
+        postRequestHandler(() -> {
             try {
                 mCameraWrapper.turnOnTorch(listener::onTurnOn, handler);
                 handler.post(listener::onRequested);
             } catch (CameraWrapperException e) {
-                if (DEBUG) {
-                    Log.e(TAG, "Failed to turn on flash light.", e);
-                }
                 handler.post(() -> listener.onError(Error.FATAL_ERROR));
             }
         });
@@ -374,7 +327,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     @Override
     public void turnOffFlashLight(final @NonNull TurnOffFlashLightListener listener,
                                   final @NonNull Handler handler) {
-        mRequestHandler.post(() -> {
+        postRequestHandler(() -> {
             mCameraWrapper.turnOffTorch(listener::onTurnOff, handler);
             handler.post(listener::onRequested);
         });
@@ -390,52 +343,16 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         return mCameraWrapper.isUseTorch();
     }
 
-    // HostDeviceStreamRecorder
+    // Implements AbstractMediaRecorder method.
 
     @Override
-    public String getStreamMimeType() {
-        return "video/mp4";
+    protected MP4Recorder createMP4Recorder() {
+        File filePath = new File(mFileManager.getBasePath(), generateVideoFileName());
+        return new SurfaceMP4Recorder(filePath, mSettings, mCameraSurfaceDrawingThread);
     }
 
-    @Override
-    public void startRecording(final RecordingCallback listener) {
-        mRequestHandler.post(() -> startRecordingInternal(listener));
-    }
-
-    @Override
-    public void stopRecording(final StoppingCallback listener) {
-        mRequestHandler.post(() -> stopRecordingInternal(listener));
-    }
-
-    @Override
-    public boolean canPauseRecording() {
-        // 録画の一時停止はサポートしない
-        return false;
-    }
-
-    @Override
-    public void pauseRecording() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void resumeRecording() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void muteTrack() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void unMuteTrack() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isMutedTrack() {
-        throw new UnsupportedOperationException();
+    private String generateVideoFileName() {
+        return FILENAME_PREFIX + DATE_FORMAT.format(new Date()) + ".mp4";
     }
 
     /**
@@ -488,6 +405,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
             stillImageReader.setOnImageAvailableListener((reader) -> {
                 Image photo = reader.acquireNextImage();
                 if (photo == null) {
+                    setState(State.INACTIVE);
                     listener.onFailedTakePhoto("Failed to acquire image.");
                     return;
                 }
@@ -503,108 +421,14 @@ public class Camera2Recorder extends AbstractMediaRecorder {
                 storePhoto(createNewFileName(), jpeg, listener);
 
                 photo.close();
+
+                setState(State.INACTIVE);
             }, mPhotoHandler);
             mCameraWrapper.takeStillImage(stillImageReader.getSurface());
+            setState(State.RECORDING);
         } catch (CameraWrapperException e) {
-            if (DEBUG) {
-                Log.e(TAG, "Failed to take photo.", e);
-            }
             listener.onFailedTakePhoto("Failed to take photo.");
         }
-    }
-
-    /**
-     * 録画を行います.
-     *
-     * @param callback 録画開始結果を通知するリスナー
-     */
-    private void startRecordingInternal(final RecordingCallback callback) {
-        if (mMP4Recorder != null) {
-            if (callback != null) {
-                callback.onFailed(this, "Recording has started already.");
-            }
-            return;
-        }
-
-        File filePath = new File(mFileManager.getBasePath(), generateVideoFileName());
-        mMP4Recorder = new SurfaceMP4Recorder(filePath, mSettings, mCameraSurfaceDrawingThread);
-        mMP4Recorder.start(new MP4Recorder.OnStartingCallback() {
-            @Override
-            public void onSuccess() {
-                mState = State.RECORDING;
-
-                sendNotificationForStopRecording(getId(), getName());
-
-                if (callback != null) {
-                    callback.onRecorded(Camera2Recorder.this, mMP4Recorder.getOutputFile().getAbsolutePath());
-                }
-
-                postOnRecordingStarted(mMP4Recorder.getOutputFile().getAbsolutePath());
-            }
-
-            @Override
-            public void onFailure(Throwable e) {
-                if (mMP4Recorder != null) {
-                    mMP4Recorder.release();
-                    mMP4Recorder = null;
-                }
-                if (callback != null) {
-                    callback.onFailed(Camera2Recorder.this,
-                            "Failed to start recording because of camera problem: " + e.getMessage());
-                }
-            }
-        });
-    }
-
-    /**
-     * 録画停止を行います.
-     *
-     * @param callback 録画停止結果を通知するリスナー
-     */
-    private void stopRecordingInternal(final StoppingCallback callback) {
-        if (mMP4Recorder == null) {
-            if (callback != null) {
-                callback.onFailed(this, "Recording has stopped already.");
-            }
-            return;
-        }
-
-        mState = State.INACTIVE;
-
-        hideNotification(getId());
-
-        mMP4Recorder.stop(new MP4Recorder.OnStoppingCallback() {
-            @Override
-            public void onSuccess() {
-                File videoFile = mMP4Recorder.getOutputFile();
-                registerVideo(videoFile);
-                mMP4Recorder.release();
-                mMP4Recorder = null;
-
-                if (callback != null) {
-                    callback.onStopped(Camera2Recorder.this, videoFile.getAbsolutePath());
-                }
-
-                postOnRecordingStopped(videoFile.getAbsolutePath());
-            }
-
-            @Override
-            public void onFailure(Throwable e) {
-                if (mMP4Recorder != null) {
-                    mMP4Recorder.release();
-                    mMP4Recorder = null;
-                }
-
-                if (callback != null) {
-                    callback.onFailed(Camera2Recorder.this,
-                            "Failed to stop recording for unexpected error: " + e.getMessage());
-                }
-            }
-        });
-    }
-
-    private String generateVideoFileName() {
-        return "android_video_" + DATE_FORMAT.format(new Date()) + ".mp4";
     }
 
     /**

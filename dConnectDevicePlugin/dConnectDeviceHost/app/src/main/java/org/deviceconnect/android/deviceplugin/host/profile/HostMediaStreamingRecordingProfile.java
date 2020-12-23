@@ -419,21 +419,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             setUri(response, uri);
                             setPath(response, filePath);
                             sendResponse(response);
-
-                            List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,
-                                    MediaStreamRecordingProfile.PROFILE_NAME, null,
-                                    MediaStreamRecordingProfile.ATTRIBUTE_ON_PHOTO);
-
-                            Bundle photo = new Bundle();
-                            photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
-                            photo.putString(MediaStreamRecordingProfile.PARAM_PATH, filePath);
-                            photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, mimeType);
-
-                            for (Event evt : evts) {
-                                Intent intent = EventManager.createEventMessage(evt);
-                                intent.putExtra(MediaStreamRecordingProfile.PARAM_PHOTO, photo);
-                                sendEvent(intent, evt.getAccessToken());
-                            }
                         }
 
                         @Override
@@ -661,18 +646,14 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             setPath(response, "/" + fileName);
                             setUri(response, mFileManager.getContentUri() + "/" + fileName);
                             sendResponse(response);
-
-                            sendEventForRecordingChange(getServiceID(request), recorder.getState(),
-                                    mFileManager.getContentUri() + "/" + fileName,
-                                    "/" + fileName, recorder.getMimeType(), null);
                         }
 
                         @Override
                         public void onFailed(final HostDeviceStreamRecorder recorder, final String errorMessage) {
                             MessageUtils.setIllegalServerStateError(response, errorMessage);
                             sendResponse(response);
-                            sendEventForRecordingChange(getServiceID(request), HostMediaRecorder.State.ERROR,"",
-                                    "", recorder.getStreamMimeType(), errorMessage);
+//                            sendEventForRecordingChange(getServiceID(request), HostMediaRecorder.State.ERROR,"",
+//                                    "", recorder.getStreamMimeType(), errorMessage);
                         }
                     });
                 }
@@ -720,18 +701,14 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             setPath(response, "/" + fileName);
                             setUri(response, mFileManager.getContentUri() + "/" + fileName);
                             sendResponse(response);
-
-                            sendEventForRecordingChange(getServiceID(request), recorder.getState(),
-                                    mFileManager.getContentUri() + "/" + fileName,
-                                    "/" + fileName, recorder.getMimeType(), null);
                         }
 
                         @Override
                         public void onFailed(HostDeviceStreamRecorder recorder, String errorMessage) {
                             MessageUtils.setIllegalServerStateError(response, errorMessage);
                             sendResponse(response);
-                            sendEventForRecordingChange(getServiceID(request), HostMediaRecorder.State.ERROR,"",
-                                    "", recorder.getStreamMimeType(), errorMessage);
+//                            sendEventForRecordingChange(getServiceID(request), HostMediaRecorder.State.ERROR,"",
+//                                    "", recorder.getStreamMimeType(), errorMessage);
                         }
                     });
                 }
@@ -862,10 +839,14 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
         @Override
         public void onTakePhoto(HostMediaRecorder recorder, String uri, String filePath, String mimeType) {
+            sendEventForTakePhoto(getService().getId(), uri, filePath, mimeType);
         }
 
         @Override
         public void onRecordingStarted(HostMediaRecorder recorder, String fileName) {
+            sendEventForRecordingChange(getService().getId(), recorder.getState(),
+                    mFileManager.getContentUri() + "/" + fileName,
+                    "/" + fileName, recorder.getMimeType(), null);
         }
 
         @Override
@@ -878,6 +859,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
         @Override
         public void onRecordingStopped(HostMediaRecorder recorder, String fileName) {
+            sendEventForRecordingChange(getService().getId(), recorder.getState(),
+                    mFileManager.getContentUri() + "/" + fileName,
+                    "/" + fileName, recorder.getMimeType(), null);
+
         }
     };
 
@@ -953,8 +938,24 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         response.putExtra(PARAM_MIME_TYPE, mimeType.toArray(new String[mimeType.size()]));
     }
 
-    @SuppressWarnings("deprecation")
-    public void sendEventForRecordingChange(final String serviceId, final HostMediaRecorder.State state,
+    private void sendEventForTakePhoto(String serviceId, String uri, String filePath, String mimeType) {
+        List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,
+                MediaStreamRecordingProfile.PROFILE_NAME, null,
+                MediaStreamRecordingProfile.ATTRIBUTE_ON_PHOTO);
+
+        Bundle photo = new Bundle();
+        photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
+        photo.putString(MediaStreamRecordingProfile.PARAM_PATH, filePath);
+        photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, mimeType);
+
+        for (Event evt : evts) {
+            Intent intent = EventManager.createEventMessage(evt);
+            intent.putExtra(MediaStreamRecordingProfile.PARAM_PHOTO, photo);
+            sendEvent(intent, evt.getAccessToken());
+        }
+    }
+
+    private void sendEventForRecordingChange(final String serviceId, final HostMediaRecorder.State state,
                                             final String uri, final String path,
                                             final String mimeType, final String errorMessage) {
         List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,

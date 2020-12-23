@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -16,7 +18,9 @@ import androidx.core.app.NotificationCompat;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceMP4Recorder;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
@@ -52,6 +56,11 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     private MediaSharing mMediaSharing = MediaSharing.getInstance();
 
     /**
+     * リクエストの処理を実行するハンドラ.
+     */
+    private final Handler mRequestHandler;
+
+    /**
      * 通知ID.
      */
     private int mNotificationId;
@@ -62,12 +71,24 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     private OnEventListener mOnEventListener;
 
     /**
+     * レコーダの状態.
+     */
+    private State mState = State.INACTIVE;
+
+    private MP4Recorder mMP4Recorder;
+
+
+    /**
      * コンストラクタ.
      */
     public AbstractMediaRecorder(Context context, int notificationId, FileManager fileManager) {
         mContext = context;
         mNotificationId = notificationId;
         mFileManager = fileManager;
+
+        HandlerThread requestThread = new HandlerThread("host-camera-request");
+        requestThread.start();
+        mRequestHandler = new Handler(requestThread.getLooper());
     }
 
     // Implements HostMediaRecorder methods.
@@ -108,10 +129,24 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
                 @Override
                 public void onError(PreviewServer server, Exception e) {
-
                 }
             });
         }
+    }
+
+    @Override
+    public void clean() {
+        stopRecordingInternal(null);
+    }
+
+    @Override
+    public void destroy() {
+        mRequestHandler.getLooper().quit();
+    }
+
+    @Override
+    public State getState() {
+        return mState;
     }
 
     @Override
@@ -214,6 +249,74 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
         mOnEventListener = listener;
     }
 
+    // HostDeviceStreamRecorder
+
+    @Override
+    public String getStreamMimeType() {
+        return "video/mp4";
+    }
+
+    @Override
+    public void startRecording(final RecordingCallback listener) {
+        if (getState() != State.INACTIVE) {
+            if (listener != null) {
+                listener.onFailed(this, "MediaRecorder is already recording.");
+            }
+        } else {
+            postRequestHandler(() -> startRecordingInternal(listener));
+        }
+    }
+
+    @Override
+    public void stopRecording(final StoppingCallback listener) {
+        if (getState() != State.INACTIVE) {
+            if (listener != null) {
+                listener.onFailed(this, "MediaRecorder is already recording.");
+            }
+        } else {
+            postRequestHandler(() -> stopRecordingInternal(listener));
+        }
+    }
+
+    @Override
+    public boolean canPauseRecording() {
+        // 一時停止はサポートしない
+        return false;
+    }
+
+    @Override
+    public void pauseRecording() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void resumeRecording() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void muteTrack() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void unMuteTrack() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isMutedTrack() {
+        throw new UnsupportedOperationException();
+    }
+
+    protected void postRequestHandler(Runnable run) {
+        mRequestHandler.post(run);
+    }
+
+    protected void setState(State state) {
+        mState = state;
+    }
+
     /**
      * コンテキストを取得します.
      *
@@ -237,7 +340,7 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
      *
      * @return NotificationId
      */
-    protected int getNotificationId() {
+    public int getNotificationId() {
         return mNotificationId;
     }
 
@@ -246,7 +349,7 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
      *
      * @param id notification を識別する ID
      */
-    public void hideNotification(String id) {
+    private void hideNotification(String id) {
         NotificationManager manager = (NotificationManager) mContext
                 .getSystemService(Service.NOTIFICATION_SERVICE);
         if (manager != null) {
@@ -260,7 +363,7 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
      * @param id notification を識別する ID
      * @param name 名前
      */
-    public void sendNotificationForStopRecording(String id, String name) {
+    private void sendNotificationForStopRecording(String id, String name) {
         PendingIntent contentIntent = createPendingIntentForStopRecording(id);
         Notification notification = createNotificationForStopRecording(contentIntent, null, name);
         NotificationManager manager = (NotificationManager) mContext
@@ -473,5 +576,105 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
         if (mOnEventListener != null) {
             mOnEventListener.onRecordingResume();
         }
+    }
+
+    protected abstract MP4Recorder createMP4Recorder();
+
+    /**
+     * 録画を行います.
+     *
+     * @param callback 録画開始結果を通知するリスナー
+     */
+    private void startRecordingInternal(final RecordingCallback callback) {
+        if (mMP4Recorder != null) {
+            if (callback != null) {
+                callback.onFailed(this, "Recording has started already.");
+            }
+            return;
+        }
+
+        mMP4Recorder = createMP4Recorder();
+        mMP4Recorder.start(new MP4Recorder.OnStartingCallback() {
+            @Override
+            public void onSuccess() {
+                File outputFile = mMP4Recorder.getOutputFile();
+
+                setState(State.RECORDING);
+
+                sendNotificationForStopRecording(getId(), getName());
+
+                if (callback != null) {
+                    callback.onRecorded(AbstractMediaRecorder.this, outputFile.getAbsolutePath());
+                }
+
+                postOnRecordingStarted(outputFile.getAbsolutePath());
+            }
+
+            @Override
+            public void onFailure(Throwable e) {
+                if (mMP4Recorder != null) {
+                    mMP4Recorder.release();
+                    mMP4Recorder = null;
+                }
+
+                if (callback != null) {
+                    callback.onFailed(AbstractMediaRecorder.this,
+                            "Failed to start recording because of camera problem: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    /**
+     * 録画停止を行います.
+     *
+     * @param callback 録画停止結果を通知するリスナー
+     */
+    private void stopRecordingInternal(final StoppingCallback callback) {
+        if (mMP4Recorder == null) {
+            if (callback != null) {
+                callback.onFailed(this, "Recording has stopped already.");
+            }
+            return;
+        }
+
+        setState(State.INACTIVE);
+
+        hideNotification(getId());
+
+        mMP4Recorder.stop(new MP4Recorder.OnStoppingCallback() {
+            @Override
+            public void onSuccess() {
+                File outputFile = mMP4Recorder.getOutputFile();
+
+                if (mMP4Recorder instanceof SurfaceMP4Recorder) {
+                    registerVideo(outputFile);
+                } else {
+                    registerAudio(outputFile);
+                }
+
+                mMP4Recorder.release();
+                mMP4Recorder = null;
+
+                if (callback != null) {
+                    callback.onStopped(AbstractMediaRecorder.this, outputFile.getAbsolutePath());
+                }
+
+                postOnRecordingStopped(outputFile.getAbsolutePath());
+            }
+
+            @Override
+            public void onFailure(Throwable e) {
+                if (mMP4Recorder != null) {
+                    mMP4Recorder.release();
+                    mMP4Recorder = null;
+                }
+
+                if (callback != null) {
+                    callback.onFailed(AbstractMediaRecorder.this,
+                            "Failed to stop recording for unexpected error: " + e.getMessage());
+                }
+            }
+        });
     }
 }

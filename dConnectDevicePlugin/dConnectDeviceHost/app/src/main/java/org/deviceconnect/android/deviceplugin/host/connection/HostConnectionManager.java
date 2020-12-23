@@ -141,7 +141,7 @@ public class HostConnectionManager {
      *
      * @param listener 追加するリスナー
      */
-    public void addHostConnectionEventListener(ConnectionEventListener listener) {
+    public void addConnectionEventListener(ConnectionEventListener listener) {
         if (listener != null) {
             mConnectionEventListeners.add(listener);
         }
@@ -152,7 +152,7 @@ public class HostConnectionManager {
      *
      * @param listener 削除するリスナー
      */
-    public void removeHostConnectionEventListener(ConnectionEventListener listener) {
+    public void removeConnectionEventListener(ConnectionEventListener listener) {
         if (listener != null) {
             mConnectionEventListeners.remove(listener);
         }

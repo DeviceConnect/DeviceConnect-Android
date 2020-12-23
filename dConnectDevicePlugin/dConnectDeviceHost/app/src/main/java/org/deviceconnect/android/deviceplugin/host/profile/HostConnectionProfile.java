@@ -306,7 +306,7 @@ public class HostConnectionProfile extends ConnectionProfile {
      */
     public HostConnectionProfile(HostConnectionManager manager) {
         mHostConnectionManager = manager;
-        mHostConnectionManager.addHostConnectionEventListener(mConnectionListener);
+        mHostConnectionManager.addConnectionEventListener(mConnectionListener);
 
         addApi(mGetWifiApi);
         addApi(mGetBluetoothApi);

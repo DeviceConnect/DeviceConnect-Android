@@ -20,6 +20,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostAudioRecor
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.screen.ScreenCastRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
+import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
 import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -102,6 +103,7 @@ public class HostMediaRecorderManager {
     public HostMediaRecorderManager(final DevicePluginContext pluginContext, final FileManager fileManager) {
         mHostDevicePluginContext = pluginContext;
         mFileManager = fileManager;
+        initRecorders();
     }
 
     private Context getContext() {
@@ -115,7 +117,7 @@ public class HostMediaRecorderManager {
      * ここで使用できるレコーダの登録を行います。
      * </p>
      */
-    public void initRecorders() {
+    private void initRecorders() {
         if (checkCameraHardware()) {
             mCameraWrapperManager = new CameraWrapperManager(getContext());
             createCameraRecorders(mCameraWrapperManager, mFileManager);
@@ -127,6 +129,56 @@ public class HostMediaRecorderManager {
 
         if (checkMediaProjection()) {
             createScreenCastRecorder(mFileManager);
+        }
+
+        for (HostMediaRecorder recorder : mRecorders) {
+            recorder.setOnEventListener(new HostMediaRecorder.OnEventListener() {
+                @Override
+                public void onPreviewStarted(List<PreviewServer> servers) {
+                    postOnPreviewStarted(recorder, servers);
+                }
+
+                @Override
+                public void onPreviewStopped() {
+                    postOnPreviewStopped(recorder);
+                }
+
+                @Override
+                public void onBroadcasterStarted(Broadcaster broadcaster) {
+                    postOnBroadcasterStarted(recorder, broadcaster);
+                }
+
+                @Override
+                public void onBroadcasterStopped() {
+                    postOnBroadcasterStopped(recorder);
+                }
+
+                @Override
+                public void onTakePhoto(String uri, String filePath, String mimeType) {
+                    postOnTakePhoto(recorder, uri, filePath, mimeType);
+                }
+
+                @Override
+                public void onRecordingStarted(String fileName) {
+                    postOnRecordingStarted(recorder, fileName);
+                }
+
+                @Override
+                public void onRecordingPause() {
+                    postOnRecordingPause(recorder);
+                }
+
+                @Override
+                public void onRecordingResume() {
+                    postOnRecordingResume(recorder);
+                }
+
+                @Override
+                public void onRecordingStopped(String fileName) {
+                    postOnRecordingStopped(recorder, fileName);
+
+                }
+            });
         }
 
         try {
@@ -166,35 +218,17 @@ public class HostMediaRecorderManager {
 
     /**
      * 初期化処理を行います.
-     * <p>
      */
     public void initialize() {
         for (HostMediaRecorder recorder : getRecorders()) {
             recorder.initialize();
         }
-    }
 
-    /**
-     * 画面回転の監視を開始します.
-     */
-    public void start() {
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
         filter.addAction(ACTION_STOP_PREVIEW);
         filter.addAction(ACTION_STOP_RECORDING);
         getContext().registerReceiver(mBroadcastReceiver, filter);
-    }
-
-    /**
-     * 画面回転の監視を停止します.
-     */
-    public void stop() {
-        // 登録されていない BroadcastReceiver を解除すると例外が発生するので、try-catchしておく。
-        try {
-            getContext().unregisterReceiver(mBroadcastReceiver);
-        } catch (Exception e) {
-            // ignore.
-        }
     }
 
     /**
@@ -210,7 +244,14 @@ public class HostMediaRecorderManager {
      * レコーダの破棄処理を行います.
      */
     public void destroy() {
-        stop();
+        // 登録されていない BroadcastReceiver を解除すると例外が発生するので、try-catchしておく。
+        try {
+            getContext().unregisterReceiver(mBroadcastReceiver);
+        } catch (Exception e) {
+            // ignore.
+        }
+
+        mOnEventListeners.clear();
 
         clean();
 
@@ -226,7 +267,7 @@ public class HostMediaRecorderManager {
      * @return レコーダの配列
      */
     public synchronized HostMediaRecorder[] getRecorders() {
-        return mRecorders.toArray(new HostMediaRecorder[mRecorders.size()]);
+        return mRecorders.toArray(new HostMediaRecorder[0]);
     }
 
     /**
@@ -258,54 +299,6 @@ public class HostMediaRecorderManager {
     }
 
     /**
-     * 指定された ID 以外のレコーダが.
-     *
-     * <p>
-     * id に null が指定された場合には、デフォルトに設定されているレコーダを返却します。
-     * </p>
-     *
-     * @param id レコーダの識別子
-     * @return 他のレコーダーが使用中であるかどうか true:使用中 false:使用されていない
-     */
-    public boolean usingPreviewOrStreamingRecorder(String id) {
-        if (mRecorders.size() == 0) {
-            return false;
-        }
-        if (id == null) {
-            if (mDefaultPhotoRecorder != null) {
-                id = mDefaultPhotoRecorder.getId();
-            } else {
-                id = mRecorders.get(0).getId();
-            }
-        }
-        for (HostMediaRecorder recorder : mRecorders) {
-            if (!id.equals(recorder.getId())
-                    && (recorder.getState() == HostMediaRecorder.State.PREVIEW
-                        || recorder.getState() == HostMediaRecorder.State.RECORDING)) {
-                return true;
-            } else if (recorder instanceof HostDeviceLiveStreamRecorder
-                    && ((HostDeviceLiveStreamRecorder) recorder).isStreaming()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * レコーダーが使用中である、あるいはストリーミングが開始している場合はtrueを返す.
-     *
-     * @return true:使用中 false:使用されていない
-     */
-    public boolean usingStreamingRecorder() {
-        for (HostMediaRecorder recorder : mRecorders) {
-            return recorder.getState() == HostMediaRecorder.State.PREVIEW
-                    || recorder.getState() == HostMediaRecorder.State.RECORDING
-                    || ((HostDeviceLiveStreamRecorder) recorder).isStreaming();
-        }
-        return false;
-    }
-
-    /**
      * 指定された ID に対応する静止画用のレコーダを取得します.
      *
      * <p>
@@ -320,30 +313,8 @@ public class HostMediaRecorderManager {
             return mDefaultPhotoRecorder;
         }
         for (HostMediaRecorder recorder : mRecorders) {
-            if (id.equals(recorder.getId()) && recorder instanceof HostDevicePhotoRecorder) {
-                return (HostDevicePhotoRecorder) recorder;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 指定された ID に対応する録画・録音用のレコーダを取得します.
-     *
-     * <p>
-     * id に null が指定された場合には、デフォルトに設定されているレコーダを返却します。
-     * </p>
-     *
-     * @param id  レコーダの識別子
-     * @return レコーダ
-     */
-    public HostDeviceStreamRecorder getStreamRecorder(final String id) {
-        if (id == null) {
-            return mDefaultPhotoRecorder;
-        }
-        for (HostMediaRecorder recorder : mRecorders) {
-            if (id.equals(recorder.getId()) && recorder instanceof HostDeviceStreamRecorder) {
-                return (HostDeviceStreamRecorder) recorder;
+            if (id.equals(recorder.getId())) {
+                return recorder;
             }
         }
         return null;
@@ -354,17 +325,14 @@ public class HostMediaRecorderManager {
      *
      * @param id レコーダの ID
      */
-    public void stopPreviewServer(final String id) {
+    private void stopPreviewServer(final String id) {
         if (id == null) {
             return;
         }
 
         HostMediaRecorder recorder = getRecorder(id);
         if (recorder != null) {
-            PreviewServerProvider provider = recorder.getServerProvider();
-            if (provider != null) {
-                provider.stopServers();
-            }
+            recorder.stopPreview();
         }
     }
 
@@ -373,15 +341,14 @@ public class HostMediaRecorderManager {
      *
      * @param id レコードの ID
      */
-    public void stopRecording(final String id) {
+    private void stopRecording(final String id) {
         if (id == null) {
             return;
         }
 
         HostMediaRecorder recorder = getRecorder(id);
-        if (recorder instanceof HostDeviceStreamRecorder) {
-            HostDeviceStreamRecorder streamRecorder = (HostDeviceStreamRecorder) recorder;
-            streamRecorder.stopRecording(null);
+        if (recorder != null) {
+            recorder.stopRecording(null);
         }
     }
 
@@ -419,5 +386,83 @@ public class HostMediaRecorderManager {
      */
     private boolean checkMediaProjection() {
         return HostMediaRecorderManager.isSupportedMediaProjection();
+    }
+
+    private WeakReferenceList<OnEventListener> mOnEventListeners = new WeakReferenceList<>();
+
+    public void addOnEventListener(OnEventListener listener) {
+        mOnEventListeners.add(listener);
+    }
+
+    public void removeOnEventListener(OnEventListener listener) {
+        mOnEventListeners.remove(listener);
+    }
+
+    private void postOnPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onPreviewStarted(recorder, servers);
+        }
+    }
+
+    private void postOnPreviewStopped(HostMediaRecorder recorder) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onPreviewStopped(recorder);
+        }
+    }
+
+    private void postOnBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onBroadcasterStarted(recorder, broadcaster);
+        }
+    }
+
+    private void postOnBroadcasterStopped(HostMediaRecorder recorder) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onBroadcasterStopped(recorder);
+        }
+    }
+
+    private void postOnTakePhoto(HostMediaRecorder recorder, String uri, String filePath, String mimeType) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onTakePhoto(recorder, uri, filePath, mimeType);
+        }
+    }
+
+    private void postOnRecordingStarted(HostMediaRecorder recorder, String fileName) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onRecordingStarted(recorder, fileName);
+        }
+    }
+
+    private void postOnRecordingPause(HostMediaRecorder recorder) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onRecordingPause(recorder);
+        }
+    }
+
+    private void postOnRecordingResume(HostMediaRecorder recorder) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onRecordingResume(recorder);
+        }
+    }
+
+    private void postOnRecordingStopped(HostMediaRecorder recorder, String fileName) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onRecordingStopped(recorder, fileName);
+        }
+    }
+
+    public interface OnEventListener {
+        void onPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers);
+        void onPreviewStopped(HostMediaRecorder recorder);
+        void onBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster);
+        void onBroadcasterStopped(HostMediaRecorder recorder);
+
+        void onTakePhoto(HostMediaRecorder recorder, String uri, String filePath, String mimeType);
+
+        void onRecordingStarted(HostMediaRecorder recorder, String fileName);
+        void onRecordingPause(HostMediaRecorder recorder);
+        void onRecordingResume(HostMediaRecorder recorder);
+        void onRecordingStopped(HostMediaRecorder recorder, String fileName);
     }
 }

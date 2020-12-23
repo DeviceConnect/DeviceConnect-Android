@@ -71,7 +71,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     private final Context mContext;
 
     private final ScreenCastManager mScreenCastMgr;
-    private final ExecutorService mPhotoThread = Executors.newFixedThreadPool(4);
+    private final ExecutorService mPhotoThread = Executors.newFixedThreadPool(1);
     private final Handler mImageReaderHandler = new Handler(Looper.getMainLooper());
     private final Settings mSettings;
     private MP4Recorder mMP4Recorder;
@@ -194,10 +194,6 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     }
 
     @Override
-    public void initialize() {
-    }
-
-    @Override
     public void clean() {
         stopRecordingInternal(null);
         mScreenCastBroadcasterProvider.stopBroadcaster();
@@ -255,6 +251,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
     @Override
     public void onDisplayRotation(final int rotation) {
+        mScreenCastBroadcasterProvider.onConfigChange();
         mScreenCastPreviewServerProvider.onConfigChange();
     }
 
@@ -326,13 +323,13 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     }
 
     @Override
-    public void startRecording(RecordingListener listener) {
-        startRecordingInternal(listener);
+    public void startRecording(RecordingCallback callback) {
+        startRecordingInternal(callback);
     }
 
     @Override
-    public void stopRecording(StoppingListener listener) {
-        stopRecordingInternal(listener);
+    public void stopRecording(StoppingCallback callback) {
+        stopRecordingInternal(callback);
     }
 
     @Override
@@ -414,37 +411,37 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     /**
      * 録画を行います.
      *
-     * @param listener 録画開始結果を通知するリスナー
+     * @param callback 録画開始結果を通知するリスナー
      */
-    private void startRecordingInternal(final RecordingListener listener) {
+    private void startRecordingInternal(final RecordingCallback callback) {
         if (mMP4Recorder != null) {
-            if (listener != null) {
-                listener.onFailed(this, "Recording has started already.");
+            if (callback != null) {
+                callback.onFailed(this, "Recording has started already.");
             }
             return;
         }
 
         File filePath = new File(getFileManager().getBasePath(), generateVideoFileName());
         mMP4Recorder = new SurfaceMP4Recorder(filePath, mSettings, mScreenCastSurfaceDrawingThread);
-        mMP4Recorder.start(new MP4Recorder.OnRecordingStartListener() {
+        mMP4Recorder.start(new MP4Recorder.OnStartingCallback() {
             @Override
-            public void onRecordingStart() {
+            public void onSuccess() {
                 mState = State.RECORDING;
 
-                if (listener != null) {
-                    listener.onRecorded(ScreenCastRecorder.this, mMP4Recorder.getOutputFile().getAbsolutePath());
+                if (callback != null) {
+                    callback.onRecorded(ScreenCastRecorder.this, mMP4Recorder.getOutputFile().getAbsolutePath());
                 }
             }
 
             @Override
-            public void onRecordingStartError(Throwable e) {
+            public void onFailure(Throwable e) {
                 if (mMP4Recorder != null) {
                     mMP4Recorder.release();
                     mMP4Recorder = null;
                 }
 
-                if (listener != null) {
-                    listener.onFailed(ScreenCastRecorder.this,
+                if (callback != null) {
+                    callback.onFailed(ScreenCastRecorder.this,
                             "Failed to start recording because of camera problem: " + e.getMessage());
                 }
             }
@@ -454,40 +451,40 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     /**
      * 録画停止を行います.
      *
-     * @param listener 録画停止結果を通知するリスナー
+     * @param callback 録画停止結果を通知するリスナー
      */
-    private void stopRecordingInternal(final StoppingListener listener) {
+    private void stopRecordingInternal(final StoppingCallback callback) {
         if (mMP4Recorder == null) {
-            if (listener != null) {
-                listener.onFailed(this, "Recording has stopped already.");
+            if (callback != null) {
+                callback.onFailed(this, "Recording has stopped already.");
             }
             return;
         }
 
         mState = State.INACTIVE;
 
-        mMP4Recorder.stop(new MP4Recorder.OnRecordingStopListener() {
+        mMP4Recorder.stop(new MP4Recorder.OnStoppingCallback() {
             @Override
-            public void onRecordingStop() {
+            public void onSuccess() {
                 File videoFile = mMP4Recorder.getOutputFile();
                 registerVideo(videoFile);
                 mMP4Recorder.release();
                 mMP4Recorder = null;
 
-                if (listener != null) {
-                    listener.onStopped(ScreenCastRecorder.this, videoFile.getAbsolutePath());
+                if (callback != null) {
+                    callback.onStopped(ScreenCastRecorder.this, videoFile.getAbsolutePath());
                 }
             }
 
             @Override
-            public void onRecordingStopError(Throwable e) {
+            public void onFailure(Throwable e) {
                 if (mMP4Recorder != null) {
                     mMP4Recorder.release();
                     mMP4Recorder = null;
                 }
 
-                if (listener != null) {
-                    listener.onFailed(ScreenCastRecorder.this,
+                if (callback != null) {
+                    callback.onFailed(ScreenCastRecorder.this,
                             "Failed to stop recording for unexpected error: " + e.getMessage());
                 }
             }

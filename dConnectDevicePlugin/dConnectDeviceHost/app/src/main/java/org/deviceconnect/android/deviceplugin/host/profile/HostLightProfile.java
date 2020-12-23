@@ -16,10 +16,11 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 
+import androidx.annotation.NonNull;
+
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.FlashingExecutor;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
@@ -33,8 +34,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import androidx.annotation.NonNull;
 
 /**
  * Light Profile.
@@ -259,7 +258,7 @@ public class HostLightProfile extends LightProfile {
      */
     public HostLightProfile(final Context context, final HostMediaRecorderManager manager) {
         mContext = context;
-        manager.initialize();
+
         mPhotoRec = manager.getCameraRecorder(null);
 
         mResponseHandler = createHandler("light");

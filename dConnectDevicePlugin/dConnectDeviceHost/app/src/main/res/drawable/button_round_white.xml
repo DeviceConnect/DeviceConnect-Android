@@ -7,10 +7,9 @@
                     <padding android:bottom="4dp" android:left="4dp" android:right="4dp" android:top="4dp" />
                     <corners android:radius="64dp" />
                     <solid android:color="#0000" />
-                    <stroke android:color="#FFF" android:width="4dp"/>
+                    <stroke android:color="#FFF" android:width="2dp"/>
                 </shape>
             </item>
-
         </layer-list>
     </item>
 </selector>

@@ -56,6 +56,8 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
      */
     private boolean mIsRunning;
 
+    private OnEventListener mOnEventListener;
+
     /**
      * コンストラクタ.
      * @param context コンテキスト
@@ -128,6 +130,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
             if (results.size() > 0) {
                 sendNotification(mRecorder.getId(), mRecorder.getName());
                 mIsRunning = true;
+                postPreviewStarted(results);
             }
         } catch (InterruptedException e) {
             // ignore.
@@ -143,6 +146,9 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
             server.stopWebServer();
         }
 
+        if (mIsRunning) {
+            postPreviewStopped();
+        }
         mIsRunning = false;
     }
 
@@ -170,6 +176,29 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     public void setMute(boolean mute) {
         for (PreviewServer server : getServers()) {
             server.setMute(mute);
+        }
+    }
+
+    @Override
+    public void setOnEventListener(OnEventListener listener) {
+        mOnEventListener = listener;
+    }
+
+    protected void postPreviewStarted(List<PreviewServer> servers) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onStarted(servers);
+        }
+    }
+
+    protected void postPreviewStopped() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onStopped();
+        }
+    }
+
+    protected void postPreviewError(PreviewServer server, Exception e) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onError(server, e);
         }
     }
 
@@ -263,7 +292,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     /**
      * PendingIntent を作成する.
      *
-     * @param id カメラ ID
+     * @param id レコーダ ID
      *
      * @return PendingIntent
      */

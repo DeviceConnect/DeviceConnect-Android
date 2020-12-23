@@ -16,12 +16,14 @@ import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread
 
 import java.util.List;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * Host プラグインで使用する MediaRecorder のインターフェース.
  *
  * @author NTT DOCOMO, INC.
  */
-public interface HostMediaRecorder {
+public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceStreamRecorder {
     /**
      * MediaRecorder で使用するデフォルトのマイムタイプ.
      */
@@ -103,6 +105,47 @@ public interface HostMediaRecorder {
     BroadcasterProvider getBroadcasterProvider();
 
     /**
+     * プレビュー配信サーバの動作状況を確認します.
+     *
+     * @return プレビュー配信サーバが動作している場合はtrue、それ以外はfalse
+     */
+    boolean isPreviewRunning();
+
+    /**
+     * プレビュー配信サーバを開始します.
+     *
+     * 開始できなかった場合には、空のリストを返します。
+     *
+     * @return 開始したプレビュー配信サーバのリスト
+     */
+    List<PreviewServer> startPreview();
+
+    /**
+     * プレビュー配信サーバを停止します.
+     */
+    void stopPreview();
+
+    /**
+     * ブロードキャストの動作状況を確認します.
+     *
+     * @return ブロードキャストされている場合はtrue、それ以外はfalse
+     */
+    boolean isBroadcasterRunning();
+
+    /**
+     * ブロードキャストを開始します.
+     *
+     * @param broadcastURI ブロードキャスト先のURI
+     * @return ブロードキャストしているクラス
+     */
+    Broadcaster startBroadcaster(String broadcastURI);
+
+    /**
+     * ブロードキャストを停止します.
+     */
+    void stopBroadcaster();
+
+    /**
      * 描画用オブジェクトを取得します.
      *
      * @return EGLSurfaceDrawingThread のインスタンス
@@ -121,11 +164,46 @@ public interface HostMediaRecorder {
     void onConfigChange();
 
     /**
+     * キーフレームを要求します.
+     *
+     * プレビュー配信サーバやブロードキャストしている場合に映像にキーフレームを要求します。
+     */
+    void requestKeyFrame();
+
+    /**
+     * ミュート設定を行います.
+     *
+     * @param mute ミュート設定
+     */
+    void setMute(boolean mute);
+
+    /**
+     * ミュート設定を取得します.
+     *
+     * @return ミュートの場合はtrue、それ以外はfalse
+     */
+    boolean isMute();
+
+    /**
+     * SSL コンテキストの設定を行います.
+     *
+     * @param sslContext SSL コンテキスト
+     */
+    void setSSLContext(SSLContext sslContext);
+
+    /**
      * パーミッションの要求結果を通知するコールバックを設定します.
      *
      * @param callback コールバック
      */
     void requestPermission(PermissionCallback callback);
+
+    /**
+     * イベントを通知するためのリスナーを設定します.
+     *
+     * @param listener リスナー
+     */
+    void setOnEventListener(OnEventListener listener);
 
     /**
      * パーミッション結果通知用コールバック.
@@ -170,6 +248,35 @@ public interface HostMediaRecorder {
          * エラーで停止している状態.
          */
         ERROR
+    }
+
+    /**
+     * HostMediaRecorder のイベントを通知するリスナー.
+     */
+    interface OnEventListener extends HostDeviceStreamRecorder.OnEventListener, HostDevicePhotoRecorder.OnEventListener {
+        /**
+         * プレビュー配信を開始した時に呼び出されます.
+         *
+         * @param servers 開始したプレビュー配信サーバ
+         */
+        void onPreviewStarted(List<PreviewServer> servers);
+
+        /**
+         * プレビュー配信を停止した時に呼び出されます.
+         */
+        void onPreviewStopped();
+
+        /**
+         * ブロードキャストを開始した時に呼び出されます.
+         *
+         * @param broadcaster 開始したブロードキャスト
+         */
+        void onBroadcasterStarted(Broadcaster broadcaster);
+
+        /**
+         * ブロードキャストを停止した時に呼び出されます.
+         */
+        void onBroadcasterStopped();
     }
 
     /**
@@ -658,6 +765,24 @@ public interface HostMediaRecorder {
          */
         public void setUseAEC(boolean used) {
             mPref.put("preview_audio_aec", used);
+        }
+
+        /**
+         * プレビューの音声ミュート設定を確認します.
+         *
+         * @return ミュートの場合はtrue、それ以外の場合はfalse
+         */
+        public boolean isMute() {
+            return mPref.getBoolean("preview_audio_mute", false);
+        }
+
+        /**
+         * プレビューの音声ミュート設定を行います.
+         *
+         * @param mute ミュートにする場合はtrue、それ以外はfalse
+         */
+        public void setMute(boolean mute) {
+            mPref.put("preview_audio_mute", mute);
         }
 
         public boolean isBroadcastEnabled() {

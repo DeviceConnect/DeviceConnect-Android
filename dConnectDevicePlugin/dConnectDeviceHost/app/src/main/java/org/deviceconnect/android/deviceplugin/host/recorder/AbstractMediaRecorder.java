@@ -20,8 +20,12 @@ import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-public abstract class AbstractMediaRecorder implements HostMediaRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder {
+import javax.net.ssl.SSLContext;
+
+public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     /**
      * ログ出力用タグ.
      */
@@ -53,6 +57,11 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder, HostDe
     private int mNotificationId;
 
     /**
+     * イベント通知用リスナー.
+     */
+    private OnEventListener mOnEventListener;
+
+    /**
      * コンストラクタ.
      */
     public AbstractMediaRecorder(Context context, int notificationId, FileManager fileManager) {
@@ -61,10 +70,164 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder, HostDe
         mFileManager = fileManager;
     }
 
+    // Implements HostMediaRecorder methods.
+
+    @Override
+    public void initialize() {
+        BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
+        if (broadcasterProvider != null) {
+            broadcasterProvider.setOnEventListener(new BroadcasterProvider.OnEventListener() {
+                @Override
+                public void onStarted(Broadcaster broadcaster) {
+                    postOnBroadcasterStarted(broadcaster);
+                }
+
+                @Override
+                public void onStopped(Broadcaster broadcaster) {
+                    postOnBroadcasterStopped();
+                }
+
+                @Override
+                public void onError(Broadcaster broadcaster, Exception e) {
+                }
+            });
+        }
+
+        PreviewServerProvider previewProvider = getServerProvider();
+        if (previewProvider != null) {
+            previewProvider.setOnEventListener(new PreviewServerProvider.OnEventListener() {
+                @Override
+                public void onStarted(List<PreviewServer> servers) {
+                    postOnPreviewStarted(servers);
+                }
+
+                @Override
+                public void onStopped() {
+                    postOnPreviewStopped();
+                }
+
+                @Override
+                public void onError(PreviewServer server, Exception e) {
+
+                }
+            });
+        }
+    }
+
+    @Override
+    public boolean isPreviewRunning() {
+        PreviewServerProvider provider = getServerProvider();
+        return provider != null && provider.isRunning();
+    }
+
+    @Override
+    public List<PreviewServer> startPreview() {
+        PreviewServerProvider provider = getServerProvider();
+        if (provider == null) {
+            return new ArrayList<>();
+        }
+
+        List<PreviewServer> servers = provider.startServers();
+        if (!servers.isEmpty()) {
+            provider.setMute(getSettings().isMute());
+        }
+        return servers;
+    }
+
+    @Override
+    public void stopPreview() {
+        PreviewServerProvider provider = getServerProvider();
+        if (provider != null) {
+            provider.stopServers();
+        }
+    }
+
+    @Override
+    public boolean isBroadcasterRunning() {
+        BroadcasterProvider provider = getBroadcasterProvider();
+        return provider != null && provider.isRunning();
+    }
+
+    @Override
+    public Broadcaster startBroadcaster(String uri) {
+        BroadcasterProvider provider = getBroadcasterProvider();
+        if (provider == null) {
+            return null;
+        }
+
+        Broadcaster broadcaster = provider.startBroadcaster(uri);
+        if (broadcaster != null) {
+            broadcaster.setMute(getSettings().isMute());
+        }
+        return broadcaster;
+    }
+
+    @Override
+    public void stopBroadcaster() {
+        BroadcasterProvider provider = getBroadcasterProvider();
+        if (provider != null) {
+            provider.stopBroadcaster();
+        }
+    }
+
+    @Override
+    public void requestKeyFrame() {
+        PreviewServerProvider previewProvider = getServerProvider();
+        if (previewProvider != null) {
+            previewProvider.requestSyncFrame();
+        }
+    }
+
+    @Override
+    public void setMute(boolean mute) {
+        Settings settings = getSettings();
+        settings.setMute(mute);
+
+        PreviewServerProvider previewProvider = getServerProvider();
+        if (previewProvider != null) {
+            previewProvider.setMute(mute);
+        }
+
+        BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
+        if (broadcasterProvider != null) {
+            broadcasterProvider.setMute(mute);
+        }
+    }
+
+    @Override
+    public boolean isMute() {
+        return getSettings().isMute();
+    }
+
+    @Override
+    public void setSSLContext(SSLContext sslContext) {
+        PreviewServerProvider previewProvider = getServerProvider();
+        if (previewProvider != null) {
+            for (PreviewServer server : previewProvider.getServers()) {
+                server.setSSLContext(sslContext);
+            }
+        }
+    }
+
+    @Override
+    public void setOnEventListener(OnEventListener listener) {
+        mOnEventListener = listener;
+    }
+
+    /**
+     * コンテキストを取得します.
+     *
+     * @return コンテキスト
+     */
     public Context getContext() {
         return mContext;
     }
 
+    /**
+     * ファイル管理クラスを取得します.
+     *
+     * @return ファイル管理クラス
+     */
     public FileManager getFileManager() {
         return mFileManager;
     }
@@ -98,7 +261,7 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder, HostDe
      * @param name 名前
      */
     public void sendNotificationForStopRecording(String id, String name) {
-        PendingIntent contentIntent = createPendingIntent(id);
+        PendingIntent contentIntent = createPendingIntentForStopRecording(id);
         Notification notification = createNotificationForStopRecording(contentIntent, null, name);
         NotificationManager manager = (NotificationManager) mContext
                 .getSystemService(Service.NOTIFICATION_SERVICE);
@@ -163,13 +326,20 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder, HostDe
      *
      * @return PendingIntent
      */
-    private PendingIntent createPendingIntent(String id) {
+    private PendingIntent createPendingIntentForStopRecording(String id) {
         Intent intent = new Intent();
         intent.setAction(HostMediaRecorderManager.ACTION_STOP_RECORDING);
         intent.putExtra(HostMediaRecorderManager.KEY_RECORDER_ID, id);
         return PendingIntent.getBroadcast(mContext, getNotificationId(), intent, 0);
     }
 
+    /**
+     * 写真を保存して、Android OS のメディアに登録します.
+     *
+     * @param filename ファイル名
+     * @param jpeg 写真データ
+     * @param listener 保存結果を通知するリスナー
+     */
     protected void storePhoto(String filename, byte[] jpeg, OnPhotoEventListener listener) {
         mFileManager.saveFile(filename, jpeg, true, new FileManager.SaveFileCallback() {
             @Override
@@ -184,6 +354,8 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder, HostDe
                 if (listener != null) {
                     listener.onTakePhoto(uri, photoFilePath, MIME_TYPE_JPEG);
                 }
+
+                postOnTakePhoto(uri, photoFilePath, MIME_TYPE_JPEG);
             }
 
             @Override
@@ -199,6 +371,11 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder, HostDe
         });
     }
 
+    /**
+     * 映像ファイルを Android OS に登録します.
+     *
+     * @param videoFile 映像ファイル
+     */
     protected void registerVideo(final File videoFile) {
         Uri uri = mMediaSharing.shareVideo(mContext, videoFile, mFileManager);
         if (DEBUG) {
@@ -211,6 +388,11 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder, HostDe
         }
     }
 
+    /**
+     * 写真ファイルを Android OS に登録します.
+     *
+     * @param photoFile 写真ファイル
+     */
     protected void registerPhoto(final File photoFile) {
         Uri uri = mMediaSharing.sharePhoto(mContext, photoFile);
         if (DEBUG) {
@@ -222,6 +404,11 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder, HostDe
         }
     }
 
+    /**
+     * 音声ファイルを Android OS に登録します.
+     *
+     * @param audioFile 音声ファイル
+     */
     protected void registerAudio(final File audioFile) {
         Uri uri = mMediaSharing.shareAudio(mContext, audioFile);
         if (DEBUG) {
@@ -231,6 +418,60 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder, HostDe
             } else {
                 Log.e(TAG, "Failed to register audio: file=" + filePath);
             }
+        }
+    }
+
+    protected void postOnPreviewStarted(List<PreviewServer> servers) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onPreviewStarted(servers);
+        }
+    }
+
+    protected void postOnPreviewStopped() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onPreviewStopped();
+        }
+    }
+
+    protected void postOnBroadcasterStarted(Broadcaster broadcaster) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onBroadcasterStarted(broadcaster);
+        }
+    }
+
+    protected void postOnBroadcasterStopped() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onBroadcasterStopped();
+        }
+    }
+
+    protected void postOnTakePhoto(String uri, String filePath, String mimeType) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onTakePhoto(uri, filePath, mimeType);
+        }
+    }
+
+    protected void postOnRecordingStarted(String path) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onRecordingStarted(path);
+        }
+    }
+
+    protected void postOnRecordingStopped(String path) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onRecordingStopped(path);
+        }
+    }
+
+    protected void postOnRecordingPause() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onRecordingPause();
+        }
+    }
+
+    protected void postOnRecordingResume() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onRecordingResume();
         }
     }
 }

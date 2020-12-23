@@ -248,17 +248,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         return mCameraWrapper;
     }
 
-    // テスト
-    @Override
-    public EGLSurfaceDrawingThread getSurfaceDrawingThread(){
-        return mCameraSurfaceDrawingThread;
-    }
-
     // HostMediaRecorder
-
-    @Override
-    public synchronized void initialize() {
-    }
 
     @Override
     public synchronized void clean() {
@@ -326,8 +316,14 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     }
 
     @Override
+    public EGLSurfaceDrawingThread getSurfaceDrawingThread(){
+        return mCameraSurfaceDrawingThread;
+    }
+
+    @Override
     public void onDisplayRotation(final int degree) {
         mCurrentRotation = degree;
+        mBroadcasterProvider.onConfigChange();
         mCamera2PreviewServerProvider.onConfigChange();
     }
 
@@ -402,12 +398,12 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     }
 
     @Override
-    public void startRecording(final RecordingListener listener) {
+    public void startRecording(final RecordingCallback listener) {
         mRequestHandler.post(() -> startRecordingInternal(listener));
     }
 
     @Override
-    public void stopRecording(final StoppingListener listener) {
+    public void stopRecording(final StoppingCallback listener) {
         mRequestHandler.post(() -> stopRecordingInternal(listener));
     }
 
@@ -520,38 +516,40 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     /**
      * 録画を行います.
      *
-     * @param listener 録画開始結果を通知するリスナー
+     * @param callback 録画開始結果を通知するリスナー
      */
-    private void startRecordingInternal(final RecordingListener listener) {
+    private void startRecordingInternal(final RecordingCallback callback) {
         if (mMP4Recorder != null) {
-            if (listener != null) {
-                listener.onFailed(this, "Recording has started already.");
+            if (callback != null) {
+                callback.onFailed(this, "Recording has started already.");
             }
             return;
         }
 
         File filePath = new File(mFileManager.getBasePath(), generateVideoFileName());
         mMP4Recorder = new SurfaceMP4Recorder(filePath, mSettings, mCameraSurfaceDrawingThread);
-        mMP4Recorder.start(new MP4Recorder.OnRecordingStartListener() {
+        mMP4Recorder.start(new MP4Recorder.OnStartingCallback() {
             @Override
-            public void onRecordingStart() {
+            public void onSuccess() {
                 mState = State.RECORDING;
 
                 sendNotificationForStopRecording(getId(), getName());
 
-                if (listener != null) {
-                    listener.onRecorded(Camera2Recorder.this, mMP4Recorder.getOutputFile().getAbsolutePath());
+                if (callback != null) {
+                    callback.onRecorded(Camera2Recorder.this, mMP4Recorder.getOutputFile().getAbsolutePath());
                 }
+
+                postOnRecordingStarted(mMP4Recorder.getOutputFile().getAbsolutePath());
             }
 
             @Override
-            public void onRecordingStartError(Throwable e) {
+            public void onFailure(Throwable e) {
                 if (mMP4Recorder != null) {
                     mMP4Recorder.release();
                     mMP4Recorder = null;
                 }
-                if (listener != null) {
-                    listener.onFailed(Camera2Recorder.this,
+                if (callback != null) {
+                    callback.onFailed(Camera2Recorder.this,
                             "Failed to start recording because of camera problem: " + e.getMessage());
                 }
             }
@@ -561,12 +559,12 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     /**
      * 録画停止を行います.
      *
-     * @param listener 録画停止結果を通知するリスナー
+     * @param callback 録画停止結果を通知するリスナー
      */
-    private void stopRecordingInternal(final StoppingListener listener) {
+    private void stopRecordingInternal(final StoppingCallback callback) {
         if (mMP4Recorder == null) {
-            if (listener != null) {
-                listener.onFailed(this, "Recording has stopped already.");
+            if (callback != null) {
+                callback.onFailed(this, "Recording has stopped already.");
             }
             return;
         }
@@ -575,28 +573,30 @@ public class Camera2Recorder extends AbstractMediaRecorder {
 
         hideNotification(getId());
 
-        mMP4Recorder.stop(new MP4Recorder.OnRecordingStopListener() {
+        mMP4Recorder.stop(new MP4Recorder.OnStoppingCallback() {
             @Override
-            public void onRecordingStop() {
+            public void onSuccess() {
                 File videoFile = mMP4Recorder.getOutputFile();
                 registerVideo(videoFile);
                 mMP4Recorder.release();
                 mMP4Recorder = null;
 
-                if (listener != null) {
-                    listener.onStopped(Camera2Recorder.this, videoFile.getAbsolutePath());
+                if (callback != null) {
+                    callback.onStopped(Camera2Recorder.this, videoFile.getAbsolutePath());
                 }
+
+                postOnRecordingStopped(videoFile.getAbsolutePath());
             }
 
             @Override
-            public void onRecordingStopError(Throwable e) {
+            public void onFailure(Throwable e) {
                 if (mMP4Recorder != null) {
                     mMP4Recorder.release();
                     mMP4Recorder = null;
                 }
 
-                if (listener != null) {
-                    listener.onFailed(Camera2Recorder.this,
+                if (callback != null) {
+                    callback.onFailed(Camera2Recorder.this,
                             "Failed to stop recording for unexpected error: " + e.getMessage());
                 }
             }

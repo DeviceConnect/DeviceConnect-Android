@@ -5,8 +5,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 
-import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -14,7 +12,6 @@ public abstract class MP4Recorder {
     private MediaRecorder mMediaRecorder;
     private File mOutputFile;
     private Handler mRecorderThread;
-    private HostMediaRecorder.Settings mSettings;
     private State mState = State.INACTIVE;
 
     public MP4Recorder(File filePath) {
@@ -29,7 +26,7 @@ public abstract class MP4Recorder {
         return mOutputFile;
     }
 
-    public void start(OnRecordingStartListener listener) {
+    public void start(OnStartingCallback listener) {
         Runnable r;
         if (mState == State.INACTIVE) {
             mState = State.RECORDING;
@@ -38,24 +35,24 @@ public abstract class MP4Recorder {
                     mMediaRecorder = setUpMediaRecorder(mOutputFile);
                     mMediaRecorder.start();
                     if (listener != null) {
-                        listener.onRecordingStart();
+                        listener.onSuccess();
                     }
                 } catch (Exception e) {
                     if (listener != null) {
-                        listener.onRecordingStartError(e);
+                        listener.onFailure(e);
                     }
                 }
             };
         } else if (mState == State.RECORDING) {
             r = () -> {
                 if (listener != null) {
-                    listener.onRecordingStart();
+                    listener.onSuccess();
                 }
             };
         } else {
             r = () -> {
                 if (listener != null) {
-                    listener.onRecordingStartError(new IllegalStateException());
+                    listener.onFailure(new IllegalStateException());
                 }
             };
         }
@@ -99,7 +96,7 @@ public abstract class MP4Recorder {
         mRecorderThread.post(r);
     }
 
-    public void stop(OnRecordingStopListener listener) {
+    public void stop(OnStoppingCallback listener) {
         Runnable r;
         if (mState != State.INACTIVE) {
             mState = State.INACTIVE;
@@ -107,13 +104,13 @@ public abstract class MP4Recorder {
                 tearDownMediaRecorder();
                 stopMediaRecorder();
                 if (listener != null) {
-                    listener.onRecordingStop();
+                    listener.onSuccess();
                 }
             };
         } else {
             r = () -> {
                 if (listener != null) {
-                    listener.onRecordingStop();
+                    listener.onSuccess();
                 }
             };
         }
@@ -153,14 +150,14 @@ public abstract class MP4Recorder {
         }
     }
 
-    public interface OnRecordingStartListener {
-        void onRecordingStart();
-        void onRecordingStartError(Throwable e);
+    public interface OnStartingCallback {
+        void onSuccess();
+        void onFailure(Throwable e);
     }
 
-    public interface OnRecordingStopListener {
-        void onRecordingStop();
-        void onRecordingStopError(Throwable e);
+    public interface OnStoppingCallback {
+        void onSuccess();
+        void onFailure(Throwable e);
     }
 
     /**

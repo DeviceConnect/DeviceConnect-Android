@@ -129,8 +129,7 @@ public class HostDevicePlugin extends DConnectMessageService {
         hostService.setOnline(true);
 
         mRecorderMgr = new HostMediaRecorderManager(getPluginContext(), mFileMgr);
-        mRecorderMgr.initRecorders();
-        mRecorderMgr.start();
+        mRecorderMgr.initialize();
         //  MediaRecorder が存在する場合には、MediaStreamRecording と Camera プロファイルを追加
         if (mRecorderMgr.getRecorders().length > 0) {
             hostService.addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr, mFileMgr));
@@ -328,7 +327,6 @@ public class HostDevicePlugin extends DConnectMessageService {
      */
     public interface SSLContextCallback {
         void onGet(SSLContext context);
-        void onError();
     }
 
     public void getSSLContext(final SSLContextCallback callback) {
@@ -347,14 +345,14 @@ public class HostDevicePlugin extends DConnectMessageService {
                         callback.onGet(mSSLContext);
                     } catch (GeneralSecurityException e) {
                         mLogger.log(Level.WARNING, "getSSLContext: requestKeyStore: onSuccess: Failed to create SSL Context", e);
-                        callback.onError();
+                        callback.onGet(null);
                     }
                 }
 
                 @Override
                 public void onError(final KeyStoreError keyStoreError) {
                     mLogger.warning("getSSLContext: requestKeyStore: onError: error = " + keyStoreError);
-                    callback.onError();
+                    callback.onGet(null);
                 }
             });
         }

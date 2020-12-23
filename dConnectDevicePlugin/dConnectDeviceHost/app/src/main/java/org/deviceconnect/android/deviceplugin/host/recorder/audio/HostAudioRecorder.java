@@ -81,16 +81,6 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     }
 
     @Override
-    public EGLSurfaceDrawingThread getSurfaceDrawingThread() {
-        return null;
-    }
-
-    @Override
-    public void initialize() {
-        // Nothing to do.
-    }
-
-    @Override
     public void clean() {
         stopRecording(null);
     }
@@ -146,6 +136,11 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     @Override
     public BroadcasterProvider getBroadcasterProvider() {
         return mAudioBroadcasterProvider;
+    }
+
+    @Override
+    public EGLSurfaceDrawingThread getSurfaceDrawingThread() {
+        return null;
     }
 
     @Override
@@ -205,7 +200,7 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     }
 
     @Override
-    public synchronized void startRecording(final RecordingListener listener) {
+    public synchronized void startRecording(final RecordingCallback listener) {
         if (getState() != State.INACTIVE) {
             if (listener != null) {
                 listener.onFailed(this, "MediaRecorder is already recording.");
@@ -229,7 +224,7 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     }
 
     @Override
-    public synchronized void stopRecording(final StoppingListener listener) {
+    public synchronized void stopRecording(final StoppingCallback listener) {
         if (getState() == State.INACTIVE) {
             if (listener != null) {
                 listener.onFailed(this, "MediaRecorder is not running.");
@@ -292,7 +287,7 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
      *
      * @param listener 録画開始結果を通知するリスナー
      */
-    private void startRecordingInternal(final RecordingListener listener) {
+    private void startRecordingInternal(final RecordingCallback listener) {
         if (mMP4Recorder != null) {
             if (listener != null) {
                 listener.onFailed(this, "Recording has started already.");
@@ -302,9 +297,9 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
 
         File filePath = new File(getFileManager().getBasePath(), generateAudioFileName());
         mMP4Recorder = new AudioMP4Recorder(filePath, mSettings);
-        mMP4Recorder.start(new MP4Recorder.OnRecordingStartListener() {
+        mMP4Recorder.start(new MP4Recorder.OnStartingCallback() {
             @Override
-            public void onRecordingStart() {
+            public void onSuccess() {
                 mState = State.RECORDING;
 
                 if (listener != null) {
@@ -313,7 +308,7 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
             }
 
             @Override
-            public void onRecordingStartError(Throwable e) {
+            public void onFailure(Throwable e) {
                 if (mMP4Recorder != null) {
                     mMP4Recorder.release();
                     mMP4Recorder = null;
@@ -332,7 +327,7 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
      *
      * @param listener 録画停止結果を通知するリスナー
      */
-    private void stopRecordingInternal(final StoppingListener listener) {
+    private void stopRecordingInternal(final StoppingCallback listener) {
         if (mMP4Recorder == null) {
             if (listener != null) {
                 listener.onFailed(this, "Recording has stopped already.");
@@ -342,9 +337,9 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
 
         mState = State.INACTIVE;
 
-        mMP4Recorder.stop(new MP4Recorder.OnRecordingStopListener() {
+        mMP4Recorder.stop(new MP4Recorder.OnStoppingCallback() {
             @Override
-            public void onRecordingStop() {
+            public void onSuccess() {
                 File videoFile = mMP4Recorder.getOutputFile();
                 registerVideo(videoFile);
                 mMP4Recorder.release();
@@ -356,7 +351,7 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
             }
 
             @Override
-            public void onRecordingStopError(Throwable e) {
+            public void onFailure(Throwable e) {
                 if (mMP4Recorder != null) {
                     mMP4Recorder.release();
                     mMP4Recorder = null;

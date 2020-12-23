@@ -64,6 +64,7 @@ public class HostLiveStreamingProfile extends DConnectProfile {
     public HostLiveStreamingProfile(final HostMediaRecorderManager hostMediaRecorderManager) {
         mHostMediaRecorderManager = hostMediaRecorderManager;
 
+        // POST /gotapi/liveStreaming/start
         addApi(new PostApi() {
             @Override
             public String getAttribute() {
@@ -76,12 +77,9 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     Log.d(TAG, "onRequest() : post /start");
                 }
 
-                if (mHostMediaRecorder != null) {
-                    BroadcasterProvider provider = mHostMediaRecorder.getBroadcasterProvider();
-                    if (provider != null && provider.isRunning()) {
-                        MessageUtils.setIllegalDeviceStateError(response, "LiveStreaming is already running.");
-                        return true;
-                    }
+                if (mHostMediaRecorder != null && mHostMediaRecorder.isBroadcasterRunning()) {
+                    MessageUtils.setIllegalDeviceStateError(response, "LiveStreaming is already running.");
+                    return true;
                 }
 
                 String broadcastURI = request.getStringExtra(PARAM_KEY_BROADCAST);
@@ -89,6 +87,7 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     MessageUtils.setInvalidRequestParameterError(response, "broadcastURI is null");
                     return true;
                 }
+
                 if (DEBUG) {
                     Log.d(TAG, "broadcastURI : " + broadcastURI);
                 }
@@ -129,42 +128,29 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     return true;
                 }
 
-                BroadcasterProvider provider = recorder.getBroadcasterProvider();
-                if (provider == null) {
-                    MessageUtils.setInvalidRequestParameterError(response, "Not support.");
-                    return true;
-                }
-
-                if (provider.isRunning()) {
-                    MessageUtils.setIllegalDeviceStateError(response, "recorder already running.");
-                    return true;
-                }
-
                 recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                     @Override
                     public void onAllowed() {
-                        String testURI = "rtmp://192.168.11.7:1935/live/abc";
-
-                        Broadcaster broadcaster = provider.startBroadcaster(testURI);
+                        Broadcaster broadcaster = recorder.startBroadcaster(broadcastURI);
                         if (broadcaster != null) {
-                            broadcaster.setOnBroadcasterEventListener(new Broadcaster.OnBroadcasterEventListener() {
+                            broadcaster.setOnEventListener(new Broadcaster.OnEventListener() {
                                 @Override
                                 public void onStarted() {
                                 }
 
                                 @Override
                                 public void onStopped() {
-                                    postOnStop(provider.getBroadcaster());
+                                    postOnStop(broadcaster);
                                 }
 
                                 @Override
                                 public void onError(Exception e) {
-                                    postOnError(provider.getBroadcaster());
+                                    postOnError(broadcaster);
                                 }
                             });
                             setResult(response, DConnectMessage.RESULT_OK);
                             sendResponse(response);
-                            postOnStart(provider.getBroadcaster());
+                            postOnStart(broadcaster);
                         } else {
                             MessageUtils.setUnknownError(response, "Failed to start a live streaming.");
                             sendResponse(response);
@@ -182,6 +168,7 @@ public class HostLiveStreamingProfile extends DConnectProfile {
             }
         });
 
+        // PUT /gotapi/liveStreaming/stop
         addApi(new PutApi() {
             @Override
             public String getAttribute() {
@@ -190,22 +177,17 @@ public class HostLiveStreamingProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                if (DEBUG) {
-                    Log.d(TAG, "onRequest() : put /stop");
-                }
-
                 if (mHostMediaRecorder != null) {
-                    BroadcasterProvider provider = mHostMediaRecorder.getBroadcasterProvider();
-                    if (provider != null) {
-                        provider.stopBroadcaster();
-                    }
+                    mHostMediaRecorder.stopBroadcaster();
+                    mHostMediaRecorder = null;
                 }
-                mHostMediaRecorder = null;
 
+                setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             }
         });
 
+        // GET /gotapi/liveStreaming/onStatusChange
         addApi(new GetApi() {
             @Override
             public String getAttribute() {
@@ -214,10 +196,6 @@ public class HostLiveStreamingProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                if (DEBUG) {
-                    Log.d(TAG, "onRequest() : get /onStatusChange");
-                }
-
                 Bundle streaming;
                 if (mHostMediaRecorder != null) {
                     BroadcasterProvider provider = mHostMediaRecorder.getBroadcasterProvider();
@@ -236,6 +214,7 @@ public class HostLiveStreamingProfile extends DConnectProfile {
             }
         });
 
+        // PUT /gotapi/liveStreaming/onStatusChange
         addApi(new PutApi() {
             @Override
             public String getAttribute() {
@@ -260,6 +239,7 @@ public class HostLiveStreamingProfile extends DConnectProfile {
             }
         });
 
+        // DELETE /gotapi/liveStreaming/onStatusChange
         addApi(new DeleteApi() {
             @Override
             public String getAttribute() {
@@ -284,6 +264,7 @@ public class HostLiveStreamingProfile extends DConnectProfile {
             }
         });
 
+        // PUT /gotapi/liveStreaming/mute
         addApi(new PutApi() {
             @Override
             public String getAttribute() {
@@ -296,13 +277,9 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     Log.d(TAG, "onRequest() : put /mute");
                 }
 
-                if (mHostMediaRecorder != null) {
-                    BroadcasterProvider provider = mHostMediaRecorder.getBroadcasterProvider();
-                    if (provider != null) {
-                        Broadcaster broadcaster = provider.getBroadcaster();
-                        broadcaster.setMute(true);
-                        setResult(response, DConnectMessage.RESULT_OK);
-                    }
+                if (mHostMediaRecorder != null && mHostMediaRecorder.isBroadcasterRunning()) {
+                    mHostMediaRecorder.setMute(true);
+                    setResult(response, DConnectMessage.RESULT_OK);
                 } else {
                     MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
                 }
@@ -311,6 +288,7 @@ public class HostLiveStreamingProfile extends DConnectProfile {
             }
         });
 
+        // DELETE /gotapi/liveStreaming/mute
         addApi(new DeleteApi() {
             @Override
             public String getAttribute() {
@@ -323,13 +301,9 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     Log.d(TAG, "onRequest() : delete /mute");
                 }
 
-                if (mHostMediaRecorder != null) {
-                    BroadcasterProvider provider = mHostMediaRecorder.getBroadcasterProvider();
-                    if (provider != null) {
-                        Broadcaster broadcaster = provider.getBroadcaster();
-                        broadcaster.setMute(false);
-                        setResult(response, DConnectMessage.RESULT_OK);
-                    }
+                if (mHostMediaRecorder != null && mHostMediaRecorder.isBroadcasterRunning()) {
+                    mHostMediaRecorder.setMute(false);
+                    setResult(response, DConnectMessage.RESULT_OK);
                 } else {
                     MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
                 }
@@ -338,6 +312,7 @@ public class HostLiveStreamingProfile extends DConnectProfile {
             }
         });
 
+        // GET /gotapi/liveStreaming/mute
         addApi(new GetApi() {
             @Override
             public String getAttribute() {
@@ -346,11 +321,9 @@ public class HostLiveStreamingProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                if (mHostMediaRecorder != null) {
-                    BroadcasterProvider provider = mHostMediaRecorder.getBroadcasterProvider();
-                    if (provider != null) {
-                        response.putExtra(PARAM_KEY_MUTE, provider.getBroadcaster().isMute());
-                    }
+                if (mHostMediaRecorder != null && mHostMediaRecorder.isBroadcasterRunning()) {
+                    response.putExtra(PARAM_KEY_MUTE, mHostMediaRecorder.isMute());
+                    setResult(response, DConnectMessage.RESULT_OK);
                 } else {
                     MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
                 }

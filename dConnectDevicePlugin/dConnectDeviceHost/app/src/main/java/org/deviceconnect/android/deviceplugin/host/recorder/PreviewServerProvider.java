@@ -78,4 +78,17 @@ public interface PreviewServerProvider {
      * Recorder をミュート状態にする.
      */
     void setMute(boolean mute);
+
+    /**
+     * イベントを通知するリスナーを設定します.
+     *
+     * @param listener リスナー
+     */
+    void setOnEventListener(OnEventListener listener);
+
+    interface OnEventListener {
+        void onStarted(List<PreviewServer> servers);
+        void onStopped();
+        void onError(PreviewServer server, Exception e);
+    }
 }

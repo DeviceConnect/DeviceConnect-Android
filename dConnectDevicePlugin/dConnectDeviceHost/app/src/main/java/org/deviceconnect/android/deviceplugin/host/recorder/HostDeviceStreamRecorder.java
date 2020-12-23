@@ -25,14 +25,14 @@ public interface HostDeviceStreamRecorder {
      *
      * @param listener リスナー
      */
-    void startRecording(RecordingListener listener);
+    void startRecording(RecordingCallback listener);
 
     /**
      * 録画を停止します.
      *
      * @param listener リスナー
      */
-    void stopRecording(StoppingListener listener);
+    void stopRecording(StoppingCallback listener);
 
     /**
      * 録画を一時停止します.
@@ -73,9 +73,9 @@ public interface HostDeviceStreamRecorder {
     boolean isMutedTrack();
 
     /**
-     * 録画開始のイベントを通知するリスナー.
+     * 録画開始のイベントを通知するコールバック.
      */
-    interface RecordingListener {
+    interface RecordingCallback {
         /**
          * 録画開始を通知します.
          *
@@ -94,9 +94,9 @@ public interface HostDeviceStreamRecorder {
     }
 
     /**
-     * 録画停止のイベントを通知するリスナー.
+     * 録画停止のイベントを通知するコールバック.
      */
-    interface StoppingListener {
+    interface StoppingCallback {
         /**
          * 録画の停止を通知します.
          *
@@ -112,5 +112,12 @@ public interface HostDeviceStreamRecorder {
          * @param errorMessage エラーメッセージ
          */
         void onFailed(HostDeviceStreamRecorder recorder, String errorMessage);
+    }
+
+    interface OnEventListener {
+        void onRecordingStarted(String fileName);
+        void onRecordingPause();
+        void onRecordingResume();
+        void onRecordingStopped(String fileName);
     }
 }

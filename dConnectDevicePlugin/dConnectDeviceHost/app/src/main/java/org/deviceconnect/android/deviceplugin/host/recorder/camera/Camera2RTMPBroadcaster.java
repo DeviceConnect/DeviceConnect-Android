@@ -1,7 +1,5 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
-import android.util.Log;
-
 import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
@@ -30,7 +28,7 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
     /**
      * イベントを通知するためのリスナー.
      */
-    private OnBroadcasterEventListener mOnBroadcasterEventListener;
+    private OnEventListener mOnBroadcasterEventListener;
 
     public Camera2RTMPBroadcaster(Camera2Recorder recorder, String broadcastURI) {
         mRecorder = recorder;
@@ -48,7 +46,7 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
     }
 
     @Override
-    public void setOnBroadcasterEventListener(OnBroadcasterEventListener listener) {
+    public void setOnEventListener(OnEventListener listener) {
         mOnBroadcasterEventListener = listener;
     }
 
@@ -58,9 +56,8 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
     }
 
     @Override
-    public void start() {
+    public void start(OnStartCallback callback) {
         HostMediaRecorder.Settings settings = mRecorder.getSettings();
-        Log.e("ABC", "$$$$$$$$$$ AAA");
 
         CameraVideoEncoder videoEncoder = new CameraVideoEncoder(mRecorder);
         CameraVideoQuality videoQuality = (CameraVideoQuality) videoEncoder.getVideoQuality();
@@ -84,6 +81,10 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
         mRtmpClient.setOnEventListener(new RtmpClient.OnEventListener() {
             @Override
             public void onStarted() {
+                if (callback != null) {
+                    callback.onSuccess();
+                }
+
                 if (mOnBroadcasterEventListener != null) {
                     mOnBroadcasterEventListener.onStarted();
                 }
@@ -98,6 +99,10 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
 
             @Override
             public void onError(MediaEncoderException e) {
+                if (callback != null) {
+                    callback.onFailed(e);
+                }
+
                 if (mOnBroadcasterEventListener != null) {
                     mOnBroadcasterEventListener.onError(e);
                 }

@@ -28,7 +28,7 @@ public class ScreenCastRTMPBroadcaster implements Broadcaster {
     /**
      * イベントを通知するためのリスナー.
      */
-    private OnBroadcasterEventListener mOnBroadcasterEventListener;
+    private OnEventListener mOnBroadcasterEventListener;
 
     public ScreenCastRTMPBroadcaster(ScreenCastRecorder recorder, String broadcastURI) {
         mRecorder = recorder;
@@ -46,7 +46,7 @@ public class ScreenCastRTMPBroadcaster implements Broadcaster {
     }
 
     @Override
-    public void setOnBroadcasterEventListener(OnBroadcasterEventListener listener) {
+    public void setOnEventListener(OnEventListener listener) {
         mOnBroadcasterEventListener = listener;
     }
 
@@ -56,7 +56,7 @@ public class ScreenCastRTMPBroadcaster implements Broadcaster {
     }
 
     @Override
-    public void start() {
+    public void start(OnStartCallback callback) {
         HostMediaRecorder.Settings settings = mRecorder.getSettings();
 
         ScreenCastVideoEncoder videoEncoder = new ScreenCastVideoEncoder(mRecorder);
@@ -81,6 +81,9 @@ public class ScreenCastRTMPBroadcaster implements Broadcaster {
         mRtmpClient.setOnEventListener(new RtmpClient.OnEventListener() {
             @Override
             public void onStarted() {
+                if (callback != null) {
+                    callback.onSuccess();
+                }
                 if (mOnBroadcasterEventListener != null) {
                     mOnBroadcasterEventListener.onStarted();
                 }
@@ -95,6 +98,9 @@ public class ScreenCastRTMPBroadcaster implements Broadcaster {
 
             @Override
             public void onError(MediaEncoderException e) {
+                if (callback != null) {
+                    callback.onFailed(e);
+                }
                 if (mOnBroadcasterEventListener != null) {
                     mOnBroadcasterEventListener.onError(e);
                 }

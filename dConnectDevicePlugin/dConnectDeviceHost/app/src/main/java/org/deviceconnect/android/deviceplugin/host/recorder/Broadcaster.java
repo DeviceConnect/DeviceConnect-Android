@@ -20,7 +20,7 @@ public interface Broadcaster {
      *
      * @param listener リスナー
      */
-    void setOnBroadcasterEventListener(OnBroadcasterEventListener listener);
+    void setOnEventListener(OnEventListener listener);
 
     /**
      * ブロードキャスト中か確認します.
@@ -32,7 +32,7 @@ public interface Broadcaster {
     /**
      * ブロードキャストを開始します.
      */
-    void start();
+    void start(OnStartCallback callback);
 
     /**
      * ブロードキャストを停止します.
@@ -58,7 +58,12 @@ public interface Broadcaster {
      */
     void onConfigChange();
 
-    interface OnBroadcasterEventListener {
+    interface OnStartCallback {
+        void onSuccess();
+        void onFailed(Exception e);
+    }
+
+    interface OnEventListener {
         void onStarted();
         void onStopped();
         void onError(Exception e);

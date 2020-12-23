@@ -18,7 +18,7 @@ public final class PropertyUtil {
     }
 
     public void clear() {
-        mPref.edit().clear().commit();
+        mPref.edit().clear().apply();
     }
 
     public Set<String> getKeys() {

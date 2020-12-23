@@ -1,7 +1,5 @@
 package org.deviceconnect.android.libmedia.streaming.util;
 
-import android.util.Log;
-
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -80,11 +78,6 @@ public class WeakReferenceList<T> implements Iterable<T> {
                 WeakReference<T> value = mIterator.next();
                 if (value.get() != null) {
                     return value.get();
-                }
-                try {
-                    throw new RuntimeException();
-                } catch (Exception e) {
-                    Log.e("ABC", "$$$$$$$$$$$$$$ remove ", e);
                 }
                 mIterator.remove();
             }

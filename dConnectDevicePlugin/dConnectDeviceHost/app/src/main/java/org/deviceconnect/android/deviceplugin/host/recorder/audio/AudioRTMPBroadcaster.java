@@ -14,7 +14,7 @@ public class AudioRTMPBroadcaster implements Broadcaster {
     }
 
     @Override
-    public void setOnBroadcasterEventListener(OnBroadcasterEventListener listener) {
+    public void setOnEventListener(OnEventListener listener) {
 
     }
 
@@ -24,7 +24,7 @@ public class AudioRTMPBroadcaster implements Broadcaster {
     }
 
     @Override
-    public void start() {
+    public void start(OnStartCallback callabck) {
 
     }
 

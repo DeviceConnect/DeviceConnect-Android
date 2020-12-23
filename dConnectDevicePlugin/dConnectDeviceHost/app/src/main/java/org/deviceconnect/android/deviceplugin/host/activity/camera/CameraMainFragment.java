@@ -1,7 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.activity.camera;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -18,11 +17,9 @@ import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.connection.HostConnectionManager;
 import org.deviceconnect.android.deviceplugin.host.connection.HostTrafficMonitor;
 import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
-import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.ui.PreviewSurfaceView;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
@@ -97,6 +94,53 @@ public class CameraMainFragment extends CameraBaseFragment {
         }
     };
 
+    private HostMediaRecorderManager.OnEventListener mOnEventListener = new HostMediaRecorderManager.OnEventListener() {
+        @Override
+        public void onPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers) {
+            setCameraStartButton();
+        }
+
+        @Override
+        public void onPreviewStopped(HostMediaRecorder recorder) {
+            setCameraStartButton();
+        }
+
+        @Override
+        public void onBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster) {
+            setCameraStartButton();
+        }
+
+        @Override
+        public void onBroadcasterStopped(HostMediaRecorder recorder) {
+            setCameraStartButton();
+        }
+
+        @Override
+        public void onTakePhoto(HostMediaRecorder recorder, String uri, String filePath, String mimeType) {
+
+        }
+
+        @Override
+        public void onRecordingStarted(HostMediaRecorder recorder, String fileName) {
+
+        }
+
+        @Override
+        public void onRecordingPause(HostMediaRecorder recorder) {
+
+        }
+
+        @Override
+        public void onRecordingResume(HostMediaRecorder recorder) {
+
+        }
+
+        @Override
+        public void onRecordingStopped(HostMediaRecorder recorder, String fileName) {
+
+        }
+    };
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_host_camera_main, container, false);
@@ -132,22 +176,10 @@ public class CameraMainFragment extends CameraBaseFragment {
             }
         });
 
-        view.findViewById(R.id.fragment_host_camera_rotation_button).setOnClickListener(
-                v -> {
-                    toggleScreenRotation();
-                    setDisplayRotationButton();
-                });
-
+        view.findViewById(R.id.fragment_host_camera_rotation_button).setOnClickListener(v -> toggleScreenRotation());
         view.findViewById(R.id.fragment_host_camera_mute_button).setOnClickListener(v -> toggleMute());
         view.findViewById(R.id.fragment_host_camera_switch_button).setOnClickListener(v -> switchRecorder());
-
-        view.findViewById(R.id.fragment_host_camera_toggle_button).setOnClickListener(
-                v -> {
-                    if (mMediaRecorder != null) {
-                        new Thread(this::togglePreviewServer).start();
-                    }
-                });
-
+        view.findViewById(R.id.fragment_host_camera_toggle_button).setOnClickListener(v -> toggleStartPreview());
         view.findViewById(R.id.fragment_host_camera_settings_button).setOnClickListener(v -> gotoCameraSettings());
 
         return view;
@@ -184,8 +216,11 @@ public class CameraMainFragment extends CameraBaseFragment {
             startEGLSurfaceDrawingThread();
         } else {
             mMediaRecorderManager = getHostDevicePlugin().getHostMediaRecorderManager();
+            mMediaRecorderManager.addOnEventListener(mOnEventListener);
+
             mHostConnectionManager = getHostDevicePlugin().getHostConnectionManager();
-            mHostConnectionManager.addHostConnectionEventListener(mConnectionEventListener);
+            mHostConnectionManager.addConnectionEventListener(mConnectionEventListener);
+
             setRecorder(getRecorderId());
         }
 
@@ -195,7 +230,10 @@ public class CameraMainFragment extends CameraBaseFragment {
     @Override
     public void onUnbindService() {
         if (mHostConnectionManager != null) {
-            mHostConnectionManager.removeHostConnectionEventListener(mConnectionEventListener);
+            mHostConnectionManager.removeConnectionEventListener(mConnectionEventListener);
+        }
+        if (mMediaRecorderManager != null) {
+            mMediaRecorderManager.removeOnEventListener(mOnEventListener);
         }
         stopEGLSurfaceDrawingThread();
     }
@@ -376,32 +414,32 @@ public class CameraMainFragment extends CameraBaseFragment {
         setCameraSurfaceView();
     }
 
+    @Override
+    public void toggleScreenRotation() {
+        super.toggleScreenRotation();
+        setDisplayRotationButton();
+    }
+
     private void togglePreviewServer() {
         HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
         if (settings.isBroadcastEnabled()) {
-            BroadcasterProvider provider = mMediaRecorder.getBroadcasterProvider();
-            if (provider.isRunning()) {
-                provider.stopBroadcaster();
+            if (mMediaRecorder.isBroadcasterRunning()) {
+                mMediaRecorder.stopBroadcaster();
             } else {
                 String uri = settings.getBroadcastURI();
                 uri = "rtmp://192.168.11.7:1935/live/abc";
-                Broadcaster broadcaster = provider.startBroadcaster(uri);
+                Broadcaster broadcaster = mMediaRecorder.startBroadcaster(uri);
                 if (broadcaster == null) {
-                    Log.e("ABC", "############## ERROR");
-                } else {
-                    provider.setMute(mMuted);
+                    // TODO: Broadcaster が起動できなかった場合の処理
                 }
             }
         } else {
-            PreviewServerProvider provider = mMediaRecorder.getServerProvider();
-            if (provider.isRunning()) {
-                provider.stopServers();
+            if (mMediaRecorder.isPreviewRunning()) {
+                mMediaRecorder.stopPreview();
             } else {
-                List<PreviewServer> servers = provider.startServers();
+                List<PreviewServer> servers = mMediaRecorder.startPreview();
                 if (servers.isEmpty()) {
-                    // TODO: 起動できなかった場合の処理
-                } else {
-                    provider.setMute(mMuted);
+                    // TODO: プレビューが起動できなかった場合の処理
                 }
             }
         }
@@ -417,14 +455,16 @@ public class CameraMainFragment extends CameraBaseFragment {
         mMuted = !mMuted;
 
         if (mMediaRecorder != null) {
-            BroadcasterProvider broadcasterProvider = mMediaRecorder.getBroadcasterProvider();
-            broadcasterProvider.setMute(mMuted);
-
-            PreviewServerProvider previewServerProvider = mMediaRecorder.getServerProvider();
-            previewServerProvider.setMute(mMuted);
+            mMediaRecorder.setMute(mMuted);
         }
 
         setMuteButton();
+    }
+
+    private void toggleStartPreview() {
+        if (mMediaRecorder != null) {
+            new Thread(this::togglePreviewServer).start();
+        }
     }
 
     private void refreshUI() {
@@ -481,7 +521,7 @@ public class CameraMainFragment extends CameraBaseFragment {
             ImageButton button = v.findViewById(R.id.fragment_host_camera_mute_button);
             if (button != null) {
                 HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
-                if (mMuted || !settings.isAudioEnabled()) {
+                if (settings.isMute() || !settings.isAudioEnabled()) {
                     button.setImageResource(R.drawable.ic_baseline_mic_off_24);
                 } else {
                     button.setImageResource(R.drawable.ic_baseline_mic_24);
@@ -502,9 +542,9 @@ public class CameraMainFragment extends CameraBaseFragment {
                 boolean running;
                 HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
                 if (settings.isBroadcastEnabled()) {
-                    running = mMediaRecorder.getBroadcasterProvider().isRunning();
+                    running = mMediaRecorder.isBroadcasterRunning();
                 } else {
-                    running = mMediaRecorder.getServerProvider().isRunning();
+                    running = mMediaRecorder.isPreviewRunning();
                 }
 
                 if (running) {

@@ -57,6 +57,9 @@ public interface HostDevicePhotoRecorder {
      */
     boolean isUseFlashLight();
 
+    /**
+     * 写真撮影のイベントを通知するリスナー.
+     */
     interface OnEventListener {
 
         /**

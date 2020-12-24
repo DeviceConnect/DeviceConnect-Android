@@ -157,6 +157,29 @@ public class HostConnectionManager {
             mConnectionEventListeners.remove(listener);
         }
     }
+    
+    public String getActivityNetworkString() {
+        switch (getActivityNetwork()) {
+            case TYPE_MOBILE:
+                return "MOBILE";
+            case TYPE_WIFI:
+                return "Wi-Fi";
+            case TYPE_ETHERNET:
+                return "Ethernet";
+            case TYPE_BLUETOOTH:
+                return "Bluetooth";
+            case TYPE_LTE_CA:
+                return "LTE CA";
+            case TYPE_LTE_ADVANCED_PRO:
+                return "LTE Advanced Pro（5Ge)";
+            case TYPE_NR_NSA:
+                return "5G Sub-6";
+            case TYPE_NR_NSA_MMWAV:
+                return "5G ミリ波";
+            default:
+                return "No connect";
+        }
+    }
 
     /**
      * 有効になっているネットワークタイプを取得します.

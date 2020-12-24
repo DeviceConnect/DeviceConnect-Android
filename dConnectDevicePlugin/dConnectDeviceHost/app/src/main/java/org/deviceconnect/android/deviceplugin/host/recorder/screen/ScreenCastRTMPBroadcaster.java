@@ -134,9 +134,6 @@ public class ScreenCastRTMPBroadcaster implements Broadcaster {
     public void setMute(boolean mute) {
         if (mRtmpClient != null) {
             mRtmpClient.setMute(mute);
-            if (mRtmpClient.isRunning()) {
-                mRtmpClient.restartAudioEncoder();
-            }
         }
     }
 
@@ -150,6 +147,8 @@ public class ScreenCastRTMPBroadcaster implements Broadcaster {
 
     @Override
     public void onConfigChange() {
-
+        if (mRtmpClient != null) {
+            mRtmpClient.restartVideoEncoder();
+        }
     }
 }

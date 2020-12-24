@@ -11,10 +11,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.host.R;
-
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+
+import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.activity.camera.CameraActivity;
 
 /**
  * Host プラグインの設定全体を管理するフラグメント.
@@ -41,14 +42,10 @@ public class HostSettingFragment extends PreferenceFragmentCompat {
         Intent intent = null;
         if (getString(R.string.pref_key_settings_gps).equals(preference.getKey())) {
             intent = new Intent(context, HostGpsSettingActivity.class);
-        } else if (getString(R.string.pref_key_settings_jpeg_quality_preview).equals(preference.getKey())) {
-            intent = new Intent(context, HostRecorderSettingActivity.class);
+        } else if (getString(R.string.pref_key_settings_app_camera).equals(preference.getKey())) {
+            intent = new Intent(context, CameraActivity.class);
         } else if (getString(R.string.pref_key_settings_demo_page).equals(preference.getKey())) {
             intent = new Intent(context, HostDemoSettingActivity.class);
-        } else if (getString(R.string.pref_key_settings_audio_preview).equals(preference.getKey())) {
-            intent = new Intent(context, HostRecorderAudioSettingActivity.class);
-        } else if (getString(R.string.pref_key_settings_srt_preview).equals(preference.getKey())) {
-            intent = new Intent(context, HostRecorderSRTSettingActivity.class);
         }
         if (intent != null) {
             activity.startActivity(intent);

@@ -39,16 +39,7 @@ public class CheckManagerFragment extends CameraBaseFragment {
     @Override
     public void onResume() {
         super.onResume();
-
-        View view = getView();
-        if (view != null) {
-            CameraActivity a = (CameraActivity) getActivity();
-            if (a != null) {
-                if (!a.isManagerStarted()) {
-                    startManager();
-                }
-            }
-        }
+        startManager();
     }
 
     @Override
@@ -79,10 +70,8 @@ public class CheckManagerFragment extends CameraBaseFragment {
 
     private void startManager() {
         CameraActivity a = (CameraActivity) getActivity();
-        if (a != null) {
-            if (!a.isManagerStarted()) {
-                a.startManager();
-            }
+        if (a != null && !a.isManagerStarted()) {
+            a.startManager();
         }
     }
 }

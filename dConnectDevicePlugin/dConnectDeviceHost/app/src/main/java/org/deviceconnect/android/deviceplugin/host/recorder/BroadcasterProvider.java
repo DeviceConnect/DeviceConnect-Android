@@ -61,6 +61,13 @@ public interface BroadcasterProvider {
          * @param broadcaster 停止した Broadcaster
          */
         void onStopped(Broadcaster broadcaster);
+
+        /**
+         * Broadcaster でエラーが発生したことを通知します.
+         *
+         * @param broadcaster エラーが発生した Broadcaster
+         * @param e エラー原因の例外
+         */
         void onError(Broadcaster broadcaster, Exception e);
     }
 }

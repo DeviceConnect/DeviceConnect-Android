@@ -277,6 +277,13 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * ブロードキャストを停止した時に呼び出されます.
          */
         void onBroadcasterStopped();
+
+        /**
+         * レコーダで発生したエラーを通知します.
+         *
+         * @param e エラー原因の例外
+         */
+        void onError(Exception e);
     }
 
     /**

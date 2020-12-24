@@ -146,9 +146,9 @@ public class Camera2Recorder extends AbstractMediaRecorder {
      * @param camera カメラ
      * @param fileManager ファイルマネージャ
      */
-    public Camera2Recorder(final @NonNull Context context,
-                           final @NonNull CameraWrapper camera,
-                           final @NonNull FileManager fileManager) {
+    public Camera2Recorder(final Context context,
+                           final CameraWrapper camera,
+                           final FileManager fileManager) {
         super(context, 1, fileManager);
         mContext = context;
         mFileManager = fileManager;

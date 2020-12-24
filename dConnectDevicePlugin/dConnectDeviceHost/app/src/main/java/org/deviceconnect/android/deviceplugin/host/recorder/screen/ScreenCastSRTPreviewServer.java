@@ -11,7 +11,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.SRTSettings;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
@@ -41,8 +41,14 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
      */
     private SRTServer mSRTServer;
 
+    /**
+     * SRTの設定.
+     */
+    private SRTSettings mSettings;
+
     ScreenCastSRTPreviewServer(final Context context, final ScreenCastRecorder recorder, final int port) {
         super(context, recorder);
+        mSettings = new SRTSettings(context);
         setPort(port);
     }
 
@@ -64,7 +70,7 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
                 mSRTServer.setStatsInterval(BuildConfig.STATS_INTERVAL);
                 mSRTServer.setShowStats(DEBUG);
                 mSRTServer.setCallback(mCallback);
-                mSRTServer.setSocketOptions(RecorderSetting.getInstance(getContext()).loadSRTSocketOptions());
+                mSRTServer.setSocketOptions(mSettings.loadSRTSocketOptions());
                 mSRTServer.start();
             } catch (IOException e) {
                 callback.onFail();

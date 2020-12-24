@@ -1,19 +1,12 @@
-package org.deviceconnect.android.deviceplugin.host.activity.camera;
+package org.deviceconnect.android.deviceplugin.host.activity.settings;
 
-import android.app.Activity;
 import android.hardware.camera2.CameraMetadata;
 import android.os.Bundle;
-import android.text.InputType;
 import android.util.Size;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
-import androidx.preference.PreferenceFragmentCompat;
 
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.deviceplugin.host.R;
@@ -25,50 +18,21 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class CameraSettingsFragment extends PreferenceFragmentCompat implements CameraActivity.OnHostDevicePluginListener {
-    private HostMediaRecorderManager mMediaRecorderManager;
+public class SettingsVideoFragment extends SettingsBaseFragment {
     private HostMediaRecorder mMediaRecorder;
-
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = super.onCreateView(inflater, container, savedInstanceState);
-        if (view != null) {
-            view.setBackgroundColor(getResources().getColor(android.R.color.white));
-        }
-        return view;
-    }
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         getPreferenceManager().setSharedPreferencesName(getRecorderId());
-        setPreferencesFromResource(R.xml.settings_host_camera, rootKey);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        if (isBound()) {
-            onBindService();
-        }
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        CameraActivity a = (CameraActivity) getActivity();
-        if (a != null) {
-            a.showSystemUI();
-        }
+        setPreferencesFromResource(R.xml.settings_host_recorder_video, rootKey);
     }
 
     @Override
     public void onBindService() {
         HostDevicePlugin plugin = getHostDevicePlugin();
 
-        mMediaRecorderManager = plugin.getHostMediaRecorderManager();
-        mMediaRecorder = mMediaRecorderManager.getRecorder(getRecorderId());
+        HostMediaRecorderManager manager = plugin.getHostMediaRecorderManager();
+        mMediaRecorder = manager.getRecorder(getRecorderId());
         HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
 
         setPictureSizePreference(settings);
@@ -80,66 +44,7 @@ public class CameraSettingsFragment extends PreferenceFragmentCompat implements 
         setInputTypeNumber("preview_bitrate");
         setInputTypeNumber("preview_i_frame_interval");
         setInputTypeNumber("preview_intra_refresh");
-        setInputTypeNumber("preview_audio_bitrate");
-        setInputTypeNumber("preview_audio_channel");
-        setInputTypeNumber("mjpeg_port");
         setInputTypeNumber("preview_quality");
-        setInputTypeNumber("rtsp_port");
-        setInputTypeNumber("srt_port");
-    }
-
-    @Override
-    public void onUnbindService() {
-    }
-
-    public boolean isBound() {
-        Activity activity = getActivity();
-        if (activity instanceof CameraActivity) {
-            return ((CameraActivity) activity).isBound();
-        }
-        return false;
-    }
-
-    /**
-     * レコード ID を取得します.
-     *
-     * @return レコード ID
-     */
-    private String getRecorderId() {
-        Bundle bundle = getArguments();
-        if (bundle != null) {
-            return bundle.getString("recorder_id");
-        }
-        return null;
-    }
-
-    /**
-     * 接続されている HostDevicePlugin のインスタンスを取得します.
-     *
-     * 接続されていない場合には null を返却します。
-     *
-     * @return HostDevicePlugin のインスタンス
-     */
-    public HostDevicePlugin getHostDevicePlugin() {
-        Activity activity = getActivity();
-        if (activity instanceof CameraActivity) {
-            return ((CameraActivity) activity).getHostDevicePlugin();
-        }
-        return null;
-    }
-
-    /**
-     * 指定されたキーに対応する入力フォームを数値のみ入力可能に設定します.
-     *
-     * @param key キー
-     */
-    private void setInputTypeNumber(String key) {
-        EditTextPreference editTextPreference = findPreference(key);
-        if (editTextPreference != null) {
-            editTextPreference.setOnBindEditTextListener((editText) ->
-                    editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED));
-            editTextPreference.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
-        }
     }
 
     /**
@@ -310,7 +215,6 @@ public class CameraSettingsFragment extends PreferenceFragmentCompat implements 
         }
         return null;
     }
-
 
     private Preference.OnPreferenceChangeListener mOnPreferenceChangeListener = (preference, newValue) -> {
         String key = preference.getKey();

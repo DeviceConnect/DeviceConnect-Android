@@ -86,9 +86,28 @@ public interface PreviewServerProvider {
      */
     void setOnEventListener(OnEventListener listener);
 
+    /**
+     * プレビュー配信サーバのイベントを通知するリスナー.
+     */
     interface OnEventListener {
+        /**
+         * プレビュー配信サーバを開始したことを通知します.
+         *
+         * @param servers 開始したサーバのリスト
+         */
         void onStarted(List<PreviewServer> servers);
+
+        /**
+         * プレビュー配信サーバを停止したことを通知します.
+         */
         void onStopped();
+
+        /**
+         * プレビュー配信サーバでエラーが発生したことを通知します.
+         *
+         * @param server エラーが発生したサーバ
+         * @param e エラー原因の例外
+         */
         void onError(PreviewServer server, Exception e);
     }
 }

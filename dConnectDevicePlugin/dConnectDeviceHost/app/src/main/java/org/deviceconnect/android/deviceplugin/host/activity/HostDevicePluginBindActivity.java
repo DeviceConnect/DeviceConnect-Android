@@ -32,7 +32,7 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
     /**
      * 画面の回転固定フラグ.
      */
-    private boolean mScreenRotationFixed = false;
+    private boolean mDisplayRotationFixed = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -158,9 +158,9 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
      * @param fixed 固定する場合はtrue、それ以外はfalse
      */
     public void setDisplayRotation(boolean fixed) {
-        mScreenRotationFixed = fixed;
+        mDisplayRotationFixed = fixed;
         if (fixed) {
-            setRequestedOrientation(getScreenOrientation());
+            setRequestedOrientation(getDisplayOrientation());
         } else {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         }
@@ -171,15 +171,15 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
      *
      * @return 画面が固定されている場合はtrue、それ以外はfalse
      */
-    public boolean isScreenRotationFixed() {
-        return mScreenRotationFixed;
+    public boolean isDisplayRotationFixed() {
+        return mDisplayRotationFixed;
     }
 
     /**
      * 画面固定を切り替えます.
      */
-    public void toggleScreenRotation() {
-        setDisplayRotation(!mScreenRotationFixed);
+    public void toggleDisplayRotation() {
+        setDisplayRotation(!mDisplayRotationFixed);
     }
 
     /**
@@ -187,7 +187,7 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
      *
      * @return 画面の向きに合わせた固定フラグ
      */
-    private int getScreenOrientation() {
+    private int getDisplayOrientation() {
         int rotation = getWindowManager().getDefaultDisplay().getRotation();
         DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);

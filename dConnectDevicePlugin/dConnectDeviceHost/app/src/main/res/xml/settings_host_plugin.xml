@@ -14,22 +14,12 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="プレビュー設定"
+        android:title="アプリ一覧"
         app:iconSpaceReserved="false">
 
         <PreferenceScreen
-            android:key="@string/pref_key_settings_jpeg_quality_preview"
-            android:title="@string/host_settings_item_jpeg_quality_preview"
-            app:iconSpaceReserved="false" />
-
-        <PreferenceScreen
-            android:key="@string/pref_key_settings_audio_preview"
-            android:title="@string/host_settings_item_audio_preview"
-            app:iconSpaceReserved="false" />
-
-        <PreferenceScreen
-            android:key="@string/pref_key_settings_srt_preview"
-            android:title="@string/host_settings_item_srt_preview"
+            android:key="@string/pref_key_settings_app_camera"
+            android:title="カメラアプリ"
             app:iconSpaceReserved="false" />
 
     </PreferenceCategory>

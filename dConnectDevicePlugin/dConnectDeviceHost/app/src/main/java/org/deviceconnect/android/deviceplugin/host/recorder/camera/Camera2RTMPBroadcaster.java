@@ -136,9 +136,6 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
     public void setMute(boolean mute) {
         if (mRtmpClient != null) {
             mRtmpClient.setMute(mute);
-            if (mRtmpClient.isRunning()) {
-                mRtmpClient.restartAudioEncoder();
-            }
         }
     }
 
@@ -152,6 +149,8 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
 
     @Override
     public void onConfigChange() {
-
+        if (mRtmpClient != null) {
+            mRtmpClient.restartVideoEncoder();
+        }
     }
 }

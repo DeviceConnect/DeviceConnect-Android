@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="映像設定"
+        app:iconSpaceReserved="false">
+
+        <ListPreference
+            app:key="camera_picture_size"
+            app:title="静止画解像度"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="camera_preview_size"
+            app:title="プレビュー解像度"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_framerate"
+            app:title="フレームレート (fps)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_bitrate"
+            app:title="ビットレート (KB)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_i_frame_interval"
+            app:title="キーフレームインターバル (秒)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:entries="@array/video_encoder_names"
+            app:entryValues="@array/video_encoder_values"
+            app:iconSpaceReserved="false"
+            app:key="preview_mime_type"
+            app:title="エンコーダ"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="preview_use_software_encoder"
+            android:title="ソフトウェアエンコーダ"
+            app:summary="MediaCodec でソフトウェアエンコーダを優先して使用します。"
+            app:iconSpaceReserved="false" />
+
+        <ListPreference
+            app:entries="@array/video_white_balance_names"
+            app:entryValues="@array/video_white_balance_values"
+            app:key="preview_white_balance"
+            app:title="ホワイトバランス"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_intra_refresh"
+            app:title="イントラリフレッシュ"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="MotionJPEG 設定"
+        app:iconSpaceReserved="false">
+
+        <EditTextPreference
+            android:defaultValue="80"
+            android:key="preview_quality"
+            android:singleLine="true"
+            android:title="クオリティ (%)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+</PreferenceScreen>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="レコーダ設定"
+        app:iconSpaceReserved="false">
+
+        <PreferenceScreen
+            app:iconSpaceReserved="false"
+            app:key="recorder_settings_video"
+            app:title="映像設定" />
+
+        <PreferenceScreen
+            app:iconSpaceReserved="false"
+            app:key="recorder_settings_audio"
+            app:title="音声設定" />
+
+        <PreferenceScreen
+            app:iconSpaceReserved="false"
+            app:key="recorder_settings_broadcast"
+            app:title="配信設定" />
+
+        <PreferenceScreen
+            app:iconSpaceReserved="false"
+            app:key="recorder_settings_srt"
+            app:title="SRT設定" />
+
+        <PreferenceScreen
+            app:iconSpaceReserved="false"
+            app:key="recorder_settings_port"
+            app:title="ポート設定" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

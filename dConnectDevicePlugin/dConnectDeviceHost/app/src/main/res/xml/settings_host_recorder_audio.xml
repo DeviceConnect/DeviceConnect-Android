@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="音声設定"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="audio_enabled"
+            android:title="音声"
+            app:summary="配信に音声を含めます。"
+            app:iconSpaceReserved="false" />
+
+        <EditTextPreference
+            android:defaultValue="64"
+            android:key="preview_audio_bitrate"
+            android:singleLine="true"
+            android:title="ビットレート (KB)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            android:defaultValue="@string/settings_audio_sampling_rate"
+            android:entries="@array/settings_audio_sampling_rates"
+            android:entryValues="@array/settings_audio_sampling_rates"
+            android:key="preview_audio_sample_rate"
+            android:title="サンプリングレート"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            android:defaultValue="1"
+            android:key="preview_audio_channel"
+            android:singleLine="true"
+            android:title="チャンネル"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="preview_audio_aec"
+            android:title="エコーキャンセラー"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

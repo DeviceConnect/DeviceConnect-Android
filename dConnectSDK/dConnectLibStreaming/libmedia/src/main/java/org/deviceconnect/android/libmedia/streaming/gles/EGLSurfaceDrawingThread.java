@@ -257,6 +257,15 @@ public class EGLSurfaceDrawingThread {
     }
 
     /**
+     * 初期化が完了しているか確認します.
+     *
+     * @return 初期化が完了している場合は true、それ以外はfalse
+     */
+    public boolean isInitCompleted() {
+        return mDrawingThread != null && mDrawingThread.isInitCompleted();
+    }
+
+    /**
      * スレッドを開始します.
      */
     public synchronized void start() {
@@ -298,15 +307,6 @@ public class EGLSurfaceDrawingThread {
                 mDrawingThread = null;
             }
         }
-    }
-
-    /**
-     * 初期化が完了しているか確認します.
-     *
-     * @return 初期化が完了している場合は true、それ以外はfalse
-     */
-    private boolean isInitCompleted() {
-        return mDrawingThread != null && mDrawingThread.isInitCompleted();
     }
 
     /**

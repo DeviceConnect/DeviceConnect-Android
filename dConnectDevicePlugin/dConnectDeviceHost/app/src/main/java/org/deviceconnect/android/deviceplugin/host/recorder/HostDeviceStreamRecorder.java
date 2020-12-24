@@ -23,16 +23,16 @@ public interface HostDeviceStreamRecorder {
     /**
      * 録画を開始します.
      *
-     * @param listener リスナー
+     * @param callback コールバック
      */
-    void startRecording(RecordingCallback listener);
+    void startRecording(RecordingCallback callback);
 
     /**
      * 録画を停止します.
      *
-     * @param listener リスナー
+     * @param callback コールバック
      */
-    void stopRecording(StoppingCallback listener);
+    void stopRecording(StoppingCallback callback);
 
     /**
      * 録画を一時停止します.
@@ -73,11 +73,11 @@ public interface HostDeviceStreamRecorder {
     boolean isMutedTrack();
 
     /**
-     * 録画開始のイベントを通知するコールバック.
+     * 録画開始結果を通知するコールバック.
      */
     interface RecordingCallback {
         /**
-         * 録画開始を通知します.
+         * 録画開始に成功したことを通知します.
          *
          * @param recorder 録画を開始したレコーダ
          * @param fileName 録画しているファイル名
@@ -94,11 +94,11 @@ public interface HostDeviceStreamRecorder {
     }
 
     /**
-     * 録画停止のイベントを通知するコールバック.
+     * 録画停止結果を通知するコールバック.
      */
     interface StoppingCallback {
         /**
-         * 録画の停止を通知します.
+         * 録画停止に成功したことを通知します.
          *
          * @param recorder 録画を停止したレコーダ
          * @param fileName 録画したファイル名
@@ -114,10 +114,32 @@ public interface HostDeviceStreamRecorder {
         void onFailed(HostDeviceStreamRecorder recorder, String errorMessage);
     }
 
+    /**
+     * 録画・録音のイベントを通知するリスナー.
+     */
     interface OnEventListener {
+        /**
+         * 録画・録音を開始したことを通知します.
+         *
+         * @param fileName ファイル名
+         */
         void onRecordingStarted(String fileName);
+
+        /**
+         * 録画・録音を一時停止したことを通知します.
+         */
         void onRecordingPause();
+
+        /**
+         * 録画・録音を再開したことを通知します.
+         */
         void onRecordingResume();
+
+        /**
+         * 録画・録音を停止したことを通知します.
+         *
+         * @param fileName ファイル名
+         */
         void onRecordingStopped(String fileName);
     }
 }

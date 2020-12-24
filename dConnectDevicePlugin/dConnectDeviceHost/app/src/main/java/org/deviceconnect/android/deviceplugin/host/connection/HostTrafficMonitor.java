@@ -6,7 +6,6 @@ import android.app.usage.NetworkStatsManager;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.os.Build;
-import android.os.RemoteException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -111,7 +110,7 @@ public class HostTrafficMonitor {
                     stats.mTotalRxBytes += bucket.getRxBytes();
                 }
             }
-        } catch (RemoteException | SecurityException e) {
+        } catch (Exception e) {
             // ignore.
         }
 

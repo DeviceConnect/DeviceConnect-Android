@@ -864,6 +864,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     "/" + fileName, recorder.getMimeType(), null);
 
         }
+
+        @Override
+        public void onError(HostMediaRecorder recorder, Exception e) {
+        }
     };
 
     public HostMediaStreamingRecordingProfile(final HostMediaRecorderManager mgr, final FileManager fileMgr) {

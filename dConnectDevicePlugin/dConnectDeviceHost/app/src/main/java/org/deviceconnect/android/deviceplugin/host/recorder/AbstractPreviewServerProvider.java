@@ -56,6 +56,9 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
      */
     private boolean mIsRunning;
 
+    /**
+     * プレビュー配信サーバのイベントを通知するリスナー.
+     */
     private OnEventListener mOnEventListener;
 
     /**
@@ -169,9 +172,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
             server.onConfigChange();
         }
     }
-    /**
-     * Recorder をミュート状態にする.
-     */
+
     @Override
     public void setMute(boolean mute) {
         for (PreviewServer server : getServers()) {

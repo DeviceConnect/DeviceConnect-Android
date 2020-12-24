@@ -27,7 +27,7 @@
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
     <uses-permission android:name="com.android.launcher.permission.UNINSTALL_SHORTCUT" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
@@ -41,24 +41,6 @@
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.setting.HostGpsSettingActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:theme="@style/AppCompatTheme" />
-
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostRecorderSettingActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:theme="@style/AppCompatTheme" />
-
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostRecorderAudioSettingActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:theme="@style/AppCompatTheme" />
-
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostRecorderSRTSettingActivity"
             android:exported="false"
             android:launchMode="singleTask"
             android:theme="@style/AppCompatTheme" />
@@ -126,6 +108,17 @@
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
             android:theme="@style/AppTheme.Translucent" />
+
+        <activity
+            android:name=".activity.settings.SettingsActivity"
+            android:exported="true"
+            android:label="Host Settings">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
         <!-- カメラの画面を表示するための Activity -->
         <activity

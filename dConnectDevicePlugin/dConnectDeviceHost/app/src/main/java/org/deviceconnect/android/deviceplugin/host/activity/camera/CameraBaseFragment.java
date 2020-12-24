@@ -1,8 +1,10 @@
 package org.deviceconnect.android.deviceplugin.host.activity.camera;
 
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.os.Handler;
 import android.os.Looper;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
@@ -60,25 +62,12 @@ public class CameraBaseFragment extends Fragment implements CameraActivity.OnHos
     }
 
     /**
-     * レコーダ ID を取得します.
-     *
-     * @return レコーダ ID
-     */
-    public String getRecorderId() {
-        Activity activity = getActivity();
-        if (activity instanceof CameraActivity) {
-            return ((CameraActivity) activity).getRecorderId();
-        }
-        return null;
-    }
-
-    /**
      * 画面回転固定の設定を切り替えます.
      */
-    public void toggleScreenRotation() {
+    public void toggleDisplayRotation() {
         Activity activity = getActivity();
         if (activity instanceof CameraActivity) {
-            ((CameraActivity) activity).toggleScreenRotation();
+            ((CameraActivity) activity).toggleDisplayRotation();
         }
     }
 
@@ -87,12 +76,24 @@ public class CameraBaseFragment extends Fragment implements CameraActivity.OnHos
      *
      * @return 画面回転を固定している場合は true、それ以外は false
      */
-    public boolean isScreenRotationFixed() {
+    public boolean isDisplayRotationFixed() {
         Activity activity = getActivity();
         if (activity instanceof CameraActivity) {
-            return ((CameraActivity) activity).isScreenRotationFixed();
+            return ((CameraActivity) activity).isDisplayRotationFixed();
         }
         return false;
+    }
+
+    public int getDisplayOrientation() {
+        Activity activity = getActivity();
+        if (activity != null) {
+            return ((CameraActivity) activity).getRequestedOrientation();
+        }
+        return ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
+    }
+
+    public void showToast(String message) {
+        runOnUiThread(() -> Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show());
     }
 
     /**

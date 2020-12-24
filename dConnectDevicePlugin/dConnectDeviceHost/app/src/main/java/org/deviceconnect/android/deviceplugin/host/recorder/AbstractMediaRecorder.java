@@ -75,8 +75,10 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
      */
     private State mState = State.INACTIVE;
 
+    /**
+     * 録音・録画用クラス.
+     */
     private MP4Recorder mMP4Recorder;
-
 
     /**
      * コンストラクタ.
@@ -110,6 +112,7 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
                 @Override
                 public void onError(Broadcaster broadcaster, Exception e) {
+                    postOnError(e);
                 }
             });
         }
@@ -129,6 +132,7 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
                 @Override
                 public void onError(PreviewServer server, Exception e) {
+                    postOnError(e);
                 }
             });
         }
@@ -309,10 +313,20 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Runnable を順番に実行します.
+     *
+     * @param run 実行する Runnable
+     */
     protected void postRequestHandler(Runnable run) {
         mRequestHandler.post(run);
     }
 
+    /**
+     * レコーダの状態を設定します.
+     *
+     * @param state レコーダの状態
+     */
     protected void setState(State state) {
         mState = state;
     }
@@ -358,12 +372,12 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     }
 
     /**
-     * レコーディング停止用の Notification を送信します.
+     * 録音・録画停止用の Notification を表示します.
      *
      * @param id notification を識別する ID
      * @param name 名前
      */
-    private void sendNotificationForStopRecording(String id, String name) {
+    private void showNotificationForStopRecording(String id, String name) {
         PendingIntent contentIntent = createPendingIntentForStopRecording(id);
         Notification notification = createNotificationForStopRecording(contentIntent, null, name);
         NotificationManager manager = (NotificationManager) mContext
@@ -384,7 +398,7 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     }
 
     /**
-     * Notificationを作成する.
+     * 録音・録画停止用の Notification を作成する.
      *
      * @param pendingIntent Notificationがクリックされたときに起動する Intent
      * @param channelId チャンネルID
@@ -578,6 +592,17 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
         }
     }
 
+    protected void postOnError(Exception e) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onError(e);
+        }
+    }
+
+    /**
+     * 録音・録画用のクラスを作成します.
+     *
+     * @return 録音・録画用のクラス
+     */
     protected abstract MP4Recorder createMP4Recorder();
 
     /**
@@ -594,6 +619,14 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
         }
 
         mMP4Recorder = createMP4Recorder();
+
+        if (mMP4Recorder == null) {
+            if (callback != null) {
+                callback.onFailed(this, "Failed to start recording.");
+            }
+            return;
+        }
+
         mMP4Recorder.start(new MP4Recorder.OnStartingCallback() {
             @Override
             public void onSuccess() {
@@ -601,7 +634,7 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
                 setState(State.RECORDING);
 
-                sendNotificationForStopRecording(getId(), getName());
+                showNotificationForStopRecording(getId(), getName());
 
                 if (callback != null) {
                     callback.onRecorded(AbstractMediaRecorder.this, outputFile.getAbsolutePath());

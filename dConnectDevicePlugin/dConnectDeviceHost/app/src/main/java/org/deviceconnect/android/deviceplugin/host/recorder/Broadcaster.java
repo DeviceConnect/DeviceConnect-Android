@@ -58,14 +58,43 @@ public interface Broadcaster {
      */
     void onConfigChange();
 
+    /**
+     * ブロードキャストの開始結果を通知するコールバック.
+     */
     interface OnStartCallback {
+        /**
+         * ブロードキャストに成功したことを通知します.
+         */
         void onSuccess();
+
+        /**
+         * ブロードキャストに失敗したことを通知します.
+         *
+         * @param e 失敗原因の例外
+         */
         void onFailed(Exception e);
     }
 
+    /**
+     * ブロードキャストのイベントを通知するリスナー.
+     */
     interface OnEventListener {
+
+        /**
+         * ブロードキャストが開始されたことを通知します.
+         */
         void onStarted();
+
+        /**
+         * ブロードキャストが停止されたことを通知します.
+         */
         void onStopped();
+
+        /**
+         * ブロードキャストでエラーが発生したことを通知します.
+         *
+         * @param e エラー原因の例外
+         */
         void onError(Exception e);
     }
 }

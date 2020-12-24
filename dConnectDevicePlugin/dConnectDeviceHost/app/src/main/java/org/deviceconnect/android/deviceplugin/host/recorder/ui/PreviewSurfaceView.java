@@ -28,7 +28,7 @@ public class PreviewSurfaceView extends FrameLayout {
     }
 
     private void initView(Context context, AttributeSet attrs, int defStyle) {
-        LayoutInflater.from(context).inflate(R.layout.host_preview_overlay, this);
+        LayoutInflater.from(context).inflate(R.layout.host_preview_surface_view, this);
     }
 
     public void fullSurfaceView(boolean isSwappedDimensions, Size previewSize) {

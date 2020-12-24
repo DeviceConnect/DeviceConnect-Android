@@ -19,7 +19,6 @@ import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostAudioRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.screen.ScreenCastRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
 import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.provider.FileManager;
@@ -74,6 +73,11 @@ public class HostMediaRecorderManager {
     private FileManager mFileManager;
 
     /**
+     * 各レコーダのイベントを通知するためのリスナー.
+     */
+    private WeakReferenceList<OnEventListener> mOnEventListeners = new WeakReferenceList<>();
+
+    /**
      * 画面の回転イベントを受け取るための BroadcastReceiver.
      */
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
@@ -100,6 +104,12 @@ public class HostMediaRecorderManager {
         }
     };
 
+    /**
+     * コンストラクタ.
+     *
+     * @param pluginContext コンテキスト
+     * @param fileManager ファイル管理クラス
+     */
     public HostMediaRecorderManager(final DevicePluginContext pluginContext, final FileManager fileManager) {
         mHostDevicePluginContext = pluginContext;
         mFileManager = fileManager;
@@ -118,12 +128,12 @@ public class HostMediaRecorderManager {
      * </p>
      */
     private void initRecorders() {
-        if (checkCameraHardware()) {
+        if (checkCameraHardware(getContext())) {
             mCameraWrapperManager = new CameraWrapperManager(getContext());
             createCameraRecorders(mCameraWrapperManager, mFileManager);
         }
 
-        if (checkMicrophone()) {
+        if (checkMicrophone(getContext())) {
             createAudioRecorders(mFileManager);
         }
 
@@ -154,6 +164,11 @@ public class HostMediaRecorderManager {
                 }
 
                 @Override
+                public void onError(Exception e) {
+                    postOnError(recorder, e);
+                }
+
+                @Override
                 public void onTakePhoto(String uri, String filePath, String mimeType) {
                     postOnTakePhoto(recorder, uri, filePath, mimeType);
                 }
@@ -176,44 +191,46 @@ public class HostMediaRecorderManager {
                 @Override
                 public void onRecordingStopped(String fileName) {
                     postOnRecordingStopped(recorder, fileName);
-
                 }
             });
         }
-
-        try {
-            initRecorderSetting();
-        } catch (Exception e) {
-            // TODO レコーダの初期化に失敗した場合の処理
-        }
     }
 
+    /**
+     * 音声用の HostMediaRecorder を作成します.
+     *
+     * @param fileMgr ファイル管理クラス
+     */
     private void createAudioRecorders(final FileManager fileMgr) {
         mRecorders.add(new HostAudioRecorder(getContext(), fileMgr));
     }
 
+    /**
+     * 画面キャプチャー用の HostMediaRecorder を作成します.
+     *
+     * @param fileMgr ファイル管理クラス
+     */
     private void createScreenCastRecorder(final FileManager fileMgr) {
         mRecorders.add(new ScreenCastRecorder(getContext(), fileMgr));
     }
 
+    /**
+     * カメラ用の HostMediaRecorder を作成します.
+     *
+     * @param cameraMgr カメラ管理クラス
+     * @param fileMgr ファイル管理クラス
+     */
     private void createCameraRecorders(final CameraWrapperManager cameraMgr, final FileManager fileMgr) {
         List<Camera2Recorder> photoRecorders = new ArrayList<>();
         for (CameraWrapper camera : cameraMgr.getCameraList()) {
             photoRecorders.add(new Camera2Recorder(getContext(), camera, fileMgr));
         }
         mRecorders.addAll(photoRecorders);
+
+        // デフォルトになるレコーダを設定
         if (!photoRecorders.isEmpty()) {
             mDefaultPhotoRecorder = photoRecorders.get(0);
         }
-    }
-
-    private void initRecorderSetting() {
-        RecorderSetting setting = RecorderSetting.getInstance(getContext().getApplicationContext());
-        List<RecorderSetting.Target> targets = setting.getTargets();
-        for (HostMediaRecorder recorder : mRecorders) {
-            targets.add(new RecorderSetting.Target(recorder.getId(), recorder.getName(), recorder.getMimeType()));
-        }
-        setting.saveTargets(targets);
     }
 
     /**
@@ -366,8 +383,8 @@ public class HostMediaRecorderManager {
      *
      * @return カメラをサポートしている場合はtrue、それ以外はfalse
      */
-    private boolean checkCameraHardware() {
-        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
+    private static boolean checkCameraHardware(Context context) {
+        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
     }
 
     /**
@@ -375,8 +392,8 @@ public class HostMediaRecorderManager {
      *
      * @return マイク入力をサポートしている場合はtrue、それ以外はfalse
      */
-    private boolean checkMicrophone() {
-        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_MICROPHONE);
+    private static boolean checkMicrophone(Context context) {
+        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_MICROPHONE);
     }
 
     /**
@@ -384,16 +401,24 @@ public class HostMediaRecorderManager {
      *
      * @return MediaProjection APIをサポートしている場合はtrue、それ以外はfalse
      */
-    private boolean checkMediaProjection() {
+    private static boolean checkMediaProjection() {
         return HostMediaRecorderManager.isSupportedMediaProjection();
     }
 
-    private WeakReferenceList<OnEventListener> mOnEventListeners = new WeakReferenceList<>();
-
+    /**
+     * イベント通知用のリスナーを追加します.
+     *
+     * @param listener 追加するリスナー
+     */
     public void addOnEventListener(OnEventListener listener) {
         mOnEventListeners.add(listener);
     }
 
+    /**
+     * イベント通知用のリスナーを削除します.
+     *
+     * @param listener 削除するリスナー
+     */
     public void removeOnEventListener(OnEventListener listener) {
         mOnEventListeners.remove(listener);
     }
@@ -452,6 +477,12 @@ public class HostMediaRecorderManager {
         }
     }
 
+    private void postOnError(HostMediaRecorder recorder, Exception e) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onError(recorder, e);
+        }
+    }
+
     public interface OnEventListener {
         void onPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers);
         void onPreviewStopped(HostMediaRecorder recorder);
@@ -464,5 +495,7 @@ public class HostMediaRecorderManager {
         void onRecordingPause(HostMediaRecorder recorder);
         void onRecordingResume(HostMediaRecorder recorder);
         void onRecordingStopped(HostMediaRecorder recorder, String fileName);
+
+        void onError(HostMediaRecorder recorder, Exception e);
     }
 }

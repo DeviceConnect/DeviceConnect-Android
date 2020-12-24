@@ -57,16 +57,9 @@
     <string name="host_settings_item_srt_conntimeo" translatable="false">SRTO_CONNTIMEO</string>
     <string name="host_settings_item_srt_peeridletimeo" translatable="false">SRTO_PEERIDLETIMEO</string>
     <string name="host_settings_item_srt_packetfilter" translatable="false">SRTO_PACKETFILTER</string>
-    <string name="pref_key_settings_gps">pref_key_settings_gps</string>
-    <string name="pref_key_settings_jpeg_quality_preview">pref_key_settings_jpeg_quality_preview</string>
-    <string name="pref_key_settings_audio_preview">pref_key_settings_audio_preview</string>
-    <string name="pref_key_settings_srt_preview">pref_key_settings_srt_preview</string>
-    <string name="pref_key_settings_demo_page">pref_key_settings_demo_page</string>
-    <string name="pref_key_settings_audio_enabled">pref_key_settings_audio_enabled</string>
-    <string name="pref_key_settings_audio_bit_rate">pref_key_settings_audio_bit_rate</string>
-    <string name="pref_key_settings_audio_sample_rate">pref_key_settings_audio_sample_rate</string>
-    <string name="pref_key_settings_audio_channel">pref_key_settings_audio_channel</string>
-    <string name="pref_key_settings_audio_use_aec">pref_key_settings_audio_use_aec</string>
+    <string name="pref_key_settings_gps" translatable="false">pref_key_settings_gps</string>
+    <string name="pref_key_settings_app_camera" translatable="false">pref_key_settings_app_camera</string>
+    <string name="pref_key_settings_demo_page" translatable="false">pref_key_settings_demo_page</string>
     <string name="pref_key_settings_srt_peerlatency" translatable="false">pref_key_settings_srt_peerlatency</string>
     <string name="pref_key_settings_srt_lossmaxttl" translatable="false">pref_key_settings_srt_lossmaxttl</string>
     <string name="pref_key_settings_srt_oheadbw" translatable="false">pref_key_settings_srt_oheadbw</string>

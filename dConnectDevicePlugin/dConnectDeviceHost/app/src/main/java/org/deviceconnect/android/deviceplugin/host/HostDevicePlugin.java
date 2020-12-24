@@ -425,20 +425,4 @@ public class HostDevicePlugin extends DConnectMessageService {
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER) ||
                 getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE);
     }
-
-    /**
-     * マイク入力を端末がサポートしているかチェックします.
-     * @return マイク入力をサポートしている場合はtrue、それ以外はfalse
-     */
-    private boolean checkMicrophone() {
-        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_MICROPHONE);
-    }
-
-    /**
-     * MediaProjection APIを端末がサポートしているかチェックします.
-     * @return MediaProjection APIをサポートしている場合はtrue、それ以外はfalse
-     */
-    private boolean checkMediaProjection() {
-        return HostMediaRecorderManager.isSupportedMediaProjection();
-    }
 }

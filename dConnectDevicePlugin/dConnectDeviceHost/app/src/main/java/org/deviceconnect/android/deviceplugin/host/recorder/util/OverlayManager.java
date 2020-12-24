@@ -125,7 +125,7 @@ public class OverlayManager {
         }
 
         LayoutInflater inflater = LayoutInflater.from(mContext);
-        mOverlayView = inflater.inflate(R.layout.host_preview_overlay, null);
+        mOverlayView = inflater.inflate(R.layout.host_preview_surface_view, null);
         SurfaceView surfaceView = mOverlayView.findViewById(R.id.preview_surface_view);
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override

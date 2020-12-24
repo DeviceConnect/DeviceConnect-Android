@@ -18,6 +18,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class RtspClient {
@@ -57,6 +58,16 @@ public class RtspClient {
     private int mConnectionTimeout = 10 * 1000;
 
     /**
+     * 指定ポート番号リスト.
+     */
+    private List<Integer> mSetPortList;
+
+    /**
+     * 使用ポート番号リスト.
+     */
+    private List<Integer> mUsePortList;
+
+    /**
      * コンストラクタ.
      * @param url RTSP サーバの URL
      */
@@ -65,6 +76,30 @@ public class RtspClient {
             throw new IllegalArgumentException("url is null.");
         }
         mRtspServerUrl = url;
+        mUsePortList = new ArrayList<>();
+        mSetPortList = new ArrayList<>();
+    }
+
+    /**
+     * コンストラクタ.
+     * @param url RTSP サーバの URL
+     * @param setPortList RTP/RTCPに指定するUDPポート番号一覧
+     */
+    public RtspClient(String url, List<Integer> setPortList) {
+        if (url == null) {
+            throw new IllegalArgumentException("url is null.");
+        }
+        if (setPortList == null) {
+            throw new IllegalArgumentException("setPortList is null.");
+        }
+        for (int port : setPortList) {
+            if (port <= 1024) {
+                throw new IllegalArgumentException("setPortList is invalid port number.　(Must be greater than 1025.)");
+            }
+        }
+        mRtspServerUrl = url;
+        mUsePortList = new ArrayList<>();
+        mSetPortList = setPortList;
     }
 
     /**
@@ -307,6 +342,9 @@ public class RtspClient {
                 synchronized (mRtpReceivers) {
                     for (RtpReceiver receiver : mRtpReceivers) {
                         receiver.close();
+                        // 使用ポート番号リストからポート番号削除
+                        mUsePortList.remove((Integer) receiver.getRtpPort());
+                        mUsePortList.remove((Integer) receiver.getRtcpPort());
                     }
                     mRtpReceivers.clear();
                 }
@@ -437,10 +475,12 @@ public class RtspClient {
          * Transport ヘッダーを作成します.
          *
          * @param md メディア情報
+         * @param rtpPort RTPポート番号
+         * @param rtspPort RTSPポート番号
          * @return Transport ヘッダー
          */
-        private String createTransport(MediaDescription md) {
-            return md.getProto() + ";unicast;client_port=" + md.getPort() +"-" + (md.getPort() + 1);
+        private String createTransport(MediaDescription md, int rtpPort, int rtspPort) {
+            return md.getProto() + ";unicast;client_port=" + rtpPort +"-" + rtspPort;
         }
 
         /**
@@ -469,20 +509,64 @@ public class RtspClient {
         }
 
         /**
+         * SetPortListからPort番号を取得する
+         *
+         * SetPortList内のポート番号を使い切っている場合は
+         * UsePortListの最大値+1を返す
+         * @return ポート番号。SetPortListが空の場合は-1を返す
+         */
+        private int getPortNumber() {
+            if (mSetPortList.isEmpty()) {
+                return -1;
+            }
+            for (int port : mSetPortList) {
+                if (!mUsePortList.contains(port)) {
+                    mUsePortList.add(port);
+                    return port;
+                }
+            }
+            int port = Collections.max(mUsePortList) + 1;
+            mUsePortList.add(port);
+            return port;
+        }
+
+        /**
          * SETUP リクエストを RTSP サーバに送信します.
          *
          * @throws IOException リクエスト送信・レスポンス受信に失敗した場合に発生
          */
         private void processSetup(MediaDescription md) throws IOException {
+            int rtpPort, rtspPort;
+            // 指定UDPポート設定判定
+            if (!mSetPortList.isEmpty()) {
+                rtpPort = getPortNumber();
+                rtspPort = getPortNumber();
+            } else {
+                rtpPort = md.getPort();
+                rtspPort = rtpPort + 1;
+                if (rtpPort <= 1024 || rtspPort <= 1024) {
+                    rtpPort = 1025;
+                    rtspPort = 1026;
+                }
+                // 使用ポートリストに該当する番号が存在する場合、重複しないポート番号を設定する。
+                if (mUsePortList.contains(rtpPort) || mUsePortList.contains(rtspPort)) {
+                    rtpPort = getPortNumber();
+                    rtspPort = getPortNumber();
+                } else {
+                    mUsePortList.add(rtpPort);
+                    mUsePortList.add(rtspPort);
+                }
+            }
+
             // RTP の受信を開始
-            addRtpReceiver(md, md.getPort(), md.getPort() + 1);
+            addRtpReceiver(md, rtpPort, rtspPort);
 
             RtspRequest request = new RtspRequest();
             request.setMethod(RtspRequest.Method.SETUP);
             request.setUri(getMediaStreamUrl(md));
             request.setCSeq(mCseq++);
             request.addHeader("User-Agent", mUserAgent);
-            request.addHeader("Transport", createTransport(md));
+            request.addHeader("Transport", createTransport(md, rtpPort, rtspPort));
             if (mSession != null) {
                 request.addHeader("Session", mSession);
             }

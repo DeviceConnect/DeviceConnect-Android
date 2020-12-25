@@ -112,6 +112,22 @@ public class RtpReceiver {
     }
 
     /**
+     * RTP受信ポート番号の取得.
+     * @return ポート番号
+     */
+    public int getRtpPort() {
+        return mRtpPort;
+    }
+
+    /**
+     * RTCP受信ポート番号の取得.
+     * @return ポート番号
+     */
+    public int getRtcpPort() {
+        return mRtcpPort;
+    }
+
+    /**
      * エラーを通知します.
      *
      * @param e エラー原因の例外

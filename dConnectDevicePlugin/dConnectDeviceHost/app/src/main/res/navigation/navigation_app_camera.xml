@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/host_camera_manager"
-        android:name="org.deviceconnect.android.deviceplugin.host.activity.camera.ManagerStartingFragment">
+        android:name="org.deviceconnect.android.deviceplugin.host.activity.recorder.camera.ManagerStartingFragment">
 
         <action
             android:id="@+id/action_check_to_main"
@@ -23,7 +23,7 @@
 
     <fragment
         android:id="@+id/host_camera_main_fragment"
-        android:name="org.deviceconnect.android.deviceplugin.host.activity.camera.CameraMainFragment"
+        android:name="org.deviceconnect.android.deviceplugin.host.activity.recorder.camera.CameraMainFragment"
         android:label="host_camera_main_fragment"
         tools:layout="@layout/fragment_host_camera_main">
 

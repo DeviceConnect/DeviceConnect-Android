@@ -110,13 +110,13 @@
             android:theme="@style/AppTheme.Translucent" />
 
         <activity
-            android:name=".activity.settings.SettingsActivity"
+            android:name=".activity.recorder.settings.SettingsActivity"
             android:exported="false">
         </activity>
 
         <!-- カメラの画面を表示するための Activity -->
         <activity
-            android:name=".activity.camera.CameraActivity"
+            android:name=".activity.recorder.camera.CameraActivity"
             android:exported="true"
             android:label="Host Camera"
             android:theme="@style/AppCompatTheme.NoActionBar">
@@ -129,7 +129,7 @@
 
         <!-- スクリーンキャストを行う Activity -->
         <activity
-            android:name=".activity.screen.ScreenCaptureActivity"
+            android:name=".activity.recorder.screen.ScreenCaptureActivity"
             android:exported="true"
             android:label="Host Screen Capture"
             android:theme="@style/AppCompatTheme">

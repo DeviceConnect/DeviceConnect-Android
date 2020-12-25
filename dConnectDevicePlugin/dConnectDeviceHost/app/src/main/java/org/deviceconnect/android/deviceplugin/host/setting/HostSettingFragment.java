@@ -15,8 +15,8 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
 import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.deviceplugin.host.activity.camera.CameraActivity;
-import org.deviceconnect.android.deviceplugin.host.activity.screen.ScreenCaptureActivity;
+import org.deviceconnect.android.deviceplugin.host.activity.recorder.camera.CameraActivity;
+import org.deviceconnect.android.deviceplugin.host.activity.recorder.screen.ScreenCaptureActivity;
 
 /**
  * Host プラグインの設定全体を管理するフラグメント.

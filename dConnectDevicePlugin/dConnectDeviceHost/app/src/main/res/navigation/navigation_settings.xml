@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/host_settings_main"
-        android:name="org.deviceconnect.android.deviceplugin.host.activity.settings.SettingsMainFragment">
+        android:name="org.deviceconnect.android.deviceplugin.host.activity.recorder.settings.SettingsMainFragment">
 
         <action
             android:id="@+id/action_main_to_video"
@@ -52,32 +52,32 @@
 
     <fragment
         android:id="@+id/host_settings_video"
-        android:name="org.deviceconnect.android.deviceplugin.host.activity.settings.SettingsVideoFragment">
+        android:name="org.deviceconnect.android.deviceplugin.host.activity.recorder.settings.SettingsVideoFragment">
 
     </fragment>
 
 
     <fragment
         android:id="@+id/host_settings_audio"
-        android:name="org.deviceconnect.android.deviceplugin.host.activity.settings.SettingsAudioFragment">
+        android:name="org.deviceconnect.android.deviceplugin.host.activity.recorder.settings.SettingsAudioFragment">
 
     </fragment>
 
     <fragment
         android:id="@+id/host_settings_srt"
-        android:name="org.deviceconnect.android.deviceplugin.host.activity.settings.SettingsSRTFragment">
+        android:name="org.deviceconnect.android.deviceplugin.host.activity.recorder.settings.SettingsSRTFragment">
 
     </fragment>
 
     <fragment
         android:id="@+id/host_settings_port"
-        android:name="org.deviceconnect.android.deviceplugin.host.activity.settings.SettingsPortFragment">
+        android:name="org.deviceconnect.android.deviceplugin.host.activity.recorder.settings.SettingsPortFragment">
 
     </fragment>
 
     <fragment
         android:id="@+id/host_settings_broadcast"
-        android:name="org.deviceconnect.android.deviceplugin.host.activity.settings.SettingsBroadcastFragment">
+        android:name="org.deviceconnect.android.deviceplugin.host.activity.recorder.settings.SettingsBroadcastFragment">
 
     </fragment>
 </navigation>

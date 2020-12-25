@@ -13,7 +13,7 @@ import androidx.preference.PreferenceFragmentCompat;
 
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.deviceplugin.host.activity.HostDevicePluginBindActivity;
-import org.deviceconnect.android.deviceplugin.host.activity.camera.CameraActivity;
+import org.deviceconnect.android.deviceplugin.host.activity.recorder.camera.CameraActivity;
 
 public abstract class HostDevicePluginBindPreferenceFragment extends PreferenceFragmentCompat implements CameraActivity.OnHostDevicePluginListener {
 

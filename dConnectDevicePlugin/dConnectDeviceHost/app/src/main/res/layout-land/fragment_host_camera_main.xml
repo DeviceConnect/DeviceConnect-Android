@@ -7,11 +7,11 @@
 
         <variable
             name="presenter"
-            type="org.deviceconnect.android.deviceplugin.host.activity.camera.CameraMainFragment.Presenter" />
+            type="org.deviceconnect.android.deviceplugin.host.activity.recorder.camera.CameraMainFragment.Presenter" />
 
         <variable
             name="viewModel"
-            type="org.deviceconnect.android.deviceplugin.host.activity.camera.CameraMainViewModel" />
+            type="org.deviceconnect.android.deviceplugin.host.activity.recorder.camera.CameraMainViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -19,7 +19,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#000"
-        tools:context=".activity.camera.CameraBaseFragment">
+        tools:context=".activity.recorder.camera.CameraBaseFragment">
 
         <org.deviceconnect.android.deviceplugin.host.recorder.ui.PreviewSurfaceView
             android:id="@+id/fragment_host_camera_surface_view"

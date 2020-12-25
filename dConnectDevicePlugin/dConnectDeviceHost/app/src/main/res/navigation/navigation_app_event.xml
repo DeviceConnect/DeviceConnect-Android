@@ -11,7 +11,7 @@
         <action
             android:id="@+id/action_check_to_main"
             app:destination="@+id/host_event_main_fragment"
-            app:popUpTo="@id/action_check_to_main"
+            app:popUpTo="@id/host_event_check_manager"
             app:popUpToInclusive="true" />
 
         <action

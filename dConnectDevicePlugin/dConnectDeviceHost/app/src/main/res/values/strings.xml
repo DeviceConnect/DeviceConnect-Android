@@ -19,6 +19,13 @@
     <string name="canvas_profile_view_close_guidance">tap to close.</string>
     <string name="keyevent_activity">Key Event Activity</string>
 
+    <string name="host_error_permission_title">Permission Error</string>
+    <string name="host_error_permission_message">The permission to run the app was not granted, so quit the application.</string>
+    <string name="host_error_positive">OK</string>
+    <string name="host_error_negative">NG</string>
+    <string name="host_error_cancel">Cancel</string>
+
+
     <string name="overlay_preview">PREVIEW</string>
     <string name="overlay_preview_ticker">Start the camera</string>
     <string name="overlay_preview_channel_id">org.deviceconnect.android.intent.action.preview.host</string>

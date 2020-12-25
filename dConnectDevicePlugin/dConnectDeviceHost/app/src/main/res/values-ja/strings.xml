@@ -19,6 +19,13 @@
     <string name="canvas_profile_view_close_guidance">tap to close.</string>
     <string name="keyevent_activity">Key Event Activity</string>
 
+    <!-- 共通エラー -->
+    <string name="host_error_permission_title">パーミッションエラー</string>
+    <string name="host_error_permission_message">アプリを実行するためのパーミッションが許可されなかったので、アプリケーションを終了します。</string>
+    <string name="host_error_positive">はい</string>
+    <string name="host_error_negative">いいえ</string>
+    <string name="host_error_cancel">キャンセル</string>
+
     <!-- オーバーレイ -->
     <string name="overlay_preview">PREVIEW</string>
     <string name="overlay_preview_ticker">カメラを起動します</string>

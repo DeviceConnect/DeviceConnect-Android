@@ -19,8 +19,10 @@ import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.SessionDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribute;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class RtspPlayer {
@@ -73,6 +75,11 @@ public class RtspPlayer {
     private final Map<String, DecoderFactory> mAudioFactory = new HashMap<>();
 
     /**
+     * 指定ポート番号リスト.
+     */
+    private List<Integer> mSetPortList;
+
+    /**
      * コンストラクタ.
      *
      * @param url RTSP サーバへのURL
@@ -83,6 +90,33 @@ public class RtspPlayer {
         }
 
         mUrl = url;
+        mSetPortList = new ArrayList<>();
+
+        addVideoFactory("H264", new H264DecoderFactory());
+        addVideoFactory("H265", new H265DecoderFactory());
+        addAudioFactory("mpeg4-generic", new AACLATMDecoderFactory());
+    }
+
+    /**
+     * コンストラクタ.
+     *
+     * @param url RTSP サーバへのURL
+     * @param setPortList RTP/RTCPに指定するUDPポート番号一覧
+     */
+    public RtspPlayer(String url, List<Integer> setPortList) {
+        if (url == null) {
+            throw new IllegalArgumentException("url is null.");
+        }
+        if (setPortList == null) {
+            throw new IllegalArgumentException("setPortList is null.");
+        }
+        for (int port : setPortList) {
+            if (port <= 1024) {
+                throw new IllegalArgumentException("setPortList is invalid port number.　(Must be greater than 1025.)");
+            }
+        }
+        mUrl = url;
+        mSetPortList = setPortList;
 
         addVideoFactory("H264", new H264DecoderFactory());
         addVideoFactory("H265", new H265DecoderFactory());
@@ -163,7 +197,11 @@ public class RtspPlayer {
         }
 
         mRetryCount = 0;
-        mRtspClient = new RtspClient(mUrl);
+        if (mSetPortList.isEmpty()) {
+            mRtspClient = new RtspClient(mUrl);
+        } else {
+            mRtspClient = new RtspClient(mUrl, mSetPortList);
+        }
         mRtspClient.setOnEventListener(new RtspClient.OnEventListener() {
             @Override
             public void onConnected() {

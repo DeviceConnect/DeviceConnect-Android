@@ -3,17 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
-        android:title="プラブイン設定"
-        app:iconSpaceReserved="false">
-
-        <PreferenceScreen
-            android:key="@string/pref_key_settings_gps"
-            android:title="@string/host_settings_item_gps"
-            app:iconSpaceReserved="false" />
-
-    </PreferenceCategory>
-
-    <PreferenceCategory
         android:title="アプリ一覧"
         app:iconSpaceReserved="false">
 
@@ -24,7 +13,18 @@
 
         <PreferenceScreen
             android:key="@string/pref_key_settings_app_screen_capture"
-            android:title="画面キャプチャ"
+            android:title="スクリーンキャスト"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="プラブイン設定"
+        app:iconSpaceReserved="false">
+
+        <PreferenceScreen
+            android:key="@string/pref_key_settings_gps"
+            android:title="@string/host_settings_item_gps"
             app:iconSpaceReserved="false" />
 
     </PreferenceCategory>

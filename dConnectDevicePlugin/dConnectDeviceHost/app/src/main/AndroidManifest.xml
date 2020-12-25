@@ -119,7 +119,7 @@
             android:name=".activity.camera.CameraActivity"
             android:exported="true"
             android:label="Host Camera"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppCompatTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -127,12 +127,12 @@
             </intent-filter>
         </activity>
 
-        <!-- 画面キャプチャを行う Activity -->
+        <!-- スクリーンキャストを行う Activity -->
         <activity
             android:name=".activity.screen.ScreenCaptureActivity"
             android:exported="true"
             android:label="Host Screen Capture"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppCompatTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

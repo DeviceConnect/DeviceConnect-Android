@@ -16,6 +16,7 @@ import androidx.preference.PreferenceFragmentCompat;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.camera.CameraActivity;
+import org.deviceconnect.android.deviceplugin.host.activity.screen.ScreenCaptureActivity;
 
 /**
  * Host プラグインの設定全体を管理するフラグメント.
@@ -44,10 +45,13 @@ public class HostSettingFragment extends PreferenceFragmentCompat {
             intent = new Intent(context, HostGpsSettingActivity.class);
         } else if (getString(R.string.pref_key_settings_app_camera).equals(preference.getKey())) {
             intent = new Intent(context, CameraActivity.class);
+        } else if (getString(R.string.pref_key_settings_app_screen_capture).equals(preference.getKey())) {
+            intent = new Intent(context, ScreenCaptureActivity.class);
         } else if (getString(R.string.pref_key_settings_demo_page).equals(preference.getKey())) {
             intent = new Intent(context, HostDemoSettingActivity.class);
         }
         if (intent != null) {
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             activity.startActivity(intent);
         }
 

@@ -27,16 +27,6 @@ import java.util.List;
  * @author NTT DOCOMO, INC.
  */
 class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
-
-    /**
-     * プレビュー配信サーバ停止用 Notification の識別子を定義.
-     *
-     * <p>
-     * カメラは、前と後ろが存在するので、BASE_NOTIFICATION_ID + カメラIDのハッシュ値 を識別子とします。
-     * </p>
-     */
-    private static final int BASE_NOTIFICATION_ID = 1001;
-
     /**
      * オーバーレイを管理するクラス.
      */
@@ -59,7 +49,7 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
      * @param recorder レコーダ
      */
     Camera2PreviewServerProvider(final Context context, final Camera2Recorder recorder) {
-        super(context, recorder, BASE_NOTIFICATION_ID + recorder.getId().hashCode());
+        super(context, recorder);
 
         mContext = context;
         mRecorder = recorder;

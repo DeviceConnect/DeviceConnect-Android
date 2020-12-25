@@ -149,7 +149,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     public Camera2Recorder(final Context context,
                            final CameraWrapper camera,
                            final FileManager fileManager) {
-        super(context, 1, fileManager);
+        super(context, fileManager);
         mContext = context;
         mFileManager = fileManager;
         mCameraWrapper = camera;
@@ -483,20 +483,16 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         }
 
         public static CameraFacing detect(CameraWrapper cameraWrapper) {
-            try {
-                int facing = cameraWrapper.getFacing();
-                switch (facing) {
-                    case CameraCharacteristics.LENS_FACING_BACK:
-                        return CameraFacing.BACK;
-                    case CameraCharacteristics.LENS_FACING_FRONT:
-                        return CameraFacing.FRONT;
-                    case CameraCharacteristics.LENS_FACING_EXTERNAL:
-                        return CameraFacing.EXTERNAL;
-                    default:
-                        return CameraFacing.UNKNOWN;
-                }
-            } catch (CameraWrapperException e) {
-                return CameraFacing.UNKNOWN;
+            int facing = cameraWrapper.getFacing();
+            switch (facing) {
+                case CameraCharacteristics.LENS_FACING_BACK:
+                    return CameraFacing.BACK;
+                case CameraCharacteristics.LENS_FACING_FRONT:
+                    return CameraFacing.FRONT;
+                case CameraCharacteristics.LENS_FACING_EXTERNAL:
+                    return CameraFacing.EXTERNAL;
+                default:
+                    return CameraFacing.UNKNOWN;
             }
         }
     }

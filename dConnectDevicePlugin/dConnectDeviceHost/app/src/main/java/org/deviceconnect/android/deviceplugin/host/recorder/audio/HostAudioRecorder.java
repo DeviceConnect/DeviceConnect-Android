@@ -59,7 +59,7 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     private AudioBroadcasterProvider mAudioBroadcasterProvider;
 
     public HostAudioRecorder(final Context context, FileManager fileManager) {
-        super(context, 3, fileManager);
+        super(context, fileManager);
         mContext = context;
         mSettings = new Settings(context, this);
 

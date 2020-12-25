@@ -15,6 +15,8 @@ import android.view.View;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
 
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 
@@ -105,12 +107,34 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
      * HostDevicePlugin に接続された時に処理を行う場合には、このメソッドをオーバーライドします。
      */
     protected void onBindService() {
+        for (Fragment f : getSupportFragmentManager ().getFragments()) {
+            if (f instanceof NavHostFragment) {
+                for (Fragment t : f.getChildFragmentManager().getFragments()) {
+                    if (t instanceof OnHostDevicePluginListener) {
+                        ((OnHostDevicePluginListener) t).onBindService();
+                    }
+                }
+            } else  if (f instanceof OnHostDevicePluginListener) {
+                ((OnHostDevicePluginListener) f).onBindService();
+            }
+        }
     }
 
     /**
      * HostDevicePlugin から切断されたことを通知します.
      */
     protected void onUnbindService() {
+        for (Fragment f : getSupportFragmentManager ().getFragments()) {
+            if (f instanceof NavHostFragment) {
+                for (Fragment t : f.getChildFragmentManager().getFragments()) {
+                    if (t instanceof OnHostDevicePluginListener) {
+                        ((OnHostDevicePluginListener) t).onUnbindService();
+                    }
+                }
+            } else  if (f instanceof OnHostDevicePluginListener) {
+                ((OnHostDevicePluginListener) f).onUnbindService();
+            }
+        }
     }
 
     /**
@@ -258,7 +282,9 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
         decorView.requestLayout();
     }
 
-
+    /**
+     * HostDevicePlugin の接続イベントを通知するリスナー.
+     */
     public interface OnHostDevicePluginListener {
         /**
          * HostDevicePlugin に接続されたことを通知します.

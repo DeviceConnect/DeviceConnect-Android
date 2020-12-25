@@ -111,13 +111,7 @@
 
         <activity
             android:name=".activity.settings.SettingsActivity"
-            android:exported="true"
-            android:label="Host Settings">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:exported="false">
         </activity>
 
         <!-- カメラの画面を表示するための Activity -->
@@ -125,6 +119,19 @@
             android:name=".activity.camera.CameraActivity"
             android:exported="true"
             android:label="Host Camera"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 画面キャプチャを行う Activity -->
+        <activity
+            android:name=".activity.screen.ScreenCaptureActivity"
+            android:exported="true"
+            android:label="Host Screen Capture"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

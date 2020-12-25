@@ -1,4 +1,4 @@
-package org.deviceconnect.android.deviceplugin.host.activity.camera;
+package org.deviceconnect.android.deviceplugin.host.activity.fragment;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
@@ -9,8 +9,9 @@ import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
+import org.deviceconnect.android.deviceplugin.host.activity.HostDevicePluginBindActivity;
 
-public class CameraBaseFragment extends Fragment implements CameraActivity.OnHostDevicePluginListener {
+public abstract class HostDevicePluginBindFragment extends Fragment implements HostDevicePluginBindActivity.OnHostDevicePluginListener {
     /**
      * UI 操作用の Handler.
      */
@@ -40,8 +41,8 @@ public class CameraBaseFragment extends Fragment implements CameraActivity.OnHos
      */
     public boolean isBound() {
         Activity activity = getActivity();
-        if (activity instanceof CameraActivity) {
-            return ((CameraActivity) activity).isBound();
+        if (activity instanceof HostDevicePluginBindActivity) {
+            return ((HostDevicePluginBindActivity) activity).isBound();
         }
         return false;
     }
@@ -55,8 +56,8 @@ public class CameraBaseFragment extends Fragment implements CameraActivity.OnHos
      */
     public HostDevicePlugin getHostDevicePlugin() {
         Activity activity = getActivity();
-        if (activity instanceof CameraActivity) {
-            return ((CameraActivity) activity).getHostDevicePlugin();
+        if (activity instanceof HostDevicePluginBindActivity) {
+            return ((HostDevicePluginBindActivity) activity).getHostDevicePlugin();
         }
         return null;
     }
@@ -66,8 +67,8 @@ public class CameraBaseFragment extends Fragment implements CameraActivity.OnHos
      */
     public void toggleDisplayRotation() {
         Activity activity = getActivity();
-        if (activity instanceof CameraActivity) {
-            ((CameraActivity) activity).toggleDisplayRotation();
+        if (activity instanceof HostDevicePluginBindActivity) {
+            ((HostDevicePluginBindActivity) activity).toggleDisplayRotation();
         }
     }
 
@@ -78,20 +79,30 @@ public class CameraBaseFragment extends Fragment implements CameraActivity.OnHos
      */
     public boolean isDisplayRotationFixed() {
         Activity activity = getActivity();
-        if (activity instanceof CameraActivity) {
-            return ((CameraActivity) activity).isDisplayRotationFixed();
+        if (activity instanceof HostDevicePluginBindActivity) {
+            return ((HostDevicePluginBindActivity) activity).isDisplayRotationFixed();
         }
         return false;
     }
 
+    /**
+     * 画面の向き設定を取得します.
+     *
+     * @return 画面の向き設定
+     */
     public int getDisplayOrientation() {
         Activity activity = getActivity();
         if (activity != null) {
-            return ((CameraActivity) activity).getRequestedOrientation();
+            return ((HostDevicePluginBindActivity) activity).getRequestedOrientation();
         }
         return ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
     }
 
+    /**
+     * トーストを表示します.
+     *
+     * @param message トーストに表示する文字列
+     */
     public void showToast(String message) {
         runOnUiThread(() -> Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show());
     }

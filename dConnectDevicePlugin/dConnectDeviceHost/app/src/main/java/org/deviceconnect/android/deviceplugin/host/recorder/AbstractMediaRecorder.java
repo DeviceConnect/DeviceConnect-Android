@@ -61,11 +61,6 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     private final Handler mRequestHandler;
 
     /**
-     * 通知ID.
-     */
-    private int mNotificationId;
-
-    /**
      * イベント通知用リスナー.
      */
     private OnEventListener mOnEventListener;
@@ -83,9 +78,8 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     /**
      * コンストラクタ.
      */
-    public AbstractMediaRecorder(Context context, int notificationId, FileManager fileManager) {
+    public AbstractMediaRecorder(Context context, FileManager fileManager) {
         mContext = context;
-        mNotificationId = notificationId;
         mFileManager = fileManager;
 
         HandlerThread requestThread = new HandlerThread("host-camera-request");
@@ -354,8 +348,8 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
      *
      * @return NotificationId
      */
-    public int getNotificationId() {
-        return mNotificationId;
+    private int getNotificationId() {
+        return 2000 + getId().hashCode();
     }
 
     /**

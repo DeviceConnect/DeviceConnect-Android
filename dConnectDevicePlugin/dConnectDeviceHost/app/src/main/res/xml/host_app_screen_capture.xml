@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="スクリーンキャスト"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="start_preview"
+            android:title="プレビュー配信"
+            app:summary="画面の映像をプレビュー配信します。"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="start_broadcast"
+            android:title="ブロードキャスト"
+            app:summary="画面の映像をブロードキャスト配信します。"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="start_recording"
+            android:title="録画"
+            app:summary="画面の録画を行います。"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="設定"
+        app:iconSpaceReserved="false">
+
+        <PreferenceScreen
+            android:key="settings_capture"
+            android:title="設定変更"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

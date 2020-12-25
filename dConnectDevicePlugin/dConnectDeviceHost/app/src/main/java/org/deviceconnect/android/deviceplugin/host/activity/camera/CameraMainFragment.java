@@ -19,6 +19,7 @@ import com.google.android.material.tabs.TabLayout;
 
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.activity.fragment.HostDevicePluginBindFragment;
 import org.deviceconnect.android.deviceplugin.host.activity.settings.SettingsActivity;
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.connection.HostConnectionManager;
@@ -37,7 +38,7 @@ import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread
 
 import java.util.List;
 
-public class CameraMainFragment extends CameraBaseFragment {
+public class CameraMainFragment extends HostDevicePluginBindFragment {
     private CameraMainViewModel mViewModel = new CameraMainViewModel();
 
     private HostMediaRecorderManager mMediaRecorderManager;

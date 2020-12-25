@@ -183,11 +183,11 @@ public class CameraWrapper {
         return mCameraId;
     }
 
-    public int getFacing() throws CameraWrapperException {
+    public int getFacing() {
         try {
             return Camera2Helper.getFacing(mCameraManager, mCameraId);
         } catch (CameraAccessException e) {
-            throw new CameraWrapperException(e);
+            return -1;
         }
     }
 

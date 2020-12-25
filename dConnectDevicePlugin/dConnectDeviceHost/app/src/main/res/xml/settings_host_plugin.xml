@@ -19,7 +19,12 @@
 
         <PreferenceScreen
             android:key="@string/pref_key_settings_app_camera"
-            android:title="カメラアプリ"
+            android:title="カメラ"
+            app:iconSpaceReserved="false" />
+
+        <PreferenceScreen
+            android:key="@string/pref_key_settings_app_screen_capture"
+            android:title="画面キャプチャ"
             app:iconSpaceReserved="false" />
 
     </PreferenceCategory>

@@ -283,7 +283,7 @@ public class OverlayManager {
      * @return 通知の ID
      */
     private int getNotificationId() {
-        return 1111;
+        return 3000 + mRecorder.getId().hashCode();
     }
 
     /**

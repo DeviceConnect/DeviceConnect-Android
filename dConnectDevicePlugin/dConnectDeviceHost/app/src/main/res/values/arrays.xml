@@ -21,13 +21,9 @@
     </string-array>
 
     <string-array name="video_white_balance_names">
-        <item>H264</item>
-        <item>H265</item>
     </string-array>
 
     <string-array name="video_white_balance_values">
-        <item>video/avc</item>
-        <item>video/hevc</item>
     </string-array>
 
     <string name="settings_audio_bit_rate">64</string>

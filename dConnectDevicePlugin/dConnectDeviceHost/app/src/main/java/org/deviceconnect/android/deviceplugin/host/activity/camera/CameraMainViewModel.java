@@ -24,11 +24,6 @@ public class CameraMainViewModel extends BaseObservable {
     private int mParamVisibility = View.GONE;
     private int mSurfaceVisibility = View.GONE;
 
-    private int mTogglePreviewVisibility = View.VISIBLE;
-    private int mToggleBroadcastVisibility = View.GONE;
-    private int mPhotoVisibility = View.GONE;
-    private int mToggleRecordingVisibility = View.GONE;
-
     @Bindable
     public String getNetworkType() {
         return mNetworkType;

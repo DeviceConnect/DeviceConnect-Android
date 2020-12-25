@@ -72,7 +72,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     private ScreenCastSurfaceDrawingThread mScreenCastSurfaceDrawingThread;
 
     public ScreenCastRecorder(final Context context, final FileManager fileMgr) {
-        super(context, 2, fileMgr);
+        super(context, fileMgr);
         mContext = context;
         mSettings = new Settings(context, this);
 
@@ -111,9 +111,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
             Size size = new Size(width, height);
             supportPictureSizes.add(size);
-            if (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight()) {
-                supportPreviewSizes.add(size);
-            }
+            supportPreviewSizes.add(size);
         }
         mSettings.setSupportedPreviewSizes(supportPreviewSizes);
         mSettings.setSupportedPictureSizes(supportPictureSizes);

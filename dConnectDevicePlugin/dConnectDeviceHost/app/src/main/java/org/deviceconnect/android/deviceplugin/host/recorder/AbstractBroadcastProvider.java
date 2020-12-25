@@ -167,7 +167,7 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
      * @return Notification の Id
      */
     protected int getNotificationId() {
-        return 123;
+        return 1000 + mRecorder.getId().hashCode();
     }
 
     /**

@@ -37,11 +37,6 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     private Context mContext;
 
     /**
-     * 通知ID.
-     */
-    private int mNotificationId;
-
-    /**
      * プレビュー配信サーバーのリスト.
      */
     private final List<PreviewServer> mPreviewServers = new ArrayList<>();
@@ -65,10 +60,9 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
      * コンストラクタ.
      * @param context コンテキスト
      */
-    public AbstractPreviewServerProvider(final Context context, final HostMediaRecorder recorder, final int notificationId) {
+    public AbstractPreviewServerProvider(final Context context, final HostMediaRecorder recorder) {
         mContext = context;
         mRecorder = recorder;
-        mNotificationId = notificationId;
         mIsRunning = false;
     }
 
@@ -209,7 +203,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
      * @return Notification の Id
      */
     protected int getNotificationId() {
-        return mNotificationId;
+        return 100 + mRecorder.getId().hashCode();
     }
 
     /**

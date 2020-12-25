@@ -9,13 +9,8 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
  * スクリーンキャストのプレビューを配信するサーバを管理するクラス.
  */
 class ScreenCastPreviewServerProvider extends AbstractPreviewServerProvider {
-    /**
-     * Notification の識別子を定義.
-     */
-    private static final int NOTIFICATION_ID = 2001;
-
     ScreenCastPreviewServerProvider(Context context, ScreenCastRecorder recorder) {
-        super(context, recorder, NOTIFICATION_ID);
+        super(context, recorder);
 
         HostMediaRecorder.Settings settings = recorder.getSettings();
 

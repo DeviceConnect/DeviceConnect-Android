@@ -6,17 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.activity.profile;
 
-import java.util.List;
-
-import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
-import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.deviceplugin.host.profile.HostKeyEventProfile;
-import org.deviceconnect.android.event.Event;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.profile.KeyEventProfile;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.KeyEventProfileConstants;
-
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -32,6 +21,17 @@ import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
+import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.profile.HostKeyEventProfile;
+import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.profile.KeyEventProfile;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.profile.KeyEventProfileConstants;
+
+import java.util.List;
 
 import static org.deviceconnect.android.deviceplugin.host.HostDeviceApplication.STATE_DOWN;
 import static org.deviceconnect.android.deviceplugin.host.HostDeviceApplication.STATE_UP;
@@ -87,7 +87,7 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.keyevent_main);
+        setContentView(R.layout.activity_keyevent_main);
 
         // Get Application class instance.
         mApp = (HostDeviceApplication) this.getApplication();

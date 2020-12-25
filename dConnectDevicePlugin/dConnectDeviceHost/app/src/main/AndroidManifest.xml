@@ -40,18 +40,6 @@
             android:theme="@style/AppCompatTheme" />
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostGpsSettingActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:theme="@style/AppCompatTheme" />
-
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostDemoSettingActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:theme="@style/AppCompatTheme" />
-
-        <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
             android:excludeFromRecents="true"
             android:exported="false"

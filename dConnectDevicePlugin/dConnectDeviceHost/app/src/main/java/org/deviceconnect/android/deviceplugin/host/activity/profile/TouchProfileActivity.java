@@ -63,7 +63,7 @@ public class TouchProfileActivity extends Activity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.touch_main);
+        setContentView(R.layout.activity_touch_main);
         
         // Get Application class instance.
         mApp = (HostDeviceApplication) this.getApplication();

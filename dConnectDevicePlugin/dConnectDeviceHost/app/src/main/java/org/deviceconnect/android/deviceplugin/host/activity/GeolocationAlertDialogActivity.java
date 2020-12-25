@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.host.activity;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Window;
@@ -42,7 +41,7 @@ public class GeolocationAlertDialogActivity extends FragmentActivity {
             getActionBar().hide();
         }
 
-        setContentView(R.layout.geolocation_alert_dialog);
+        setContentView(R.layout.activity_geolocation_alert_dialog);
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setTitle(R.string.gps_settings_title);
         alertDialogBuilder.setMessage(R.string.host_setting_dialog_disable_gps)

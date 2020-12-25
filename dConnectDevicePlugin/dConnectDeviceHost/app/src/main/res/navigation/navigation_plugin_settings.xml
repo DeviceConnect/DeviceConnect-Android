@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/navigation_plugin_settings"
+    app:startDestination="@id/host_plugin_settings">
+
+    <fragment
+        android:id="@+id/host_plugin_settings"
+        android:name="org.deviceconnect.android.deviceplugin.host.setting.HostSettingFragment">
+
+        <action
+            android:id="@+id/action_settings_to_gps"
+            app:destination="@+id/host_plugin_gps_settings"
+            app:enterAnim="@anim/nav_slide_enter_anim"
+            app:exitAnim="@anim/nav_slide_exit_anim"
+            app:popEnterAnim="@anim/nav_slide_pop_enter_anim"
+            app:popExitAnim="@anim/nav_slide_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_settings_to_demo"
+            app:destination="@+id/host_plugin_demo_settings"
+            app:enterAnim="@anim/nav_slide_enter_anim"
+            app:exitAnim="@anim/nav_slide_exit_anim"
+            app:popEnterAnim="@anim/nav_slide_pop_enter_anim"
+            app:popExitAnim="@anim/nav_slide_pop_exit_anim" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/host_plugin_gps_settings"
+        android:name="org.deviceconnect.android.deviceplugin.host.setting.HostGpsSettingFragment"/>
+
+    <fragment
+        android:id="@+id/host_plugin_demo_settings"
+        android:name="org.deviceconnect.android.deviceplugin.host.setting.HostDemoSettingFragment"/>
+
+</navigation>

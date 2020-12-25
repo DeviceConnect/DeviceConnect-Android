@@ -18,6 +18,8 @@ import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.recorder.camera.CameraActivity;
 import org.deviceconnect.android.deviceplugin.host.activity.recorder.screen.ScreenCaptureActivity;
 
+import static androidx.navigation.fragment.NavHostFragment.findNavController;
+
 /**
  * Host プラグインの設定全体を管理するフラグメント.
  *
@@ -42,13 +44,13 @@ public class HostSettingFragment extends PreferenceFragmentCompat {
         // 各説明をダイアログで表示
         Intent intent = null;
         if (getString(R.string.pref_key_settings_gps).equals(preference.getKey())) {
-            intent = new Intent(context, HostGpsSettingActivity.class);
+            findNavController(this).navigate(R.id.action_settings_to_gps);
         } else if (getString(R.string.pref_key_settings_app_camera).equals(preference.getKey())) {
             intent = new Intent(context, CameraActivity.class);
         } else if (getString(R.string.pref_key_settings_app_screen_capture).equals(preference.getKey())) {
             intent = new Intent(context, ScreenCaptureActivity.class);
         } else if (getString(R.string.pref_key_settings_demo_page).equals(preference.getKey())) {
-            intent = new Intent(context, HostDemoSettingActivity.class);
+            findNavController(this).navigate(R.id.action_settings_to_demo);
         }
         if (intent != null) {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

@@ -15,12 +15,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.R;
@@ -48,7 +49,7 @@ public class HostGpsSettingFragment extends BaseHostSettingPageFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.host_setting_gps, null);
+        View rootView = inflater.inflate(R.layout.fragment_host_gps_setting, null);
 
         Button btn = rootView.findViewById(R.id.btn_settings_open);
         btn.setOnClickListener((v) -> {

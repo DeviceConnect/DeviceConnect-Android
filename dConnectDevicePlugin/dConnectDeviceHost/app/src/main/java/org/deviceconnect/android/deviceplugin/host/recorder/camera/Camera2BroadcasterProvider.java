@@ -18,6 +18,10 @@ public class Camera2BroadcasterProvider extends AbstractBroadcastProvider {
 
     @Override
     public Broadcaster createBroadcaster(String broadcastURI) {
-        return new Camera2RTMPBroadcaster(mRecorder, broadcastURI);
+        if (broadcastURI.startsWith("srt://")) {
+            return new Camera2SRTBroadcaster(mRecorder, broadcastURI);
+        } else {
+            return new Camera2RTMPBroadcaster(mRecorder, broadcastURI);
+        }
     }
 }

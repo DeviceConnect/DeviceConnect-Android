@@ -503,6 +503,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         } else {
             String uri = settings.getBroadcastURI();
             uri = "rtmp://192.168.11.7:1935/live/abc";
+            uri = "srt://192.168.11.6:12345";
             Broadcaster broadcaster = mMediaRecorder.startBroadcaster(uri);
             if (broadcaster == null) {
                 showToast("配信開始に失敗しました");

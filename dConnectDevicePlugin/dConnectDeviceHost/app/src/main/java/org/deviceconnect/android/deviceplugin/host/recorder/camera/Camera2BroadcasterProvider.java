@@ -1,5 +1,7 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
+import android.content.Context;
+
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractBroadcastProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
 
@@ -9,7 +11,8 @@ public class Camera2BroadcasterProvider extends AbstractBroadcastProvider {
      */
     private Camera2Recorder mRecorder;
 
-    public Camera2BroadcasterProvider(Camera2Recorder recorder) {
+    public Camera2BroadcasterProvider(Context context, Camera2Recorder recorder) {
+        super(context, recorder);
         mRecorder = recorder;
     }
 

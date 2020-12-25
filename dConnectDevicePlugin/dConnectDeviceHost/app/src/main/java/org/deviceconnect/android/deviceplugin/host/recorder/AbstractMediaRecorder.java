@@ -273,7 +273,7 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
     @Override
     public void stopRecording(final StoppingCallback listener) {
-        if (getState() != State.INACTIVE) {
+        if (getState() != State.RECORDING) {
             if (listener != null) {
                 listener.onFailed(this, "MediaRecorder is already recording.");
             }

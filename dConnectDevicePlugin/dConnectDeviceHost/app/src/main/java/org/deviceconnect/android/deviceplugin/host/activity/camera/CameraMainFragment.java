@@ -2,6 +2,7 @@ package org.deviceconnect.android.deviceplugin.host.activity.camera;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -9,8 +10,12 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
 import androidx.databinding.DataBindingUtil;
+
+import com.google.android.material.tabs.TabLayout;
 
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.deviceplugin.host.R;
@@ -46,6 +51,7 @@ public class CameraMainFragment extends CameraBaseFragment {
     private boolean mDrawFlag = false;
     private boolean mAdjustViewFlag = false;
     private boolean mMuted = false;
+    private int mSelectedMode = 0;
 
     private EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
         @Override
@@ -101,12 +107,12 @@ public class CameraMainFragment extends CameraBaseFragment {
 
         @Override
         public void onBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster) {
-            setPreviewButton();
+            setBroadcastButton();
         }
 
         @Override
         public void onBroadcasterStopped(HostMediaRecorder recorder) {
-            setPreviewButton();
+            setBroadcastButton();
         }
 
         @Override
@@ -115,18 +121,22 @@ public class CameraMainFragment extends CameraBaseFragment {
 
         @Override
         public void onRecordingStarted(HostMediaRecorder recorder, String fileName) {
+            setRecordingButton();
         }
 
         @Override
         public void onRecordingPause(HostMediaRecorder recorder) {
+            setRecordingButton();
         }
 
         @Override
         public void onRecordingResume(HostMediaRecorder recorder) {
+            setRecordingButton();
         }
 
         @Override
         public void onRecordingStopped(HostMediaRecorder recorder, String fileName) {
+            setRecordingButton();
         }
 
         @Override
@@ -138,9 +148,6 @@ public class CameraMainFragment extends CameraBaseFragment {
         public void onClickToggleDisplayRotationButton() {
             toggleDisplayRotation();
         }
-        public void onClickTogglePreviewButton() {
-            toggleStartPreview();
-        }
         public void onClickToggleMuteButton() {
             toggleMute();
         }
@@ -149,6 +156,18 @@ public class CameraMainFragment extends CameraBaseFragment {
         }
         public void onClickSwitchCameraButton() {
             switchCameraRecorder();
+        }
+        public void onClickTogglePreviewButton() {
+            togglePreviewServer();
+        }
+        public void onClickToggleBroadcastButton() {
+            toggleBroadcaster();
+        }
+        public void onClickToggleRecordingButton() {
+            toggleRecording();
+        }
+        public void onClickTakePhoto() {
+            takePhoto();
         }
     }
 
@@ -190,8 +209,59 @@ public class CameraMainFragment extends CameraBaseFragment {
             }
         });
 
+        final int[] idList = {
+                R.id.fragment_host_camera_toggle_preview_button,
+                R.id.fragment_host_camera_toggle_broadcaster_button,
+                R.id.fragment_host_camera_toggle_photo_button,
+                R.id.fragment_host_camera_toggle_recording_button
+        };
+
+        TabLayout tabLayout = binding.fragmentHostCameraTabLayout;
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                mSelectedMode = tab.getPosition();
+
+                Animation anime = AnimationUtils.loadAnimation(getContext(), R.anim.scale_up);
+                View v = view.findViewById(idList[mSelectedMode]);
+                v.setVisibility(View.VISIBLE);
+                v.startAnimation(anime);
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+                View v = view.findViewById(idList[tab.getPosition()]);
+
+                Animation anime = AnimationUtils.loadAnimation(getContext(), R.anim.scale_down);
+                anime.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        v.setVisibility(View.INVISIBLE);
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+                    }
+                });
+                v.startAnimation(anime);
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+            }
+        });
+
         if (savedInstanceState != null) {
             mIndex = savedInstanceState.getInt("recorder_index");
+            mSelectedMode = savedInstanceState.getInt("selected_mode");
+            TabLayout.Tab tab = tabLayout.getTabAt(mSelectedMode);
+            if (tab != null) {
+                tab.select();
+            }
         }
 
         return view;
@@ -200,6 +270,7 @@ public class CameraMainFragment extends CameraBaseFragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putInt("recorder_index", mIndex);
+        outState.putInt("selected_mode", mSelectedMode);
         super.onSaveInstanceState(outState);
     }
 
@@ -383,63 +454,79 @@ public class CameraMainFragment extends CameraBaseFragment {
             @Override
             public void onTakePhoto(String uri, String filePath, String mimeType) {
                 // TODO 撮影成功
+                Log.e("ABC", "### 撮影成功");
             }
 
             @Override
             public void onFailedTakePhoto(String errorMessage) {
                 // TODO 撮影失敗
+                Log.e("ABC", "### 撮影失敗");
             }
         });
     }
 
     private void toggleRecording() {
         if (mMediaRecorder.getState() == HostMediaRecorder.State.RECORDING) {
-            mMediaRecorder.stopRecording(null);
-        } else {
-            mMediaRecorder.startRecording(new HostDeviceStreamRecorder.RecordingCallback() {
+            mMediaRecorder.stopRecording(new HostDeviceStreamRecorder.StoppingCallback() {
                 @Override
-                public void onRecorded(HostDeviceStreamRecorder recorder, String fileName) {
-                    // TODO 撮影成功
+                public void onStopped(HostDeviceStreamRecorder recorder, String fileName) {
+                    setRecordingButton();
                 }
 
                 @Override
                 public void onFailed(HostDeviceStreamRecorder recorder, String errorMessage) {
-                    // TODO 撮影失敗
+                    setRecordingButton();
+                }
+            });
+        } else {
+            mMediaRecorder.startRecording(new HostDeviceStreamRecorder.RecordingCallback() {
+                @Override
+                public void onRecorded(HostDeviceStreamRecorder recorder, String fileName) {
+                    setRecordingButton();
+                }
+
+                @Override
+                public void onFailed(HostDeviceStreamRecorder recorder, String errorMessage) {
+                    showToast("録画の開始に失敗しました");
+                    setRecordingButton();
                 }
             });
         }
+
     }
+
+    private void toggleBroadcaster() {
+        HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
+        if (mMediaRecorder.isBroadcasterRunning()) {
+            mMediaRecorder.stopBroadcaster();
+        } else {
+            String uri = settings.getBroadcastURI();
+            uri = "rtmp://192.168.11.7:1935/live/abc";
+            Broadcaster broadcaster = mMediaRecorder.startBroadcaster(uri);
+            if (broadcaster == null) {
+                showToast("配信開始に失敗しました");
+            }
+        }
+        setBroadcastButton();
+    }
+
+    private void togglePreviewServer() {
+        if (mMediaRecorder.isPreviewRunning()) {
+            mMediaRecorder.stopPreview();
+        } else {
+            List<PreviewServer> servers = mMediaRecorder.startPreview();
+            if (servers.isEmpty()) {
+                showToast("プレビュー配信サーバの開始に失敗しました");
+            }
+        }
+        setPreviewButton();
+    }
+
 
     @Override
     public void toggleDisplayRotation() {
         super.toggleDisplayRotation();
         setDisplayRotationButton();
-    }
-
-    private void togglePreviewServer() {
-        HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
-        if (settings.isBroadcastEnabled()) {
-            if (mMediaRecorder.isBroadcasterRunning()) {
-                mMediaRecorder.stopBroadcaster();
-            } else {
-                String uri = settings.getBroadcastURI();
-                uri = "rtmp://192.168.11.7:1935/live/abc";
-                Broadcaster broadcaster = mMediaRecorder.startBroadcaster(uri);
-                if (broadcaster == null) {
-                    showToast("配信開始に失敗しました");
-                }
-            }
-        } else {
-            if (mMediaRecorder.isPreviewRunning()) {
-                mMediaRecorder.stopPreview();
-            } else {
-                List<PreviewServer> servers = mMediaRecorder.startPreview();
-                if (servers.isEmpty()) {
-                    showToast("プレビュー配信サーバの開始に失敗しました");
-                }
-            }
-        }
-        setPreviewButton();
     }
 
     private void toggleAdjustView() {
@@ -457,15 +544,12 @@ public class CameraMainFragment extends CameraBaseFragment {
         setMuteButton();
     }
 
-    private void toggleStartPreview() {
-        if (mMediaRecorder != null) {
-            new Thread(this::togglePreviewServer).start();
-        }
-    }
 
     private void refreshUI() {
         setDisplayRotationButton();
         setPreviewButton();
+        setBroadcastButton();
+        setRecordingButton();
         setMuteButton();
     }
 
@@ -519,18 +603,34 @@ public class CameraMainFragment extends CameraBaseFragment {
             return;
         }
 
-        boolean running;
-        HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
-        if (settings.isBroadcastEnabled()) {
-            running = mMediaRecorder.isBroadcasterRunning();
+        if (mMediaRecorder.isPreviewRunning()) {
+            mViewModel.setTogglePreviewResId(R.drawable.ic_baseline_stop_24);
         } else {
-            running = mMediaRecorder.isPreviewRunning();
+            mViewModel.setTogglePreviewResId(R.drawable.ic_baseline_play_arrow_24);
+        }
+    }
+
+    private void setBroadcastButton() {
+        if (mViewModel == null || mMediaRecorder == null) {
+            return;
         }
 
-        if (running) {
-            mViewModel.setToggleStartResId(R.drawable.ic_baseline_stop_24);
+        if (mMediaRecorder.isBroadcasterRunning()) {
+            mViewModel.setToggleBroadcastResId(R.drawable.ic_baseline_stop_24);
         } else {
-            mViewModel.setToggleStartResId(R.drawable.ic_baseline_play_arrow_24);
+            mViewModel.setToggleBroadcastResId(R.drawable.ic_baseline_cloud_upload_18);
+        }
+    }
+
+    private void setRecordingButton() {
+        if (mViewModel == null || mMediaRecorder == null) {
+            return;
+        }
+
+        if (mMediaRecorder.getState() == HostMediaRecorder.State.RECORDING) {
+            mViewModel.setToggleRecordingResId(R.drawable.ic_baseline_stop_24);
+        } else {
+            mViewModel.setToggleRecordingResId(R.drawable.ic_baseline_videocam_18);
         }
     }
 }

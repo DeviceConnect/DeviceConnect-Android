@@ -1,5 +1,18 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
+
+import androidx.core.app.NotificationCompat;
+
+import org.deviceconnect.android.deviceplugin.host.R;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -14,6 +27,14 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
      * イベントを通知するリスナー.
      */
     private OnEventListener mOnEventListener;
+
+    private Context mContext;
+    private HostMediaRecorder mRecorder;
+
+    public AbstractBroadcastProvider(Context context, HostMediaRecorder recorder) {
+        mContext = context;
+        mRecorder = recorder;
+    }
 
     @Override
     public void setOnEventListener(OnEventListener listener) {
@@ -68,6 +89,7 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
             mBroadcaster.stop();
             mBroadcaster = null;
         } else {
+            sendNotification(mRecorder.getId(), mRecorder.getName());
             mBroadcaster.setOnEventListener(new Broadcaster.OnEventListener() {
                 @Override
                 public void onStarted() {
@@ -91,6 +113,8 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
 
     @Override
     public void stopBroadcaster() {
+        hideNotification(mRecorder.getId());
+
         if (mBroadcaster != null) {
             mBroadcaster.stop();
             mBroadcaster = null;
@@ -135,5 +159,106 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
         if (mOnEventListener != null) {
             mOnEventListener.onError(broadcaster, e);
         }
+    }
+
+    /**
+     * Notification の Id を取得します.
+     *
+     * @return Notification の Id
+     */
+    protected int getNotificationId() {
+        return 123;
+    }
+
+    /**
+     * プレビュー配信サーバ停止用の Notification を削除します.
+     *
+     * @param id notification を識別する ID
+     */
+    private void hideNotification(String id) {
+        NotificationManager manager = (NotificationManager) mContext
+                .getSystemService(Service.NOTIFICATION_SERVICE);
+        if (manager != null) {
+            manager.cancel(id, getNotificationId());
+        }
+    }
+
+    /**
+     * プレビュー配信サーバ停止用の Notification を送信します.
+     *
+     * @param id notification を識別する ID
+     * @param name 名前
+     */
+    private void sendNotification(String id, String name) {
+        PendingIntent contentIntent = createPendingIntent(id);
+        Notification notification = createNotification(contentIntent, null, name);
+        NotificationManager manager = (NotificationManager) mContext
+                .getSystemService(Service.NOTIFICATION_SERVICE);
+        if (manager != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                String channelId = mContext.getResources().getString(R.string.overlay_preview_channel_id);
+                NotificationChannel channel = new NotificationChannel(
+                        channelId,
+                        mContext.getResources().getString(R.string.overlay_preview_content_title),
+                        NotificationManager.IMPORTANCE_LOW);
+                channel.setDescription(mContext.getResources().getString(R.string.overlay_preview_content_message));
+                manager.createNotificationChannel(channel);
+                notification = createNotification(contentIntent, channelId, name);
+            }
+            manager.notify(id, getNotificationId(), notification);
+        }
+    }
+
+    /**
+     * Notificationを作成する.
+     *
+     * @param pendingIntent Notificationがクリックされたときに起動する Intent
+     * @param channelId チャンネルID
+     * @param name 名前
+     * @return Notification
+     */
+    protected Notification createNotification(final PendingIntent pendingIntent, final String channelId, String name) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext());
+            builder.setContentIntent(pendingIntent);
+            builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
+            builder.setSmallIcon(R.drawable.dconnect_icon);
+            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title, name));
+            builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
+            builder.setWhen(System.currentTimeMillis());
+            builder.setAutoCancel(true);
+            builder.setOngoing(true);
+            return builder.build();
+        } else {
+            Notification.Builder builder = new Notification.Builder(mContext.getApplicationContext());
+            builder.setContentIntent(pendingIntent);
+            builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
+            int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                    R.drawable.dconnect_icon : R.drawable.dconnect_icon_lollipop;
+            builder.setSmallIcon(iconType);
+            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title, name));
+            builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
+            builder.setWhen(System.currentTimeMillis());
+            builder.setAutoCancel(true);
+            builder.setOngoing(true);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && channelId != null) {
+                builder.setChannelId(channelId);
+            }
+            return builder.build();
+        }
+    }
+
+    /**
+     * PendingIntent を作成する.
+     *
+     * @param id レコーダ ID
+     *
+     * @return PendingIntent
+     */
+    private PendingIntent createPendingIntent(String id) {
+        Intent intent = new Intent();
+        intent.setAction(HostMediaRecorderManager.ACTION_STOP_BROADCAST);
+        intent.putExtra(HostMediaRecorderManager.KEY_RECORDER_ID, id);
+        return PendingIntent.getBroadcast(mContext, getNotificationId(), intent, 0);
     }
 }

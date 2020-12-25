@@ -14,12 +14,20 @@ public class CameraMainViewModel extends BaseObservable {
     private String mTemperature = "";
     private String mBatteryLevel = "";
 
-    private int mToggleStartResId = R.drawable.ic_baseline_play_arrow_24;
+    private int mTogglePreviewResId = R.drawable.ic_baseline_play_arrow_24;
+    private int mToggleBroadcastResId = R.drawable.ic_baseline_cloud_upload_18;
+    private int mToggleRecordingResId = R.drawable.ic_baseline_videocam_18;
+    private int mPhotoResId = R.drawable.ic_baseline_camera_18;
     private int mMuteResId = R.drawable.ic_baseline_mic_24;
     private int mRotationResId = R.drawable.ic_baseline_sync_24;
 
     private int mParamVisibility = View.GONE;
     private int mSurfaceVisibility = View.GONE;
+
+    private int mTogglePreviewVisibility = View.VISIBLE;
+    private int mToggleBroadcastVisibility = View.GONE;
+    private int mPhotoVisibility = View.GONE;
+    private int mToggleRecordingVisibility = View.GONE;
 
     @Bindable
     public String getNetworkType() {
@@ -62,13 +70,43 @@ public class CameraMainViewModel extends BaseObservable {
     }
 
     @Bindable
-    public int getToggleStartResId() {
-        return mToggleStartResId;
+    public int getTogglePreviewResId() {
+        return mTogglePreviewResId;
     }
 
-    public void setToggleStartResId(int resId) {
-        mToggleStartResId = resId;
-        notifyPropertyChanged(BR.toggleStartResId);
+    public void setTogglePreviewResId(int resId) {
+        mTogglePreviewResId = resId;
+        notifyPropertyChanged(BR.togglePreviewResId);
+    }
+
+    @Bindable
+    public int getToggleBroadcastResId() {
+        return mToggleBroadcastResId;
+    }
+
+    public void setToggleBroadcastResId(int resId) {
+        mToggleBroadcastResId = resId;
+        notifyPropertyChanged(BR.toggleBroadcastResId);
+    }
+
+    @Bindable
+    public int getToggleRecordingResId() {
+        return mToggleRecordingResId;
+    }
+
+    public void setToggleRecordingResId(int resId) {
+        mToggleRecordingResId = resId;
+        notifyPropertyChanged(BR.toggleRecordingResId);
+    }
+
+    @Bindable
+    public int getPhotoResId() {
+        return mPhotoResId;
+    }
+
+    public void setPhotoResId(int resId) {
+        mPhotoResId = resId;
+        notifyPropertyChanged(BR.photoResId);
     }
 
     @Bindable

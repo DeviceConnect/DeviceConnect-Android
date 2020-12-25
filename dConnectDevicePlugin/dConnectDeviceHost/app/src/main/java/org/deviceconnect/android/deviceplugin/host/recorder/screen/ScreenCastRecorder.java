@@ -79,9 +79,9 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         initSupportedSettings();
 
         mScreenCastMgr = new ScreenCastManager(context);
-        mScreenCastPreviewServerProvider = new ScreenCastPreviewServerProvider(context, this);
-        mScreenCastBroadcasterProvider = new ScreenCastBroadcasterProvider(this);
         mScreenCastSurfaceDrawingThread = new ScreenCastSurfaceDrawingThread(this);
+        mScreenCastPreviewServerProvider = new ScreenCastPreviewServerProvider(context, this);
+        mScreenCastBroadcasterProvider = new ScreenCastBroadcasterProvider(context, this);
     }
 
     /**

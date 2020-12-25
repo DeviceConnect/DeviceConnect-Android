@@ -122,7 +122,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     /**
      * カメラのプレビューを配信するクラス.
      */
-    private Camera2BroadcasterProvider mBroadcasterProvider;
+    private Camera2BroadcasterProvider mCamera2BroadcasterProvider;
 
     /**
      * カメラの映像を Surface に描画を行うためのクラス.
@@ -165,7 +165,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
 
         mCameraSurfaceDrawingThread = new CameraSurfaceDrawingThread(this);
         mCamera2PreviewServerProvider = new Camera2PreviewServerProvider(context, this);
-        mBroadcasterProvider = new Camera2BroadcasterProvider(this);
+        mCamera2BroadcasterProvider = new Camera2BroadcasterProvider(context, this);
     }
 
     /**
@@ -222,7 +222,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     @Override
     public synchronized void clean() {
         super.clean();
-        mBroadcasterProvider.stopBroadcaster();
+        mCamera2BroadcasterProvider.stopBroadcaster();
         mCamera2PreviewServerProvider.stopServers();
         mCameraSurfaceDrawingThread.stop(true);
     }
@@ -268,7 +268,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
 
     @Override
     public BroadcasterProvider getBroadcasterProvider() {
-        return mBroadcasterProvider;
+        return mCamera2BroadcasterProvider;
     }
 
     @Override
@@ -279,13 +279,13 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     @Override
     public void onDisplayRotation(final int degree) {
         mCurrentRotation = degree;
-        mBroadcasterProvider.onConfigChange();
+        mCamera2BroadcasterProvider.onConfigChange();
         mCamera2PreviewServerProvider.onConfigChange();
     }
 
     @Override
     public void onConfigChange() {
-        mBroadcasterProvider.onConfigChange();
+        mCamera2BroadcasterProvider.onConfigChange();
         mCamera2PreviewServerProvider.onConfigChange();
     }
 

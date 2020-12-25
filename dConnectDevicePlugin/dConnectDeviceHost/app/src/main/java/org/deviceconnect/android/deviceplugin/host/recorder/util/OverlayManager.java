@@ -5,8 +5,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.Surface;
@@ -38,6 +40,9 @@ public class OverlayManager {
      */
     private static final String EXTRA_CAMERA_ID = "extrea_camer_id";
 
+    /**
+     * コンテキスト.
+     */
     private Context mContext;
 
     /**
@@ -55,10 +60,24 @@ public class OverlayManager {
      */
     private Handler mHandler = new Handler(Looper.getMainLooper());
 
+    /**
+     * オーバーレイに表示するレコーダ.
+     */
     private HostMediaRecorder mRecorder;
+
+    /**
+     * 描画を行うクラス.
+     */
     private EGLSurfaceDrawingThread mEGLSurfaceDrawingThread;
+
+    /**
+     * 描画先の Surface.
+     */
     private Surface mSurface;
 
+    /**
+     * 描画イベントを受け取ります.
+     */
     private final EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
         @Override
         public void onStarted() {
@@ -90,11 +109,17 @@ public class OverlayManager {
         mOverlayLayoutManager = new OverlayLayoutManager(context);
     }
 
+    /**
+     * オーバーレイの後始末を行います.
+     */
     public void destroy() {
         unregisterBroadcastReceiver();
         mHandler.post(this::hideOverlay);
     }
 
+    /**
+     * 画面の回転や設定が変更されたことを受け取ります.
+     */
     public void onConfigChange() {
         if (mOverlayView != null) {
             // 画面が回転したので、オーバーレイのレイアウトも調整
@@ -111,6 +136,9 @@ public class OverlayManager {
         }
     }
 
+    /**
+     * オーバーレイを表示します.
+     */
     public void showOverlay() {
         if (mOverlayView != null) {
             return;
@@ -119,7 +147,7 @@ public class OverlayManager {
         // Notification を閉じるイベントを送信
         mContext.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
 
-        if (!mOverlayLayoutManager.isOverlayAllowed()) {
+        if (!isOverlayAllowed()) {
             openOverlayPermissionActivity();
             return;
         }
@@ -157,6 +185,9 @@ public class OverlayManager {
                 "overlay-" + mRecorder.getId());
     }
 
+    /**
+     * オーバーレイを非表示にします.
+     */
     public void hideOverlay() {
         if (mOverlayView == null) {
             return;
@@ -224,6 +255,19 @@ public class OverlayManager {
     }
 
     /**
+     * オーバーレイの表示許可を確認します.
+     *
+     * @return オーバーレイの表示許可がある場合はtrue、それ以外はfalse
+     */
+    public boolean isOverlayAllowed() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return Settings.canDrawOverlays(mContext);
+        } else {
+            return true;
+        }
+    }
+
+    /**
      * オーバーレイの許可を求めるための Activity を開きます.
      */
     private void openOverlayPermissionActivity() {
@@ -233,6 +277,11 @@ public class OverlayManager {
         mContext.startActivity(intent);
     }
 
+    /**
+     * 通知の ID を取得します.
+     * 
+     * @return 通知の ID
+     */
     private int getNotificationId() {
         return 1111;
     }

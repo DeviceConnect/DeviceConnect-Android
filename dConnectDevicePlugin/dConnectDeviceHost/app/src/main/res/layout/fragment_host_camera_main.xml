@@ -33,6 +33,33 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <ImageButton
+            android:id="@+id/fragment_host_camera_settings_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:background="@drawable/button_round_black"
+            android:contentDescription="Settings Button"
+            android:onClick="@{() -> presenter.onClickSettingButton()}"
+            android:padding="12dp"
+            android:src="@drawable/ic_baseline_settings_24"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/fragment_host_camera_switch_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:background="@drawable/button_round_black"
+            android:contentDescription="Camera Switch Button"
+            android:onClick="@{() -> presenter.onClickSwitchCameraButton()}"
+            android:padding="12dp"
+            android:src="@drawable/ic_baseline_switch_camera_24"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
         <LinearLayout
             android:id="@+id/fragment_host_camera_parameter"
             android:layout_width="wrap_content"
@@ -41,7 +68,7 @@
             android:padding="8dp"
             android:visibility="@{viewModel.paramVisibility}"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toBottomOf="@id/fragment_host_camera_switch_button">
 
             <TextView
                 android:id="@+id/fragment_host_camera_battery"
@@ -89,32 +116,6 @@
 
         </LinearLayout>
 
-        <ImageButton
-            android:id="@+id/fragment_host_camera_settings_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:background="@drawable/button_round_black"
-            android:contentDescription="Settings Button"
-            android:onClick="@{() -> presenter.onClickSettingButton()}"
-            android:padding="12dp"
-            android:src="@drawable/ic_baseline_settings_24"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <ImageButton
-            android:id="@+id/fragment_host_camera_switch_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:background="@drawable/button_round_black"
-            android:contentDescription="Camera Switch Button"
-            android:onClick="@{() -> presenter.onClickSwitchCameraButton()}"
-            android:padding="12dp"
-            android:src="@drawable/ic_baseline_switch_camera_24"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/fragment_host_camera_menu"
@@ -129,15 +130,63 @@
             app:layout_constraintRight_toRightOf="parent">
 
             <ImageButton
-                android:id="@+id/fragment_host_camera_toggle_button"
+                android:id="@+id/fragment_host_camera_toggle_preview_button"
                 style="@android:style/Widget.ImageButton"
                 android:layout_width="80dp"
                 android:layout_height="80dp"
                 android:layout_margin="8dp"
                 android:background="@drawable/button_round_white"
-                android:contentDescription="Play/Stop Toggle Button"
+                android:contentDescription="Preview Toggle Button"
                 android:onClick="@{() -> presenter.onClickTogglePreviewButton()}"
-                app:imageResource="@{viewModel.toggleStartResId}"
+                app:imageResource="@{viewModel.togglePreviewResId}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageButton
+                android:id="@+id/fragment_host_camera_toggle_broadcaster_button"
+                style="@android:style/Widget.ImageButton"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_margin="8dp"
+                android:background="@drawable/button_round_white"
+                android:contentDescription="Broadcaster Toggle Button"
+                android:onClick="@{() -> presenter.onClickToggleBroadcastButton()}"
+                android:visibility="gone"
+                app:imageResource="@{viewModel.toggleBroadcastResId}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageButton
+                android:id="@+id/fragment_host_camera_toggle_photo_button"
+                style="@android:style/Widget.ImageButton"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_margin="8dp"
+                android:background="@drawable/button_round_white"
+                android:contentDescription="Photo Toggle Button"
+                android:onClick="@{() -> presenter.onClickTakePhoto()}"
+                android:visibility="gone"
+                app:imageResource="@{viewModel.photoResId}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageButton
+                android:id="@+id/fragment_host_camera_toggle_recording_button"
+                style="@android:style/Widget.ImageButton"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_margin="8dp"
+                android:background="@drawable/button_round_white"
+                android:contentDescription="Photo Toggle Button"
+                android:onClick="@{() -> presenter.onClickToggleRecordingButton()}"
+                android:visibility="gone"
+                app:imageResource="@{viewModel.toggleRecordingResId}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -154,7 +203,7 @@
                 android:padding="12dp"
                 app:imageResource="@{viewModel.rotationResId}"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/fragment_host_camera_toggle_button"
+                app:layout_constraintEnd_toStartOf="@id/fragment_host_camera_toggle_preview_button"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -170,10 +219,53 @@
                 app:imageResource="@{viewModel.muteResId}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/fragment_host_camera_toggle_button"
+                app:layout_constraintStart_toEndOf="@id/fragment_host_camera_toggle_preview_button"
                 app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/fragment_host_camera_tab_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tabIndicator="@drawable/tab_indicator"
+            app:tabIndicatorColor="#FFF"
+            app:tabIndicatorGravity="stretch"
+            app:tabPaddingEnd="16dp"
+            app:tabPaddingStart="16dp"
+            app:tabSelectedTextColor="#FFF"
+            app:tabTextColor="#000000">
+
+            <com.google.android.material.tabs.TabItem
+                android:id="@+id/fragment_host_camera_preview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:icon="@drawable/ic_baseline_tap_and_play_18" />
+
+            <com.google.android.material.tabs.TabItem
+                android:id="@+id/fragment_host_camera_broadcaster"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:icon="@drawable/ic_baseline_cloud_upload_18" />
+
+            <com.google.android.material.tabs.TabItem
+                android:id="@+id/fragment_host_camera_photo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:icon="@drawable/ic_baseline_camera_18" />
+
+            <com.google.android.material.tabs.TabItem
+                android:id="@+id/fragment_host_camera_recording"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:icon="@drawable/ic_baseline_videocam_18" />
+
+        </com.google.android.material.tabs.TabLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

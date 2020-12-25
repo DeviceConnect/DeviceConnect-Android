@@ -275,19 +275,6 @@ public class OverlayLayoutManager {
                 PixelFormat.TRANSLUCENT);
     }
 
-    /**
-     * オーバーレイの表示許可を確認します.
-     *
-     * @return オーバーレイの表示許可がある場合はtrue、それ以外はfalse
-     */
-    public boolean isOverlayAllowed() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return Settings.canDrawOverlays(mContext);
-        } else {
-            return true;
-        }
-    }
-
     private static class OverlayTag {
         private String mName;
         private int mX;

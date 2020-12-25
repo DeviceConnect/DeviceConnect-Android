@@ -38,9 +38,14 @@ public class HostMediaRecorderManager {
     public static final String ACTION_STOP_RECORDING = "org.deviceconnect.android.deviceplugin.host.STOP_RECORDING";
 
     /**
-     * オーバーレイ削除用アクションを定義.
+     * プレビュー停止用アクションを定義.
      */
     public static final String ACTION_STOP_PREVIEW = "org.deviceconnect.android.deviceplugin.host.STOP_PREVIEW";
+
+    /**
+     * ブロードキャスト停止用アクションを定義.
+     */
+    public static final String ACTION_STOP_BROADCAST = "org.deviceconnect.android.deviceplugin.host.STOP_BROADCAST";
 
     /**
      * レコーダのIDを格納するためのキーを定義.
@@ -100,6 +105,8 @@ public class HostMediaRecorderManager {
                 stopPreviewServer(intent.getStringExtra(KEY_RECORDER_ID));
             } else if (ACTION_STOP_RECORDING.equals(action)) {
                 stopRecording(intent.getStringExtra(KEY_RECORDER_ID));
+            } else if (ACTION_STOP_BROADCAST.equals(action)) {
+                stopBroadcast(intent.getStringExtra(KEY_RECORDER_ID));
             }
         }
     };
@@ -245,6 +252,7 @@ public class HostMediaRecorderManager {
         filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
         filter.addAction(ACTION_STOP_PREVIEW);
         filter.addAction(ACTION_STOP_RECORDING);
+        filter.addAction(ACTION_STOP_BROADCAST);
         getContext().registerReceiver(mBroadcastReceiver, filter);
     }
 
@@ -366,6 +374,22 @@ public class HostMediaRecorderManager {
         HostMediaRecorder recorder = getRecorder(id);
         if (recorder != null) {
             recorder.stopRecording(null);
+        }
+    }
+
+    /**
+     * 指定された ID のレコードのブロードキャストを停止します.
+     *
+     * @param id レコードの ID
+     */
+    private void stopBroadcast(final String id) {
+        if (id == null) {
+            return;
+        }
+
+        HostMediaRecorder recorder = getRecorder(id);
+        if (recorder != null) {
+            recorder.stopBroadcaster();
         }
     }
 

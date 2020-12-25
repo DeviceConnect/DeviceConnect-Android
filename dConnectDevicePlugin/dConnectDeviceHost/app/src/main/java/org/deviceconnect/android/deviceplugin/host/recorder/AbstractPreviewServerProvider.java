@@ -131,8 +131,8 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
         try {
             latch.await(5, TimeUnit.SECONDS);
             if (results.size() > 0) {
-                sendNotification(mRecorder.getId(), mRecorder.getName());
                 mIsRunning = true;
+                sendNotification(mRecorder.getId(), mRecorder.getName());
                 postPreviewStarted(results);
             }
         } catch (InterruptedException e) {
@@ -150,9 +150,9 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
         }
 
         if (mIsRunning) {
+            mIsRunning = false;
             postPreviewStopped();
         }
-        mIsRunning = false;
     }
 
     @Override
@@ -204,9 +204,9 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     }
 
     /**
-     * NotificationIdを取得します.
+     * Notification の Id を取得します.
      *
-     * @return NotificationId
+     * @return Notification の Id
      */
     protected int getNotificationId() {
         return mNotificationId;

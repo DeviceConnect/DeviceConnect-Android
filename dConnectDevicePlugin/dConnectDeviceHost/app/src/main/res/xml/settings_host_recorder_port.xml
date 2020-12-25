@@ -3,43 +3,42 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
-        android:title="MotionJPEG 設定"
+        android:title="@string/host_recorder_settings_port_motion_jpeg"
         app:iconSpaceReserved="false">
 
         <EditTextPreference
             android:defaultValue="0"
             android:key="mjpeg_port"
             android:singleLine="true"
-            android:title="ポート番号"
+            android:title="@string/host_recorder_settings_port_number"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="RTSP 設定"
+        android:title="@string/host_recorder_settings_port_rtsp"
         app:iconSpaceReserved="false">
 
         <EditTextPreference
             android:defaultValue="1"
             android:key="rtsp_port"
             android:singleLine="true"
-            android:title="ポート番号"
+            android:title="@string/host_recorder_settings_port_number"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>
 
-
     <PreferenceCategory
-        android:title="SRT 設定"
+        android:title="@string/host_recorder_settings_port_srt"
         app:iconSpaceReserved="false">
 
         <EditTextPreference
             android:defaultValue="1"
             android:key="srt_port"
             android:singleLine="true"
-            android:title="ポート番号"
+            android:title="@string/host_recorder_settings_port_number"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 

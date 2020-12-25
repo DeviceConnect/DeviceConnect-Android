@@ -3,6 +3,8 @@
     <string name="host_ok">OK</string>
     <string name="host_confirm">確認</string>
     <string name="app_name_host">Host (Device Connect Device Plug-in)</string>
+    <string name="app_name_camera">Host カメラ</string>
+    <string name="app_name_screencast">Host スクリーンキャスト</string>
 
     <string name="shuttered">シャッター</string>
     <string name="started_video_recording">録画開始</string>
@@ -17,6 +19,7 @@
     <string name="canvas_profile_view_close_guidance">tap to close.</string>
     <string name="keyevent_activity">Key Event Activity</string>
 
+    <!-- オーバーレイ -->
     <string name="overlay_preview">PREVIEW</string>
     <string name="overlay_preview_ticker">カメラを起動します</string>
     <string name="overlay_preview_channel_id">org.deviceconnect.android.intent.action.preview.host</string>
@@ -25,51 +28,66 @@
     <string name="overlay_preview_content_title">プレビュー配信サーバ [ %1$s ]</string>
     <string name="overlay_preview_content_message">タップして撮影を停止します。</string>
     <string name="overlay_preview_content_message2">カメラの映像をキャプチャしています。</string>
-
     <string name="overlay_no_permission_title">パーミッション</string>
     <string name="overlay_no_permission_message">オーバーレイの表示許可がありません。\n設定画面を開きますか？</string>
     <string name="overlay_no_permission_ok">はい</string>
     <string name="overlay_no_permission_no">いいえ</string>
-
     <string name="overlay_preview_delivery">配信中</string>
-
     <string name="overlay_preview_show">画面に表示</string>
     <string name="overlay_preview_hide">画面から削除</string>
     <string name="overlay_preview_stop">停止</string>
 
-    <string name="host_settings_title">Host設定</string>
-    <string name="host_settings_item_gps">GPS</string>
-    <string name="host_settings_item_jpeg_quality_preview">JPEG 品質</string>
-    <string name="host_settings_item_audio_preview">音声</string>
-    <string name="host_settings_item_srt_preview">SRT</string>
-    <string name="host_settings_item_demo_page">デモページ</string>
-    <string name="host_settings_item_audio_enabled">音声</string>
-    <string name="host_settings_item_audio_enabled_summary">プレビューの音声の有効化の設定を行います。</string>
-    <string name="host_settings_item_audio_bit_rate">ビットレート</string>
-    <string name="host_settings_item_audio_sample_rate">サンプルレート</string>
-    <string name="host_settings_item_audio_channel">チャンネル</string>
-    <string name="host_settings_item_audio_use_aec">エコーキャンセラー</string>
-    <string name="host_settings_item_audio_use_aec_summary">エコーキャンセラー有効化の設定を行います。</string>
-    <string-array name="host_settings_item_audio_sample_rate_list">
-        <item>96000</item>
-        <item>88200</item>
-        <item>64000</item>
-        <item>48000</item>
-        <item>44100</item>
-        <item>32000</item>
-        <item>24000</item>
-        <item>22050</item>
-        <item>16000</item>
-        <item>12000</item>
-        <item>11025</item>
-        <item>8000</item>
-        <item>7350</item>
-    </string-array>
-    <string-array name="host_settings_item_audio_channel_list">
-        <item>1</item>
-        <item>2</item>
-    </string-array>
+    <!-- プラグイン設定画面 -->
+    <string name="host_settings_title">Host 設定</string>
+    <string name="host_settings_main_app_list">アプリ一覧</string>
+    <string name="host_settings_main_app_camera">カメラ</string>
+    <string name="host_settings_main_app_screencast">スクリーンキャスト</string>
+    <string name="host_settings_main_plugin">プラグイン設定</string>
+    <string name="host_settings_main_plugin_gps">GPS</string>
+    <string name="host_settings_main_plugin_demo">デモ設定</string>
+    <string name="host_settings_main_plugin_demo_page">デモページ</string>
 
+    <!-- レコーダ設定画面 -->
+    <string name="host_recorder_settings_title">レコーダ設定</string>
+    <string name="host_recorder_settings_video">映像設定</string>
+    <string name="host_recorder_settings_audio">音声設定</string>
+    <string name="host_recorder_settings_broadcast">配信設定</string>
+    <string name="host_recorder_settings_srt">SRT 設定</string>
+    <string name="host_recorder_settings_port">ポート設定</string>
+
+    <!-- 映像設定画面 -->
+    <string name="host_recorder_settings_still_image_resolution">静止画解像度</string>
+    <string name="host_recorder_settings_preview_resolution">プレビュー解像度</string>
+    <string name="host_recorder_settings_framerate">フレームレート (fps)</string>
+    <string name="host_recorder_settings_bitrate">ビットレート (bps)</string>
+    <string name="host_recorder_settings_i_frame_interval">キーフレームインターバル(秒)</string>
+    <string name="host_recorder_settings_video_encode">エンコーダ</string>
+    <string name="host_recorder_settings_use_software_encode">ソフトウェアエンコーダ</string>
+    <string name="host_recorder_settings_use_software_encode_summary">MediaCodec でソフトウェアエンコーダを優先して使用します。</string>
+    <string name="host_recorder_settings_white_balance">ホワイトバランス</string>
+    <string name="host_recorder_settings_intra_refresh">イントラリフレッシュ</string>
+    <string name="host_recorder_settings_motion_jpeg">MotionJPEG 設定</string>
+    <string name="host_recorder_settings_jpeg_quality">クオリティ (%)</string>
+
+    <!-- 音声設定 -->
+    <string name="host_recorder_settings_audio_enable">音声有効</string>
+    <string name="host_recorder_settings_audio_enable_summary">音声の有効化の設定を行います。</string>
+    <string name="host_recorder_settings_audio_bitrate">ビットレート (bps)</string>
+    <string name="host_recorder_settings_audio_sampling_rate">サンプリングレート</string>
+    <string name="host_recorder_settings_audio_channel">チャンネル</string>
+    <string name="host_recorder_settings_audio_echo_canceler">エコーキャンセラー</string>
+    <string name="host_recorder_settings_audio_echo_canceler_summary">エコーキャンセラー有効化の設定を行います。</string>
+
+    <!-- Broadcast -->
+    <string name="host_recorder_settings_broadcast_uri">URL</string>
+
+    <!-- ポート設定 -->
+    <string name="host_recorder_settings_port_motion_jpeg">MotionJPEG 設定</string>
+    <string name="host_recorder_settings_port_rtsp">RTSP 設定</string>
+    <string name="host_recorder_settings_port_srt">SRT 設定</string>
+    <string name="host_recorder_settings_port_number">ポート番号</string>
+
+    <!-- GPS 設定 -->
     <string name="gps_settings_title">GPS設定</string>
     <string name="gps_settings_body">このデバイスプラグインでは、GPS機能を使用しますので、端末のGPS設定画面より設定をONにしてください。</string>
     <string name="gps_settings_button">設定画面を開く</string>
@@ -78,16 +96,26 @@
     <string name="gps_settings_gps_permission_on">取得済み</string>
     <string name="gps_settings_gps_permission_off">取得</string>
 
-    <string name="recorder_settings_preview_jpeg_title">JPEG品質 - プレビュー</string>
-
-    <string name="demo_page_description">Host プラグインはカメラ機能等のデモページを提供します。\n\n外部ストレージにインストールすると Web ブラウザからデモページにアクセスできるようになります。</string>
-    <string name="demo_page_shortcut_label">カメラ</string>
-
     <string name="host_setting_dialog_error_permission">GPSを使用するためのパーミッションが許可されていないために検索できません。\nGPS設定画面から位置情報の許可を取得してください。</string>
     <string name="host_setting_dialog_disable_gps">GPSが無効になっているために検索できません。\nGPS設定画面からGPSを有効に設定してください。</string>
     <string name="host_setting_gps_dialog_cancel">キャンセル</string>
 
+    <!-- デモページ -->
+    <string name="demo_page_description">Host プラグインはカメラ機能等のデモページを提供します。\n\n外部ストレージにインストールすると Web ブラウザからデモページにアクセスできるようになります。</string>
+    <string name="demo_page_shortcut_label">カメラ</string>
+
     <string name="host_setting_srt_option_auto">自動</string>
+
+    <!-- スクリーンキャスト -->
+    <string name="host_app_screencast">スクリーンキャスト</string>
+    <string name="host_app_screencast_preview">プレビュー配信</string>
+    <string name="host_app_screencast_preview_summary">画面の映像をプレビュー配信します。</string>
+    <string name="host_app_screencast_broadcast">ブロードキャスト</string>
+    <string name="host_app_screencast_broadcast_summary">画面の映像をブロードキャスト配信します。</string>
+    <string name="host_app_screencast_recording">録画</string>
+    <string name="host_app_screencast_recording_summary">画面の録画を行います。</string>
+    <string name="host_app_screencast_settings">設定</string>
+    <string name="host_app_screencast_settings_change">設定変更</string>
 
     <string name="host_canvas_download_title">ダウンロード</string>
     <string name="host_canvas_download_message">ダウンロード中...</string>
@@ -99,7 +127,6 @@
     <string name="host_notification_channel_id">org.deviceconnect.android.intent.action.notifiy.host</string>
     <string name="host_notification_channel_title">Device Connect Notification</string>
     <string name="host_notification_channel_desc">DeviceConnectの通知</string>
-
     <string name="host_notification_canvas_warnning">Host Canvas Profileからの起動要求</string>
     <string name="host_notification_touch_warnning">Host Touch Profileからの起動要求</string>
     <string name="host_notification_keyevent_warnning">Host KeyEvent Profileからの起動要求</string>
@@ -109,4 +136,14 @@
     <string name="host_notification_projection_warnning">Host Media Streaming Recording Profileからの起動要求</string>
     <string name="host_notification_phone_warnning">Host Phone Profileからの起動要求</string>
     <string name="host_notification_setting_warnning">Host Setting Profileからの起動要求</string>
+
+    <string name="host_notification_recorder_preview_ticker">プレビュー配信サーバを起動します</string>
+    <string name="host_notification_recorder_preview">プレビュー配信サーバ [ %1$s ]</string>
+    <string name="host_notification_recorder_preview_content">タップして配信を停止します。</string>
+    <string name="host_notification_recorder_broadcast_ticker">ブロードキャストを起動します</string>
+    <string name="host_notification_recorder_broadcast">ブロードキャスト [ %1$s ]</string>
+    <string name="host_notification_recorder_broadcast_content">タップして配信を停止します。</string>
+    <string name="host_notification_recorder_recording_ticker">録画を開始します</string>
+    <string name="host_notification_recorder_recording">録画 [ %1$s ]</string>
+    <string name="host_notification_recorder_recording_content">タップして録画を停止します。</string>
 </resources>

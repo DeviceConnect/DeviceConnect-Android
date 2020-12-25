@@ -3,36 +3,36 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
-        android:title="映像設定"
+        android:title="@string/host_recorder_settings_video"
         app:iconSpaceReserved="false">
 
         <ListPreference
             app:key="camera_picture_size"
-            app:title="静止画解像度"
+            app:title="@string/host_recorder_settings_still_image_resolution"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
             app:key="camera_preview_size"
-            app:title="プレビュー解像度"
+            app:title="@string/host_recorder_settings_preview_resolution"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
             app:key="preview_framerate"
-            app:title="フレームレート (fps)"
+            app:title="@string/host_recorder_settings_framerate"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
             app:key="preview_bitrate"
-            app:title="ビットレート (KB)"
+            app:title="@string/host_recorder_settings_bitrate"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
             app:key="preview_i_frame_interval"
-            app:title="キーフレームインターバル (秒)"
+            app:title="@string/host_recorder_settings_i_frame_interval"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
@@ -41,41 +41,41 @@
             app:entryValues="@array/video_encoder_values"
             app:iconSpaceReserved="false"
             app:key="preview_mime_type"
-            app:title="エンコーダ"
+            app:title="@string/host_recorder_settings_video_encode"
             app:useSimpleSummaryProvider="true" />
 
         <SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="preview_use_software_encoder"
-            android:title="ソフトウェアエンコーダ"
-            app:summary="MediaCodec でソフトウェアエンコーダを優先して使用します。"
+            android:title="@string/host_recorder_settings_use_software_encode"
+            app:summary="@string/host_recorder_settings_use_software_encode_summary"
             app:iconSpaceReserved="false" />
 
         <ListPreference
             app:entries="@array/video_white_balance_names"
             app:entryValues="@array/video_white_balance_values"
             app:key="preview_white_balance"
-            app:title="ホワイトバランス"
+            app:title="@string/host_recorder_settings_white_balance"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
             app:key="preview_intra_refresh"
-            app:title="イントラリフレッシュ"
+            app:title="@string/host_recorder_settings_intra_refresh"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="MotionJPEG 設定"
+        android:title="@string/host_recorder_settings_motion_jpeg"
         app:iconSpaceReserved="false">
 
         <EditTextPreference
             android:defaultValue="80"
             android:key="preview_quality"
             android:singleLine="true"
-            android:title="クオリティ (%)"
+            android:title="@string/host_recorder_settings_jpeg_quality"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 

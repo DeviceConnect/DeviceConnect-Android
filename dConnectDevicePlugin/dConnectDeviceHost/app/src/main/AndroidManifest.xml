@@ -35,11 +35,6 @@
 
     <application android:allowBackup="false">
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostSettingActivity"
-            android:launchMode="singleTask"
-            android:theme="@style/AppCompatTheme" />
-
-        <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
             android:excludeFromRecents="true"
             android:exported="false"
@@ -97,16 +92,24 @@
             android:launchMode="singleInstance"
             android:theme="@style/AppTheme.Translucent" />
 
+        <!-- プラグイン設定画面用の Activity -->
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostSettingActivity"
+            android:launchMode="singleTask"
+            android:theme="@style/AppCompatTheme" />
+
+        <!-- レコーダー設定画面用の Activity -->
         <activity
             android:name=".activity.recorder.settings.SettingsActivity"
+            android:label="@string/host_recorder_settings_title"
             android:exported="false">
         </activity>
 
-        <!-- カメラの画面を表示するための Activity -->
+        <!-- カメラを操作するための Activity -->
         <activity
             android:name=".activity.recorder.camera.CameraActivity"
             android:exported="true"
-            android:label="Host Camera"
+            android:label="@string/app_name_camera"
             android:theme="@style/AppCompatTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -115,11 +118,11 @@
             </intent-filter>
         </activity>
 
-        <!-- スクリーンキャストを行う Activity -->
+        <!-- スクリーンキャストを行うための Activity -->
         <activity
             android:name=".activity.recorder.screen.ScreenCaptureActivity"
             android:exported="true"
-            android:label="Host Screen Capture"
+            android:label="@string/app_name_screencast"
             android:theme="@style/AppCompatTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

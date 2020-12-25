@@ -3,15 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
-        android:title="配信設定"
+        android:title="@string/host_recorder_settings_broadcast"
         app:iconSpaceReserved="false">
 
         <EditTextPreference
             android:defaultValue="rtmp://localhost:12345"
             android:singleLine="true"
-            app:key="broadcast_uri"
             android:title="URL"
             app:iconSpaceReserved="false"
+            app:key="@string/host_recorder_settings_broadcast_uri"
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>

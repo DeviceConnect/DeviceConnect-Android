@@ -4,26 +4,26 @@
     <PreferenceScreen
         app:iconSpaceReserved="false"
         app:key="recorder_settings_video"
-        app:title="映像設定" />
+        app:title="@string/host_recorder_settings_video" />
 
     <PreferenceScreen
         app:iconSpaceReserved="false"
         app:key="recorder_settings_audio"
-        app:title="音声設定" />
+        app:title="@string/host_recorder_settings_audio" />
 
     <PreferenceScreen
         app:iconSpaceReserved="false"
         app:key="recorder_settings_broadcast"
-        app:title="配信設定" />
+        app:title="@string/host_recorder_settings_broadcast" />
 
     <PreferenceScreen
         app:iconSpaceReserved="false"
         app:key="recorder_settings_srt"
-        app:title="SRT設定" />
+        app:title="@string/host_recorder_settings_srt" />
 
     <PreferenceScreen
         app:iconSpaceReserved="false"
         app:key="recorder_settings_port"
-        app:title="ポート設定" />
+        app:title="@string/host_recorder_settings_port" />
 
 </PreferenceScreen>

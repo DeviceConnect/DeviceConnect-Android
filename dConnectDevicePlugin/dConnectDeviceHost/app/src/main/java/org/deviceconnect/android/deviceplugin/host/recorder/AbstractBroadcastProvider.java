@@ -199,9 +199,9 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
                 String channelId = mContext.getResources().getString(R.string.overlay_preview_channel_id);
                 NotificationChannel channel = new NotificationChannel(
                         channelId,
-                        mContext.getResources().getString(R.string.overlay_preview_content_title),
+                        mContext.getResources().getString(R.string.host_notification_recorder_broadcast),
                         NotificationManager.IMPORTANCE_LOW);
-                channel.setDescription(mContext.getResources().getString(R.string.overlay_preview_content_message));
+                channel.setDescription(mContext.getResources().getString(R.string.host_notification_recorder_broadcast_content));
                 manager.createNotificationChannel(channel);
                 notification = createNotification(contentIntent, channelId, name);
             }
@@ -221,10 +221,10 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext());
             builder.setContentIntent(pendingIntent);
-            builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
+            builder.setTicker(mContext.getString(R.string.host_notification_recorder_broadcast_ticker));
             builder.setSmallIcon(R.drawable.dconnect_icon);
-            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title, name));
-            builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
+            builder.setContentTitle(mContext.getString(R.string.host_notification_recorder_broadcast, name));
+            builder.setContentText(mContext.getString(R.string.host_notification_recorder_broadcast_content));
             builder.setWhen(System.currentTimeMillis());
             builder.setAutoCancel(true);
             builder.setOngoing(true);
@@ -236,8 +236,8 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
             int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
                     R.drawable.dconnect_icon : R.drawable.dconnect_icon_lollipop;
             builder.setSmallIcon(iconType);
-            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title, name));
-            builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
+            builder.setContentTitle(mContext.getString(R.string.host_notification_recorder_broadcast, name));
+            builder.setContentText(mContext.getString(R.string.host_notification_recorder_broadcast_content));
             builder.setWhen(System.currentTimeMillis());
             builder.setAutoCancel(true);
             builder.setOngoing(true);

@@ -3,21 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
-        android:title="音声設定"
+        android:title="@string/host_recorder_settings_audio"
         app:iconSpaceReserved="false">
 
         <SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="audio_enabled"
-            android:title="音声"
-            app:summary="配信に音声を含めます。"
-            app:iconSpaceReserved="false" />
+            android:title="@string/host_recorder_settings_audio_enable"
+            app:iconSpaceReserved="false"
+            app:summary="@string/host_recorder_settings_audio_enable_summary" />
 
         <EditTextPreference
             android:defaultValue="64"
             android:key="preview_audio_bitrate"
             android:singleLine="true"
-            android:title="ビットレート (KB)"
+            android:title="@string/host_recorder_settings_audio_bitrate"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
@@ -26,7 +26,7 @@
             android:entries="@array/settings_audio_sampling_rates"
             android:entryValues="@array/settings_audio_sampling_rates"
             android:key="preview_audio_sample_rate"
-            android:title="サンプリングレート"
+            android:title="@string/host_recorder_settings_audio_sampling_rate"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
@@ -34,16 +34,16 @@
             android:defaultValue="1"
             android:key="preview_audio_channel"
             android:singleLine="true"
-            android:title="チャンネル"
+            android:title="@string/host_recorder_settings_audio_channel"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
         <SwitchPreferenceCompat
             android:defaultValue="true"
             android:key="preview_audio_aec"
-            android:title="エコーキャンセラー"
-            app:iconSpaceReserved="false"
-            app:useSimpleSummaryProvider="true" />
+            android:summary="@string/host_recorder_settings_audio_echo_canceler_summary"
+            android:title="@string/host_recorder_settings_audio_echo_canceler"
+            app:iconSpaceReserved="false" />
 
     </PreferenceCategory>
 

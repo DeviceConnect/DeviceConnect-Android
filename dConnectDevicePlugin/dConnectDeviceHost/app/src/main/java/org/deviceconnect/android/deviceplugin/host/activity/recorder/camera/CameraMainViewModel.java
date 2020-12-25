@@ -14,10 +14,10 @@ public class CameraMainViewModel extends BaseObservable {
     private String mTemperature = "";
     private String mBatteryLevel = "";
 
-    private int mTogglePreviewResId = R.drawable.ic_baseline_play_arrow_24;
-    private int mToggleBroadcastResId = R.drawable.ic_baseline_cloud_upload_18;
-    private int mToggleRecordingResId = R.drawable.ic_baseline_videocam_18;
-    private int mPhotoResId = R.drawable.ic_baseline_camera_18;
+    private int mTogglePreviewResId = R.drawable.ic_baseline_tap_and_play_48;
+    private int mToggleBroadcastResId = R.drawable.ic_baseline_cloud_upload_48;
+    private int mToggleRecordingResId = R.drawable.ic_baseline_videocam_48;
+    private int mPhotoResId = R.drawable.ic_baseline_camera_48;
     private int mMuteResId = R.drawable.ic_baseline_mic_24;
     private int mRotationResId = R.drawable.ic_baseline_sync_24;
 

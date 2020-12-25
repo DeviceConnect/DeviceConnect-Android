@@ -607,7 +607,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         if (mMediaRecorder.isPreviewRunning()) {
             mViewModel.setTogglePreviewResId(R.drawable.ic_baseline_stop_24);
         } else {
-            mViewModel.setTogglePreviewResId(R.drawable.ic_baseline_play_arrow_24);
+            mViewModel.setTogglePreviewResId(R.drawable.ic_baseline_tap_and_play_48);
         }
     }
 
@@ -619,7 +619,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         if (mMediaRecorder.isBroadcasterRunning()) {
             mViewModel.setToggleBroadcastResId(R.drawable.ic_baseline_stop_24);
         } else {
-            mViewModel.setToggleBroadcastResId(R.drawable.ic_baseline_cloud_upload_18);
+            mViewModel.setToggleBroadcastResId(R.drawable.ic_baseline_cloud_upload_48);
         }
     }
 
@@ -631,7 +631,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         if (mMediaRecorder.getState() == HostMediaRecorder.State.RECORDING) {
             mViewModel.setToggleRecordingResId(R.drawable.ic_baseline_stop_24);
         } else {
-            mViewModel.setToggleRecordingResId(R.drawable.ic_baseline_videocam_18);
+            mViewModel.setToggleRecordingResId(R.drawable.ic_baseline_videocam_48);
         }
     }
 }

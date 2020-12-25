@@ -26,6 +26,8 @@
     <string name="host_error_negative">いいえ</string>
     <string name="host_error_cancel">キャンセル</string>
 
+    <string name="host_manager_starting_confirm">Device Connect Manager に接続中</string>
+
     <!-- オーバーレイ -->
     <string name="overlay_preview">PREVIEW</string>
     <string name="overlay_preview_ticker">カメラを起動します</string>

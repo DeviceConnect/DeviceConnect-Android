@@ -25,6 +25,7 @@
     <string name="host_error_negative">NG</string>
     <string name="host_error_cancel">Cancel</string>
 
+    <string name="host_manager_starting_confirm">Connecting to Device Connect Manager</string>
 
     <string name="overlay_preview">PREVIEW</string>
     <string name="overlay_preview_ticker">Start the camera</string>

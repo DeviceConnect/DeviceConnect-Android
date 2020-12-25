@@ -10,7 +10,7 @@ public class CameraActivity extends HostDevicePluginBindActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_camera);
+        setContentView(R.layout.activity_app_camera);
 
         // 明示的に画面を OFF にさせない
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

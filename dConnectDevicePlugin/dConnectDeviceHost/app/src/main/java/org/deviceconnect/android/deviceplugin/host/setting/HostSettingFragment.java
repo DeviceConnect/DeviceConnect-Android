@@ -16,7 +16,7 @@ import androidx.preference.PreferenceFragmentCompat;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.recorder.camera.CameraActivity;
-import org.deviceconnect.android.deviceplugin.host.activity.recorder.screen.ScreenCaptureActivity;
+import org.deviceconnect.android.deviceplugin.host.activity.recorder.screencast.ScreencastActivity;
 
 import static androidx.navigation.fragment.NavHostFragment.findNavController;
 
@@ -48,7 +48,7 @@ public class HostSettingFragment extends PreferenceFragmentCompat {
         } else if (getString(R.string.pref_key_settings_app_camera).equals(preference.getKey())) {
             intent = new Intent(context, CameraActivity.class);
         } else if (getString(R.string.pref_key_settings_app_screen_capture).equals(preference.getKey())) {
-            intent = new Intent(context, ScreenCaptureActivity.class);
+            intent = new Intent(context, ScreencastActivity.class);
         } else if (getString(R.string.pref_key_settings_demo_page).equals(preference.getKey())) {
             findNavController(this).navigate(R.id.action_settings_to_demo);
         }

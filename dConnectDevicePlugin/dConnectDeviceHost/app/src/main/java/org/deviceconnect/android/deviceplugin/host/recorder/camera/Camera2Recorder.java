@@ -401,6 +401,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
      */
     private void takePhotoInternal(final @NonNull OnPhotoEventListener listener) {
         try {
+            mCameraWrapper.getOptions().setPictureSize(mSettings.getPictureSize());
             ImageReader stillImageReader = mCameraWrapper.createStillImageReader(ImageFormat.JPEG);
             stillImageReader.setOnImageAvailableListener((reader) -> {
                 Image photo = reader.acquireNextImage();

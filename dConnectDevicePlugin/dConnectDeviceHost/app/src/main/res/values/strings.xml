@@ -27,6 +27,11 @@
 
     <string name="host_manager_starting_confirm">Connecting to Device Connect Manager</string>
 
+    <string name="host_recorder_failed_to_broadcast">Failed to start a broadcast.</string>
+    <string name="host_recorder_failed_to_start_preview">Failed to start a preview server.</string>
+    <string name="host_recorder_failed_to_start_recording">Failed to start a recording.</string>
+    <string name="host_recorder_failed_to_take_photo">Failed to take a photo.</string>
+
     <string name="overlay_preview">PREVIEW</string>
     <string name="overlay_preview_ticker">Start the camera</string>
     <string name="overlay_preview_channel_id">org.deviceconnect.android.intent.action.preview.host</string>
@@ -47,6 +52,7 @@
     <string name="overlay_preview_hide">Hide preview on screen</string>
     <string name="overlay_preview_stop">Stop preview</string>
 
+    <string name="host_settings_title">Host Settings</string>
     <string name="host_settings_main_app_list">App List</string>
     <string name="host_settings_main_app_camera">Camera</string>
     <string name="host_settings_main_app_screencast">Screencast</string>
@@ -90,8 +96,6 @@
     <string name="host_recorder_settings_port_srt">SRT Settings</string>
     <string name="host_recorder_settings_port_number">Port</string>
 
-    <string name="host_settings_title">Host Settings</string>
-
     <string name="host_settings_item_srt_peerlatency" translatable="false">SRTO_PEERLATENCY</string>
     <string name="host_settings_item_srt_lossmaxttl" translatable="false">SRTO_LOSSMAXTTL</string>
     <string name="host_settings_item_srt_oheadbw" translatable="false">SRTO_OHEADBW</string>
@@ -110,6 +114,7 @@
     <string name="pref_key_settings_srt_conntimeo" translatable="false">pref_key_settings_srt_conntimeo</string>
     <string name="pref_key_settings_srt_peeridletimeo" translatable="false">pref_key_settings_srt_peeridletimeo</string>
     <string name="pref_key_settings_srt_packetfilter" translatable="false">pref_key_settings_srt_packetfilter</string>
+    <string name="host_setting_srt_option_auto">Auto</string>
 
     <string name="gps_settings_title">GPS setting</string>
     <string name="gps_settings_body">Since this device plug-in uses the GPS function, please turn on the setting from the GPS setting screen of the terminal.</string>
@@ -125,8 +130,6 @@
 
     <string name="demo_page_description">Host Plugin provide the demo page for camera feature and so on.\n\nPlease install the demo page on the external storage of this device if you want to access the demo page from web browsers.</string>
     <string name="demo_page_shortcut_label">Camera</string>
-
-    <string name="host_setting_srt_option_auto">Auto</string>
 
     <string name="host_app_screencast">Screencast</string>
     <string name="host_app_screencast_preview">Preview</string>

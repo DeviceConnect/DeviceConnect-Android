@@ -28,6 +28,11 @@
 
     <string name="host_manager_starting_confirm">Device Connect Manager に接続中</string>
 
+    <string name="host_recorder_failed_to_broadcast">ブロードキャストに失敗しました</string>
+    <string name="host_recorder_failed_to_start_preview">プレビュー配信に失敗しました</string>
+    <string name="host_recorder_failed_to_start_recording">録画に失敗しました</string>
+    <string name="host_recorder_failed_to_take_photo">写真撮影に失敗しました</string>
+
     <!-- オーバーレイ -->
     <string name="overlay_preview">PREVIEW</string>
     <string name="overlay_preview_ticker">カメラを起動します</string>
@@ -96,6 +101,9 @@
     <string name="host_recorder_settings_port_srt">SRT 設定</string>
     <string name="host_recorder_settings_port_number">ポート番号</string>
 
+    <!-- SRT設定 -->
+    <string name="host_setting_srt_option_auto">自動</string>
+
     <!-- GPS 設定 -->
     <string name="gps_settings_title">GPS設定</string>
     <string name="gps_settings_body">このデバイスプラグインでは、GPS機能を使用しますので、端末のGPS設定画面より設定をONにしてください。</string>
@@ -113,8 +121,6 @@
     <string name="demo_page_description">Host プラグインはカメラ機能等のデモページを提供します。\n\n外部ストレージにインストールすると Web ブラウザからデモページにアクセスできるようになります。</string>
     <string name="demo_page_shortcut_label">カメラ</string>
 
-    <string name="host_setting_srt_option_auto">自動</string>
-
     <!-- スクリーンキャスト -->
     <string name="host_app_screencast">スクリーンキャスト</string>
     <string name="host_app_screencast_preview">プレビュー配信</string>
@@ -126,13 +132,14 @@
     <string name="host_app_screencast_settings">設定</string>
     <string name="host_app_screencast_settings_change">設定変更</string>
 
+    <!-- Canvas プロファイル画面 -->
     <string name="host_canvas_download_title">ダウンロード</string>
     <string name="host_canvas_download_message">ダウンロード中...</string>
-
     <string name="host_canvas_error_title">画像読み込み失敗</string>
     <string name="host_canvas_error_oom_message">メモリーが足りません。</string>
     <string name="host_canvas_error_not_found_message">画像が存在しません。</string>
 
+    <!-- 通知用 -->
     <string name="host_notification_channel_id">org.deviceconnect.android.intent.action.notifiy.host</string>
     <string name="host_notification_channel_title">Device Connect Notification</string>
     <string name="host_notification_channel_desc">DeviceConnectの通知</string>
@@ -145,7 +152,6 @@
     <string name="host_notification_projection_warnning">Host Media Streaming Recording Profileからの起動要求</string>
     <string name="host_notification_phone_warnning">Host Phone Profileからの起動要求</string>
     <string name="host_notification_setting_warnning">Host Setting Profileからの起動要求</string>
-
     <string name="host_notification_recorder_preview_ticker">プレビュー配信サーバを起動します</string>
     <string name="host_notification_recorder_preview">プレビュー配信サーバ [ %1$s ]</string>
     <string name="host_notification_recorder_preview_content">タップして配信を停止します。</string>

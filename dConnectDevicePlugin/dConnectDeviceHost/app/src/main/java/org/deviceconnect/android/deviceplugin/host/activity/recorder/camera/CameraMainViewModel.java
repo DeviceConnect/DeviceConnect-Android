@@ -23,6 +23,7 @@ public class CameraMainViewModel extends BaseObservable {
 
     private int mParamVisibility = View.GONE;
     private int mSurfaceVisibility = View.GONE;
+    private int mPhotoVisibility = View.GONE;
 
     @Bindable
     public String getNetworkType() {
@@ -142,5 +143,16 @@ public class CameraMainViewModel extends BaseObservable {
     public void setSurfaceVisibility(int visibility) {
         mSurfaceVisibility = visibility;
         notifyPropertyChanged(BR.surfaceVisibility);
+    }
+
+
+    @Bindable
+    public int getPhotoVisibility() {
+        return mPhotoVisibility;
+    }
+
+    public void setPhotoVisibility(int visibility) {
+        mPhotoVisibility = visibility;
+        notifyPropertyChanged(BR.photoVisibility);
     }
 }

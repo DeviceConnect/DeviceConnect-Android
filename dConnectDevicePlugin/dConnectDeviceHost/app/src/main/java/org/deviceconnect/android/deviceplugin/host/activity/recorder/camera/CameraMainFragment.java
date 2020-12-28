@@ -1,8 +1,12 @@
 package org.deviceconnect.android.deviceplugin.host.activity.recorder.camera;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -12,6 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.webkit.MimeTypeMap;
+import android.widget.ImageView;
 
 import androidx.databinding.DataBindingUtil;
 
@@ -36,6 +42,8 @@ import org.deviceconnect.android.deviceplugin.host.recorder.ui.PreviewSurfaceVie
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
+import java.io.BufferedInputStream;
+import java.io.InputStream;
 import java.util.List;
 
 public class CameraMainFragment extends HostDevicePluginBindFragment {
@@ -170,8 +178,12 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         public void onClickTakePhoto() {
             takePhoto();
         }
+        public void onClickPhoto() {
+            showPhoto();
+        }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         FragmentHostCameraMainBinding binding = DataBindingUtil.inflate(inflater, R.layout.fragment_host_camera_main, container, false);
@@ -446,6 +458,46 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         adjustCameraSurfaceView();
     }
 
+    private String mPhotoUri;
+
+    private void showPhoto() {
+        if (mPhotoUri != null) {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension("jpeg");
+            intent.setDataAndType(Uri.parse(mPhotoUri), mimeType);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        }
+    }
+
+    private void setPhoto(String uri) {
+        new Thread(() -> {
+            InputStream stream;
+            try {
+                Context context = getContext();
+                if (context == null) {
+                    return;
+                }
+                stream = context.getContentResolver().openInputStream(Uri.parse(uri));
+                Bitmap bitmap = BitmapFactory.decodeStream(new BufferedInputStream(stream));
+                runOnUiThread(() -> {
+                    View root = getView();
+                    if (root != null) {
+                        mPhotoUri = uri;
+
+                        ImageView iv = root.findViewById(R.id.fragment_host_camera_photo_image);
+                        if (iv != null) {
+                            iv.setImageBitmap(bitmap);
+                            iv.setVisibility(View.VISIBLE);
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                // ignore.
+            }
+        }).start();
+    }
+
     private void takePhoto() {
         if (mMediaRecorder.getState() == HostMediaRecorder.State.RECORDING) {
             return;
@@ -454,14 +506,12 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         mMediaRecorder.takePhoto(new HostDevicePhotoRecorder.OnPhotoEventListener() {
             @Override
             public void onTakePhoto(String uri, String filePath, String mimeType) {
-                // TODO 撮影成功
-                Log.e("ABC", "### 撮影成功");
+                setPhoto(uri);
             }
 
             @Override
             public void onFailedTakePhoto(String errorMessage) {
-                // TODO 撮影失敗
-                Log.e("ABC", "### 撮影失敗");
+                showToast(R.string.host_recorder_failed_to_take_photo);
             }
         });
     }
@@ -488,7 +538,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
 
                 @Override
                 public void onFailed(HostDeviceStreamRecorder recorder, String errorMessage) {
-                    showToast("録画の開始に失敗しました");
+                    showToast(R.string.host_recorder_failed_to_start_recording);
                     setRecordingButton();
                 }
             });
@@ -506,7 +556,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             uri = "srt://192.168.11.6:12345";
             Broadcaster broadcaster = mMediaRecorder.startBroadcaster(uri);
             if (broadcaster == null) {
-                showToast("配信開始に失敗しました");
+                showToast(R.string.host_recorder_failed_to_broadcast);
             }
         }
         setBroadcastButton();
@@ -518,12 +568,11 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         } else {
             List<PreviewServer> servers = mMediaRecorder.startPreview();
             if (servers.isEmpty()) {
-                showToast("プレビュー配信サーバの開始に失敗しました");
+                showToast(R.string.host_recorder_failed_to_start_preview);
             }
         }
         setPreviewButton();
     }
-
 
     @Override
     public void toggleDisplayRotation() {

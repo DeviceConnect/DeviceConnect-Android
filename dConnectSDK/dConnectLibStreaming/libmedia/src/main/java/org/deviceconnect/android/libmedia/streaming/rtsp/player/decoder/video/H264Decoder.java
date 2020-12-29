@@ -15,6 +15,7 @@ import org.deviceconnect.android.libmedia.streaming.sdp.Attribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.FormatAttribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribute;
+import org.deviceconnect.android.libmedia.streaming.util.H264Parser;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -53,6 +54,9 @@ public class H264Decoder extends VideoDecoder {
     private byte[] mSPS;
     private byte[] mPPS;
 
+    private int mWidth = 960;
+    private int mHeight = 540;
+
     @Override
     protected void configure(MediaDescription md) {
         // https://tools.ietf.org/html/rfc6184
@@ -72,6 +76,14 @@ public class H264Decoder extends VideoDecoder {
                         mSPS = Base64.decode(base[0], Base64.NO_WRAP);
                         mPPS = Base64.decode(base[1], Base64.NO_WRAP);
                         setSPS_PPS(mSPS, mPPS);
+
+                        try {
+                            H264Parser.Sps s = H264Parser.parseSps(mSPS);
+                            mWidth = s.getWidth();
+                            mHeight = s.getHeight();
+                        } catch (Exception e) {
+                            // ignore.
+                        }
 
                         if (DEBUG) {
                             StringBuilder sps = new StringBuilder();
@@ -104,7 +116,7 @@ public class H264Decoder extends VideoDecoder {
 
     @Override
     protected MediaCodec createMediaCodec() throws IOException {
-        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE_H264, 960, 540);
+        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE_H264, mWidth, mHeight);
         if (mCsd0 != null) {
             format.setByteBuffer("csd-0", mCsd0);
         }

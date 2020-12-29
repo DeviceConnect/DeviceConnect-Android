@@ -15,6 +15,16 @@ public abstract class AudioDecoder implements Decoder {
     private AudioTrack mAudioTrack;
 
     /**
+     * イベント通知用のリスナー.
+     */
+    private ErrorCallback mErrorCallback;
+
+    /**
+     * イベント通知用のリスナー.
+     */
+    private EventCallback mEventCallback;
+
+    /**
      * 一時的に音声のデータを格納するバッファ.
      */
     private byte[] mAudioOutTempBuf = new byte[4096];
@@ -88,10 +98,26 @@ public abstract class AudioDecoder implements Decoder {
         mChannelCount = channelCount;
     }
 
+    @Override
+    public void setErrorCallback(ErrorCallback callback) {
+        mErrorCallback = callback;
+    }
+
+    /**
+     * イベントを通知するコールバックを設定します.
+     *
+     * @param callback コールバック
+     */
+    public void setEventCallback(EventCallback callback) {
+        mEventCallback = callback;
+    }
+
     /**
      * 指定されたサンプリングレートとチャンネル数で AudioTrack を作成します.
      */
-    void createAudioTrack() {
+    protected void createAudioTrack() {
+        postOnFormatChanged(mSamplingRate, mChannelCount);
+
         int bufSize = AudioTrack.getMinBufferSize(mSamplingRate,
                 mChannelCount == 1 ? AudioFormat.CHANNEL_OUT_MONO : AudioFormat.CHANNEL_OUT_STEREO,
                 AudioFormat.ENCODING_PCM_16BIT) * 2;
@@ -108,7 +134,7 @@ public abstract class AudioDecoder implements Decoder {
     /**
      * AudioTrack を破棄します.
      */
-    void releaseAudioTrack() {
+    protected void releaseAudioTrack() {
         if (mAudioTrack != null) {
             try {
                 mAudioTrack.stop();
@@ -134,10 +160,12 @@ public abstract class AudioDecoder implements Decoder {
      * @param size データサイズ
      * @param presentationTimeUs プレゼンテーションタイム
      */
-    void writeAudioData(ByteBuffer buffer, int offset, int size, long presentationTimeUs) {
+    protected void writeAudioData(ByteBuffer buffer, int offset, int size, long presentationTimeUs) {
         if (mMute) {
             return;
         }
+
+        postOnData(buffer, offset, size, presentationTimeUs);
 
         if (mAudioOutTempBuf.length < size) {
             mAudioOutTempBuf = new byte[size];
@@ -149,5 +177,46 @@ public abstract class AudioDecoder implements Decoder {
         if (mAudioTrack != null) {
             mAudioTrack.write(mAudioOutTempBuf, 0, size);
         }
+    }
+
+    protected void postError(final Exception e) {
+        if (mErrorCallback != null) {
+            mErrorCallback.onError(e);
+        }
+    }
+
+    protected void postOnData(ByteBuffer data, int offset, int size, long presentationTimeUs) {
+        if (mEventCallback != null) {
+            mEventCallback.onData(data, offset, size, presentationTimeUs);
+        }
+    }
+
+    protected void postOnFormatChanged(int samplingRate, int channel) {
+        if (mEventCallback != null) {
+            mEventCallback.onFormatChanged(samplingRate, channel);
+        }
+    }
+
+    /**
+     * デコーダのイベントを通知するコールバック.
+     */
+    public interface EventCallback {
+        /**
+         * 音声データのフォーマットを通知します.
+         *
+         * @param sampleRate サンプルレート
+         * @param channel チャンネル
+         */
+        void onFormatChanged(int sampleRate, int channel);
+
+        /**
+         * 更新された音声データを通知します.
+         *
+         * @param data データ
+         * @param offset オフセット
+         * @param size サイズ
+         * @param presentationTimeUs プレゼンテーションタイム
+         */
+        void onData(ByteBuffer data, int offset, int size, long presentationTimeUs);
     }
 }

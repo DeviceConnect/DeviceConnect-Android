@@ -18,6 +18,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -270,6 +271,15 @@ public class RtspClient {
         private int[] mServerPorts;
 
         /**
+         * インターバルを設定します.
+         *
+         * @param interval インターバル
+         */
+        private void setInterval(int interval) {
+            mInterval = interval;
+        }
+
+        /**
          * スレッドの停止処理を行います.
          */
         private void terminate() {
@@ -463,9 +473,7 @@ public class RtspClient {
             String content = response.getContent();
             if (content != null) {
                 mSessionDescription = SessionDescriptionParser.parse(content);
-                if (mSessionDescription != null) {
-                    postOnSdpReceived(mSessionDescription);
-                }
+                postOnSdpReceived(mSessionDescription);
             }
         }
 
@@ -575,6 +583,11 @@ public class RtspClient {
 
             mClientPorts = RtspResponseParser.parseClientPort(response);
             mServerPorts = RtspResponseParser.parseServerPort(response);
+
+            if (DEBUG) {
+                Log.d(TAG, "ClientPorts: " + Arrays.toString(mClientPorts));
+                Log.d(TAG, "ServerPorts: " + Arrays.toString(mServerPorts));
+            }
         }
 
         /**

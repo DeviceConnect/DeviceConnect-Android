@@ -14,6 +14,7 @@ import org.deviceconnect.android.libmedia.streaming.sdp.Attribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.FormatAttribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribute;
+import org.deviceconnect.android.libmedia.streaming.util.H265Parser;
 import org.deviceconnect.android.libmedia.streaming.util.HexUtil;
 
 import java.io.IOException;
@@ -39,6 +40,9 @@ public class H265Decoder extends VideoDecoder {
     private byte[] mSPS;
     private byte[] mPPS;
 
+    private int mWidth = 960;
+    private int mHeight = 540;
+
     @Override
     protected void configure(MediaDescription md) {
         int clockFrequency = 90000;
@@ -56,6 +60,14 @@ public class H265Decoder extends VideoDecoder {
                 String sps = fa.getParameters().get("sprop-sps");
                 if (sps != null) {
                     mSPS = Base64.decode(sps, Base64.NO_WRAP);
+
+                    try {
+                        H265Parser.Sps s = H265Parser.parseSps(mPPS);
+                        mWidth = s.getWidth();
+                        mHeight = s.getHeight();
+                    } catch (Exception e) {
+                        // ignore.
+                    }
                 }
                 String pps = fa.getParameters().get("sprop-pps");
                 if (pps != null) {
@@ -90,7 +102,7 @@ public class H265Decoder extends VideoDecoder {
 
     @Override
     protected MediaCodec createMediaCodec() throws IOException {
-        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE_H265, 960, 540);
+        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE_H265, mWidth, mHeight);
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
             format.setInteger(MediaFormat.KEY_COLOR_RANGE, MediaFormat.COLOR_RANGE_FULL);
         }

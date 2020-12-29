@@ -215,12 +215,14 @@ public class RtspPlayer {
                     mRetryCount++;
                     if (mRetryCount < 3) {
                         new Thread(() -> {
+                            stop();
+
                             try {
-                                Thread.sleep(500);
+                                Thread.sleep(500 * mRetryCount);
                             } catch (InterruptedException e1) {
                                 // ignore.
                             }
-                            stop();
+
                             start();
                         }).start();
                     } else {
@@ -315,6 +317,17 @@ public class RtspPlayer {
             AudioDecoder decoder = createAudioDecoder(md);
             if (decoder != null) {
                 decoder.setErrorCallback(this::postOnError);
+                decoder.setEventCallback(new AudioDecoder.EventCallback() {
+                    @Override
+                    public void onFormatChanged(int sampleRate, int channel) {
+                        postOnAudioFormatChanged(sampleRate, channel);
+                    }
+
+                    @Override
+                    public void onData(ByteBuffer data, int offset, int size, long presentationTimeUs) {
+                        postOnAudioData(data, offset, size, presentationTimeUs);
+                    }
+                });
                 decoder.setMute(mMute);
                 decoder.onInit(md);
                 return decoder;
@@ -419,6 +432,18 @@ public class RtspPlayer {
         }
     }
 
+    private void postOnAudioFormatChanged(int samplingRate, int channel) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onAudioFormatChanged(samplingRate, channel);
+        }
+    }
+
+    private void postOnAudioData(ByteBuffer data, int offset, int size, long presentationTimeUs) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onAudioData(data, offset, size, presentationTimeUs);
+        }
+    }
+
     private void postOnError(Exception e) {
         if (mOnEventListener != null) {
             mOnEventListener.onError(e);
@@ -449,7 +474,33 @@ public class RtspPlayer {
          */
         void onSizeChanged(int width, int height);
 
+        /**
+         * 映像データを通知します.
+         *
+         * @param data 映像データ
+         * @param offset データのオフセット
+         * @param size データサイズ
+         * @param presentationTimeUs プレゼンテーションタイム
+         */
         void onVideoData(ByteBuffer data, int offset, int size, long presentationTimeUs);
+
+        /**
+         * 音声データのフォーマットを通知します.
+         *
+         * @param samplingRate サンプリングレート
+         * @param channel チャンネル
+         */
+        void onAudioFormatChanged(int samplingRate, int channel);
+
+        /**
+         * 音声データを通知します.
+         *
+         * @param data 音声データ
+         * @param offset データのオフセット
+         * @param size データサイズ
+         * @param presentationTimeUs プレゼンテーションタイム
+         */
+        void onAudioData(ByteBuffer data, int offset, int size, long presentationTimeUs);
 
         /**
          * RTSP プレイヤーでエラーが発生したことを通知します.

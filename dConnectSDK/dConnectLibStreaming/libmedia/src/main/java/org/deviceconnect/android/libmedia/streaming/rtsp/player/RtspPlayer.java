@@ -19,6 +19,7 @@ import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.SessionDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribute;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -77,7 +78,7 @@ public class RtspPlayer {
     /**
      * 指定ポート番号リスト.
      */
-    private List<Integer> mSetPortList;
+    private List<Integer> mRtpPortList;
 
     /**
      * コンストラクタ.
@@ -85,38 +86,32 @@ public class RtspPlayer {
      * @param url RTSP サーバへのURL
      */
     public RtspPlayer(String url) {
-        if (url == null) {
-            throw new IllegalArgumentException("url is null.");
-        }
-
-        mUrl = url;
-        mSetPortList = new ArrayList<>();
-
-        addVideoFactory("H264", new H264DecoderFactory());
-        addVideoFactory("H265", new H265DecoderFactory());
-        addAudioFactory("mpeg4-generic", new AACLATMDecoderFactory());
+        this(url, new ArrayList<>());
     }
 
     /**
      * コンストラクタ.
      *
      * @param url RTSP サーバへのURL
-     * @param setPortList RTP/RTCPに指定するUDPポート番号一覧
+     * @param rtpPortList RTP/RTCP に指定するUDPポート番号一覧
      */
-    public RtspPlayer(String url, List<Integer> setPortList) {
+    public RtspPlayer(String url, List<Integer> rtpPortList) {
         if (url == null) {
             throw new IllegalArgumentException("url is null.");
         }
-        if (setPortList == null) {
+
+        if (rtpPortList == null) {
             throw new IllegalArgumentException("setPortList is null.");
         }
-        for (int port : setPortList) {
+
+        for (int port : rtpPortList) {
             if (port <= 1024) {
-                throw new IllegalArgumentException("setPortList is invalid port number.　(Must be greater than 1025.)");
+                throw new IllegalArgumentException("rtpPortList is invalid port number.(Must be greater than 1025.)");
             }
         }
+
         mUrl = url;
-        mSetPortList = setPortList;
+        mRtpPortList = rtpPortList;
 
         addVideoFactory("H264", new H264DecoderFactory());
         addVideoFactory("H265", new H265DecoderFactory());
@@ -197,11 +192,7 @@ public class RtspPlayer {
         }
 
         mRetryCount = 0;
-        if (mSetPortList.isEmpty()) {
-            mRtspClient = new RtspClient(mUrl);
-        } else {
-            mRtspClient = new RtspClient(mUrl, mSetPortList);
-        }
+        mRtspClient = new RtspClient(mUrl, mRtpPortList);
         mRtspClient.setOnEventListener(new RtspClient.OnEventListener() {
             @Override
             public void onConnected() {
@@ -302,7 +293,17 @@ public class RtspPlayer {
             if (decoder != null) {
                 decoder.setSurface(mSurface);
                 decoder.setErrorCallback(this::postOnError);
-                decoder.setEventCallback(this::postOnSizeChanged);
+                decoder.setEventCallback(new VideoDecoder.EventCallback() {
+                    @Override
+                    public void onSizeChanged(int width, int height) {
+                        postOnSizeChanged(width, height);
+                    }
+
+                    @Override
+                    public void onData(ByteBuffer data, int offset, int size, long presentationTimeUs) {
+                        postOnVideoData(data, offset, size, presentationTimeUs);
+                    }
+                });
                 decoder.onInit(md);
                 return decoder;
             } else {
@@ -412,6 +413,12 @@ public class RtspPlayer {
         }
     }
 
+    private void postOnVideoData(ByteBuffer data, int offset, int size, long presentationTimeUs) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onVideoData(data, offset, size, presentationTimeUs);
+        }
+    }
+
     private void postOnError(Exception e) {
         if (mOnEventListener != null) {
             mOnEventListener.onError(e);
@@ -441,6 +448,8 @@ public class RtspPlayer {
          * @param height 縦幅
          */
         void onSizeChanged(int width, int height);
+
+        void onVideoData(ByteBuffer data, int offset, int size, long presentationTimeUs);
 
         /**
          * RTSP プレイヤーでエラーが発生したことを通知します.

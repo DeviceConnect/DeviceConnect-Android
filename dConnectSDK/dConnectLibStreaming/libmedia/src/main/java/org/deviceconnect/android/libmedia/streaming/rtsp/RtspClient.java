@@ -60,7 +60,7 @@ public class RtspClient {
     /**
      * 指定ポート番号リスト.
      */
-    private List<Integer> mSetPortList;
+    private List<Integer> mRtpPortList;
 
     /**
      * 使用ポート番号リスト.
@@ -72,34 +72,32 @@ public class RtspClient {
      * @param url RTSP サーバの URL
      */
     public RtspClient(String url) {
-        if (url == null) {
-            throw new IllegalArgumentException("url is null.");
-        }
-        mRtspServerUrl = url;
-        mUsePortList = new ArrayList<>();
-        mSetPortList = new ArrayList<>();
+        this(url, new ArrayList<>());
     }
 
     /**
      * コンストラクタ.
      * @param url RTSP サーバの URL
-     * @param setPortList RTP/RTCPに指定するUDPポート番号一覧
+     * @param rtpPortList RTP/RTCPに指定するUDPポート番号一覧
      */
-    public RtspClient(String url, List<Integer> setPortList) {
+    public RtspClient(String url, List<Integer> rtpPortList) {
         if (url == null) {
             throw new IllegalArgumentException("url is null.");
         }
-        if (setPortList == null) {
+
+        if (rtpPortList == null) {
             throw new IllegalArgumentException("setPortList is null.");
         }
-        for (int port : setPortList) {
+
+        for (int port : rtpPortList) {
             if (port <= 1024) {
-                throw new IllegalArgumentException("setPortList is invalid port number.　(Must be greater than 1025.)");
+                throw new IllegalArgumentException("rtpPortList is invalid port number. (Must be greater than 1025.)");
             }
         }
+
         mRtspServerUrl = url;
         mUsePortList = new ArrayList<>();
-        mSetPortList = setPortList;
+        mRtpPortList = rtpPortList;
     }
 
     /**
@@ -516,10 +514,10 @@ public class RtspClient {
          * @return ポート番号。SetPortListが空の場合は-1を返す
          */
         private int getPortNumber() {
-            if (mSetPortList.isEmpty()) {
+            if (mRtpPortList.isEmpty()) {
                 return -1;
             }
-            for (int port : mSetPortList) {
+            for (int port : mRtpPortList) {
                 if (!mUsePortList.contains(port)) {
                     mUsePortList.add(port);
                     return port;
@@ -538,7 +536,7 @@ public class RtspClient {
         private void processSetup(MediaDescription md) throws IOException {
             int rtpPort, rtspPort;
             // 指定UDPポート設定判定
-            if (!mSetPortList.isEmpty()) {
+            if (!mRtpPortList.isEmpty()) {
                 rtpPort = getPortNumber();
                 rtspPort = getPortNumber();
             } else {

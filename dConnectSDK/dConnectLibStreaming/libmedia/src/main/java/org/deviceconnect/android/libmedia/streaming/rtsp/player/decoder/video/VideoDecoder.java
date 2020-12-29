@@ -371,7 +371,12 @@ public abstract class VideoDecoder implements Decoder {
 
                     int outIndex = mMediaCodec.dequeueOutputBuffer(info, TIMEOUT_US);
                     if (outIndex > 0 && !mStopFlag) {
-                        mMediaCodec.releaseOutputBuffer(outIndex, true);
+                        if (mSurface == null) {
+                            if (mEventCallback != null) {
+                                mEventCallback.onData(mMediaCodec.getOutputBuffer(outIndex), info.offset, info.size, info.presentationTimeUs);
+                            }
+                        }
+                        mMediaCodec.releaseOutputBuffer(outIndex, mSurface != null);
                     } else {
                         switch (outIndex) {
                             case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
@@ -415,7 +420,26 @@ public abstract class VideoDecoder implements Decoder {
         }
     }
 
+    /**
+     * デコーダのイベントを通知するコールバック.
+     */
     public interface EventCallback {
+        /**
+         * サイズが変更されたことを通知します.
+         *
+         * @param width 横幅
+         * @param height 縦幅
+         */
         void onSizeChanged(int width, int height);
+
+        /**
+         * 更新された映像データを通知します.
+         *
+         * @param data データ
+         * @param offset オフセット
+         * @param size サイズ
+         * @param presentationTimeUs プレゼンテーションタイム
+         */
+        void onData(ByteBuffer data, int offset, int size, long presentationTimeUs);
     }
 }

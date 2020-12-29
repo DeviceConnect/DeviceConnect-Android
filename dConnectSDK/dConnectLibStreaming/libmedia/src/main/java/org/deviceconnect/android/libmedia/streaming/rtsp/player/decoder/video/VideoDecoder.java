@@ -1,6 +1,8 @@
 package org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.video;
 
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.util.Log;
 import android.view.Surface;
@@ -51,7 +53,14 @@ public abstract class VideoDecoder implements Decoder {
      */
     private RtpDepacketize mDepacketize;
 
+    /**
+     * クロック周波数.
+     */
     private int mClockFrequency;
+
+    /**
+     * 設定用のフレーム.
+     */
     private Frame mConfigFrame;
 
     @Override
@@ -60,8 +69,6 @@ public abstract class VideoDecoder implements Decoder {
 
         configure(md);
         createWorkThread();
-
-//        mWorkThread.add(mConfigFrame);
 
         mDepacketize = createDepacketize();
         mDepacketize.setClockFrequency(mClockFrequency);
@@ -182,11 +189,11 @@ public abstract class VideoDecoder implements Decoder {
     }
 
     /**
-     * WorkThread が動作しているか確認します.
+     * デコーダが動作しているか確認します.
      *
-     * @return WorkThread が動作している場合はtrue、それ以外はfalse.
+     * @return デコーダが動作している場合はtrue、それ以外はfalse.
      */
-    private boolean isRunningWorkThread() {
+    private boolean isRunning() {
         return mWorkThread != null && mWorkThread.isAlive();
     }
 
@@ -219,6 +226,65 @@ public abstract class VideoDecoder implements Decoder {
      * @return フラグ
      */
     protected abstract int getFlags(byte[] data, int dataLength);
+
+    /**
+     * MediaCodec のデコーダを取得します.
+     *
+     * デコーダの取得に失敗した場合には null を返却します。
+     *
+     * @param format フォーマット
+     * @param surface 描画を行うサーフェス
+     * @return MediaCodec のインスタンス
+     */
+    protected MediaCodec configDecoder(MediaFormat format, Surface surface) {
+        if (format == null) {
+            return null;
+        }
+
+        String mime = format.getString(MediaFormat.KEY_MIME);
+        MediaCodecList list = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
+        for (MediaCodecInfo info : list.getCodecInfos()) {
+            MediaCodecInfo.CodecCapabilities capabilities;
+            boolean formatSupported;
+
+            if (info.isEncoder()) {
+                continue;
+            }
+
+            if (info.getName().contains("Exynos")) {
+                continue;
+            }
+
+            try {
+                capabilities = info.getCapabilitiesForType(mime);
+            } catch (IllegalArgumentException ignored) {
+                continue;
+            }
+
+            try {
+                formatSupported = capabilities.isFormatSupported(format);
+            } catch (IllegalArgumentException ignored) {
+                continue;
+            }
+
+            if (formatSupported) {
+                MediaCodec codec;
+                try {
+                    codec = MediaCodec.createByCodecName(info.getName());
+                } catch (IOException e) {
+                    continue;
+                }
+
+                try {
+                    codec.configure(format, surface, null, 0);
+                } catch (Exception ignored) {
+                    codec.release();
+                }
+                return codec;
+            }
+        }
+        return null;
+    }
 
     /**
      * 送られてきたデータをMediaCodecに渡してデコードを行うスレッド.

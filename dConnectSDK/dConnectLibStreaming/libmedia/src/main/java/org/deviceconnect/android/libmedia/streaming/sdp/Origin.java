@@ -2,13 +2,13 @@ package org.deviceconnect.android.libmedia.streaming.sdp;
 
 public class Origin {
     private String mUsername;
-    private Long mSessId;
+    private String mSessId;
     private Long mSessVersion;
     private String mNettype;
     private String mAddrtype;
     private String mAddress;
 
-    public Origin(String username, Long sessId, Long sessVersion, String nettype, String addrtype, String address) {
+    public Origin(String username, String sessId, Long sessVersion, String nettype, String addrtype, String address) {
         mUsername = username;
         mSessId = sessId;
         mSessVersion = sessVersion;
@@ -20,8 +20,12 @@ public class Origin {
     public Origin(String line) {
         String[] attr = line.split(" ");
         setUsername(attr[0]);
-        setSessId(Long.parseLong(attr[1]));
-        setSessVersion(Long.parseLong(attr[2]));
+        setSessId(attr[1]);
+        try {
+            setSessVersion(Long.parseLong(attr[2]));
+        } catch (NumberFormatException e) {
+            // ignore.
+        }
         setNettype(attr[3]);
         setAddrtype(attr[4]);
         setAddress(attr[5]);
@@ -35,11 +39,11 @@ public class Origin {
         mUsername = username;
     }
 
-    public Long getSessId() {
+    public String getSessId() {
         return mSessId;
     }
 
-    public void setSessId(Long sessId) {
+    public void setSessId(String sessId) {
         mSessId = sessId;
     }
 

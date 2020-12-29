@@ -38,7 +38,7 @@ public class H264Decoder extends VideoDecoder {
     /**
      * MediaCodec に渡すマイムタイプ.
      */
-    private String mMimeType = "video/avc";
+    private static final String MIME_TYPE_H264 = "video/avc";
 
     /**
      * SPSの情報を格納するバッファ.
@@ -104,7 +104,7 @@ public class H264Decoder extends VideoDecoder {
 
     @Override
     protected MediaCodec createMediaCodec() throws IOException {
-        MediaFormat format = MediaFormat.createVideoFormat(mMimeType, 0, 0);
+        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE_H264, 960, 540);
         if (mCsd0 != null) {
             format.setByteBuffer("csd-0", mCsd0);
         }
@@ -113,8 +113,13 @@ public class H264Decoder extends VideoDecoder {
             format.setByteBuffer("csd-1", mCsd1);
         }
 
-        MediaCodec mediaCodec = MediaCodec.createDecoderByType(mMimeType);
-        mediaCodec.configure(format, getSurface(), null, 0);
+        MediaCodec mediaCodec;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            mediaCodec = configDecoder(format, getSurface());
+        } else {
+            mediaCodec = MediaCodec.createDecoderByType(MIME_TYPE_H264);
+            mediaCodec.configure(format, getSurface(), null, 0);
+        }
         mediaCodec.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
         mediaCodec.start();
         return mediaCodec;

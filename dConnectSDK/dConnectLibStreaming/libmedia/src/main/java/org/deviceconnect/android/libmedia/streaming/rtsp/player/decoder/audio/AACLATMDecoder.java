@@ -87,9 +87,9 @@ public class AACLATMDecoder extends AudioDecoder {
 
         mDepacketize = new AACLATMDepacketize();
         mDepacketize.setClockFrequency(getSamplingRate());
-        mDepacketize.setCallback((data, pts) -> {
+        mDepacketize.setCallback((data, length, pts) -> {
             if (mWorkThread != null) {
-                mWorkThread.add(new Frame(data, pts));
+                mWorkThread.add(new Frame(data, length, pts));
             }
         });
     }

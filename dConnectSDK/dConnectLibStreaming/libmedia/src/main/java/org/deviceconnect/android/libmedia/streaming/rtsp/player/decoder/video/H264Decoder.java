@@ -11,6 +11,7 @@ import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpDepacketize;
 import org.deviceconnect.android.libmedia.streaming.rtp.depacket.H264Depacketize;
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.Frame;
+import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.FrameProvider;
 import org.deviceconnect.android.libmedia.streaming.sdp.Attribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.FormatAttribute;
@@ -41,16 +42,8 @@ public class H264Decoder extends VideoDecoder {
      */
     private static final String MIME_TYPE_H264 = "video/avc";
 
-    /**
-     * SPSの情報を格納するバッファ.
-     */
     private ByteBuffer mCsd0;
-
-    /**
-     * PPSの情報を格納するバッファ.
-     */
     private ByteBuffer mCsd1;
-
     private byte[] mSPS;
     private byte[] mPPS;
 
@@ -140,7 +133,7 @@ public class H264Decoder extends VideoDecoder {
     @Override
     protected int getFlags(byte[] data, int dataLength) {
         int type = data[4] & 0x1F;
-        if  (type == 0x07 || type == 0x08) {
+        if (type == 0x07 || type == 0x08) {
             return MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
         }
         return 0;

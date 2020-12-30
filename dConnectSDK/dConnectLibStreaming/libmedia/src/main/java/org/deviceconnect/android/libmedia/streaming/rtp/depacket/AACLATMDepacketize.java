@@ -13,7 +13,7 @@ public class AACLATMDepacketize extends RtpDepacketize {
     /**
      * データを格納するバッファ.
      */
-    private final ByteArrayOutputStream mOutputStream = new ByteArrayOutputStream();
+    private final Buffer mOutputStream = new Buffer();
 
     /**
      * RTP ヘッダーのシーケンス番号の同期フラグ.
@@ -59,7 +59,7 @@ public class AACLATMDepacketize extends RtpDepacketize {
 
         if (isNextPacket(data)) {
             if (mSync) {
-                postData(mOutputStream.toByteArray(), getTimestamp(data));
+                postData(mOutputStream.getData(), mOutputStream.getLength(), getTimestamp(data));
             }
             mOutputStream.reset();
             mSync = true;

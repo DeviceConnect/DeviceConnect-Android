@@ -11,6 +11,7 @@ import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpDepacketize;
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.Decoder;
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.Frame;
+import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.FrameProvider;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 
@@ -63,18 +64,41 @@ public abstract class VideoDecoder implements Decoder {
      */
     private Frame mConfigFrame;
 
+    /**
+     * 同じプレゼンテーションタイムのフレームを格納するためのフレーム.
+     */
+    private Frame mCurrentFrame;
+
+    /**
+     * フレームを提供するクラス.
+     */
+    private final FrameProvider mFrameProvider = new FrameProvider();
+
     @Override
     public void onInit(MediaDescription md) {
         mClockFrequency = 90000;
+        mCurrentFrame = null;
+        mFrameProvider.init();
 
         configure(md);
         createWorkThread();
 
         mDepacketize = createDepacketize();
         mDepacketize.setClockFrequency(mClockFrequency);
-        mDepacketize.setCallback((data, pts) -> {
+        mDepacketize.setCallback((data, length, pts) -> {
             if (mWorkThread != null) {
-                mWorkThread.add(new Frame(data, pts));
+                if (mCurrentFrame != null) {
+                    if (mCurrentFrame.getTimestamp() == pts) {
+                        mCurrentFrame.append(data, length);
+                    } else {
+                        mWorkThread.add(mCurrentFrame);
+                        mCurrentFrame = mFrameProvider.get();
+                        mCurrentFrame.setData(data, length, pts);
+                    }
+                } else {
+                    mCurrentFrame = mFrameProvider.get();
+                    mCurrentFrame.setData(data, length, pts);
+                }
             }
         });
     }
@@ -353,21 +377,21 @@ public abstract class VideoDecoder implements Decoder {
                     int inIndex = mMediaCodec.dequeueInputBuffer(TIMEOUT_US);
                     if (inIndex >= 0 && !mStopFlag) {
                         ByteBuffer buffer = mMediaCodec.getInputBuffer(inIndex);
-                        if (buffer == null) {
-                            continue;
+                        if (buffer != null) {
+                            buffer.clear();
+                            buffer.put(frame.getData(), 0, frame.getLength());
+                            buffer.flip();
+
+                            int flags = 0;
+                            if (frame.getLength() > 4) {
+                                flags = getFlags(frame.getData(), frame.getLength());
+                            }
+
+                            mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), frame.getTimestamp(), flags);
                         }
-
-                        buffer.clear();
-                        buffer.put(frame.getData(), 0, frame.getLength());
-                        buffer.flip();
-
-                        int flags = 0;
-                        if (frame.getLength() > 4) {
-                            flags = getFlags(frame.getData(), frame.getLength());
-                        }
-
-                        mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), frame.getTimestamp(), flags);
                     }
+
+                    frame.release();
 
                     int outIndex = mMediaCodec.dequeueOutputBuffer(info, TIMEOUT_US);
                     if (outIndex > 0 && !mStopFlag) {
@@ -397,9 +421,6 @@ public abstract class VideoDecoder implements Decoder {
                                 break;
 
                             case MediaCodec.INFO_TRY_AGAIN_LATER:
-                                Thread.sleep(1);
-                                break;
-
                             default:
                                 break;
                         }

@@ -8,7 +8,7 @@ public class H265Depacketize extends RtpDepacketize {
     /**
      * データを格納するバッファ.
      */
-    private final ByteArrayOutputStream mOutputStream = new ByteArrayOutputStream();
+    private final Buffer mOutputStream = new Buffer();
 
     /**
      * RTP ヘッダーのシーケンス番号の同期フラグ.
@@ -71,7 +71,7 @@ public class H265Depacketize extends RtpDepacketize {
         mOutputStream.write(0x00);
         mOutputStream.write(0x01);
         mOutputStream.write(data, payloadStart, dataLength - payloadStart);
-        postData(mOutputStream.toByteArray(), getTimestamp(data));
+        postData(mOutputStream.getData(), mOutputStream.getLength(), getTimestamp(data));
     }
 
     private void decodeFragmentationUnits(byte[] data, int payloadStart, int dataLength) {
@@ -98,7 +98,7 @@ public class H265Depacketize extends RtpDepacketize {
         mOutputStream.write(data, fuHeaderSize, dataLength - fuHeaderSize);
 
         if (endBit && mSync) {
-            postData(mOutputStream.toByteArray(), getTimestamp(data));
+            postData(mOutputStream.getData(), mOutputStream.getLength(), getTimestamp(data));
         }
     }
 }

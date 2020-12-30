@@ -78,7 +78,7 @@ public class RtspPlayer {
     /**
      * 指定ポート番号リスト.
      */
-    private List<Integer> mRtpPortList;
+    private final List<Integer> mRtpPortList;
 
     /**
      * コンストラクタ.

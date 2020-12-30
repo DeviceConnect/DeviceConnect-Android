@@ -1,5 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.rtsp.player;
 
+import android.media.Image;
 import android.util.Log;
 import android.view.Surface;
 
@@ -302,8 +303,8 @@ public class RtspPlayer {
                     }
 
                     @Override
-                    public void onData(ByteBuffer data, int offset, int size, long presentationTimeUs) {
-                        postOnVideoData(data, offset, size, presentationTimeUs);
+                    public void onData(Image image, long presentationTimeUs) {
+                        postOnVideoData(image, presentationTimeUs);
                     }
                 });
                 decoder.onInit(md);
@@ -426,9 +427,9 @@ public class RtspPlayer {
         }
     }
 
-    private void postOnVideoData(ByteBuffer data, int offset, int size, long presentationTimeUs) {
+    private void postOnVideoData(Image image, long presentationTimeUs) {
         if (mOnEventListener != null) {
-            mOnEventListener.onVideoData(data, offset, size, presentationTimeUs);
+            mOnEventListener.onVideoData(image, presentationTimeUs);
         }
     }
 
@@ -477,12 +478,10 @@ public class RtspPlayer {
         /**
          * 映像データを通知します.
          *
-         * @param data 映像データ
-         * @param offset データのオフセット
-         * @param size データサイズ
+         * @param image 映像データ
          * @param presentationTimeUs プレゼンテーションタイム
          */
-        void onVideoData(ByteBuffer data, int offset, int size, long presentationTimeUs);
+        void onVideoData(Image image, long presentationTimeUs);
 
         /**
          * 音声データのフォーマットを通知します.

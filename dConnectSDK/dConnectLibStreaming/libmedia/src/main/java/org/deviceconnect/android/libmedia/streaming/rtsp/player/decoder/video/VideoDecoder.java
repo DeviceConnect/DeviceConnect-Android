@@ -1,5 +1,8 @@
 package org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.video;
 
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.media.Image;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
@@ -397,7 +400,7 @@ public abstract class VideoDecoder implements Decoder {
                     if (outIndex > 0 && !mStopFlag) {
                         if (mSurface == null) {
                             if (mEventCallback != null) {
-                                mEventCallback.onData(mMediaCodec.getOutputBuffer(outIndex), info.offset, info.size, info.presentationTimeUs);
+                                mEventCallback.onData(mMediaCodec.getOutputImage(outIndex), info.presentationTimeUs);
                             }
                         }
                         mMediaCodec.releaseOutputBuffer(outIndex, mSurface != null);
@@ -456,11 +459,9 @@ public abstract class VideoDecoder implements Decoder {
         /**
          * 更新された映像データを通知します.
          *
-         * @param data データ
-         * @param offset オフセット
-         * @param size サイズ
+         * @param image 映像データ
          * @param presentationTimeUs プレゼンテーションタイム
          */
-        void onData(ByteBuffer data, int offset, int size, long presentationTimeUs);
+        void onData(Image image, long presentationTimeUs);
     }
 }

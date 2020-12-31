@@ -170,6 +170,24 @@ public class RtspClient {
         return mSessionThread != null;
     }
 
+    /**
+     * 受信したデータサイズを取得します.
+     *
+     * @return 受信したデータサイズ
+     */
+    public long getReceivedSize() {
+        return mSessionThread != null ? mSessionThread.getReceivedSize() : 0;
+    }
+
+    /**
+     * 受信したデータの BPS を取得します.
+     *
+     * @return 受信したデータの BPS
+     */
+    public long getBPS() {
+        return mSessionThread != null ? mSessionThread.getBPS() : 0;
+    }
+
     private void postOnError(RtspClientException e) {
         if (mOnEventListener != null) {
             mOnEventListener.onError(e);
@@ -371,6 +389,26 @@ public class RtspClient {
                     Log.d(TAG, "RTSP CLIENT END");
                 }
             }
+        }
+
+        private long getReceivedSize() {
+            long size = 0;
+            synchronized (mRtpReceivers) {
+                for (RtpReceiver receiver : mRtpReceivers) {
+                    size += receiver.getReceivedSize();
+                }
+            }
+            return size;
+        }
+
+        private long getBPS() {
+            long bps = 0;
+            synchronized (mRtpReceivers) {
+                for (RtpReceiver receiver : mRtpReceivers) {
+                    bps += receiver.getBPS();
+                }
+            }
+            return bps;
         }
 
         /**

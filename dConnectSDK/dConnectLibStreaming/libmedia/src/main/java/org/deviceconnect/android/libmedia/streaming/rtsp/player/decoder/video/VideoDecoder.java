@@ -1,7 +1,5 @@
 package org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.video;
 
-import android.graphics.ImageFormat;
-import android.graphics.Rect;
 import android.media.Image;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;

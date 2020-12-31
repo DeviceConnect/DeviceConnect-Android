@@ -120,6 +120,24 @@ public class RtspPlayer {
     }
 
     /**
+     * 受信したデータサイズを取得します.
+     *
+     * @return 受信したデータサイズ
+     */
+    public long getReceivedSize() {
+        return mRtspClient.getReceivedSize();
+    }
+
+    /**
+     * 受信したデータの BPS を取得します.
+     *
+     * @return 受信したデータの BPS
+     */
+    public long getBPS() {
+        return mRtspClient.getBPS();
+    }
+
+    /**
      * ミュート設定を取得します.
      *
      * @return ミュートの場合はtrue、それ以外はfalse

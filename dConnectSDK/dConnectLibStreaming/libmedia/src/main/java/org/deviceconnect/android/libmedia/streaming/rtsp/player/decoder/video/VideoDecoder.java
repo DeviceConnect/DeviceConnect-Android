@@ -395,7 +395,7 @@ public abstract class VideoDecoder implements Decoder {
                     frame.release();
 
                     int outIndex = mMediaCodec.dequeueOutputBuffer(info, TIMEOUT_US);
-                    if (outIndex > 0 && !mStopFlag) {
+                    if (outIndex >= 0 && !mStopFlag) {
                         if (mSurface == null) {
                             if (mEventCallback != null) {
                                 mEventCallback.onData(mMediaCodec.getOutputImage(outIndex), info.presentationTimeUs);

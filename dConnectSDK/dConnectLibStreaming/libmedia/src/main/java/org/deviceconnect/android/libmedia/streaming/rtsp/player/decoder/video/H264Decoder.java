@@ -11,14 +11,12 @@ import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpDepacketize;
 import org.deviceconnect.android.libmedia.streaming.rtp.depacket.H264Depacketize;
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.Frame;
-import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.FrameProvider;
 import org.deviceconnect.android.libmedia.streaming.sdp.Attribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.FormatAttribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribute;
 import org.deviceconnect.android.libmedia.streaming.util.H264Parser;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -108,7 +106,7 @@ public class H264Decoder extends VideoDecoder {
     }
 
     @Override
-    protected MediaCodec createMediaCodec() throws IOException {
+    protected MediaFormat createMediaFormat() {
         MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE_H264, mWidth, mHeight);
         if (mCsd0 != null) {
             format.setByteBuffer("csd-0", mCsd0);
@@ -117,17 +115,7 @@ public class H264Decoder extends VideoDecoder {
         if (mCsd1 != null) {
             format.setByteBuffer("csd-1", mCsd1);
         }
-
-        MediaCodec mediaCodec;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            mediaCodec = configDecoder(format, getSurface());
-        } else {
-            mediaCodec = MediaCodec.createDecoderByType(MIME_TYPE_H264);
-            mediaCodec.configure(format, getSurface(), null, 0);
-        }
-        mediaCodec.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
-        mediaCodec.start();
-        return mediaCodec;
+        return format;
     }
 
     @Override

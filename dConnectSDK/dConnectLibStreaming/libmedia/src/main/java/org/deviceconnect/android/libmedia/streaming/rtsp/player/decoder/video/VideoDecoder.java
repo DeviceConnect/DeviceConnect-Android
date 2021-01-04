@@ -237,11 +237,11 @@ public abstract class VideoDecoder implements Decoder {
     protected abstract RtpDepacketize createDepacketize();
 
     /**
-     * MediaCodecを作成します.
+     * MediaFormat を作成します.
      *
-     * @throws IOException MediaCodecの作成に失敗した場合に発生
+     * @return MediaFormat
      */
-    protected abstract MediaCodec createMediaCodec() throws IOException;
+    protected abstract MediaFormat createMediaFormat();
 
     /**
      * 送られてきたフレームのフラグを取得します.
@@ -261,7 +261,7 @@ public abstract class VideoDecoder implements Decoder {
      * @param surface 描画を行うサーフェス
      * @return MediaCodec のインスタンス
      */
-    protected MediaCodec configDecoder(MediaFormat format, Surface surface) {
+    private MediaCodec configDecoder(MediaFormat format, Surface surface) {
         if (format == null) {
             return null;
         }
@@ -309,6 +309,29 @@ public abstract class VideoDecoder implements Decoder {
             }
         }
         return null;
+    }
+
+    /**
+     * MediaCodecを作成します.
+     *
+     * @throws IOException MediaCodecの作成に失敗した場合に発生
+     */
+    private MediaCodec createMediaCodec() throws IOException {
+        MediaFormat format = createMediaFormat();
+
+        MediaCodec mediaCodec;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            mediaCodec = configDecoder(format, getSurface());
+        } else {
+            String mimeType = format.getString(MediaFormat.KEY_MIME);
+            if (mimeType == null) {
+                throw new IOException("mime type is not set.");
+            }
+            mediaCodec = MediaCodec.createDecoderByType(mimeType);
+            mediaCodec.configure(format, getSurface(), null, 0);
+        }
+        mediaCodec.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
+        return mediaCodec;
     }
 
     /**
@@ -371,6 +394,10 @@ public abstract class VideoDecoder implements Decoder {
                 MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 
                 mMediaCodec = createMediaCodec();
+                mMediaCodec.start();
+
+                long pts = 0;
+                long start = System.currentTimeMillis();
 
                 while (!mStopFlag) {
                     Frame frame = get();
@@ -388,7 +415,13 @@ public abstract class VideoDecoder implements Decoder {
                                 flags = getFlags(frame.getData(), frame.getLength());
                             }
 
-                            mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), frame.getTimestamp(), flags);
+                            if (pts == 0) {
+                                pts = frame.getTimestamp();
+                            }
+                            long diff = frame.getTimestamp() - pts;
+                            mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), start + diff, flags);
+
+
                         }
                     }
 

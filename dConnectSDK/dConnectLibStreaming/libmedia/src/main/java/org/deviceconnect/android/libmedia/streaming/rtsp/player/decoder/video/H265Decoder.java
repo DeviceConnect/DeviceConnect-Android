@@ -17,7 +17,6 @@ import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribut
 import org.deviceconnect.android.libmedia.streaming.util.H265Parser;
 import org.deviceconnect.android.libmedia.streaming.util.HexUtil;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class H265Decoder extends VideoDecoder {
@@ -101,7 +100,7 @@ public class H265Decoder extends VideoDecoder {
     }
 
     @Override
-    protected MediaCodec createMediaCodec() throws IOException {
+    protected MediaFormat createMediaFormat() {
         MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE_H265, mWidth, mHeight);
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
             format.setInteger(MediaFormat.KEY_COLOR_RANGE, MediaFormat.COLOR_RANGE_FULL);
@@ -116,20 +115,7 @@ public class H265Decoder extends VideoDecoder {
 
         format.setByteBuffer("csd-0", csd0);
 
-        if (DEBUG) {
-            Log.d(TAG, "H265Deocder::createMediaCodec: " + format);
-        }
-
-        MediaCodec mediaCodec;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            mediaCodec = configDecoder(format, getSurface());
-        } else {
-            mediaCodec = MediaCodec.createDecoderByType(MIME_TYPE_H265);
-            mediaCodec.configure(format, getSurface(), null, 0);
-        }
-        mediaCodec.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
-        mediaCodec.start();
-        return mediaCodec;
+        return format;
     }
 
     @Override

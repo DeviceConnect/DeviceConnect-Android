@@ -2,6 +2,7 @@ package org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.video;
 
 import android.annotation.TargetApi;
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.util.Base64;
@@ -19,6 +20,8 @@ import org.deviceconnect.android.libmedia.streaming.util.H264Parser;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * H264をデコードしてSurfaceに描画するクラス.
@@ -47,6 +50,8 @@ public class H264Decoder extends VideoDecoder {
 
     private int mWidth = 960;
     private int mHeight = 540;
+
+    private Frame mCurrentFrame;
 
     @Override
     protected void configure(MediaDescription md) {
@@ -96,13 +101,36 @@ public class H264Decoder extends VideoDecoder {
         setClockFrequency(clockFrequency);
 
         if (mSPS != null && mPPS != null) {
-            setConfigFrame(new Frame(createSPS_PPS(mSPS, mPPS), 0));
+            addFrame(new Frame(createSPS_PPS(mSPS, mPPS), 0));
         }
     }
 
     @Override
     protected RtpDepacketize createDepacketize() {
-        return new H264Depacketize();
+        RtpDepacketize rtpDepacketize = new H264Depacketize();
+        rtpDepacketize.setCallback((data, length, pts) -> {
+            int type = data[4] & 0x1F;
+            if (type == 0x09) {
+                // AU (Access Unit) delimiter が使用されている場合は、
+                // 次の AU がくるまでは同じフレームとして処理を行います。
+                if (mCurrentFrame != null) {
+                    addFrame(mCurrentFrame);
+                }
+                mCurrentFrame = getFrame();
+                mCurrentFrame.setData(data, length, pts);
+            } else {
+                if (mCurrentFrame == null) {
+                    // AU (Access Unit) delimiter が送られてきていないので
+                    // フレームをそのまま追加します。
+                    Frame frame = getFrame();
+                    frame.setData(data, length, pts);
+                    addFrame(frame);
+                } else {
+                    mCurrentFrame.append(data, length);
+                }
+            }
+        });
+        return rtpDepacketize;
     }
 
     @Override

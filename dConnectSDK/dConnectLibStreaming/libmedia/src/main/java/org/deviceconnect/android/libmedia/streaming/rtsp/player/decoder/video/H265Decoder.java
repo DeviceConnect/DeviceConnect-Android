@@ -8,6 +8,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpDepacketize;
+import org.deviceconnect.android.libmedia.streaming.rtp.depacket.H264Depacketize;
 import org.deviceconnect.android.libmedia.streaming.rtp.depacket.H265Depacketize;
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.Frame;
 import org.deviceconnect.android.libmedia.streaming.sdp.Attribute;
@@ -90,13 +91,19 @@ public class H265Decoder extends VideoDecoder {
         setClockFrequency(clockFrequency);
 
         if (mVPS != null && mSPS != null && mPPS != null) {
-            setConfigFrame(new Frame(createSPS_PPS(mVPS, mSPS, mPPS), 0));
+            addFrame(new Frame(createSPS_PPS(mVPS, mSPS, mPPS), 0));
         }
     }
 
     @Override
     protected RtpDepacketize createDepacketize() {
-        return new H265Depacketize();
+        RtpDepacketize rtpDepacketize = new H265Depacketize();
+        rtpDepacketize.setCallback((data, length, pts) -> {
+            Frame frame = getFrame();
+            frame.setData(data, length, pts);
+            addFrame(frame);
+        });
+        return rtpDepacketize;
     }
 
     @Override

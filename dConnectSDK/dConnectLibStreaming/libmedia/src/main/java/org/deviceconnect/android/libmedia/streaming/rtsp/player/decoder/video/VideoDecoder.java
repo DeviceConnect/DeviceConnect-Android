@@ -61,16 +61,6 @@ public abstract class VideoDecoder implements Decoder {
     private int mClockFrequency;
 
     /**
-     * 設定用のフレーム.
-     */
-    private Frame mConfigFrame;
-
-    /**
-     * 同じプレゼンテーションタイムのフレームを格納するためのフレーム.
-     */
-    private Frame mCurrentFrame;
-
-    /**
      * フレームを提供するクラス.
      */
     private final FrameProvider mFrameProvider = new FrameProvider();
@@ -78,30 +68,13 @@ public abstract class VideoDecoder implements Decoder {
     @Override
     public void onInit(MediaDescription md) {
         mClockFrequency = 90000;
-        mCurrentFrame = null;
         mFrameProvider.init();
 
-        configure(md);
         createWorkThread();
+        configure(md);
 
         mDepacketize = createDepacketize();
         mDepacketize.setClockFrequency(mClockFrequency);
-        mDepacketize.setCallback((data, length, pts) -> {
-            if (mWorkThread != null) {
-                if (mCurrentFrame != null) {
-                    if (mCurrentFrame.getTimestamp() == pts) {
-                        mCurrentFrame.append(data, length);
-                    } else {
-                        mWorkThread.add(mCurrentFrame);
-                        mCurrentFrame = mFrameProvider.get();
-                        mCurrentFrame.setData(data, length, pts);
-                    }
-                } else {
-                    mCurrentFrame = mFrameProvider.get();
-                    mCurrentFrame.setData(data, length, pts);
-                }
-            }
-        });
     }
 
     @Override
@@ -169,15 +142,6 @@ public abstract class VideoDecoder implements Decoder {
     }
 
     /**
-     * メディアデータのコンフィグ用のフレームを設定します.
-     *
-     * @param configFrame フレーム
-     */
-    void setConfigFrame(Frame configFrame) {
-        mConfigFrame = configFrame;
-    }
-
-    /**
      * エラー通知を行う.
      *
      * @param e 例外
@@ -197,6 +161,28 @@ public abstract class VideoDecoder implements Decoder {
     void postSizeChanged(int width, int height) {
         if (mEventCallback != null) {
             mEventCallback.onSizeChanged(width, height);
+        }
+    }
+
+    /**
+     * 使用できる Frame のインスタンスを取得します.
+     *
+     * 取得できない場合は null を返却します。
+     *
+     * @return 使用できる Frame のインスタンス
+     */
+    protected Frame getFrame() {
+        return mFrameProvider.get();
+    }
+
+    /**
+     * Frame を追加します.
+     *
+     * @param frame 追加するフレーム
+     */
+    protected void addFrame(Frame frame) {
+        if (mWorkThread != null) {
+            mWorkThread.add(frame);
         }
     }
 
@@ -318,7 +304,6 @@ public abstract class VideoDecoder implements Decoder {
      */
     private MediaCodec createMediaCodec() throws IOException {
         MediaFormat format = createMediaFormat();
-
         MediaCodec mediaCodec;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             mediaCodec = configDecoder(format, getSurface());
@@ -396,9 +381,6 @@ public abstract class VideoDecoder implements Decoder {
                 mMediaCodec = createMediaCodec();
                 mMediaCodec.start();
 
-                long pts = 0;
-                long start = System.currentTimeMillis();
-
                 while (!mStopFlag) {
                     Frame frame = get();
 
@@ -415,13 +397,7 @@ public abstract class VideoDecoder implements Decoder {
                                 flags = getFlags(frame.getData(), frame.getLength());
                             }
 
-                            if (pts == 0) {
-                                pts = frame.getTimestamp();
-                            }
-                            long diff = frame.getTimestamp() - pts;
-                            mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), start + diff, flags);
-
-
+                            mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), frame.getTimestamp(), flags);
                         }
                     }
 

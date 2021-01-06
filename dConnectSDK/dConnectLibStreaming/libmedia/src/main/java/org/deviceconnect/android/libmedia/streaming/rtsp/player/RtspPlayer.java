@@ -125,7 +125,7 @@ public class RtspPlayer {
      * @return 受信したデータサイズ
      */
     public long getReceivedSize() {
-        return mRtspClient.getReceivedSize();
+        return mRtspClient != null ? mRtspClient.getReceivedSize() : 0;
     }
 
     /**
@@ -134,7 +134,7 @@ public class RtspPlayer {
      * @return 受信したデータの BPS
      */
     public long getBPS() {
-        return mRtspClient.getBPS();
+        return mRtspClient != null ? mRtspClient.getBPS() : 0;
     }
 
     /**

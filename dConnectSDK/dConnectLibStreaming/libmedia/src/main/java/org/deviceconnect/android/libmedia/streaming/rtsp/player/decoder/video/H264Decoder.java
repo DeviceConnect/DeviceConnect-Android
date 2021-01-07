@@ -145,7 +145,6 @@ public class H264Decoder extends VideoDecoder {
         if (mCsd1 != null) {
             format.setByteBuffer("csd-1", mCsd1);
         }
-        format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, mWidth * mHeight);
         return format;
     }
 

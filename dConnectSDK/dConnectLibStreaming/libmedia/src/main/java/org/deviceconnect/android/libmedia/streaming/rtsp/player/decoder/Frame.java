@@ -18,6 +18,13 @@ public class Frame {
         setData(data, length, timestamp);
     }
 
+    /**
+     * 指定されたデータをコピーして設定します.
+     *
+     * @param data コピーするデータ
+     * @param length コピーするデータのサイズ
+     * @param timestamp タイムスタンプ
+     */
     public void setData(byte[] data, int length, long timestamp) {
         if (mData == null || mData.length < length) {
             mData = new byte[length];
@@ -27,6 +34,12 @@ public class Frame {
         mTimestamp = timestamp;
     }
 
+    /**
+     * 指定されたデータを現在のデータの後ろに追加します.
+     *
+     * @param data 追加するデータ
+     * @param length 追加するデータのサイズ
+     */
     public void append(byte[] data, int length) {
         if (mData.length < mLength + length) {
             extendData(mLength + length);

@@ -98,6 +98,8 @@ public abstract class VideoDecoder implements Decoder {
         if (mDepacketize != null) {
             mDepacketize = null;
         }
+
+        mFrameProvider.clear();
     }
 
     @Override
@@ -259,10 +261,6 @@ public abstract class VideoDecoder implements Decoder {
             boolean formatSupported;
 
             if (info.isEncoder()) {
-                continue;
-            }
-
-            if (info.getName().contains("Exynos")) {
                 continue;
             }
 

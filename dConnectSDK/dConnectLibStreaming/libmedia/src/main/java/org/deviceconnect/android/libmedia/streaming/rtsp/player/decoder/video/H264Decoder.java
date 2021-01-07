@@ -90,8 +90,11 @@ public class H264Decoder extends VideoDecoder {
                             for (byte b : mPPS) {
                                 pps.append(String.format("%02X", b));
                             }
+                            Log.e(TAG, "### base[0] " + base[0]);
+                            Log.e(TAG, "### base[1] " + base[1]);
                             Log.e(TAG, "### SPS " + sps);
                             Log.e(TAG, "### PPS " + pps);
+                            Log.e(TAG, "### Size " + mWidth + "x" + mHeight);
                         }
                     }
                 }
@@ -139,10 +142,10 @@ public class H264Decoder extends VideoDecoder {
         if (mCsd0 != null) {
             format.setByteBuffer("csd-0", mCsd0);
         }
-
         if (mCsd1 != null) {
             format.setByteBuffer("csd-1", mCsd1);
         }
+        format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, mWidth * mHeight);
         return format;
     }
 
@@ -171,14 +174,17 @@ public class H264Decoder extends VideoDecoder {
     }
 
     private void setSPS_PPS(byte[] sps, byte[] pps) {
+        byte[] header = new byte[] {0, 0, 0, 1};
         if (sps != null) {
-            mCsd0 = ByteBuffer.allocateDirect(sps.length).order(ByteOrder.nativeOrder());
+            mCsd0 = ByteBuffer.allocateDirect(sps.length + header.length).order(ByteOrder.nativeOrder());
+            mCsd0.put(header, 0, header.length);
             mCsd0.put(sps, 0, sps.length);
             mCsd0.flip();
         }
 
         if (pps != null) {
-            mCsd1 = ByteBuffer.allocateDirect(pps.length).order(ByteOrder.nativeOrder());
+            mCsd1 = ByteBuffer.allocateDirect(pps.length + header.length).order(ByteOrder.nativeOrder());
+            mCsd1.put(header, 0, header.length);
             mCsd1.put(pps, 0, pps.length);
             mCsd1.flip();
         }

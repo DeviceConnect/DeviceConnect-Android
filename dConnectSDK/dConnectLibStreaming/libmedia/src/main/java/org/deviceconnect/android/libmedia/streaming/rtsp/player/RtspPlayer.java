@@ -1,5 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.rtsp.player;
 
+import android.media.Image;
 import android.util.Log;
 import android.view.Surface;
 
@@ -19,8 +20,11 @@ import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.SessionDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribute;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class RtspPlayer {
@@ -40,7 +44,7 @@ public class RtspPlayer {
     /**
      * RTSP サーバの URL.
      */
-    private String mUrl;
+    private final String mUrl;
 
     /**
      * RTSP サーバへの接続リトライ回数.
@@ -73,20 +77,87 @@ public class RtspPlayer {
     private final Map<String, DecoderFactory> mAudioFactory = new HashMap<>();
 
     /**
+     * 指定ポート番号リスト.
+     */
+    private final List<Integer> mRtpPortList;
+
+    /**
+     * 接続のタイムアウト時間を設定.
+     */
+    private int mConnectionTimeout = 10 * 1000;
+
+    /**
      * コンストラクタ.
      *
      * @param url RTSP サーバへのURL
      */
     public RtspPlayer(String url) {
+        this(url, new ArrayList<>());
+    }
+
+    /**
+     * コンストラクタ.
+     *
+     * @param url RTSP サーバへのURL
+     * @param rtpPortList RTP/RTCP に指定するUDPポート番号一覧
+     */
+    public RtspPlayer(String url, List<Integer> rtpPortList) {
         if (url == null) {
             throw new IllegalArgumentException("url is null.");
         }
 
+        if (rtpPortList == null) {
+            throw new IllegalArgumentException("setPortList is null.");
+        }
+
+        for (int port : rtpPortList) {
+            if (port <= 1024) {
+                throw new IllegalArgumentException("rtpPortList is invalid port number.(Must be greater than 1025.)");
+            }
+        }
+
         mUrl = url;
+        mRtpPortList = rtpPortList;
 
         addVideoFactory("H264", new H264DecoderFactory());
         addVideoFactory("H265", new H265DecoderFactory());
         addAudioFactory("mpeg4-generic", new AACLATMDecoderFactory());
+    }
+
+    /**
+     * RTSP サーバへの接続タイムアウト時間(ミリ秒)を設定します.
+     *
+     * @param timeout タイムアウト時間(ms)
+     */
+    public void setConnectionTimeout(int timeout) {
+        mConnectionTimeout = timeout;
+    }
+
+    /**
+     * RTSP サーバへの URL を取得します.
+     *
+     * @return RTSP サーバへの URL
+     */
+    public String getUrl() {
+        return mUrl;
+    }
+
+    /**
+     * 受信したデータサイズを取得します.
+     *
+     * @return 受信したデータサイズ
+     */
+    public long getReceivedSize() {
+        return mRtspClient != null ? mRtspClient.getReceivedSize() : 0;
+    }
+
+    /**
+     * 受信したデータの BPS を取得します.
+     *
+     * @return 受信したデータの BPS
+     */
+    public long getBPS() {
+        return mRtspClient != null ? mRtspClient.getBPS() : 0;
     }
 
     /**
@@ -163,7 +234,8 @@ public class RtspPlayer {
         }
 
         mRetryCount = 0;
-        mRtspClient = new RtspClient(mUrl);
+        mRtspClient = new RtspClient(mUrl, mRtpPortList);
+        mRtspClient.setConnectionTimeout(mConnectionTimeout);
         mRtspClient.setOnEventListener(new RtspClient.OnEventListener() {
             @Override
             public void onConnected() {
@@ -186,12 +258,14 @@ public class RtspPlayer {
                     mRetryCount++;
                     if (mRetryCount < 3) {
                         new Thread(() -> {
+                            stop();
+
                             try {
-                                Thread.sleep(500);
+                                Thread.sleep(500 * mRetryCount);
                             } catch (InterruptedException e1) {
                                 // ignore.
                             }
-                            stop();
+
                             start();
                         }).start();
                     } else {
@@ -264,7 +338,17 @@ public class RtspPlayer {
             if (decoder != null) {
                 decoder.setSurface(mSurface);
                 decoder.setErrorCallback(this::postOnError);
-                decoder.setEventCallback(this::postOnSizeChanged);
+                decoder.setEventCallback(new VideoDecoder.EventCallback() {
+                    @Override
+                    public void onSizeChanged(int width, int height) {
+                        postOnSizeChanged(width, height);
+                    }
+
+                    @Override
+                    public void onData(Image image, long presentationTimeUs) {
+                        postOnVideoData(image, presentationTimeUs);
+                    }
+                });
                 decoder.onInit(md);
                 return decoder;
             } else {
@@ -276,6 +360,17 @@ public class RtspPlayer {
             AudioDecoder decoder = createAudioDecoder(md);
             if (decoder != null) {
                 decoder.setErrorCallback(this::postOnError);
+                decoder.setEventCallback(new AudioDecoder.EventCallback() {
+                    @Override
+                    public void onFormatChanged(int sampleRate, int channel) {
+                        postOnAudioFormatChanged(sampleRate, channel);
+                    }
+
+                    @Override
+                    public void onData(ByteBuffer data, int offset, int size, long presentationTimeUs) {
+                        postOnAudioData(data, offset, size, presentationTimeUs);
+                    }
+                });
                 decoder.setMute(mMute);
                 decoder.onInit(md);
                 return decoder;
@@ -374,6 +469,24 @@ public class RtspPlayer {
         }
     }
 
+    private void postOnVideoData(Image image, long presentationTimeUs) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onVideoData(image, presentationTimeUs);
+        }
+    }
+
+    private void postOnAudioFormatChanged(int samplingRate, int channel) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onAudioFormatChanged(samplingRate, channel);
+        }
+    }
+
+    private void postOnAudioData(ByteBuffer data, int offset, int size, long presentationTimeUs) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onAudioData(data, offset, size, presentationTimeUs);
+        }
+    }
+
     private void postOnError(Exception e) {
         if (mOnEventListener != null) {
             mOnEventListener.onError(e);
@@ -403,6 +516,32 @@ public class RtspPlayer {
          * @param height 縦幅
          */
         void onSizeChanged(int width, int height);
+
+        /**
+         * 映像データを通知します.
+         *
+         * @param image 映像データ
+         * @param presentationTimeUs プレゼンテーションタイム
+         */
+        void onVideoData(Image image, long presentationTimeUs);
+
+        /**
+         * 音声データのフォーマットを通知します.
+         *
+         * @param samplingRate サンプリングレート
+         * @param channel チャンネル
+         */
+        void onAudioFormatChanged(int samplingRate, int channel);
+
+        /**
+         * 音声データを通知します.
+         *
+         * @param data 音声データ
+         * @param offset データのオフセット
+         * @param size データサイズ
+         * @param presentationTimeUs プレゼンテーションタイム
+         */
+        void onAudioData(ByteBuffer data, int offset, int size, long presentationTimeUs);
 
         /**
          * RTSP プレイヤーでエラーが発生したことを通知します.

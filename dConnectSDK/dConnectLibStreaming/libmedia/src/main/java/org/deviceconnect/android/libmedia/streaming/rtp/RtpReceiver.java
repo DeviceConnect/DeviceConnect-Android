@@ -6,12 +6,12 @@ public class RtpReceiver {
     /**
      * RTP を受信するためのポート番号.
      */
-    private int mRtpPort;
+    private final int mRtpPort;
 
     /**
      * RTCP を受信するためのポート番号.
      */
-    private int mRtcpPort;
+    private final int mRtcpPort;
 
     /**
      * RTP 受信用のスレッド.
@@ -109,6 +109,64 @@ public class RtpReceiver {
             mRtcpReceiverThread.terminate();
             mRtcpReceiverThread = null;
         }
+    }
+
+    /**
+     * RTP受信ポート番号の取得.
+     * @return ポート番号
+     */
+    public int getRtpPort() {
+        return mRtpPort;
+    }
+
+    /**
+     * RTCP受信ポート番号の取得.
+     * @return ポート番号
+     */
+    public int getRtcpPort() {
+        return mRtcpPort;
+    }
+
+    /**
+     * 受信したデータサイズを取得します.
+     *
+     * @return 受信したデータサイズ
+     */
+    public long getReceivedSize() {
+        long size = 0;
+        if (mReceiverThread != null) {
+            size += mReceiverThread.getReceiveSize();
+        }
+        if (mRtcpReceiverThread != null) {
+            size += mRtcpReceiverThread.getReceiveSize();
+        }
+        return size;
+    }
+
+    /**
+     * 受信したデータサイズをリセットします.
+     */
+    public void reset() {
+        if (mReceiverThread != null) {
+            mReceiverThread.resetReceiveSize();
+        }
+        if (mRtcpReceiverThread != null) {
+            mRtcpReceiverThread.resetReceiveSize();
+        }
+    }
+
+    /**
+     * 受信したデータの BPS を取得します.
+     */
+    public long getBPS() {
+        long bps = 0;
+        if (mReceiverThread != null) {
+            bps += mReceiverThread.getBPS();
+        }
+        if (mRtcpReceiverThread != null) {
+            bps += mRtcpReceiverThread.getBPS();
+        }
+        return bps;
     }
 
     /**

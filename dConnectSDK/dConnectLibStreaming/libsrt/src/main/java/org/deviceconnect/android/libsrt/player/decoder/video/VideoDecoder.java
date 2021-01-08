@@ -323,13 +323,6 @@ public abstract class VideoDecoder implements Decoder {
                                 break;
 
                             case MediaCodec.INFO_TRY_AGAIN_LATER:
-                                if (DEBUG) {
-                                    Log.d(TAG, "INFO_TRY_AGAIN_LATER");
-                                    Log.d(TAG, "dequeueOutputBuffer timed out!");
-                                }
-                                Thread.sleep(1);
-                                break;
-
                             default:
                                 break;
                         }

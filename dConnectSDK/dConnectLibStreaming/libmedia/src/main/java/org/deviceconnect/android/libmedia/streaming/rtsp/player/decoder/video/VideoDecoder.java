@@ -70,8 +70,16 @@ public abstract class VideoDecoder implements Decoder {
         mClockFrequency = 90000;
         mFrameProvider.init();
 
-        createWorkThread();
+        if (mWorkThread != null) {
+            mWorkThread.terminate();
+        }
+
+        mWorkThread = new WorkThread();
+        mWorkThread.setName("VIDEO-DECODER");
+
         configure(md);
+
+        mWorkThread.start();
 
         mDepacketize = createDepacketize();
         mDepacketize.setClockFrequency(mClockFrequency);
@@ -186,19 +194,6 @@ public abstract class VideoDecoder implements Decoder {
         if (mWorkThread != null) {
             mWorkThread.add(frame);
         }
-    }
-
-    /**
-     * Surface に描画を行うスレッドを作成します.
-     */
-    private void createWorkThread() {
-        if (mWorkThread != null) {
-            mWorkThread.terminate();
-        }
-
-        mWorkThread = new WorkThread();
-        mWorkThread.setName("VIDEO-DECODER");
-        mWorkThread.start();
     }
 
     /**

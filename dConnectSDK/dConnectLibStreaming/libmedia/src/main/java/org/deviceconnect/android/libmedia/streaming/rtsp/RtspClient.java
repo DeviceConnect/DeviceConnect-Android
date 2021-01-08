@@ -336,10 +336,18 @@ public class RtspClient {
                 processOptions();
                 processDescribe();
 
-                if (mSessionDescription != null) {
-                    for (MediaDescription md : mSessionDescription.getMediaDescriptions()) {
-                        processSetup(md);
-                    }
+                if (mSessionDescription == null) {
+                    throw new RtspClientException("Not found a sdp.",
+                            RtspResponse.Status.STATUS_UNKNOWN);
+                }
+
+                if (mSessionDescription.getMediaDescriptions().isEmpty()) {
+                    throw new RtspClientException("Not found a MediaDescription.",
+                            RtspResponse.Status.STATUS_UNKNOWN);
+                }
+
+                for (MediaDescription md : mSessionDescription.getMediaDescriptions()) {
+                    processSetup(md);
                 }
 
                 processPlay();
@@ -367,11 +375,10 @@ public class RtspClient {
                 synchronized (mRtpReceivers) {
                     for (RtpReceiver receiver : mRtpReceivers) {
                         receiver.close();
-                        // 使用ポート番号リストからポート番号削除
-                        mUsePortList.remove((Integer) receiver.getRtpPort());
-                        mUsePortList.remove((Integer) receiver.getRtcpPort());
                     }
                     mRtpReceivers.clear();
+                    // 使用ポート番号リストからポート番号削除
+                    mUsePortList.clear();
                 }
 
                 if (mSocket != null) {

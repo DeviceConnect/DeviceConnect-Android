@@ -82,6 +82,11 @@ public class RtspPlayer {
     private final List<Integer> mRtpPortList;
 
     /**
+     * 接続のタイムアウト時間を設定.
+     */
+    private int mConnectionTimeout = 10 * 1000;
+
+    /**
      * コンストラクタ.
      *
      * @param url RTSP サーバへのURL
@@ -119,6 +124,20 @@ public class RtspPlayer {
         addAudioFactory("mpeg4-generic", new AACLATMDecoderFactory());
     }
 
+    /**
+     * RTSP サーバへの接続タイムアウト時間(ミリ秒)を設定します.
+     *
+     * @param timeout タイムアウト時間(ms)
+     */
+    public void setConnectionTimeout(int timeout) {
+        mConnectionTimeout = timeout;
+    }
+
+    /**
+     * RTSP サーバへの URL を取得します.
+     *
+     * @return RTSP サーバへの URL
+     */
     public String getUrl() {
         return mUrl;
     }
@@ -216,6 +235,7 @@ public class RtspPlayer {
 
         mRetryCount = 0;
         mRtspClient = new RtspClient(mUrl, mRtpPortList);
+        mRtspClient.setConnectionTimeout(mConnectionTimeout);
         mRtspClient.setOnEventListener(new RtspClient.OnEventListener() {
             @Override
             public void onConnected() {

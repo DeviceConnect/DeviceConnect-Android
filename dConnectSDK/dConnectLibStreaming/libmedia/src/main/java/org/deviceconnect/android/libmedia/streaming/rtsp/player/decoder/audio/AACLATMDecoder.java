@@ -45,14 +45,8 @@ public class AACLATMDecoder extends AudioDecoder {
      */
     private WorkThread mWorkThread;
 
-    /**
-     * イベント通知用のリスナー.
-     */
-    private Decoder.ErrorCallback mErrorCallback;
-
     @Override
     public void onInit(MediaDescription md) {
-
         // https://tools.ietf.org/html/rfc5691
 
         for (Attribute attribute : md.getAttributes()) {
@@ -93,16 +87,11 @@ public class AACLATMDecoder extends AudioDecoder {
 
         mDepacketize = new AACLATMDepacketize();
         mDepacketize.setClockFrequency(getSamplingRate());
-        mDepacketize.setCallback((data, pts) -> {
+        mDepacketize.setCallback((data, length, pts) -> {
             if (mWorkThread != null) {
-                mWorkThread.add(new Frame(data, pts));
+                mWorkThread.add(new Frame(data, length, pts));
             }
         });
-    }
-
-    @Override
-    public void setErrorCallback(ErrorCallback listener) {
-        mErrorCallback = listener;
     }
 
     @Override
@@ -143,16 +132,6 @@ public class AACLATMDecoder extends AudioDecoder {
 
         if (mDepacketize != null) {
             mDepacketize = null;
-        }
-    }
-
-    /**
-     * エラー通知を行う.
-     * @param e 例外
-     */
-    private void postError(final Exception e) {
-        if (mErrorCallback != null) {
-            mErrorCallback.onError(e);
         }
     }
 
@@ -234,7 +213,7 @@ public class AACLATMDecoder extends AudioDecoder {
                     int outIndex = mMediaCodec.dequeueOutputBuffer(info, 10000);
                     if (outIndex > 0 && !mStopFlag) {
                         if (info.size > 0) {
-                            writeAudioData(mMediaCodec.getOutputBuffer(outIndex), 0, info.size, info.presentationTimeUs);
+                            writeAudioData(mMediaCodec.getOutputBuffer(outIndex), info.offset, info.size, info.presentationTimeUs);
                         }
                         mMediaCodec.releaseOutputBuffer(outIndex, false);
                     } else {

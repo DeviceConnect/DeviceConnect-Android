@@ -18,6 +18,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,7 +41,7 @@ public class RtspClient {
     /**
      * RTSP サーバの URL.
      */
-    private String mRtspServerUrl;
+    private final String mRtspServerUrl;
 
     /**
      * RTSP サーバに送信するリクエストに付加するユーザエージェント.
@@ -60,46 +61,43 @@ public class RtspClient {
     /**
      * 指定ポート番号リスト.
      */
-    private List<Integer> mSetPortList;
+    private final List<Integer> mRtpPortList = new ArrayList<>();
 
     /**
      * 使用ポート番号リスト.
      */
-    private List<Integer> mUsePortList;
+    private final List<Integer> mUsePortList = new ArrayList<>();
 
     /**
      * コンストラクタ.
      * @param url RTSP サーバの URL
      */
     public RtspClient(String url) {
-        if (url == null) {
-            throw new IllegalArgumentException("url is null.");
-        }
-        mRtspServerUrl = url;
-        mUsePortList = new ArrayList<>();
-        mSetPortList = new ArrayList<>();
+        this(url, new ArrayList<>());
     }
 
     /**
      * コンストラクタ.
      * @param url RTSP サーバの URL
-     * @param setPortList RTP/RTCPに指定するUDPポート番号一覧
+     * @param rtpPortList RTP/RTCPに指定するUDPポート番号一覧
      */
-    public RtspClient(String url, List<Integer> setPortList) {
+    public RtspClient(String url, List<Integer> rtpPortList) {
         if (url == null) {
             throw new IllegalArgumentException("url is null.");
         }
-        if (setPortList == null) {
+
+        if (rtpPortList == null) {
             throw new IllegalArgumentException("setPortList is null.");
         }
-        for (int port : setPortList) {
+
+        for (int port : rtpPortList) {
             if (port <= 1024) {
-                throw new IllegalArgumentException("setPortList is invalid port number.　(Must be greater than 1025.)");
+                throw new IllegalArgumentException("rtpPortList is invalid port number. (Must be greater than 1025.)");
             }
         }
+
         mRtspServerUrl = url;
-        mUsePortList = new ArrayList<>();
-        mSetPortList = setPortList;
+        mRtpPortList.addAll(rtpPortList);
     }
 
     /**
@@ -169,6 +167,24 @@ public class RtspClient {
      */
     public synchronized boolean isRunning() {
         return mSessionThread != null;
+    }
+
+    /**
+     * 受信したデータサイズを取得します.
+     *
+     * @return 受信したデータサイズ
+     */
+    public long getReceivedSize() {
+        return mSessionThread != null ? mSessionThread.getReceivedSize() : 0;
+    }
+
+    /**
+     * 受信したデータの BPS を取得します.
+     *
+     * @return 受信したデータの BPS
+     */
+    public long getBPS() {
+        return mSessionThread != null ? mSessionThread.getBPS() : 0;
     }
 
     private void postOnError(RtspClientException e) {
@@ -272,6 +288,15 @@ public class RtspClient {
         private int[] mServerPorts;
 
         /**
+         * インターバルを設定します.
+         *
+         * @param interval インターバル
+         */
+        private void setInterval(int interval) {
+            mInterval = interval;
+        }
+
+        /**
          * スレッドの停止処理を行います.
          */
         private void terminate() {
@@ -311,10 +336,18 @@ public class RtspClient {
                 processOptions();
                 processDescribe();
 
-                if (mSessionDescription != null) {
-                    for (MediaDescription md : mSessionDescription.getMediaDescriptions()) {
-                        processSetup(md);
-                    }
+                if (mSessionDescription == null) {
+                    throw new RtspClientException("Not found a sdp.",
+                            RtspResponse.Status.STATUS_UNKNOWN);
+                }
+
+                if (mSessionDescription.getMediaDescriptions().isEmpty()) {
+                    throw new RtspClientException("Not found a MediaDescription.",
+                            RtspResponse.Status.STATUS_UNKNOWN);
+                }
+
+                for (MediaDescription md : mSessionDescription.getMediaDescriptions()) {
+                    processSetup(md);
                 }
 
                 processPlay();
@@ -342,11 +375,10 @@ public class RtspClient {
                 synchronized (mRtpReceivers) {
                     for (RtpReceiver receiver : mRtpReceivers) {
                         receiver.close();
-                        // 使用ポート番号リストからポート番号削除
-                        mUsePortList.remove((Integer) receiver.getRtpPort());
-                        mUsePortList.remove((Integer) receiver.getRtcpPort());
                     }
                     mRtpReceivers.clear();
+                    // 使用ポート番号リストからポート番号削除
+                    mUsePortList.clear();
                 }
 
                 if (mSocket != null) {
@@ -363,6 +395,26 @@ public class RtspClient {
                     Log.d(TAG, "RTSP CLIENT END");
                 }
             }
+        }
+
+        private long getReceivedSize() {
+            long size = 0;
+            synchronized (mRtpReceivers) {
+                for (RtpReceiver receiver : mRtpReceivers) {
+                    size += receiver.getReceivedSize();
+                }
+            }
+            return size;
+        }
+
+        private long getBPS() {
+            long bps = 0;
+            synchronized (mRtpReceivers) {
+                for (RtpReceiver receiver : mRtpReceivers) {
+                    bps += receiver.getBPS();
+                }
+            }
+            return bps;
         }
 
         /**
@@ -465,9 +517,7 @@ public class RtspClient {
             String content = response.getContent();
             if (content != null) {
                 mSessionDescription = SessionDescriptionParser.parse(content);
-                if (mSessionDescription != null) {
-                    postOnSdpReceived(mSessionDescription);
-                }
+                postOnSdpReceived(mSessionDescription);
             }
         }
 
@@ -516,10 +566,10 @@ public class RtspClient {
          * @return ポート番号。SetPortListが空の場合は-1を返す
          */
         private int getPortNumber() {
-            if (mSetPortList.isEmpty()) {
+            if (mRtpPortList.isEmpty()) {
                 return -1;
             }
-            for (int port : mSetPortList) {
+            for (int port : mRtpPortList) {
                 if (!mUsePortList.contains(port)) {
                     mUsePortList.add(port);
                     return port;
@@ -538,7 +588,7 @@ public class RtspClient {
         private void processSetup(MediaDescription md) throws IOException {
             int rtpPort, rtspPort;
             // 指定UDPポート設定判定
-            if (!mSetPortList.isEmpty()) {
+            if (!mRtpPortList.isEmpty()) {
                 rtpPort = getPortNumber();
                 rtspPort = getPortNumber();
             } else {
@@ -577,6 +627,11 @@ public class RtspClient {
 
             mClientPorts = RtspResponseParser.parseClientPort(response);
             mServerPorts = RtspResponseParser.parseServerPort(response);
+
+            if (DEBUG) {
+                Log.d(TAG, "ClientPorts: " + Arrays.toString(mClientPorts));
+                Log.d(TAG, "ServerPorts: " + Arrays.toString(mServerPorts));
+            }
         }
 
         /**

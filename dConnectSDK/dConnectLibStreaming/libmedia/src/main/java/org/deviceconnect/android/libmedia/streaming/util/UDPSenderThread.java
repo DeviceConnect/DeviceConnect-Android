@@ -23,6 +23,16 @@ public class UDPSenderThread extends QueueThread<byte[]> {
     private DatagramPacket mDatagramPacket;
 
     /**
+     * 送信サイズ.
+     */
+    private long mSentSize;
+
+    /**
+     * BPS (bits per second).
+     */
+    private long mBPS;
+
+    /**
      * コンストラクタ.
      * @throws IOException ソケットの作成に失敗した場合に発生
      */
@@ -94,6 +104,31 @@ public class UDPSenderThread extends QueueThread<byte[]> {
     }
 
     /**
+     * 送信したデータサイズを取得します.
+     *
+     * @return 送信したデータサイズ
+     */
+    public long getSentSize() {
+        return mSentSize;
+    }
+
+    /**
+     * 送信したデータサイズをリセットします.
+     */
+    public void resetSentSize() {
+        mSentSize = 0;
+    }
+
+    /**
+     * 送信したデータの BPS (bits per second) を取得します.
+     *
+     * @return BPS (bits per second)
+     */
+    public long getBPS() {
+        return mBPS;
+    }
+
+    /**
      * スレッドの停止処理を行います.
      */
     public void terminate() {
@@ -114,29 +149,32 @@ public class UDPSenderThread extends QueueThread<byte[]> {
         }
     }
 
-    /**
-     * UDP にデータを送信します.
-     */
-    private void send() throws InterruptedException {
-        byte[] packet = get();
-        if (packet == null) {
-            return;
-        }
-
-        try {
-            mDatagramPacket.setData(packet);
-            mDatagramPacket.setLength(packet.length);
-            mSocket.send(mDatagramPacket);
-        } catch (IOException e) {
-            // ignore.
-        }
-    }
-
     @Override
     public void run() {
+        long sentSize = 0;
+        long startTime = System.currentTimeMillis();
         while (!mStopFlag) {
             try {
-                send();
+                byte[] packet = get();
+                if (packet == null) {
+                    return;
+                }
+
+                try {
+                    mDatagramPacket.setData(packet);
+                    mDatagramPacket.setLength(packet.length);
+                    mSocket.send(mDatagramPacket);
+
+                    mSentSize += packet.length;
+                    sentSize += packet.length;
+                    if (System.currentTimeMillis() - startTime >= 1000) {
+                        mBPS = sentSize * 8;
+                        sentSize = 0;
+                        startTime = System.currentTimeMillis();
+                    }
+                } catch (IOException e) {
+                    // ignore.
+                }
             } catch (InterruptedException e) {
                 break;
             } catch (Exception e) {

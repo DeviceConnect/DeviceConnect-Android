@@ -34,6 +34,16 @@ public abstract class UDPReceiverThread extends Thread {
     private int mTimeout = 5000;
 
     /**
+     * 受信データサイズ.
+     */
+    private long mReceivedSize;
+
+    /**
+     * 受信データ BPS (bits per second).
+     */
+    private long mBPS;
+
+    /**
      * コンストラクタ.
      *
      * @param port ポート番号
@@ -59,6 +69,31 @@ public abstract class UDPReceiverThread extends Thread {
      */
     public void setSoTimeout(int timeout) {
         mTimeout = timeout;
+    }
+
+    /**
+     * 受信したデータサイズを取得します.
+     *
+     * @return 受信したデータサイズ
+     */
+    public long getReceiveSize() {
+        return mReceivedSize;
+    }
+
+    /**
+     * 受信したデータサイズをリセットします.
+     */
+    public void resetReceiveSize() {
+        mReceivedSize = 0;
+    }
+
+    /**
+     * BPS (bits per second) を取得します.
+     *
+     * @return BPS (bits per second)
+     */
+    public long getBPS() {
+        return mBPS;
     }
 
     /**
@@ -110,9 +145,20 @@ public abstract class UDPReceiverThread extends Thread {
             return;
         }
 
+        long receivedSize = 0;
+        long startTime = System.currentTimeMillis();
         while (!mStopFlag) {
             try {
                 mDatagramSocket.receive(packet);
+
+                mReceivedSize += packet.getLength();
+                receivedSize += packet.getLength();
+                if (System.currentTimeMillis() - startTime >= 1000) {
+                    mBPS = receivedSize * 8;
+                    receivedSize = 0;
+                    startTime = System.currentTimeMillis();
+                }
+
                 onReceived(packet.getData(), packet.getLength());
             } catch (Exception e) {
                 // ignore.

@@ -2,6 +2,7 @@ package org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.video;
 
 import android.annotation.TargetApi;
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.util.Base64;
@@ -15,10 +16,12 @@ import org.deviceconnect.android.libmedia.streaming.sdp.Attribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.FormatAttribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribute;
+import org.deviceconnect.android.libmedia.streaming.util.H264Parser;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * H264をデコードしてSurfaceに描画するクラス.
@@ -38,20 +41,17 @@ public class H264Decoder extends VideoDecoder {
     /**
      * MediaCodec に渡すマイムタイプ.
      */
-    private String mMimeType = "video/avc";
+    private static final String MIME_TYPE_H264 = "video/avc";
 
-    /**
-     * SPSの情報を格納するバッファ.
-     */
     private ByteBuffer mCsd0;
-
-    /**
-     * PPSの情報を格納するバッファ.
-     */
     private ByteBuffer mCsd1;
-
     private byte[] mSPS;
     private byte[] mPPS;
+
+    private int mWidth = 960;
+    private int mHeight = 540;
+
+    private Frame mCurrentFrame;
 
     @Override
     protected void configure(MediaDescription md) {
@@ -73,6 +73,14 @@ public class H264Decoder extends VideoDecoder {
                         mPPS = Base64.decode(base[1], Base64.NO_WRAP);
                         setSPS_PPS(mSPS, mPPS);
 
+                        try {
+                            H264Parser.Sps s = H264Parser.parseSps(mSPS);
+                            mWidth = s.getWidth();
+                            mHeight = s.getHeight();
+                        } catch (Exception e) {
+                            // ignore.
+                        }
+
                         if (DEBUG) {
                             StringBuilder sps = new StringBuilder();
                             StringBuilder pps = new StringBuilder();
@@ -82,8 +90,11 @@ public class H264Decoder extends VideoDecoder {
                             for (byte b : mPPS) {
                                 pps.append(String.format("%02X", b));
                             }
+                            Log.e(TAG, "### base[0] " + base[0]);
+                            Log.e(TAG, "### base[1] " + base[1]);
                             Log.e(TAG, "### SPS " + sps);
                             Log.e(TAG, "### PPS " + pps);
+                            Log.e(TAG, "### Size " + mWidth + "x" + mHeight);
                         }
                     }
                 }
@@ -93,37 +104,54 @@ public class H264Decoder extends VideoDecoder {
         setClockFrequency(clockFrequency);
 
         if (mSPS != null && mPPS != null) {
-            setConfigFrame(new Frame(createSPS_PPS(mSPS, mPPS), 0));
+            addFrame(new Frame(createSPS_PPS(mSPS, mPPS), 0));
         }
     }
 
     @Override
     protected RtpDepacketize createDepacketize() {
-        return new H264Depacketize();
+        RtpDepacketize rtpDepacketize = new H264Depacketize();
+        rtpDepacketize.setCallback((data, length, pts) -> {
+            int type = data[4] & 0x1F;
+            if (type == 0x09) {
+                // AU (Access Unit) delimiter が使用されている場合は、
+                // 次の AU がくるまでは同じフレームとして処理を行います。
+                if (mCurrentFrame != null) {
+                    addFrame(mCurrentFrame);
+                }
+                mCurrentFrame = getFrame();
+                mCurrentFrame.setData(data, length, pts);
+            } else {
+                if (mCurrentFrame == null) {
+                    // AU (Access Unit) delimiter が送られてきていないので
+                    // フレームをそのまま追加します。
+                    Frame frame = getFrame();
+                    frame.setData(data, length, pts);
+                    addFrame(frame);
+                } else {
+                    mCurrentFrame.append(data, length);
+                }
+            }
+        });
+        return rtpDepacketize;
     }
 
     @Override
-    protected MediaCodec createMediaCodec() throws IOException {
-        MediaFormat format = MediaFormat.createVideoFormat(mMimeType, 0, 0);
+    protected MediaFormat createMediaFormat() {
+        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE_H264, mWidth, mHeight);
         if (mCsd0 != null) {
             format.setByteBuffer("csd-0", mCsd0);
         }
-
         if (mCsd1 != null) {
             format.setByteBuffer("csd-1", mCsd1);
         }
-
-        MediaCodec mediaCodec = MediaCodec.createDecoderByType(mMimeType);
-        mediaCodec.configure(format, getSurface(), null, 0);
-        mediaCodec.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
-        mediaCodec.start();
-        return mediaCodec;
+        return format;
     }
 
     @Override
     protected int getFlags(byte[] data, int dataLength) {
         int type = data[4] & 0x1F;
-        if  (type == 0x07 || type == 0x08) {
+        if (type == 0x07 || type == 0x08) {
             return MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
         }
         return 0;
@@ -145,14 +173,17 @@ public class H264Decoder extends VideoDecoder {
     }
 
     private void setSPS_PPS(byte[] sps, byte[] pps) {
+        byte[] header = new byte[] {0, 0, 0, 1};
         if (sps != null) {
-            mCsd0 = ByteBuffer.allocateDirect(sps.length).order(ByteOrder.nativeOrder());
+            mCsd0 = ByteBuffer.allocateDirect(sps.length + header.length).order(ByteOrder.nativeOrder());
+            mCsd0.put(header, 0, header.length);
             mCsd0.put(sps, 0, sps.length);
             mCsd0.flip();
         }
 
         if (pps != null) {
-            mCsd1 = ByteBuffer.allocateDirect(pps.length).order(ByteOrder.nativeOrder());
+            mCsd1 = ByteBuffer.allocateDirect(pps.length + header.length).order(ByteOrder.nativeOrder());
+            mCsd1.put(header, 0, header.length);
             mCsd1.put(pps, 0, pps.length);
             mCsd1.flip();
         }

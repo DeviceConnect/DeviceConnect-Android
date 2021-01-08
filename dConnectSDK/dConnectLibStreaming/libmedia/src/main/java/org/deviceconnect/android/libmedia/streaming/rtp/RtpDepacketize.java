@@ -205,9 +205,9 @@ public abstract class RtpDepacketize {
      * @param data 通知するデータ
      * @param pts タイムスタンプ
      */
-    protected void postData(byte[] data, long pts) {
+    protected void postData(byte[] data, int length, long pts) {
         if (mCallback != null) {
-            mCallback.onData(data, pts * 1000 / mClock);
+            mCallback.onData(data, length, pts * 1000 / mClock);
         }
     }
 
@@ -221,6 +221,108 @@ public abstract class RtpDepacketize {
          * @param data データ
          * @param pts タイムスタンプ
          */
-        void onData(byte[] data, long pts);
+        void onData(byte[] data, int length, long pts);
+    }
+
+    /**
+     * 受信した RTP パケットを格納するバッファ.
+     */
+    protected static class Buffer {
+        /**
+         * データを格納するバッファ.
+         */
+        private byte[] mData;
+
+        /**
+         * バッファサイズ.
+         */
+        private int mPosition;
+
+        /**
+         * バッファをデフォルトサイズで初期化します.
+         */
+        public Buffer() {
+            this(4096);
+        }
+
+        /**
+         * 指定されたサイズでバッファを初期化します.
+         * @param size バッファサイズ
+         */
+        public Buffer(int size) {
+            mData = new byte[size];
+        }
+
+        /**
+         * バッファのバイト配列を取得します.
+         *
+         * @return バッファのデータ
+         */
+        public byte[] getData() {
+            return mData;
+        }
+
+        /**
+         * 格納されたデータサイズを取得します.
+         *
+         * @return 格納されたデータサイズ
+         */
+        public int getLength() {
+            return mPosition;
+        }
+
+        /**
+         * リセットします.
+         */
+        public void reset() {
+            mPosition = 0;
+        }
+
+        /**
+         * バッファにデータを書き込みます.
+         *
+         * @param data データ
+         */
+        public void write(int data) {
+            if (mData.length < mPosition + 1) {
+                extendData(mPosition + 32);
+            }
+            mData[mPosition] = (byte) (data & 0xFF);
+            mPosition++;
+        }
+
+        /**
+         * バッファにデータを書き込みます.
+         * @param data 書き込むデータ
+         */
+        public void write(byte[] data) {
+            write(data, 0, data.length);
+        }
+
+        /**
+         * バッファにデータを書き込みます.
+         *
+         * @param data 書き込むデータ
+         * @param offset 書き込むデータのオフセット
+         * @param length 書き込むデータサイズ
+         */
+        public void write(byte[] data, int offset, int length) {
+            if (mData.length < mPosition + length) {
+                extendData(mPosition + length);
+            }
+            System.arraycopy(data, offset, mData, mPosition, length);
+            mPosition += length;
+        }
+
+        /**
+         * バッファサイズを拡張します.
+         *
+         * @param size 拡張後のサイズ
+         */
+        private void extendData(int size) {
+            byte[] data = new byte[size];
+            System.arraycopy(mData, 0, data, 0, mPosition);
+            mData = data;
+        }
     }
 }

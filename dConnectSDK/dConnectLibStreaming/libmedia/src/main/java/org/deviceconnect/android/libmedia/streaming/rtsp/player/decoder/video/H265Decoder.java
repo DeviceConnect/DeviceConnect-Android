@@ -8,7 +8,6 @@ import android.util.Log;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpDepacketize;
-import org.deviceconnect.android.libmedia.streaming.rtp.depacket.H264Depacketize;
 import org.deviceconnect.android.libmedia.streaming.rtp.depacket.H265Depacketize;
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.Frame;
 import org.deviceconnect.android.libmedia.streaming.sdp.Attribute;
@@ -117,8 +116,9 @@ public class H265Decoder extends VideoDecoder {
             format.setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE);
         }
 
-        ByteBuffer csd0 = ByteBuffer.allocate(mVPS.length + mSPS.length + mPPS.length +  12);
+        ByteBuffer csd0 = ByteBuffer.allocateDirect(mVPS.length + mSPS.length + mPPS.length +  12);
         csd0.put(createSPS_PPS(mVPS, mSPS, mPPS));
+        csd0.flip();
 
         format.setByteBuffer("csd-0", csd0);
 

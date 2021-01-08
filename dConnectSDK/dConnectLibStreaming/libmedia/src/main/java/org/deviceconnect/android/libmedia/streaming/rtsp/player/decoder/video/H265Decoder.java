@@ -14,9 +14,9 @@ import org.deviceconnect.android.libmedia.streaming.sdp.Attribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.FormatAttribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribute;
+import org.deviceconnect.android.libmedia.streaming.util.H265Parser;
 import org.deviceconnect.android.libmedia.streaming.util.HexUtil;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class H265Decoder extends VideoDecoder {
@@ -33,11 +33,14 @@ public class H265Decoder extends VideoDecoder {
     /**
      * MediaCodec に渡すマイムタイプ.
      */
-    private String mMimeType = "video/hevc";
+    private static final String MIME_TYPE_H265 = "video/hevc";
 
     private byte[] mVPS;
     private byte[] mSPS;
     private byte[] mPPS;
+
+    private int mWidth = 960;
+    private int mHeight = 540;
 
     @Override
     protected void configure(MediaDescription md) {
@@ -56,6 +59,14 @@ public class H265Decoder extends VideoDecoder {
                 String sps = fa.getParameters().get("sprop-sps");
                 if (sps != null) {
                     mSPS = Base64.decode(sps, Base64.NO_WRAP);
+
+                    try {
+                        H265Parser.Sps s = H265Parser.parseSps(mPPS);
+                        mWidth = s.getWidth();
+                        mHeight = s.getHeight();
+                    } catch (Exception e) {
+                        // ignore.
+                    }
                 }
                 String pps = fa.getParameters().get("sprop-pps");
                 if (pps != null) {
@@ -79,18 +90,24 @@ public class H265Decoder extends VideoDecoder {
         setClockFrequency(clockFrequency);
 
         if (mVPS != null && mSPS != null && mPPS != null) {
-            setConfigFrame(new Frame(createSPS_PPS(mVPS, mSPS, mPPS), 0));
+            addFrame(new Frame(createSPS_PPS(mVPS, mSPS, mPPS), 0));
         }
     }
 
     @Override
     protected RtpDepacketize createDepacketize() {
-        return new H265Depacketize();
+        RtpDepacketize rtpDepacketize = new H265Depacketize();
+        rtpDepacketize.setCallback((data, length, pts) -> {
+            Frame frame = getFrame();
+            frame.setData(data, length, pts);
+            addFrame(frame);
+        });
+        return rtpDepacketize;
     }
 
     @Override
-    protected MediaCodec createMediaCodec() throws IOException {
-        MediaFormat format = MediaFormat.createVideoFormat(mMimeType, 0, 0);
+    protected MediaFormat createMediaFormat() {
+        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE_H265, mWidth, mHeight);
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
             format.setInteger(MediaFormat.KEY_COLOR_RANGE, MediaFormat.COLOR_RANGE_FULL);
         }
@@ -99,20 +116,13 @@ public class H265Decoder extends VideoDecoder {
             format.setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE);
         }
 
-        ByteBuffer csd0 = ByteBuffer.allocate(mVPS.length + mSPS.length + mPPS.length +  12);
+        ByteBuffer csd0 = ByteBuffer.allocateDirect(mVPS.length + mSPS.length + mPPS.length +  12);
         csd0.put(createSPS_PPS(mVPS, mSPS, mPPS));
+        csd0.flip();
 
         format.setByteBuffer("csd-0", csd0);
 
-        if (DEBUG) {
-            Log.d(TAG, "H265Deocder::createMediaCodec: " + format);
-        }
-
-        MediaCodec mediaCodec = MediaCodec.createDecoderByType(mMimeType);
-        mediaCodec.configure(format, getSurface(), null, 0);
-        mediaCodec.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
-        mediaCodec.start();
-        return mediaCodec;
+        return format;
     }
 
     @Override

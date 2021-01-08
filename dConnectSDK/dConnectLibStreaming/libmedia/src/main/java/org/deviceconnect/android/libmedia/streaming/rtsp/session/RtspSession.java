@@ -108,7 +108,7 @@ public class RtspSession {
      * @return SDP
      */
     public String createSessionDescription(String remoteAddress, String localAddress) {
-        Origin origin = new Origin("-", 0L, 0L, "IN", "IP4", localAddress);
+        Origin origin = new Origin("-", "0", 0L, "IN", "IP4", localAddress);
         SessionName sessionName = new SessionName("Unnamed");
         Information information = new Information("N/A");
         Connection connection = new Connection("IN", "IP4", remoteAddress);

@@ -1,6 +1,9 @@
 package org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.video;
 
+import android.media.Image;
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.util.Log;
 import android.view.Surface;
@@ -9,6 +12,7 @@ import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpDepacketize;
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.Decoder;
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.Frame;
+import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.FrameProvider;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 
@@ -51,25 +55,34 @@ public abstract class VideoDecoder implements Decoder {
      */
     private RtpDepacketize mDepacketize;
 
+    /**
+     * クロック周波数.
+     */
     private int mClockFrequency;
-    private Frame mConfigFrame;
+
+    /**
+     * フレームを提供するクラス.
+     */
+    private final FrameProvider mFrameProvider = new FrameProvider();
 
     @Override
     public void onInit(MediaDescription md) {
         mClockFrequency = 90000;
+        mFrameProvider.init();
+
+        if (mWorkThread != null) {
+            mWorkThread.terminate();
+        }
+
+        mWorkThread = new WorkThread();
+        mWorkThread.setName("VIDEO-DECODER");
 
         configure(md);
-        createWorkThread();
 
-//        mWorkThread.add(mConfigFrame);
+        mWorkThread.start();
 
         mDepacketize = createDepacketize();
         mDepacketize.setClockFrequency(mClockFrequency);
-        mDepacketize.setCallback((data, pts) -> {
-            if (mWorkThread != null) {
-                mWorkThread.add(new Frame(data, pts));
-            }
-        });
     }
 
     @Override
@@ -93,6 +106,8 @@ public abstract class VideoDecoder implements Decoder {
         if (mDepacketize != null) {
             mDepacketize = null;
         }
+
+        mFrameProvider.clear();
     }
 
     @Override
@@ -137,15 +152,6 @@ public abstract class VideoDecoder implements Decoder {
     }
 
     /**
-     * メディアデータのコンフィグ用のフレームを設定します.
-     *
-     * @param configFrame フレーム
-     */
-    void setConfigFrame(Frame configFrame) {
-        mConfigFrame = configFrame;
-    }
-
-    /**
      * エラー通知を行う.
      *
      * @param e 例外
@@ -169,24 +175,33 @@ public abstract class VideoDecoder implements Decoder {
     }
 
     /**
-     * Surface に描画を行うスレッドを作成します.
+     * 使用できる Frame のインスタンスを取得します.
+     *
+     * 取得できない場合は null を返却します。
+     *
+     * @return 使用できる Frame のインスタンス
      */
-    private void createWorkThread() {
-        if (mWorkThread != null) {
-            mWorkThread.terminate();
-        }
-
-        mWorkThread = new WorkThread();
-        mWorkThread.setName("VIDEO-DECODER");
-        mWorkThread.start();
+    protected Frame getFrame() {
+        return mFrameProvider.get();
     }
 
     /**
-     * WorkThread が動作しているか確認します.
+     * Frame を追加します.
      *
-     * @return WorkThread が動作している場合はtrue、それ以外はfalse.
+     * @param frame 追加するフレーム
      */
-    private boolean isRunningWorkThread() {
+    protected void addFrame(Frame frame) {
+        if (mWorkThread != null) {
+            mWorkThread.add(frame);
+        }
+    }
+
+    /**
+     * デコーダが動作しているか確認します.
+     *
+     * @return デコーダが動作している場合はtrue、それ以外はfalse.
+     */
+    private boolean isRunning() {
         return mWorkThread != null && mWorkThread.isAlive();
     }
 
@@ -205,11 +220,11 @@ public abstract class VideoDecoder implements Decoder {
     protected abstract RtpDepacketize createDepacketize();
 
     /**
-     * MediaCodecを作成します.
+     * MediaFormat を作成します.
      *
-     * @throws IOException MediaCodecの作成に失敗した場合に発生
+     * @return MediaFormat
      */
-    protected abstract MediaCodec createMediaCodec() throws IOException;
+    protected abstract MediaFormat createMediaFormat();
 
     /**
      * 送られてきたフレームのフラグを取得します.
@@ -219,6 +234,83 @@ public abstract class VideoDecoder implements Decoder {
      * @return フラグ
      */
     protected abstract int getFlags(byte[] data, int dataLength);
+
+    /**
+     * MediaCodec のデコーダを取得します.
+     *
+     * デコーダの取得に失敗した場合には null を返却します。
+     *
+     * @param format フォーマット
+     * @param surface 描画を行うサーフェス
+     * @return MediaCodec のインスタンス
+     */
+    private MediaCodec configDecoder(MediaFormat format, Surface surface) {
+        if (format == null) {
+            return null;
+        }
+
+        String mime = format.getString(MediaFormat.KEY_MIME);
+        MediaCodecList list = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
+        for (MediaCodecInfo info : list.getCodecInfos()) {
+            MediaCodecInfo.CodecCapabilities capabilities;
+            boolean formatSupported;
+
+            if (info.isEncoder()) {
+                continue;
+            }
+
+            try {
+                capabilities = info.getCapabilitiesForType(mime);
+            } catch (IllegalArgumentException ignored) {
+                continue;
+            }
+
+            try {
+                formatSupported = capabilities.isFormatSupported(format);
+            } catch (IllegalArgumentException ignored) {
+                continue;
+            }
+
+            if (formatSupported) {
+                MediaCodec codec;
+                try {
+                    codec = MediaCodec.createByCodecName(info.getName());
+                } catch (IOException e) {
+                    continue;
+                }
+
+                try {
+                    codec.configure(format, surface, null, 0);
+                } catch (Exception ignored) {
+                    codec.release();
+                }
+                return codec;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * MediaCodecを作成します.
+     *
+     * @throws IOException MediaCodecの作成に失敗した場合に発生
+     */
+    private MediaCodec createMediaCodec() throws IOException {
+        MediaFormat format = createMediaFormat();
+        MediaCodec mediaCodec;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            mediaCodec = configDecoder(format, getSurface());
+        } else {
+            String mimeType = format.getString(MediaFormat.KEY_MIME);
+            if (mimeType == null) {
+                throw new IOException("mime type is not set.");
+            }
+            mediaCodec = MediaCodec.createDecoderByType(mimeType);
+            mediaCodec.configure(format, getSurface(), null, 0);
+        }
+        mediaCodec.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
+        return mediaCodec;
+    }
 
     /**
      * 送られてきたデータをMediaCodecに渡してデコードを行うスレッド.
@@ -280,6 +372,7 @@ public abstract class VideoDecoder implements Decoder {
                 MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 
                 mMediaCodec = createMediaCodec();
+                mMediaCodec.start();
 
                 while (!mStopFlag) {
                     Frame frame = get();
@@ -287,25 +380,30 @@ public abstract class VideoDecoder implements Decoder {
                     int inIndex = mMediaCodec.dequeueInputBuffer(TIMEOUT_US);
                     if (inIndex >= 0 && !mStopFlag) {
                         ByteBuffer buffer = mMediaCodec.getInputBuffer(inIndex);
-                        if (buffer == null) {
-                            continue;
+                        if (buffer != null) {
+                            buffer.clear();
+                            buffer.put(frame.getData(), 0, frame.getLength());
+                            buffer.flip();
+
+                            int flags = 0;
+                            if (frame.getLength() > 4) {
+                                flags = getFlags(frame.getData(), frame.getLength());
+                            }
+
+                            mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), frame.getTimestamp(), flags);
                         }
-
-                        buffer.clear();
-                        buffer.put(frame.getData(), 0, frame.getLength());
-                        buffer.flip();
-
-                        int flags = 0;
-                        if (frame.getLength() > 4) {
-                            flags = getFlags(frame.getData(), frame.getLength());
-                        }
-
-                        mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), frame.getTimestamp(), flags);
                     }
 
+                    frame.release();
+
                     int outIndex = mMediaCodec.dequeueOutputBuffer(info, TIMEOUT_US);
-                    if (outIndex > 0 && !mStopFlag) {
-                        mMediaCodec.releaseOutputBuffer(outIndex, true);
+                    if (outIndex >= 0 && !mStopFlag) {
+                        if (mSurface == null) {
+                            if (mEventCallback != null) {
+                                mEventCallback.onData(mMediaCodec.getOutputImage(outIndex), info.presentationTimeUs);
+                            }
+                        }
+                        mMediaCodec.releaseOutputBuffer(outIndex, mSurface != null);
                     } else {
                         switch (outIndex) {
                             case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
@@ -326,9 +424,6 @@ public abstract class VideoDecoder implements Decoder {
                                 break;
 
                             case MediaCodec.INFO_TRY_AGAIN_LATER:
-                                Thread.sleep(1);
-                                break;
-
                             default:
                                 break;
                         }
@@ -349,7 +444,24 @@ public abstract class VideoDecoder implements Decoder {
         }
     }
 
+    /**
+     * デコーダのイベントを通知するコールバック.
+     */
     public interface EventCallback {
+        /**
+         * サイズが変更されたことを通知します.
+         *
+         * @param width 横幅
+         * @param height 縦幅
+         */
         void onSizeChanged(int width, int height);
+
+        /**
+         * 更新された映像データを通知します.
+         *
+         * @param image 映像データ
+         * @param presentationTimeUs プレゼンテーションタイム
+         */
+        void onData(Image image, long presentationTimeUs);
     }
 }

@@ -1,6 +1,7 @@
 package org.deviceconnect.android.rtspplayer;
 
 import android.content.Intent;
+import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
@@ -10,13 +11,14 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import org.deviceconnect.android.libmedia.streaming.rtsp.player.RtspPlayer;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import org.deviceconnect.android.libmedia.streaming.rtsp.player.RtspPlayer;
+
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RTSPPlayerActivity extends AppCompatActivity {
 
@@ -96,6 +98,21 @@ public class RTSPPlayerActivity extends AppCompatActivity {
             public void onSizeChanged(int width, int height) {
                 addDebugLog("サイズ変更: " + width + "x" + height);
                 runOnUiThread(() -> changePlayerSize(width, height));
+            }
+
+            @Override
+            public void onVideoData(Image image, long presentationTimeUs) {
+
+            }
+
+            @Override
+            public void onAudioFormatChanged(int samplingRate, int channel) {
+
+            }
+
+            @Override
+            public void onAudioData(ByteBuffer data, int offset, int size, long presentationTimeUs) {
+
             }
 
             @Override

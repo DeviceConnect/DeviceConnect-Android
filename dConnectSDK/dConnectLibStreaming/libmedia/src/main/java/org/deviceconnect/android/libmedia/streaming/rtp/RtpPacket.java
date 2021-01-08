@@ -9,7 +9,7 @@ public class RtpPacket {
     /**
      * Maximum Transmission Unit(MTU).
      */
-    public static final int MTU = 1300;
+    public static final int MTU = 1500;
 
     /**
      * RTP データを格納するバッファ.

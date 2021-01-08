@@ -55,8 +55,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     implementation 'androidx.preference:preference:1.1.0'
     implementation 'com.google.android.material:material:1.0.0'
-    implementation 'org.deviceconnect:libmedia:1.0.0'
-    implementation 'org.deviceconnect:libsrt:1.0.0'
+    implementation project(':libmedia')
     implementation project(':libopus')
 
     testImplementation 'junit:junit:4.12'

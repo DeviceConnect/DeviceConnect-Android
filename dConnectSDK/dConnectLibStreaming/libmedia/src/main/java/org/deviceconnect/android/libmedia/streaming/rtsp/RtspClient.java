@@ -41,7 +41,7 @@ public class RtspClient {
     /**
      * RTSP サーバの URL.
      */
-    private String mRtspServerUrl;
+    private final String mRtspServerUrl;
 
     /**
      * RTSP サーバに送信するリクエストに付加するユーザエージェント.
@@ -61,12 +61,12 @@ public class RtspClient {
     /**
      * 指定ポート番号リスト.
      */
-    private List<Integer> mRtpPortList;
+    private final List<Integer> mRtpPortList = new ArrayList<>();
 
     /**
      * 使用ポート番号リスト.
      */
-    private List<Integer> mUsePortList;
+    private final List<Integer> mUsePortList = new ArrayList<>();
 
     /**
      * コンストラクタ.
@@ -97,8 +97,7 @@ public class RtspClient {
         }
 
         mRtspServerUrl = url;
-        mUsePortList = new ArrayList<>();
-        mRtpPortList = rtpPortList;
+        mRtpPortList.addAll(rtpPortList);
     }
 
     /**

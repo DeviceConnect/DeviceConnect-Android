@@ -44,7 +44,7 @@ public class RtspPlayer {
     /**
      * RTSP サーバの URL.
      */
-    private String mUrl;
+    private final String mUrl;
 
     /**
      * RTSP サーバへの接続リトライ回数.
@@ -117,6 +117,10 @@ public class RtspPlayer {
         addVideoFactory("H264", new H264DecoderFactory());
         addVideoFactory("H265", new H265DecoderFactory());
         addAudioFactory("mpeg4-generic", new AACLATMDecoderFactory());
+    }
+
+    public String getUrl() {
+        return mUrl;
     }
 
     /**

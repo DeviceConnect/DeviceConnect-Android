@@ -8,17 +8,15 @@ import androidx.annotation.NonNull;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 
-import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class SettingsVideoFragment extends SettingsBaseFragment {
+public class SettingsVideoFragment extends SettingsParameterFragment {
     private HostMediaRecorder mMediaRecorder;
 
     @Override
@@ -29,10 +27,8 @@ public class SettingsVideoFragment extends SettingsBaseFragment {
 
     @Override
     public void onBindService() {
-        HostDevicePlugin plugin = getHostDevicePlugin();
+        mMediaRecorder = getRecorder();
 
-        HostMediaRecorderManager manager = plugin.getHostMediaRecorderManager();
-        mMediaRecorder = manager.getRecorder(getRecorderId());
         HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
 
         setPictureSizePreference(settings);
@@ -101,6 +97,11 @@ public class SettingsVideoFragment extends SettingsBaseFragment {
         }
     }
 
+    /**
+     * エンコーダの設定を行います.
+     *
+     * @param settings レコーダ設定
+     */
     private void setPreviewVideoEncoderPreference(HostMediaRecorder.Settings settings) {
         ListPreference pref = findPreference("preview_mime_type");
         if (pref != null) {
@@ -108,6 +109,11 @@ public class SettingsVideoFragment extends SettingsBaseFragment {
         }
     }
 
+    /**
+     * レコーダでサポートしているホワイトバランスのリストを設定します.
+     *
+     * @param settings レコーダ設定
+     */
     private void setPreviewWhiteBalancePreference(HostMediaRecorder.Settings settings) {
         ListPreference pref = findPreference("preview_white_balance");
         if (pref != null) {
@@ -216,7 +222,7 @@ public class SettingsVideoFragment extends SettingsBaseFragment {
         return null;
     }
 
-    private Preference.OnPreferenceChangeListener mOnPreferenceChangeListener = (preference, newValue) -> {
+    private final Preference.OnPreferenceChangeListener mOnPreferenceChangeListener = (preference, newValue) -> {
         String key = preference.getKey();
         if ("camera_picture_size".equals(key)) {
             Size size = getSizeFromValue((String) newValue);

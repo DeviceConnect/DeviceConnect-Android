@@ -61,8 +61,8 @@ public class CameraWrapper {
     }
 
     private static class CameraEventListenerHolder {
-        private CameraEventListener mListener;
-        private Handler mHandler;
+        private final CameraEventListener mListener;
+        private final Handler mHandler;
 
         CameraEventListenerHolder(final @NonNull CameraEventListener listener,
                                   final @NonNull Handler handler) {
@@ -92,10 +92,6 @@ public class CameraWrapper {
     private final ImageReader mPlaceHolderPreviewReader;
 
     private final Options mOptions;
-
-    private final Integer mAutoFocusMode;
-
-    private final Integer mAutoExposureMode;
 
     private CameraDevice mCameraDevice;
 
@@ -136,8 +132,6 @@ public class CameraWrapper {
         mBackgroundHandler = new Handler(Looper.getMainLooper());
         mSessionConfigurationThread.start();
         mSessionConfigurationHandler = new Handler(mSessionConfigurationThread.getLooper());
-        mAutoFocusMode = choiceAutoFocusMode(context, mCameraManager, cameraId);
-        mAutoExposureMode = choiceAutoExposureMode(mCameraManager, cameraId);
         mPlaceHolderPreviewReader = createImageReader(mOptions.getPreviewSize(), ImageFormat.YUV_420_888);
         mPlaceHolderPreviewReader.setOnImageAvailableListener(reader -> {
             Image image = reader.acquireNextImage();
@@ -147,7 +141,7 @@ public class CameraWrapper {
         }, mBackgroundHandler);
 
         if (DEBUG) {
-            Log.d(TAG, "CameraWrapper: cameraId=" + cameraId + " autoFocus=" + mAutoFocusMode + " autoExposure=" + mAutoExposureMode);
+            Log.d(TAG, "CameraWrapper: cameraId=" + cameraId);
         }
     }
 
@@ -157,14 +151,6 @@ public class CameraWrapper {
             throw new RuntimeException("WindowManager is not supported.");
         }
         return wm.getDefaultDisplay().getRotation();
-    }
-
-    private boolean hasAutoFocus() {
-        return mAutoFocusMode != null;
-    }
-
-    private boolean hasAutoExposure() {
-        return mAutoExposureMode != null;
     }
 
     private void notifyCameraEvent(final CameraEvent event) {
@@ -257,6 +243,10 @@ public class CameraWrapper {
 
     private Options initOptions() {
         Options options = new CameraWrapper.Options();
+
+        options.mAutoFocusMode = choiceAutoFocusMode(mContext, mCameraManager, mCameraId);
+        options.mAutoExposureMode = choiceAutoExposureMode(mCameraManager, mCameraId);
+
         List<Size> supportedPictureList = Camera2Helper.getSupportedPictureSizes(mCameraManager, mCameraId);
         options.setSupportedPictureSizeList(supportedPictureList);
         options.setPictureSize(supportedPictureList.get(0));
@@ -316,52 +306,57 @@ public class CameraWrapper {
                 throw new CameraWrapperException("Failed to open camera.");
             }
             return camera;
-        } catch (CameraAccessException e) {
-            throw new CameraWrapperException(e);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             throw new CameraWrapperException(e);
         }
     }
 
     private static Integer choiceAutoFocusMode(final Context context,
                                                final CameraManager cameraManager,
-                                               final String cameraId) throws CameraAccessException {
+                                               final String cameraId) {
         PackageManager pkgMgr = context.getPackageManager();
         if (!pkgMgr.hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)) {
             return null;
         }
 
-        CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
-        int[] afModes = characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
-        if (afModes == null) {
+        try {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            int[] afModes = characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
+            if (afModes == null) {
+                return null;
+            }
+            for (int afMode : afModes) {
+                if (afMode == CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
+                    return afMode;
+                }
+            }
+            return null;
+        } catch (CameraAccessException e) {
             return null;
         }
-        for (int i = 0; i < afModes.length; i++) {
-            if (afModes[i] == CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
-                return afModes[i];
-            }
-        }
-        return null;
     }
 
-    private static Integer choiceAutoExposureMode(final CameraManager cameraManager,
-                                                  final String cameraId) throws CameraAccessException {
-        CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
-        int[] aeModes = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES);
-        if (aeModes == null) {
+    private static Integer choiceAutoExposureMode(final CameraManager cameraManager, final String cameraId) {
+        try {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            int[] aeModes = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES);
+            if (aeModes == null) {
+                return null;
+            }
+            for (int aeMode : aeModes) {
+                if (aeMode == CameraMetadata.CONTROL_AE_MODE_ON_AUTO_FLASH) {
+                    return aeMode;
+                }
+            }
+            for (int aeMode : aeModes) {
+                if (aeMode == CameraMetadata.CONTROL_AE_MODE_ON) {
+                    return aeMode;
+                }
+            }
+            return null;
+        } catch (CameraAccessException e) {
             return null;
         }
-        for (int i = 0; i < aeModes.length; i++) {
-            if (aeModes[i] == CameraMetadata.CONTROL_AE_MODE_ON_AUTO_FLASH) {
-                return aeModes[i];
-            }
-        }
-        for (int i = 0; i < aeModes.length; i++) {
-            if (aeModes[i] == CameraMetadata.CONTROL_AE_MODE_ON) {
-                return aeModes[i];
-            }
-        }
-        return null;
     }
 
     public void setTargetSurface(Surface surface) {
@@ -432,9 +427,7 @@ public class CameraWrapper {
                 throw new CameraWrapperException("Failed to configure capture session.");
             }
             return session;
-        } catch (CameraAccessException e) {
-            throw new CameraWrapperException(e);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             throw new CameraWrapperException(e);
         }
     }
@@ -444,14 +437,17 @@ public class CameraWrapper {
     }
 
     private void setDefaultCaptureRequest(final CaptureRequest.Builder request, final boolean trigger) {
-        if (hasAutoFocus()) {
-            request.set(CaptureRequest.CONTROL_AF_MODE, mAutoFocusMode);
+        if (mOptions.hasAutoFocus()) {
+            request.set(CaptureRequest.CONTROL_AF_MODE, mOptions.mAutoFocusMode);
             if (trigger) {
                 request.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
             }
         }
-        if (hasAutoExposure()) {
-            request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
+        if (mOptions.hasAutoExposure()) {
+            request.set(CaptureRequest.CONTROL_AE_MODE, mOptions.mAutoExposureMode);
+        }
+        if (mOptions.mFps != null) {
+            request.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mOptions.mFps);
         }
         setWhiteBalance(request);
         // Light が ON の場合は、CONTROL_AE_MODE を CONTROL_AE_MODE_ON にする。
@@ -688,7 +684,7 @@ public class CameraWrapper {
     }
 
     private void prepareCapture(final CameraDevice cameraDevice) throws CameraWrapperException {
-        if (!hasAutoFocus() && !hasAutoExposure()) {
+        if (!mOptions.hasAutoFocus() && !mOptions.hasAutoExposure()) {
             return;
         }
         try {
@@ -725,8 +721,8 @@ public class CameraWrapper {
                     lock.countDown();
                 }
 
-                private boolean mIsAfReady = !hasAutoFocus();
-                private boolean mIsAeReady = !hasAutoExposure();
+                private boolean mIsAfReady = !mOptions.hasAutoFocus();
+                private boolean mIsAeReady = !mOptions.hasAutoExposure();
                 private boolean mIsCaptureReady;
 
                 private void onCaptureResult(final CaptureResult result, final boolean isCompleted) {
@@ -758,9 +754,7 @@ public class CameraWrapper {
             }, mBackgroundHandler);
             lock.await(5, TimeUnit.SECONDS);
             mCaptureSession.stopRepeating();
-        } catch (CameraAccessException e) {
-            throw new CameraWrapperException(e);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             throw new CameraWrapperException(e);
         }
     }
@@ -856,9 +850,7 @@ public class CameraWrapper {
                 mCaptureSession.setRepeatingRequest(requestBuilder.build(),null, mBackgroundHandler);
                 mIsTouchOn = false;
                 mUseTouch = false;
-            } catch (CameraAccessException e) {
-                throw new IllegalArgumentException(e);
-            } catch (CameraWrapperException e) {
+            } catch (Exception e) {
                 throw new IllegalArgumentException(e);
             } finally {
                 resumeRepeatingRequest();
@@ -905,6 +897,8 @@ public class CameraWrapper {
         private Size mPictureSize;
         private Size mPreviewSize;
         private Integer mWhiteBalance;
+        private Integer mAutoFocusMode;
+        private Integer mAutoExposureMode;
         private Range<Integer> mFps;
 
         private List<Size> mSupportedPictureSizeList = new ArrayList<>();
@@ -1002,6 +996,14 @@ public class CameraWrapper {
 
         public Size getDefaultPreviewSize() {
             return getDefaultSizeFromList(mSupportedPreviewSizeList);
+        }
+
+        private boolean hasAutoFocus() {
+            return mAutoFocusMode != null;
+        }
+
+        private boolean hasAutoExposure() {
+            return mAutoExposureMode != null;
         }
 
         private static Size getDefaultSizeFromList(final List<Size> sizeList) {

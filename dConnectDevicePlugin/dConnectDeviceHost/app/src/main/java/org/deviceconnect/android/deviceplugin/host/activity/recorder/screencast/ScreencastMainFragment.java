@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.widget.Toast;
 
 import androidx.preference.Preference;
 import androidx.preference.SwitchPreferenceCompat;
@@ -20,9 +21,9 @@ import org.deviceconnect.android.deviceplugin.host.recorder.screen.ScreenCastRec
 
 import java.util.List;
 
-public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragment{
+public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragment {
 
-    private HostMediaRecorderManager.OnEventListener mOnEventListener = new HostMediaRecorderManager.OnEventListener() {
+    private final HostMediaRecorderManager.OnEventListener mOnEventListener = new HostMediaRecorderManager.OnEventListener() {
         @Override
         public void onPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers) {
             setPreviewButton();
@@ -162,6 +163,7 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
             @Override
             public void onDisallowed() {
                 refreshUI();
+                showToast(R.string.host_recorder_deny_permission);
             }
         });
     }
@@ -172,14 +174,14 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
         setRecordingButton();
     }
 
-    private Handler mUIHandler = new Handler(Looper.getMainLooper());
+    private final Handler mUIHandler = new Handler(Looper.getMainLooper());
 
-    private void runThread(Runnable run) {
+    private void runOnUiThread(Runnable run) {
         mUIHandler.post(run);
     }
 
     private void setPreviewButton() {
-        runThread(() -> {
+        runOnUiThread(() -> {
             SwitchPreferenceCompat pref = findPreference("start_preview");
             if (pref != null) {
                 pref.setChecked(mMediaRecorder.isPreviewRunning());
@@ -188,7 +190,7 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
     }
 
     private void setBroadcastButton() {
-        runThread(() -> {
+        runOnUiThread(() -> {
             SwitchPreferenceCompat pref = findPreference("start_broadcast");
             if (pref != null) {
                 pref.setChecked(mMediaRecorder.isBroadcasterRunning());
@@ -197,7 +199,7 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
     }
 
     private void setRecordingButton() {
-        runThread(() -> {
+        runOnUiThread(() -> {
             SwitchPreferenceCompat pref = findPreference("start_recording");
             if (pref != null) {
                 pref.setChecked(mMediaRecorder.getState() == HostMediaRecorder.State.RECORDING);
@@ -217,10 +219,10 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
         requestPermission(() -> {
             HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
             String uri = settings.getBroadcastURI();
-            uri = "rtmp://192.168.11.7:1935/live/abc";
             Broadcaster broadcaster = mMediaRecorder.startBroadcaster(uri);
             if (broadcaster == null) {
-
+                showToast(R.string.host_recorder_failed_to_broadcast);
+                setBroadcastButton();
             }
         });
     }
@@ -230,20 +232,28 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
     }
 
     private void startRecording() {
-        requestPermission(() -> {
-            mMediaRecorder.startRecording(new HostDeviceStreamRecorder.RecordingCallback() {
-                @Override
-                public void onRecorded(HostDeviceStreamRecorder recorder, String fileName) {
-                }
+        requestPermission(() -> mMediaRecorder.startRecording(new HostDeviceStreamRecorder.RecordingCallback() {
+            @Override
+            public void onRecorded(HostDeviceStreamRecorder recorder, String fileName) {
+            }
 
-                @Override
-                public void onFailed(HostDeviceStreamRecorder recorder, String errorMessage) {
-                }
-            });
-        });
+            @Override
+            public void onFailed(HostDeviceStreamRecorder recorder, String errorMessage) {
+                showToast(R.string.host_recorder_failed_to_start_recording);
+            }
+        }));
     }
 
     private void stopRecording() {
         mMediaRecorder.stopRecording(null);
+    }
+
+    /**
+     * トーストを表示します.
+     *
+     * @param resId リソースID
+     */
+    public void showToast(int resId) {
+        runOnUiThread(() -> Toast.makeText(getContext(), resId, Toast.LENGTH_SHORT).show());
     }
 }

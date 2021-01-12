@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.host.activity.fragment.HostDevicePluginBindPreferenceFragment;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 
 public abstract class SettingsBaseFragment extends HostDevicePluginBindPreferenceFragment {
 
@@ -22,9 +23,24 @@ public abstract class SettingsBaseFragment extends HostDevicePluginBindPreferenc
     }
 
     /**
-     * レコード ID を取得します.
+     * 選択されているレコーダを取得します.
      *
-     * @return レコード ID
+     * プラグインに接続されていない場合は null を返却します。
+     *
+     * @return HostMediaRecorder のインスタンス
+     */
+    public HostMediaRecorder getRecorder() {
+        Activity activity = getActivity();
+        if (activity instanceof SettingsActivity) {
+            return ((SettingsActivity) activity).getRecorder();
+        }
+        return null;
+    }
+
+    /**
+     * レコーダ ID を取得します.
+     *
+     * @return レコーダ ID
      */
     public String getRecorderId() {
         Activity activity = getActivity();

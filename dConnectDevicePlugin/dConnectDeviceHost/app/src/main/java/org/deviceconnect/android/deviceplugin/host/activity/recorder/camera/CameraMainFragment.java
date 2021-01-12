@@ -47,7 +47,7 @@ import java.io.InputStream;
 import java.util.List;
 
 public class CameraMainFragment extends HostDevicePluginBindFragment {
-    private CameraMainViewModel mViewModel = new CameraMainViewModel();
+    private final CameraMainViewModel mViewModel = new CameraMainViewModel();
 
     private HostMediaRecorderManager mMediaRecorderManager;
     private HostConnectionManager mHostConnectionManager;
@@ -62,7 +62,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     private boolean mMuted = false;
     private int mSelectedMode = 0;
 
-    private EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
+    private final EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
         @Override
         public void onStarted() {
             mDrawFlag = false;
@@ -88,7 +88,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         }
     };
 
-    private HostConnectionManager.ConnectionEventListener mConnectionEventListener = new HostConnectionManager.ConnectionEventListener() {
+    private final HostConnectionManager.ConnectionEventListener mConnectionEventListener = new HostConnectionManager.ConnectionEventListener() {
         @Override
         public void onChangedNetwork() {
             CameraMainFragment.this.onChangeMobileNetwork();
@@ -103,7 +103,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         }
     };
 
-    private HostMediaRecorderManager.OnEventListener mOnEventListener = new HostMediaRecorderManager.OnEventListener() {
+    private final HostMediaRecorderManager.OnEventListener mOnEventListener = new HostMediaRecorderManager.OnEventListener() {
         @Override
         public void onPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers) {
             setPreviewButton();
@@ -323,7 +323,26 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             mHostConnectionManager.addConnectionEventListener(mConnectionEventListener);
 
             HostMediaRecorder[] recorders = mMediaRecorderManager.getRecorders();
-            setRecorder(recorders[mIndex].getId());
+
+            mIndex = -1;
+            for (int i = 0; i < recorders.length; i++) {
+                if (recorders[i] instanceof Camera2Recorder) {
+                    Camera2Recorder camera2Recorder = (Camera2Recorder) recorders[i];
+                    if (mIndex == -1) {
+                        mIndex = i;
+                    }
+                    if (camera2Recorder.getCameraWrapper().isPreview()) {
+                        mIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            if (mIndex == -1) {
+                return;
+            } else {
+                setRecorder(recorders[mIndex].getId());
+            }
         }
 
         startTimer();
@@ -389,7 +408,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             mMonitor = new HostTrafficMonitor(getContext(), INTERVAL_PERIOD);
             mMonitor.setOnTrafficListener((long rx, long bitrateRx, long tx, long bitrateTx) -> {
                 HostDevicePlugin plugin = getHostDevicePlugin();
-                if (plugin == null || mViewModel == null) {
+                if (plugin == null) {
                     return;
                 }
 
@@ -399,7 +418,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
                 int batteryLevel = battery.getBatteryLevel();
                 mViewModel.setBatteryLevel(batteryLevel + "%");
                 mViewModel.setTemperature(temperature + "℃");
-                mViewModel.setBitRate(bitrateTx + "bps");
+                mViewModel.setBitRate((bitrateTx / 1024) + "kbps");
                 mViewModel.setParamVisibility(View.VISIBLE);
             });
             mMonitor.startTimer();
@@ -552,8 +571,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             mMediaRecorder.stopBroadcaster();
         } else {
             String uri = settings.getBroadcastURI();
-            uri = "rtmp://192.168.11.7:1935/live/abc";
-            uri = "srt://192.168.11.6:12345";
             Broadcaster broadcaster = mMediaRecorder.startBroadcaster(uri);
             if (broadcaster == null) {
                 showToast(R.string.host_recorder_failed_to_broadcast);

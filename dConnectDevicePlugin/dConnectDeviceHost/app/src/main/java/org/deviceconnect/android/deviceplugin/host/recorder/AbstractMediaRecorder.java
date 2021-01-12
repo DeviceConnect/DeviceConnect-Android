@@ -43,17 +43,17 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     /**
      * コンテキスト.
      */
-    private Context mContext;
+    private final Context mContext;
 
     /**
      * ファイルマネージャ.
      */
-    private FileManager mFileManager;
+    private final FileManager mFileManager;
 
     /**
      * ファイルを Android 端末内で共有するためのクラス.
      */
-    private MediaSharing mMediaSharing = MediaSharing.getInstance();
+    private final MediaSharing mMediaSharing = MediaSharing.getInstance();
 
     /**
      * リクエストの処理を実行するハンドラ.
@@ -183,6 +183,10 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
     @Override
     public Broadcaster startBroadcaster(String uri) {
+        if (uri == null) {
+            return null;
+        }
+
         BroadcasterProvider provider = getBroadcasterProvider();
         if (provider == null) {
             return null;

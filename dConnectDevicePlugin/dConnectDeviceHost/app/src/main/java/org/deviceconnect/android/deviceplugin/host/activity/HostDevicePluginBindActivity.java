@@ -155,9 +155,9 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
      */
     public void unbindService() {
         if (mIsBound) {
-            unbindService(mConnection);
             mIsBound = false;
             onUnbindService();
+            unbindService(mConnection);
         }
     }
 

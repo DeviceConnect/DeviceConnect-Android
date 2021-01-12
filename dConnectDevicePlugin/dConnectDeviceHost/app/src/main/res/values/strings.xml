@@ -31,6 +31,7 @@
     <string name="host_recorder_failed_to_start_preview">Failed to start a preview server.</string>
     <string name="host_recorder_failed_to_start_recording">Failed to start a recording.</string>
     <string name="host_recorder_failed_to_take_photo">Failed to take a photo.</string>
+    <string name="host_recorder_deny_permission">Screencast permissions are denied.</string>
 
     <string name="overlay_preview">PREVIEW</string>
     <string name="overlay_preview_ticker">Start the camera</string>

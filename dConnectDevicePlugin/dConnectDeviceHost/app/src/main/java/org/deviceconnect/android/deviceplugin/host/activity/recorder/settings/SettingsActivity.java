@@ -10,6 +10,7 @@ import androidx.appcompat.app.ActionBar;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.HostDevicePluginBindActivity;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 
 public class SettingsActivity extends HostDevicePluginBindActivity {
 
@@ -21,6 +22,7 @@ public class SettingsActivity extends HostDevicePluginBindActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setTitle("");
         }
     }
 
@@ -39,6 +41,17 @@ public class SettingsActivity extends HostDevicePluginBindActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onBindService() {
+        super.onBindService();
+
+        HostMediaRecorder recorder = getRecorder();
+        ActionBar actionBar = getSupportActionBar();
+        if (recorder != null && actionBar != null) {
+            actionBar.setTitle(recorder.getName());
+        }
+    }
+
     public int getDisplayOrientation() {
         Intent intent = getIntent();
         if (intent != null) {
@@ -47,18 +60,17 @@ public class SettingsActivity extends HostDevicePluginBindActivity {
         return ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
     }
 
-    public String getRecorderId() {
+    public HostMediaRecorder getRecorder() {
         String recorderId = null;
         Intent intent = getIntent();
         if (intent != null) {
             recorderId = intent.getStringExtra("recorder_id");
         }
+        return getHostDevicePlugin().getHostMediaRecorderManager().getRecorder(recorderId);
+    }
 
-        if (recorderId == null && isBound()) {
-            recorderId = getHostDevicePlugin().getHostMediaRecorderManager().getRecorder(null).getId();
-        }
-
-        return recorderId;
+    public String getRecorderId() {
+        return getRecorder().getId();
     }
 
     public static Intent createSettingsActivityIntent(Context context, String recorderId, Integer rotationFlag) {

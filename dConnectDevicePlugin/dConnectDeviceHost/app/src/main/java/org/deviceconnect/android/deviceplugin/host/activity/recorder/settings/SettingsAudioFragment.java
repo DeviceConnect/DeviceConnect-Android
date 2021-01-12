@@ -2,9 +2,13 @@ package org.deviceconnect.android.deviceplugin.host.activity.recorder.settings;
 
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.host.R;
+import androidx.preference.Preference;
 
-public class SettingsAudioFragment extends SettingsBaseFragment {
+import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+
+public class SettingsAudioFragment extends SettingsParameterFragment {
+    private HostMediaRecorder mMediaRecorder;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -14,7 +18,25 @@ public class SettingsAudioFragment extends SettingsBaseFragment {
 
     @Override
     public void onBindService() {
+        mMediaRecorder = getRecorder();
+
+        setAudioEnabled();
         setInputTypeNumber("preview_audio_bitrate");
         setInputTypeNumber("preview_audio_channel");
     }
+
+    private void setAudioEnabled() {
+        Preference pref = findPreference("audio_enabled");
+        if (pref != null) {
+            pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
+        }
+    }
+
+    private final Preference.OnPreferenceChangeListener mOnPreferenceChangeListener = (preference, newValue) -> {
+        String key = preference.getKey();
+        if ("audio_enabled".equals(key)) {
+            mMediaRecorder.getSettings().setMute(!(Boolean) newValue);
+        }
+        return true;
+    };
 }

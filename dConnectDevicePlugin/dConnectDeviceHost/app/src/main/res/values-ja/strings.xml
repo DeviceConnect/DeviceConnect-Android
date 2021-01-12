@@ -32,6 +32,7 @@
     <string name="host_recorder_failed_to_start_preview">プレビュー配信に失敗しました</string>
     <string name="host_recorder_failed_to_start_recording">録画に失敗しました</string>
     <string name="host_recorder_failed_to_take_photo">写真撮影に失敗しました</string>
+    <string name="host_recorder_deny_permission">スクリーンキャストのパーミッションが拒否されました。</string>
 
     <!-- オーバーレイ -->
     <string name="overlay_preview">PREVIEW</string>

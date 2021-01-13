@@ -82,7 +82,7 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
         mContext = context;
         mFileManager = fileManager;
 
-        HandlerThread requestThread = new HandlerThread("host-camera-request");
+        HandlerThread requestThread = new HandlerThread("host-media-recorder");
         requestThread.start();
         mRequestHandler = new Handler(requestThread.getLooper());
     }

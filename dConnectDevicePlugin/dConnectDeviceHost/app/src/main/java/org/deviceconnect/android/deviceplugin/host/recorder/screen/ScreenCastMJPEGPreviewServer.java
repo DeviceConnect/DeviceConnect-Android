@@ -30,7 +30,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     /**
      * SSLContext を使用するかどうかのフラグ.
      */
-    private boolean mUsesSSLContext;
+    private final boolean mUsesSSLContext;
 
     /**
      * MJPEG を配信するサーバ.
@@ -68,10 +68,12 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
                 return;
             }
             mMJPEGServer = new MJPEGServer();
-            mMJPEGServer.setSSLContext(sslContext);
             mMJPEGServer.setServerName("HostDevicePlugin Server");
             mMJPEGServer.setServerPort(getPort());
             mMJPEGServer.setCallback(mCallback);
+            if (mUsesSSLContext) {
+                mMJPEGServer.setSSLContext(sslContext);
+            }
             try {
                 mMJPEGServer.start();
             } catch (IOException e) {

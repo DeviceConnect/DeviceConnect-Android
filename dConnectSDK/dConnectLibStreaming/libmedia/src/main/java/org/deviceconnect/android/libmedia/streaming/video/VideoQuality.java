@@ -43,6 +43,7 @@ public class VideoQuality {
         mBitRate = quality.getBitRate();
         mFrameRate = quality.getFrameRate();
         mIFrameInterval = quality.getIFrameInterval();
+        mIntraRefresh = quality.getIntraRefresh();
         mBitRateMode = quality.getBitRateMode();
         mUseSoftwareEncoder = quality.isUseSoftwareEncoder();
     }

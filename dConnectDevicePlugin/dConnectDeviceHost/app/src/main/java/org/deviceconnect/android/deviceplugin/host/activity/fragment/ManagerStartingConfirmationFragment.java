@@ -19,6 +19,11 @@ public abstract class ManagerStartingConfirmationFragment extends HostDevicePlug
      */
     private static final int PERMISSION_REQUEST_CODE = 12345;
 
+    /**
+     * パーミッションのリクエストを行ったことを確認するフラグ.
+     */
+    private boolean mRequestPermission;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_host_manager_starting_confirmation, container, false);
@@ -34,7 +39,7 @@ public abstract class ManagerStartingConfirmationFragment extends HostDevicePlug
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == PERMISSION_REQUEST_CODE) {
             List<String> denies = PermissionUtil.checkRequestPermissionsResult(permissions, grantResults);
-            if (!denies.isEmpty()) {
+            if (denies.isEmpty()) {
                 onNextFragment();
             } else {
                 onPermissionDeny();
@@ -44,8 +49,13 @@ public abstract class ManagerStartingConfirmationFragment extends HostDevicePlug
 
     @Override
     public void onBindService() {
+        if (mRequestPermission) {
+            return;
+        }
+
         List<String> denies =  PermissionUtil.checkPermissions(getContext(), getPermissions());
         if (!denies.isEmpty()) {
+            mRequestPermission = true;
             requestPermissions(denies.toArray(new String[0]), PERMISSION_REQUEST_CODE);
         } else {
             onNextFragment();
@@ -56,11 +66,26 @@ public abstract class ManagerStartingConfirmationFragment extends HostDevicePlug
     public void onUnbindService() {
     }
 
+    /**
+     * 許可を求めるパーミッションの配列を取得します.
+     *
+     * @return パーミッションの配列
+     */
     public abstract String[] getPermissions();
 
+    /**
+     * パーミッションの許可が降りている場合に次の画面に遷移します.
+     */
     public abstract void onNextFragment();
+
+    /**
+     * パーミッションの許可が降りなかった場合の処理を行います.
+     */
     public abstract void onPermissionDeny();
 
+    /**
+     * Device Connect Manager の起動を行います.
+     */
     private void startManager() {
         HostDevicePluginBindActivity a = (HostDevicePluginBindActivity) getActivity();
         if (a != null && !a.isManagerStarted()) {

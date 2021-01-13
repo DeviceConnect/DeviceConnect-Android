@@ -126,6 +126,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
 
         @Override
         public void onTakePhoto(HostMediaRecorder recorder, String uri, String filePath, String mimeType) {
+            setPhoto(uri);
         }
 
         @Override
@@ -525,7 +526,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         mMediaRecorder.takePhoto(new HostDevicePhotoRecorder.OnPhotoEventListener() {
             @Override
             public void onTakePhoto(String uri, String filePath, String mimeType) {
-                setPhoto(uri);
             }
 
             @Override
@@ -612,7 +612,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         setMuteButton();
     }
 
-
     private void refreshUI() {
         setDisplayRotationButton();
         setPreviewButton();
@@ -642,7 +641,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     }
 
     private void setDisplayRotationButton() {
-        if (mViewModel == null || mMediaRecorder == null) {
+        if (mMediaRecorder == null) {
             return;
         }
 
@@ -654,7 +653,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     }
 
     private void setMuteButton() {
-        if (mViewModel == null || mMediaRecorder == null) {
+        if (mMediaRecorder == null) {
             return;
         }
 
@@ -667,7 +666,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     }
 
     private void setPreviewButton() {
-        if (mViewModel == null || mMediaRecorder == null) {
+        if (mMediaRecorder == null) {
             return;
         }
 
@@ -679,7 +678,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     }
 
     private void setBroadcastButton() {
-        if (mViewModel == null || mMediaRecorder == null) {
+        if (mMediaRecorder == null) {
             return;
         }
 
@@ -691,7 +690,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     }
 
     private void setRecordingButton() {
-        if (mViewModel == null || mMediaRecorder == null) {
+        if (mMediaRecorder == null) {
             return;
         }
 

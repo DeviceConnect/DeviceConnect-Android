@@ -39,7 +39,7 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
     /**
      * SSLContext を使用するかどうかのフラグ.
      */
-    private boolean mUsesSSLContext;
+    private final boolean mUsesSSLContext;
 
     /**
      * MotionJPEG 配信サーバ.
@@ -79,10 +79,12 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
             }
 
             mMJPEGServer = new MJPEGServer();
-            mMJPEGServer.setSSLContext(sslContext);
             mMJPEGServer.setServerName(SERVER_NAME);
             mMJPEGServer.setServerPort(getPort());
             mMJPEGServer.setCallback(mCallback);
+            if (mUsesSSLContext) {
+                mMJPEGServer.setSSLContext(sslContext);
+            }
             try {
                 mMJPEGServer.start();
             } catch (IOException e) {

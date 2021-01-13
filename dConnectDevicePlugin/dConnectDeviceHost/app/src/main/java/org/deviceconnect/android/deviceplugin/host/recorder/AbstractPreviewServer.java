@@ -16,12 +16,12 @@ public abstract class AbstractPreviewServer implements PreviewServer {
     /**
      * コンテキスト.
      */
-    private Context mContext;
+    private final Context mContext;
 
     /**
      * プレビュー再生を行うレコーダ.
      */
-    private HostMediaRecorder mHostMediaRecorder;
+    private final HostMediaRecorder mHostMediaRecorder;
 
     /**
      * プレビュー配信サーバのポート番号.

@@ -1,12 +1,18 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
 import android.content.Context;
+import android.media.AudioAttributes;
 import android.media.AudioFormat;
+import android.media.AudioPlaybackCaptureConfiguration;
+import android.media.projection.MediaProjection;
+import android.os.Build;
 import android.util.Size;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
+import org.deviceconnect.android.libmedia.streaming.audio.MicAudioQuality;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 abstract class ScreenCastPreviewServer extends AbstractPreviewServer {
@@ -46,5 +52,21 @@ abstract class ScreenCastPreviewServer extends AbstractPreviewServer {
         audioQuality.setSamplingRate(settings.getPreviewSampleRate());
         audioQuality.setBitRate(settings.getPreviewAudioBitRate());
         audioQuality.setUseAEC(settings.isUseAEC());
+
+
+        // アプリの録音機能
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaProjectionProvider client = recorder.getMediaProjectionClient();
+            if (client != null && client.getMediaProjection() != null) {
+                MediaProjection mediaProjection = client.getMediaProjection();
+                AudioPlaybackCaptureConfiguration configuration =
+                        new AudioPlaybackCaptureConfiguration.Builder(mediaProjection)
+                                .addMatchingUsage(AudioAttributes.USAGE_GAME)
+                                .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
+                                .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
+                                .build();
+                ((MicAudioQuality) audioQuality).setCaptureConfig(configuration);
+            }
+        }
     }
 }

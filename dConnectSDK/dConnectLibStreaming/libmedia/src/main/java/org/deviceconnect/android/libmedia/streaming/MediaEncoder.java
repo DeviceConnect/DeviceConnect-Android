@@ -4,13 +4,13 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import androidx.annotation.NonNull;
 
 public abstract class MediaEncoder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
@@ -303,7 +303,7 @@ public abstract class MediaEncoder {
     /**
      * エンコーダの開始・停止の処理を行うスレッド.
      */
-    private class WorkThread extends QueueThread<Runnable> {
+    private static class WorkThread extends QueueThread<Runnable> {
         @Override
         public void run() {
             try {

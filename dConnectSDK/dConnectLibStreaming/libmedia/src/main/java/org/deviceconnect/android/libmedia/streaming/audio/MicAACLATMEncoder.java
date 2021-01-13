@@ -1,9 +1,11 @@
 package org.deviceconnect.android.libmedia.streaming.audio;
 
+import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.media.audiofx.AcousticEchoCanceler;
 import android.media.audiofx.AudioEffect;
+import android.os.Build;
 import android.os.Process;
 import android.util.Log;
 
@@ -21,36 +23,9 @@ public class MicAACLATMEncoder extends AudioEncoder {
     private static final String TAG = "MIC-AAC-ENCODER";
 
     /**
-     * AAC で使用できるサンプリングレートを定義します.
-     */
-    private static final int[] SUPPORT_AUDIO_SAMPLING_RATES = {
-            96000, // 0
-            88200, // 1
-            64000, // 2
-            48000, // 3
-            44100, // 4
-            32000, // 5
-            24000, // 6
-            22050, // 7
-            16000, // 8
-            12000, // 9
-            11025, // 10
-            8000,  // 11
-            7350,  // 12
-            -1,   // 13
-            -1,   // 14
-            -1,   // 15
-    };
-
-    /**
      * 音声のエンコード設定.
      */
-    private final AudioQuality mAudioQuality = new AudioQuality("audio/mp4a-latm") {
-        @Override
-        public int[] getSupportSamplingRates() {
-            return SUPPORT_AUDIO_SAMPLING_RATES;
-        }
-    };
+    private final MicAudioQuality mAudioQuality = new MicAudioQuality("audio/mp4a-latm");
 
     /**
      * マイクから音声をレコードするクラス.
@@ -131,7 +106,7 @@ public class MicAACLATMEncoder extends AudioEncoder {
     /**
      * 音声を録音するためのスレッド.
      */
-    private class AudioRecordThread extends QueueThread<Runnable> {
+    private static class AudioRecordThread extends QueueThread<Runnable> {
         /**
          * スレッドを終了します.
          */
@@ -167,22 +142,39 @@ public class MicAACLATMEncoder extends AudioEncoder {
      * AudioRecord を開始します.
      */
     private void startAudioRecord() {
-        AudioQuality audioQuality = getAudioQuality();
-
-        mBufferSize = AudioRecord.getMinBufferSize(audioQuality.getSamplingRate(),
-                audioQuality.getChannel(), audioQuality.getFormat()) * 2;
+        mBufferSize = AudioRecord.getMinBufferSize(mAudioQuality.getSamplingRate(),
+                mAudioQuality.getChannel(), mAudioQuality.getFormat()) * 2;
 
         if (DEBUG) {
-            Log.d(TAG, "AudioQuality: " + audioQuality);
+            Log.d(TAG, "AudioQuality: " + mAudioQuality);
+            Log.d(TAG, "  bufferSize: " + mBufferSize);
         }
 
         mMuteBuffer = new byte[mBufferSize];
 
-        mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.DEFAULT,
-                audioQuality.getSamplingRate(),
-                audioQuality.getChannel(),
-                audioQuality.getFormat(),
-                mBufferSize);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            AudioRecord.Builder builder = new AudioRecord.Builder()
+                    .setAudioFormat(new AudioFormat.Builder()
+                            .setEncoding(mAudioQuality.getFormat())
+                            .setSampleRate(mAudioQuality.getSamplingRate())
+                            .setChannelMask(mAudioQuality.getChannel())
+                            .build())
+                    .setBufferSizeInBytes(mBufferSize);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && mAudioQuality.getCaptureConfig() != null) {
+                builder.setAudioPlaybackCaptureConfig(mAudioQuality.getCaptureConfig());
+            } else {
+                builder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+            }
+
+            mAudioRecord = builder.build();
+        } else {
+            mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.DEFAULT,
+                    mAudioQuality.getSamplingRate(),
+                    mAudioQuality.getChannel(),
+                    mAudioQuality.getFormat(),
+                    mBufferSize);
+        }
 
         if (mAudioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
             postOnError(new MediaEncoderException("AudioRecord is already initialized."));

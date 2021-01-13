@@ -19,6 +19,7 @@ import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostAudioRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.screen.ScreenCastRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
 import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
 import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.provider.FileManager;
@@ -75,12 +76,17 @@ public class HostMediaRecorderManager {
     /**
      * ファイル管理クラス.
      */
-    private FileManager mFileManager;
+    private final FileManager mFileManager;
 
     /**
      * 各レコーダのイベントを通知するためのリスナー.
      */
-    private WeakReferenceList<OnEventListener> mOnEventListeners = new WeakReferenceList<>();
+    private final WeakReferenceList<OnEventListener> mOnEventListeners = new WeakReferenceList<>();
+
+    /**
+     * MediaProjection
+     */
+    private MediaProjectionProvider mMediaProjectionProvider;
 
     /**
      * 画面の回転イベントを受け取るための BroadcastReceiver.
@@ -119,6 +125,7 @@ public class HostMediaRecorderManager {
      */
     public HostMediaRecorderManager(final DevicePluginContext pluginContext, final FileManager fileManager) {
         mHostDevicePluginContext = pluginContext;
+        mMediaProjectionProvider = new MediaProjectionProvider(pluginContext.getContext());
         mFileManager = fileManager;
         initRecorders();
     }
@@ -218,7 +225,7 @@ public class HostMediaRecorderManager {
      * @param fileMgr ファイル管理クラス
      */
     private void createScreenCastRecorder(final FileManager fileMgr) {
-        mRecorders.add(new ScreenCastRecorder(getContext(), fileMgr));
+        mRecorders.add(new ScreenCastRecorder(getContext(), fileMgr, mMediaProjectionProvider));
     }
 
     /**
@@ -302,6 +309,8 @@ public class HostMediaRecorderManager {
      * id に null が指定された場合には、デフォルトに設定されているレコーダを返却します。
      * </p>
      *
+     * 指定された ID に対応するレコーダが存在しない場合には null を返却します。
+     *
      * @param id レコーダの識別子
      * @return レコーダ
      */
@@ -329,6 +338,8 @@ public class HostMediaRecorderManager {
      * <p>
      * id に null が指定された場合には、デフォルトに設定されているレコーダを返却します。
      * </p>
+     *
+     * 指定された ID に対応する静止画用のレコーダが存在しない場合には null を返却します。
      *
      * @param id  レコーダの識別子
      * @return レコーダ

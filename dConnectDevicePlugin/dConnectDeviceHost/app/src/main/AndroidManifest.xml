@@ -81,13 +81,13 @@
             android:theme="@style/AppCompatTheme" />
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.recorder.screen.PermissionReceiverActivity"
+            android:name=".recorder.util.OverlayPermissionActivity"
             android:configChanges="orientation|screenSize"
             android:exported="false"
-            android:theme="@android:style/Theme.Translucent" />
+            android:theme="@style/AppTheme.Translucent" />
 
         <activity
-            android:name=".recorder.util.OverlayPermissionActivity"
+            android:name=".recorder.util.PermissionReceiverActivity"
             android:configChanges="orientation|screenSize"
             android:exported="false"
             android:theme="@style/AppTheme.Translucent" />

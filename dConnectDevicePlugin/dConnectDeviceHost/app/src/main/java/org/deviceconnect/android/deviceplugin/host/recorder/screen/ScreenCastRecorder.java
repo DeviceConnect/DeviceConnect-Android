@@ -11,6 +11,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.media.ImageReader;
+import android.media.projection.MediaProjection;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -27,6 +28,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceMP4Recorder;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.provider.FileManager;
@@ -59,26 +61,28 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     private static final String FILE_EXTENSION = ".jpg";
 
     /** 日付のフォーマット. */
-    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
+    private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
     private final Context mContext;
 
+    private final MediaProjectionProvider mMediaProjectionProvider;
     private final ScreenCastManager mScreenCastMgr;
     private final Handler mImageReaderHandler = new Handler(Looper.getMainLooper());
     private final Settings mSettings;
 
-    private ScreenCastPreviewServerProvider mScreenCastPreviewServerProvider;
-    private ScreenCastBroadcasterProvider mScreenCastBroadcasterProvider;
-    private ScreenCastSurfaceDrawingThread mScreenCastSurfaceDrawingThread;
+    private final ScreenCastPreviewServerProvider mScreenCastPreviewServerProvider;
+    private final ScreenCastBroadcasterProvider mScreenCastBroadcasterProvider;
+    private final ScreenCastSurfaceDrawingThread mScreenCastSurfaceDrawingThread;
 
-    public ScreenCastRecorder(final Context context, final FileManager fileMgr) {
+    public ScreenCastRecorder(final Context context, final FileManager fileMgr, MediaProjectionProvider client) {
         super(context, fileMgr);
         mContext = context;
         mSettings = new Settings(context, this);
 
         initSupportedSettings();
 
-        mScreenCastMgr = new ScreenCastManager(context);
+        mMediaProjectionProvider = client;
+        mScreenCastMgr = new ScreenCastManager(context, client);
         mScreenCastSurfaceDrawingThread = new ScreenCastSurfaceDrawingThread(this);
         mScreenCastPreviewServerProvider = new ScreenCastPreviewServerProvider(context, this);
         mScreenCastBroadcasterProvider = new ScreenCastBroadcasterProvider(context, this);
@@ -238,9 +242,9 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
     @Override
     public void requestPermission(final PermissionCallback callback) {
-        mScreenCastMgr.requestPermission(new ScreenCastManager.PermissionCallback() {
+        mMediaProjectionProvider.requestPermission(new MediaProjectionProvider.Callback() {
             @Override
-            public void onAllowed() {
+            public void onAllowed(MediaProjection mediaProjection) {
                 callback.onAllowed();
             }
 
@@ -292,6 +296,10 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
     private String generateVideoFileName() {
         return FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + ".mp4";
+    }
+
+    public MediaProjectionProvider getMediaProjectionClient() {
+        return mMediaProjectionProvider;
     }
 
     public ScreenCastManager getScreenCastMgr() {

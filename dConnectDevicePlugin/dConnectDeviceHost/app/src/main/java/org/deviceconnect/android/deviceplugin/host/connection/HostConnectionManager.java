@@ -31,11 +31,11 @@ import org.deviceconnect.android.util.NotificationUtils;
 public class HostConnectionManager {
     private static final int NOTIFICATION_ID = 3527;
 
-    private DevicePluginContext mPluginContext;
-    private WifiManager mWifiManager;
-    private BluetoothAdapter mBluetoothAdapter;
+    private final DevicePluginContext mPluginContext;
+    private final WifiManager mWifiManager;
+    private final BluetoothAdapter mBluetoothAdapter;
     private TelephonyManager mTelephonyManager;
-    private ConnectivityManager mConnectivityManager;
+    private final ConnectivityManager mConnectivityManager;
     private NetworkType mMobileNetworkType = NetworkType.TYPE_NONE;
 
     private final WeakReferenceList<ConnectionEventListener> mConnectionEventListeners = new WeakReferenceList<>();
@@ -114,10 +114,7 @@ public class HostConnectionManager {
 
     public HostConnectionManager(DevicePluginContext pluginContext) {
         mPluginContext = pluginContext;
-        init();
-    }
 
-    private void init() {
         mWifiManager = (WifiManager) mPluginContext.getContext()
                 .getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
@@ -157,7 +154,12 @@ public class HostConnectionManager {
             mConnectionEventListeners.remove(listener);
         }
     }
-    
+
+    /**
+     * 現在有効になっているネットワークを取得します.
+     *
+     * @return 有効になっているネットワーク名
+     */
     public String getActivityNetworkString() {
         switch (getActivityNetwork()) {
             case TYPE_MOBILE:

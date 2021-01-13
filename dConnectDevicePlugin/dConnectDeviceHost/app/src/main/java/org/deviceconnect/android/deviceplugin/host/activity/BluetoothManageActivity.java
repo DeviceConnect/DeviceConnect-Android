@@ -61,18 +61,13 @@ public class BluetoothManageActivity extends FragmentActivity {
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        // create response data
         Bundle response = new Bundle();
         if (resultCode == RESULT_OK) {
             response.putInt(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         } else {
             response.putInt(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
         }
-
-        Intent intent = MessageUtils.createResponseIntent(mRequestParam, response);
-        if (intent != null) {
-            sendBroadcast(intent);
-        }
+        sendBroadcast(MessageUtils.createResponseIntent(mRequestParam, response));
 
         finish();
     }

@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.activity.profile;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -20,38 +19,24 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.activity.HostDevicePluginBindActivity;
 import org.deviceconnect.android.deviceplugin.host.profile.HostKeyEventProfile;
-import org.deviceconnect.android.event.Event;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.profile.KeyEventProfile;
-import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.android.deviceplugin.host.sensor.HostEventManager;
+import org.deviceconnect.android.deviceplugin.host.sensor.HostKeyEvent;
 import org.deviceconnect.profile.KeyEventProfileConstants;
-
-import java.util.List;
-
-import static org.deviceconnect.android.deviceplugin.host.HostDeviceApplication.STATE_DOWN;
-import static org.deviceconnect.android.deviceplugin.host.HostDeviceApplication.STATE_UP;
 
 /**
  * Key Event Profile Activity.
  * 
  * @author NTT DOCOMO, INC.
  */
-public class KeyEventProfileActivity extends Activity implements OnTouchListener, OnCheckedChangeListener {
-
-    /** Application class instance. */
-    private HostDeviceApplication mApp;
-    /** Service Id. */
-    String mServiceId;
+public class KeyEventProfileActivity extends HostDevicePluginBindActivity implements OnTouchListener, OnCheckedChangeListener {
     /** Key Mode. */
-    KeyMode mKeyMode;
+    private KeyMode mKeyMode = KeyMode.STD_KEY;
 
     /** enum:Key Mode. */
-    public enum KeyMode {
+    private enum KeyMode {
         /** Standard Keyboard. */
         STD_KEY,
         /** Media Control. */
@@ -63,34 +48,35 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
     }
 
     /** Configure (Standard Keyboard). */
-    String[] mConfigStdKey = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "Enter"};
+    private final String[] mConfigStdKey = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "Enter"};
+
     /** Configure (Media Control). */
-    String[] mConfigMediaCtrl = {"stop", "previous", "pause", "next", "", "", "", "", "", "", "", "play"};
+    private final String[] mConfigMediaCtrl = {"stop", "previous", "pause", "next", "", "", "", "", "", "", "", "play"};
+
     /** Configure (Directional Pad). */
-    String[] mConfigDpad = {"", "", "down", "", "left", "center", "right", "", "up", "", "", ""};
+    private final String[] mConfigDpad = {"", "", "down", "", "left", "center", "right", "", "up", "", "", ""};
+
     /** Configure (User defined). */
-    String[] mConfigUser = {"", "", "", "", "", "", "", "", "", "", "USER_CANCEL", "USER_OK"};
+    private final String[] mConfigUser = {"", "", "", "", "", "", "", "", "", "", "USER_CANCEL", "USER_OK"};
 
     /**
      * Implementation of BroadcastReceiver.
      */
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
-        public void onReceive(final Context context, final Intent intent) {
-            String action = intent.getAction();
-            if (HostKeyEventProfile.ACTION_FINISH_KEYEVENT_ACTIVITY.equals(action)) {
+        public void onReceive(Context context, Intent intent) {
+            if (HostKeyEventProfile.ACTION_FINISH_KEYEVENT_ACTIVITY.equals(intent.getAction())) {
                 finish();
             }
         }
     };
 
+    private HostEventManager mEventManager;
+
     @Override
-    protected void onCreate(final Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_keyevent_main);
-
-        // Get Application class instance.
-        mApp = (HostDeviceApplication) this.getApplication();
 
         // Set button touchlistener. (Ten Key Emulated)
         findViewById(R.id.button_0).setOnTouchListener(this);
@@ -108,15 +94,14 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
         findViewById(R.id.button_keyevent_close).setOnTouchListener(this);
 
         RadioGroup radioGroup = (RadioGroup) findViewById(R.id.RadioGroup);
-        // Set default select radio button.
         radioGroup.check(R.id.radioButton1);
-        mKeyMode = KeyMode.STD_KEY;
-        // set radiogroup changelistener
         radioGroup.setOnCheckedChangeListener(this);
+    }
 
-        // Get serviceId.
-        Intent intent = getIntent();
-        mServiceId = intent.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
+    @Override
+    protected void onBindService() {
+        super.onBindService();
+        mEventManager = getHostDevicePlugin().getHostEventManager();
     }
 
     @Override
@@ -185,64 +170,42 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
-    protected void onPause() {
+    public void onPause() {
         super.onPause();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
+
+        try {
+            unregisterReceiver(mReceiver);
+        } catch (Exception e) {
+            // ignore.
+        }
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(HostKeyEventProfile.ACTION_FINISH_KEYEVENT_ACTIVITY);
-        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
-    }
 
-    @Override
-    public boolean dispatchKeyEvent(final KeyEvent event) {
-        return super.dispatchKeyEvent(event);
+        IntentFilter filter = new IntentFilter(HostKeyEventProfile.ACTION_FINISH_KEYEVENT_ACTIVITY);
+        registerReceiver(mReceiver, filter);
     }
 
     @Override
     public boolean onKeyDown(final int keyCode, final KeyEvent event) {
-        // "ondown" event processing.
-        List<Event> events = EventManager.INSTANCE.getEventList(mServiceId, KeyEventProfile.PROFILE_NAME, null,
-                KeyEventProfile.ATTRIBUTE_ON_DOWN);
-        sendEventData(STATE_DOWN, keyCode, events);
+        HostKeyEvent keyEvent = new HostKeyEvent(HostKeyEvent.STATE_KEY_DOWN,
+                getKeyId(keyCode), getConfig(mKeyMode, keyCode));
+        mEventManager.observeKeyEvent(keyEvent);
         return super.onKeyDown(keyCode, event);
     }
 
     @Override
     public boolean onKeyUp(final int keyCode, final KeyEvent event) {
-        // "onup" event processing.
-        List<Event> events = EventManager.INSTANCE.getEventList(mServiceId, KeyEventProfile.PROFILE_NAME, null,
-                KeyEventProfile.ATTRIBUTE_ON_UP);
-        sendEventData(STATE_UP, keyCode, events);
+        HostKeyEvent keyEvent = new HostKeyEvent(HostKeyEvent.STATE_KEY_UP,
+                getKeyId(keyCode), getConfig(mKeyMode, keyCode));
+        mEventManager.observeKeyEvent(keyEvent);
         return super.onKeyUp(keyCode, event);
     }
 
-    /**
-     * Send event data.
-     *
-     * @param state Key state.
-     * @param keycode key Code.
-     * @param events Event request list.
-     */
-    private void sendEventData(final String state, final int keycode, final List<Event> events) {
-        List<Event> changeEvents = EventManager.INSTANCE.getEventList(mServiceId, KeyEventProfile.PROFILE_NAME, null,
-                HostKeyEventProfile.ATTRIBUTE_ON_KEY_CHANGE);
-        Bundle keyevent = new Bundle();
-        int keyId = keycode;
-        String keyConfig = "";
-
-        // Get configure string.
-        keyConfig = getConfig(mKeyMode, keyId);
-
+    private int getKeyId(int keyCode) {
+        int keyId = keyCode;
         // Set key type.
         switch (mKeyMode) {
             case MEDIA_CTRL:
@@ -259,98 +222,75 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
                 keyId += KeyEventProfileConstants.KEYTYPE_STD_KEY;
                 break;
         }
-
-        keyevent.putInt(KeyEventProfile.PARAM_ID, keyId);
-        keyevent.putString(KeyEventProfile.PARAM_CONFIG, keyConfig);
-
-        for (int i = 0; i < events.size(); i++) {
-
-            Event eventdata = events.get(i);
-            String attr = eventdata.getAttribute();
-            Intent intent = EventManager.createEventMessage(eventdata);
-            intent.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
-            intent.setAction(HostKeyEventProfile.ACTION_KEYEVENT);
-            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-            mApp.setKeyEventCache(attr, keyevent);
-        }
-        for (int i = 0; i < changeEvents.size(); i++) {
-            Event eventdata = changeEvents.get(i);
-            String attr = eventdata.getAttribute();
-            Intent intent = EventManager.createEventMessage(eventdata);
-            keyevent.putString("state", state);
-            intent.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
-            intent.setAction(HostKeyEventProfile.ACTION_KEYEVENT);
-            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-            mApp.setKeyEventCache(attr, keyevent);
-        }
+        return keyId;
     }
 
     /**
      * Get Configure string.
-     * 
+     *
      * @param keymode Key Mode.
      * @param keyId Key ID.
      * @return config Configure string.
      */
     private String getConfig(final KeyMode keymode, final int keyId) {
-        String config = "";
-        int nIndex = -1;
+        String config;
+        int nIndex;
         switch (keyId) {
-        case KeyEvent.KEYCODE_NUMPAD_0:
-            nIndex = 0;
-            break;
-        case KeyEvent.KEYCODE_NUMPAD_1:
-            nIndex = 1;
-            break;
-        case KeyEvent.KEYCODE_NUMPAD_2:
-            nIndex = 2;
-            break;
-        case KeyEvent.KEYCODE_NUMPAD_3:
-            nIndex = 3;
-            break;
-        case KeyEvent.KEYCODE_NUMPAD_4:
-            nIndex = 4;
-            break;
-        case KeyEvent.KEYCODE_NUMPAD_5:
-            nIndex = 5;
-            break;
-        case KeyEvent.KEYCODE_NUMPAD_6:
-            nIndex = 6;
-            break;
-        case KeyEvent.KEYCODE_NUMPAD_7:
-            nIndex = 7;
-            break;
-        case KeyEvent.KEYCODE_NUMPAD_8:
-            nIndex = 8;
-            break;
-        case KeyEvent.KEYCODE_NUMPAD_9:
-            nIndex = 9;
-            break;
-        case KeyEvent.KEYCODE_NUMPAD_DOT:
-            nIndex = 10;
-            break;
-        case KeyEvent.KEYCODE_NUMPAD_ENTER:
-            nIndex = 11;
-            break;
-        default:
-            nIndex = -1;
-            break;
+            case KeyEvent.KEYCODE_NUMPAD_0:
+                nIndex = 0;
+                break;
+            case KeyEvent.KEYCODE_NUMPAD_1:
+                nIndex = 1;
+                break;
+            case KeyEvent.KEYCODE_NUMPAD_2:
+                nIndex = 2;
+                break;
+            case KeyEvent.KEYCODE_NUMPAD_3:
+                nIndex = 3;
+                break;
+            case KeyEvent.KEYCODE_NUMPAD_4:
+                nIndex = 4;
+                break;
+            case KeyEvent.KEYCODE_NUMPAD_5:
+                nIndex = 5;
+                break;
+            case KeyEvent.KEYCODE_NUMPAD_6:
+                nIndex = 6;
+                break;
+            case KeyEvent.KEYCODE_NUMPAD_7:
+                nIndex = 7;
+                break;
+            case KeyEvent.KEYCODE_NUMPAD_8:
+                nIndex = 8;
+                break;
+            case KeyEvent.KEYCODE_NUMPAD_9:
+                nIndex = 9;
+                break;
+            case KeyEvent.KEYCODE_NUMPAD_DOT:
+                nIndex = 10;
+                break;
+            case KeyEvent.KEYCODE_NUMPAD_ENTER:
+                nIndex = 11;
+                break;
+            default:
+                nIndex = -1;
+                break;
         }
         if (nIndex != -1) {
             switch (mKeyMode) {
-            case MEDIA_CTRL:
-                config = mConfigMediaCtrl[nIndex];
-                break;
-            case DPAD_BUTTON:
-                config = mConfigDpad[nIndex];
-                break;
-            case USER:
-                config = mConfigUser[nIndex];
-                break;
-            case STD_KEY:
-            default:
-                config = mConfigStdKey[nIndex];
-                break;
+                case MEDIA_CTRL:
+                    config = mConfigMediaCtrl[nIndex];
+                    break;
+                case DPAD_BUTTON:
+                    config = mConfigDpad[nIndex];
+                    break;
+                case USER:
+                    config = mConfigUser[nIndex];
+                    break;
+                case STD_KEY:
+                default:
+                    config = mConfigStdKey[nIndex];
+                    break;
             }
         } else {
             config = "";

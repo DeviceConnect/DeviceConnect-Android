@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.activity.profile;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -17,191 +16,84 @@ import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 import android.widget.Button;
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.activity.HostDevicePluginBindActivity;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
-import org.deviceconnect.android.event.Event;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.profile.TouchProfile;
-import org.deviceconnect.message.DConnectMessage;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile.ATTRIBUTE_ON_TOUCH_CHANGE;
+import org.deviceconnect.android.deviceplugin.host.sensor.HostEventManager;
+import org.deviceconnect.android.deviceplugin.host.sensor.HostTouchEvent;
 
 /**
  * Touch Profile Activity.
  * 
  * @author NTT DOCOMO, INC.
  */
-public class TouchProfileActivity extends Activity {
-
-    /** Application class instance. */
-    private HostDeviceApplication mApp;
-
-    /** Gesture detector. */
-    GestureDetector mGestureDetector;
-    /** Service Id. */
-    String mServiceId;
-
+public class TouchProfileActivity extends HostDevicePluginBindActivity {
     /**
      * Implementation of BroadcastReceiver.
      */
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
-        public void onReceive(final Context context, final Intent intent) {
-            String action = intent.getAction();
-            if (HostTouchProfile.ACTION_FINISH_TOUCH_ACTIVITY.equals(action)) {
+        public void onReceive(Context context, Intent intent) {
+            if (HostTouchProfile.ACTION_FINISH_TOUCH_ACTIVITY.equals(intent.getAction())) {
                 finish();
             }
         }
     };
 
+    private GestureDetector mGestureDetector;
+    private HostEventManager mEventManager;
+
     @Override
-    protected void onCreate(final Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_touch_main);
-        
-        // Get Application class instance.
-        mApp = (HostDeviceApplication) this.getApplication();
 
-        // Get serviceId.
-        Intent intent = getIntent();
-        mServiceId = intent.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
-        // Create GestureDetector instance.
         mGestureDetector = new GestureDetector(this, mSimpleOnGestureListener);
-        // onclicklistener register.
+
         Button button = findViewById(R.id.button_touch_close);
-        button.setOnClickListener((v) -> {
-            finish();
-        });
+        button.setOnClickListener((v) -> finish());
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
-    protected void onPause() {
+    public void onPause() {
         super.onPause();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
+        try {
+            unregisterReceiver(mReceiver);
+        } catch (Exception e) {
+            // ignore.
+        }
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(HostTouchProfile.ACTION_FINISH_TOUCH_ACTIVITY);
-        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
+
+        IntentFilter filter = new IntentFilter(HostTouchProfile.ACTION_FINISH_TOUCH_ACTIVITY);
+        registerReceiver(mReceiver, filter);
+    }
+
+    @Override
+    protected void onBindService() {
+        super.onBindService();
+        mEventManager = getHostDevicePlugin().getHostEventManager();
     }
 
     @Override
     public boolean onTouchEvent(final MotionEvent event) {
-        List<Event> events;
-        String state = null;
-        switch (event.getAction() & MotionEvent.ACTION_MASK) {
-        case MotionEvent.ACTION_DOWN: // 1st touch only.
-        case MotionEvent.ACTION_POINTER_DOWN: // Others touch.
-            state = HostDeviceApplication.STATE_START;
-            // "ontouch" event processing.
-            events = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
-                    TouchProfile.ATTRIBUTE_ON_TOUCH);
-            if (events != null) {
-                sendEventData(state, event, events);
-            }
-
-            // "ontouchstart" event processing.
-            events = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
-                    TouchProfile.ATTRIBUTE_ON_TOUCH_START);
-            break;
-        case MotionEvent.ACTION_UP: // Last touch remove only.
-        case MotionEvent.ACTION_POINTER_UP: // Others touch move.
-            state = HostDeviceApplication.STATE_END;
-            // "ontouchend" event processing.
-            events = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
-                    TouchProfile.ATTRIBUTE_ON_TOUCH_END);
-            break;
-        case MotionEvent.ACTION_MOVE:
-            state = HostDeviceApplication.STATE_MOVE;
-            // "ontouchmove" event processing.
-            events = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
-                    TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE);
-            break;
-        case MotionEvent.ACTION_CANCEL:
-            state = HostDeviceApplication.STATE_CANCEL;
-            // "ontouchcancel" event processing.
-            events = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
-                    TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL);
-            break;
-        default:
-            return mGestureDetector.onTouchEvent(event);
-        }
-
-        if (events != null) {
-            sendEventData(state, event, events);
+        if (mEventManager != null) {
+            mEventManager.observeTouchEvent(new HostTouchEvent(event));
         }
         return mGestureDetector.onTouchEvent(event);
     }
 
-    /**
-     * Gesture Listener.
-     */
     private final SimpleOnGestureListener mSimpleOnGestureListener = new SimpleOnGestureListener() {
 
         @Override
         public boolean onDoubleTap(final MotionEvent event) {
-            List<Event> events = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
-                    TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP);
-
-            sendEventData(HostDeviceApplication.STATE_DOUBLE_TAP, event, events);
+            if (mEventManager != null) {
+                mEventManager.observeTouchEvent(new HostTouchEvent(HostTouchEvent.STATE_TOUCH_DOUBLE_TAP, event));
+            }
             return super.onDoubleTap(event);
         }
     };
-
-    /**
-     * Send event data.
-     *
-     * @param state MotionEvent state.
-     * @param event MotionEvent.
-     * @param events Event request list.
-     */
-    private void sendEventData(final String state, final MotionEvent event, final List<Event> events) {
-        List<Event> touchEvents = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
-                ATTRIBUTE_ON_TOUCH_CHANGE);
-        Bundle touchdata = new Bundle();
-        List<Bundle> touchlist = new ArrayList<Bundle>();
-        Bundle touches = new Bundle();
-        for (int n = 0; n < event.getPointerCount(); n++) {
-            int pointerId = event.getPointerId(n);
-            touchdata.putInt(TouchProfile.PARAM_ID, pointerId);
-            touchdata.putFloat(TouchProfile.PARAM_X, event.getX(n));
-            touchdata.putFloat(TouchProfile.PARAM_Y, event.getY(n));
-            touchlist.add((Bundle) touchdata.clone());
-        }
-        touches.putParcelableArray(TouchProfile.PARAM_TOUCHES, touchlist.toArray(new Bundle[touchlist.size()]));
-        for (int i = 0; i < events.size(); i++) {
-            Event eventdata = events.get(i);
-            String attr = eventdata.getAttribute();
-            Intent intent = EventManager.createEventMessage(eventdata);
-            intent.putExtra(TouchProfile.PARAM_TOUCH, touches);
-            intent.setAction(HostTouchProfile.ACTION_TOUCH);
-            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-            mApp.setTouchCache(attr, touches);
-        }
-        for (int i = 0; i < touchEvents.size(); i++) {
-            Event eventdata = touchEvents.get(i);
-            String attr = eventdata.getAttribute();
-            touches.putString("state", state);
-            Intent intent = EventManager.createEventMessage(eventdata);
-            intent.putExtra(TouchProfile.PARAM_TOUCH, touches);
-            intent.setAction(HostTouchProfile.ACTION_TOUCH);
-            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-            mApp.setTouchCache(attr, touches);
-        }
-
-    }
 }

@@ -29,9 +29,15 @@
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
-    <uses-feature android:name="android.hardware.camera" android:required="false"/>
-    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
-    <uses-feature android:name="android.hardware.camera.flash" android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.flash"
+        android:required="false" />
 
     <application android:allowBackup="false">
         <activity
@@ -90,33 +96,21 @@
             android:name="org.deviceconnect.android.deviceplugin.host.activity.GeolocationAlertDialogActivity"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
+            android:exported="false"
             android:theme="@style/AppTheme.Translucent" />
-
-        <!-- スクリーンキャストを行うための Activity -->
-        <activity
-            android:name=".activity.profile.HostEventProfileActivity"
-            android:exported="true"
-            android:label="イベント"
-            android:theme="@style/AppCompatTheme">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
 
         <!-- プラグイン設定画面用の Activity -->
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.setting.HostSettingActivity"
+            android:exported="false"
             android:launchMode="singleTask"
             android:theme="@style/AppCompatTheme" />
 
         <!-- レコーダー設定画面用の Activity -->
         <activity
             android:name=".activity.recorder.settings.SettingsActivity"
-            android:label="@string/host_recorder_settings_title"
-            android:exported="false">
-        </activity>
+            android:exported="false"
+            android:label="@string/host_recorder_settings_title" />
 
         <!-- カメラを操作するための Activity -->
         <activity

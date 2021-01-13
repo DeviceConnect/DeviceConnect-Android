@@ -34,9 +34,9 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostSettingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
+import org.deviceconnect.android.deviceplugin.host.sensor.HostEventManager;
 import org.deviceconnect.android.deviceplugin.host.util.NetworkUtil;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.libsrt.SRT;
@@ -103,6 +103,11 @@ public class HostDevicePlugin extends DConnectMessageService {
     private HostPhoneManager mHostPhoneManager;
 
     /**
+     * キーイベント、タッチイベント管理クラス.
+     */
+    private HostEventManager mHostEventManager;
+
+    /**
      * デモ管理クラス.
      */
     private HostDemoManager mHostDemoManager;
@@ -128,6 +133,8 @@ public class HostDevicePlugin extends DConnectMessageService {
         hostService.setName(SERVICE_NAME);
         hostService.setOnline(true);
 
+        mHostEventManager = new HostEventManager();
+
         mRecorderMgr = new HostMediaRecorderManager(getPluginContext(), mFileMgr);
         mRecorderMgr.initialize();
         //  MediaRecorder が存在する場合には、MediaStreamRecording と Camera プロファイルを追加
@@ -149,14 +156,14 @@ public class HostDevicePlugin extends DConnectMessageService {
         hostService.addProfile(new HostConnectionProfile(mHostConnectionManager));
 
         hostService.addProfile(new HostFileProfile(mFileMgr));
-        hostService.addProfile(new HostKeyEventProfile());
+        hostService.addProfile(new HostKeyEventProfile(mHostEventManager));
         hostService.addProfile(new HostNotificationProfile());
 
         mHostPhoneManager = new HostPhoneManager(getPluginContext());
         hostService.addProfile(new HostPhoneProfile(mHostPhoneManager));
 
         hostService.addProfile(new HostSettingProfile());
-        hostService.addProfile(new HostTouchProfile());
+        hostService.addProfile(new HostTouchProfile(mHostEventManager));
         hostService.addProfile(new HostVibrationProfile());
 
         if (checkSensorHardware()) {
@@ -170,7 +177,7 @@ public class HostDevicePlugin extends DConnectMessageService {
         // カメラが使用できる場合は、Light プロファイルを追加
         if (checkCameraHardware()) {
             HostMediaRecorder defaultRecorder = mRecorderMgr.getRecorder(null);
-            if (defaultRecorder instanceof HostDevicePhotoRecorder) {
+            if (defaultRecorder != null) {
                 hostService.addProfile(new HostLightProfile(this, mRecorderMgr));
             }
             hostService.addProfile(new HostLiveStreamingProfile(mRecorderMgr));
@@ -205,6 +212,11 @@ public class HostDevicePlugin extends DConnectMessageService {
         if (mHostPhoneManager != null) {
             mHostPhoneManager.destroy();
             mHostPhoneManager = null;
+        }
+
+        if (mHostEventManager != null) {
+            mHostEventManager.destroy();
+            mHostEventManager = null;
         }
 
         if (mHostDemoManager != null) {
@@ -318,6 +330,10 @@ public class HostDevicePlugin extends DConnectMessageService {
 
     public HostConnectionManager getHostConnectionManager() {
         return mHostConnectionManager;
+    }
+
+    public HostEventManager getHostEventManager() {
+        return mHostEventManager;
     }
 
     // SSL

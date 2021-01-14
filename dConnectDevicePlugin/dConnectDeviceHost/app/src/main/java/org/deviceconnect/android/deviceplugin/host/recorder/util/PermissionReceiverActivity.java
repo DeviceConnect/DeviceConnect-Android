@@ -32,7 +32,7 @@ public class PermissionReceiverActivity extends AppCompatActivity {
 
     static final String EXTRA_CALLBACK = "callback";
 
-    private static final int REQUEST_CODE = 1234567;
+    private static final int REQUEST_CODE = 12345;
 
     private MediaProjectionManager mManager;
 

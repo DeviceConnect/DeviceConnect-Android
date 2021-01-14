@@ -17,7 +17,7 @@ public abstract class ManagerStartingConfirmationFragment extends HostDevicePlug
     /**
      * パーミッションのリクエストコード.
      */
-    private static final int PERMISSION_REQUEST_CODE = 12345;
+    private static final int PERMISSION_REQUEST_CODE = 21234;
 
     /**
      * パーミッションのリクエストを行ったことを確認するフラグ.

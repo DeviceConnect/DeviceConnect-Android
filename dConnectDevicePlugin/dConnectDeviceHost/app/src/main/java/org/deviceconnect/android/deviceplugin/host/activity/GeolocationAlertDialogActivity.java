@@ -13,7 +13,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Window;
 
-import androidx.fragment.app.FragmentActivity;
+import androidx.appcompat.app.AppCompatActivity;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.message.MessageUtils;
@@ -23,12 +23,12 @@ import org.deviceconnect.android.message.MessageUtils;
  *
  * @author NTT DOCOMO, INC.
  */
-public class GeolocationAlertDialogActivity extends FragmentActivity {
+public class GeolocationAlertDialogActivity extends AppCompatActivity {
     private Activity mActivity;
     private Intent mResponse;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mActivity = this;
         Intent intent = getIntent();

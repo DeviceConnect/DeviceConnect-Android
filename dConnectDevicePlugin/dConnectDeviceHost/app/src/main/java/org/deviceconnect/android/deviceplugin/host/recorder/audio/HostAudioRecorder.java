@@ -6,8 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder.audio;
 
+import android.Manifest;
 import android.content.Context;
 import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
 
@@ -17,7 +19,6 @@ import org.deviceconnect.android.deviceplugin.host.recorder.AbstractMediaRecorde
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.AudioMP4Recorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.provider.FileManager;
@@ -122,17 +123,20 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
 
     @Override
     public void requestPermission(PermissionCallback callback) {
-        CapabilityUtil.requestPermissions(mContext, new PermissionUtility.PermissionRequestCallback() {
-            @Override
-            public void onSuccess() {
-                callback.onAllowed();
-            }
+        PermissionUtility.requestPermissions(mContext, new Handler(Looper.getMainLooper()), new String[]{
+                        Manifest.permission.RECORD_AUDIO,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                new PermissionUtility.PermissionRequestCallback() {
+                    @Override
+                    public void onSuccess() {
+                        callback.onAllowed();
+                    }
 
-            @Override
-            public void onFail(final @NonNull String deniedPermission) {
-                callback.onDisallowed();
-            }
-        });
+                    @Override
+                    public void onFail(@NonNull String deniedPermission) {
+                        callback.onDisallowed();
+                    }
+                });
     }
 
     // HostDevicePhotoRecorder

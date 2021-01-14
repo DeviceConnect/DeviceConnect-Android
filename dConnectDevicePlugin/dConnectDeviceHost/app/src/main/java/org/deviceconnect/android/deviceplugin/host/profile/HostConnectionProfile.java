@@ -34,12 +34,7 @@ import java.util.List;
  * @author NTT DOCOMO, INC.
  */
 public class HostConnectionProfile extends ConnectionProfile {
-
-    /** Debug Tag. */
-    private static final String TAG = "HOST";
-
-    private HostConnectionManager mHostConnectionManager;
-
+    // GET /gotapi/connection/wifi
     private final DConnectApi mGetWifiApi = new GetApi() {
 
         @Override
@@ -49,12 +44,83 @@ public class HostConnectionProfile extends ConnectionProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            getEnabledOfWiFi(request, response);
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            response.putExtra(PARAM_ENABLE, mHostConnectionManager.isWifiEnabled());
             return true;
         }
     };
 
+    // PUT /gotapi/connection/wifi
+    private final DConnectApi mPutWifiApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_WIFI;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            setEnabledOfWiFi(request, response, true);
+            return false;
+        }
+    };
+
+    // DELETE /gotapi/connection/wifi
+    private final DConnectApi mDeleteWifiApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_WIFI;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            setEnabledOfWiFi(request, response, false);
+            return false;
+        }
+    };
+
+    // PUT /gotapi/connection/onWifiChange
+    private final DConnectApi mPutOnWifiChangeApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_WIFI_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                setResult(response, DConnectMessage.RESULT_ERROR);
+            }
+            return true;
+        }
+    };
+
+    // DELETE /gotapi/connection/onWifiChange
+    private final DConnectApi mDeleteOnWifiChange = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_WIFI_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
+            }
+            return true;
+        }
+    };
+
+    // GET /gotapi/connection/bluetooth
     private final DConnectApi mGetBluetoothApi = new GetApi() {
 
         @Override
@@ -64,12 +130,83 @@ public class HostConnectionProfile extends ConnectionProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            getEnabledBluetooth(request, response);
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            response.putExtra(PARAM_ENABLE, mHostConnectionManager.isBluetoothEnabled());
             return true;
         }
     };
 
+    // PUT /gotapi/connection/bluetooth
+    private final DConnectApi mPutBluetoothApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_BLUETOOTH;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            setEnabledBluetooth(request, response, true);
+            return false;
+        }
+    };
+
+    // DELETE /gotapi/connection/bluetooth
+    private final DConnectApi mDeleteBluetoothApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_BLUETOOTH;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            setEnabledBluetooth(request, response, false);
+            return false;
+        }
+    };
+
+    // PUT /gotapi/connection/onBluetoothChange
+    private final DConnectApi mPutOnBluetoothChangeApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_BLUETOOTH_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                setResult(response, DConnectMessage.RESULT_ERROR);
+            }
+            return true;
+        }
+    };
+
+    // DELETE /gotapi/connection/onBluetoothChange
+    private final DConnectApi mDeleteOnBluetoothChange = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_BLUETOOTH_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
+            }
+            return true;
+        }
+    };
+
+    // GET /gotapi/connection/ble
     private final DConnectApi mGetBleApi = new GetApi() {
 
         @Override
@@ -79,12 +216,43 @@ public class HostConnectionProfile extends ConnectionProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            getEnabledOfBluetoothLowEnery(request, response);
             setResult(response, IntentDConnectMessage.RESULT_OK);
+            response.putExtra(PARAM_ENABLE, mHostConnectionManager.getEnabledOfBluetoothLowEnergy());
             return true;
         }
     };
 
+    // PUT /gotapi/connection/ble
+    private final DConnectApi mPutBleApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_BLE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            setEnabledBluetooth(request, response, true);
+            return false;
+        }
+    };
+
+    // DELETE /gotapi/connection/ble
+    private final DConnectApi mDeleteBleApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_BLE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            setEnabledBluetooth(request, response, false);
+            return false;
+        }
+    };
+
+    // GET /gotapi/connection/nfc
     private final DConnectApi mGetNfcApi = new GetApi() {
 
         @Override
@@ -96,208 +264,25 @@ public class HostConnectionProfile extends ConnectionProfile {
         public boolean onRequest(final Intent request, final Intent response) {
             NfcAdapter adapter = NfcAdapter.getDefaultAdapter(getContext());
             if (adapter != null) {
-                if (adapter.isEnabled()) {
-                    response.putExtra(PARAM_ENABLE, true);
-                } else {
-                    response.putExtra(PARAM_ENABLE, false);
-                }
+                setResult(response, IntentDConnectMessage.RESULT_OK);
+                response.putExtra(PARAM_ENABLE, adapter.isEnabled());
             } else {
-                response.putExtra(PARAM_ENABLE, false);
-            }
-            setResult(response, IntentDConnectMessage.RESULT_OK);
-            return true;
-        }
-    };
-
-    private final DConnectApi mPutWifiApi = new PutApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_WIFI;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            setEnabledOfWiFi(request, response, true);
-            return true;
-        }
-    };
-
-    private final DConnectApi mPutBluetoothApi = new PutApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_BLUETOOTH;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            setEnabledBluetooth(request, response, true);
-            return true;
-        }
-    };
-
-    private final DConnectApi mPutBleApi = new PutApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_BLE;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            setEnabledBluetooth(request, response, true);
-            return true;
-        }
-    };
-
-    private final DConnectApi mDeleteWifiApi = new DeleteApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_WIFI;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            setEnabledOfWiFi(request, response, false);
-            return true;
-        }
-    };
-
-    private final DConnectApi mDeleteBluetoothApi = new DeleteApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_BLUETOOTH;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            setEnabledBluetooth(request, response, false);
-            return true;
-        }
-    };
-
-    private final DConnectApi mDeleteBleApi = new DeleteApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_BLE;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            setEnabledBluetooth(request, response, false);
-            return true;
-        }
-    };
-
-    private final DConnectApi mPutOnWifiChangeApi = new PutApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_ON_WIFI_CHANGE;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-
-            setResult(response, DConnectMessage.RESULT_OK);
-            // イベントの登録
-            EventError error = EventManager.INSTANCE.addEvent(request);
-
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-                return true;
-            } else {
-                setResult(response, DConnectMessage.RESULT_ERROR);
-                return true;
-            }
-        }
-    };
-
-    private final DConnectApi mPutOnBluetoothChangeApi = new PutApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_ON_BLUETOOTH_CHANGE;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-
-            // イベントの登録
-            EventError error = EventManager.INSTANCE.addEvent(request);
-
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else {
-                setResult(response, DConnectMessage.RESULT_ERROR);
+                MessageUtils.setNotSupportAttributeError(response, "NFC is not supported.");
             }
             return true;
         }
     };
 
-    private final DConnectApi mDeleteOnWifiChange = new DeleteApi() {
 
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_ON_WIFI_CHANGE;
-        }
+    /**
+     * 接続管理クラスからのイベントを受信するリスナー.
+     */
+    private HostConnectionManager.ConnectionEventListener mConnectionListener;
 
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            // イベントの解除
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-                return true;
-            } else {
-                MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
-                return true;
-            }
-        }
-    };
-
-    private final DConnectApi mDeleteOnBluetoothChange = new DeleteApi() {
-
-        @Override
-        public String getAttribute() {
-            return ATTRIBUTE_ON_BLUETOOTH_CHANGE;
-        }
-
-        @Override
-        public boolean onRequest(final Intent request, final Intent response) {
-            // イベントの解除
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-                return true;
-            } else {
-                MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
-                return true;
-            }
-        }
-    };
-
-    private final HostConnectionManager.ConnectionEventListener mConnectionListener = new HostConnectionManager.ConnectionEventListener() {
-        @Override
-        public void onChangedNetwork() {
-        }
-
-        @Override
-        public void onChangedWifiStatus() {
-            postOnChangedWifiStatus();
-        }
-
-        @Override
-        public void onChangedBluetoothStatus() {
-            postOnChangedBluetoothStatus();
-        }
-    };
+    /**
+     * 接続管理クラス.
+     */
+    private final HostConnectionManager mHostConnectionManager;
 
     /**
      * コンストラクタ.
@@ -305,6 +290,21 @@ public class HostConnectionProfile extends ConnectionProfile {
      * @param manager 接続管理クラス.
      */
     public HostConnectionProfile(HostConnectionManager manager) {
+        mConnectionListener = new HostConnectionManager.ConnectionEventListener() {
+            @Override
+            public void onChangedNetwork() {
+            }
+
+            @Override
+            public void onChangedWifiStatus() {
+                postOnChangedWifiStatus();
+            }
+
+            @Override
+            public void onChangedBluetoothStatus() {
+                postOnChangedBluetoothStatus();
+            }
+        };
         mHostConnectionManager = manager;
         mHostConnectionManager.addConnectionEventListener(mConnectionListener);
 
@@ -327,15 +327,8 @@ public class HostConnectionProfile extends ConnectionProfile {
         }
     }
 
-    /**
-     * WiFi接続の状態を取得する.
-     * 
-     * @param request リクエスト
-     * @param response レスポンス
-     */
-    private void getEnabledOfWiFi(final Intent request, final Intent response) {
-        setResult(response, IntentDConnectMessage.RESULT_OK);
-        response.putExtra(PARAM_ENABLE, mHostConnectionManager.isWifiEnabled());
+    public void destroy() {
+        mConnectionListener = null;
     }
 
     /**
@@ -346,56 +339,53 @@ public class HostConnectionProfile extends ConnectionProfile {
      * @param enabled WiFi接続状態
      */
     private void setEnabledOfWiFi(final Intent request, final Intent response, final boolean enabled) {
-        if (mHostConnectionManager.setWifiEnabled(enabled)) {
-            setResult(response, IntentDConnectMessage.RESULT_OK);
-        } else {
-            String msg;
-            if (enabled) {
-                msg = "Failed to enable WiFi.";
-            } else {
-                msg = "Failed to disable WiFi.";
+        mHostConnectionManager.setWifiEnabled(enabled, new HostConnectionManager.Callback() {
+            @Override
+            public void onSuccess() {
+                setResult(response, IntentDConnectMessage.RESULT_OK);
+                sendResponse(response);
             }
-            MessageUtils.setUnknownError(response, msg);
-        }
-    }
 
-    /**
-     * Bluetooth接続の状態を取得する.
-     * 
-     * @param request リクエスト
-     * @param response レスポンス
-     */
-    private void getEnabledBluetooth(final Intent request, final Intent response) {
-        setResult(response, IntentDConnectMessage.RESULT_OK);
-        response.putExtra(PARAM_ENABLE, mHostConnectionManager.isBluetoothEnabled());
+            @Override
+            public void onFailure() {
+                String msg;
+                if (enabled) {
+                    msg = "Failed to enable WiFi.";
+                } else {
+                    msg = "Failed to disable WiFi.";
+                }
+                MessageUtils.setUnknownError(response, msg);
+                sendResponse(response);
+            }
+        });
     }
 
     /**
      * Bluetooth接続の状態を設定する.
-     * 
+     *
      * @param request リクエスト
      * @param response レスポンス
      * @param enabled Bluetooth接続状態
      */
     private void setEnabledBluetooth(final Intent request, final Intent response, final boolean enabled) {
-        boolean result = mHostConnectionManager.setBluetoothEnabled(enabled);
-        if (result) {
-            setResult(response, IntentDConnectMessage.RESULT_OK);
-        } else {
-            setResult(response, IntentDConnectMessage.RESULT_ERROR);
-        }
+        mHostConnectionManager.setBluetoothEnabled(enabled, new HostConnectionManager.Callback() {
+            @Override
+            public void onSuccess() {
+                setResult(response, DConnectMessage.RESULT_OK);
+                sendResponse(response);
+            }
+
+            @Override
+            public void onFailure() {
+                MessageUtils.setIllegalDeviceStateError(response, "Failed to enabled a bluetooth.");
+                sendResponse(response);
+            }
+        });
     }
 
     /**
-     * Bluetooth Low Enery接続の状態を取得する.
-     * 
-     * @param request リクエスト
-     * @param response レスポンス
+     * Bluetooth の状態が変更されたことを通知します.
      */
-    protected void getEnabledOfBluetoothLowEnery(final Intent request, final Intent response) {
-        response.putExtra(PARAM_ENABLE, mHostConnectionManager.getEnabledOfBluetoothLowEnergy());
-    }
-
     private void postOnChangedBluetoothStatus() {
         List<Event> events = EventManager.INSTANCE.getEventList(HostDevicePlugin.SERVICE_ID,
                 HostConnectionProfile.PROFILE_NAME, null, HostConnectionProfile.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
@@ -411,6 +401,9 @@ public class HostConnectionProfile extends ConnectionProfile {
         }
     }
 
+    /**
+     * Wifi の状態が変更されたことを通知します.
+     */
     private void postOnChangedWifiStatus() {
         List<Event> events = EventManager.INSTANCE.getEventList(HostDevicePlugin.SERVICE_ID,
                 HostConnectionProfile.PROFILE_NAME, null, HostConnectionProfile.ATTRIBUTE_ON_WIFI_CHANGE);

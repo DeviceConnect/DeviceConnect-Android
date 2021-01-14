@@ -1,6 +1,5 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.util;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -10,14 +9,15 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
-import org.deviceconnect.android.deviceplugin.host.R;
-
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
+import org.deviceconnect.android.deviceplugin.host.R;
 
 /**
  * オーバーレイの利用許可を求めるダイアログを表示するための Activity.
  */
-public class OverlayPermissionActivity extends Activity implements SimpleDialogFragment.Callback {
+public class OverlayPermissionActivity extends AppCompatActivity implements SimpleDialogFragment.Callback {
     /**
      * オーバーレイ許可用のリクエストコードを定義.
      */
@@ -29,7 +29,7 @@ public class OverlayPermissionActivity extends Activity implements SimpleDialogF
     private static final String TAG_NO_PERMISSION_DIALOG = "overlay-permission";
 
     @Override
-    protected void onCreate(final Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 

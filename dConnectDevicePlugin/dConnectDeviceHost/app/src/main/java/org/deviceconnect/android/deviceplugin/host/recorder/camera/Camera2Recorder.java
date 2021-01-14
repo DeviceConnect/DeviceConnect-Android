@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
+import android.Manifest;
 import android.content.Context;
 import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraCharacteristics;
@@ -117,22 +118,22 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     /**
      * プレビュー配信サーバを管理するクラス.
      */
-    private Camera2PreviewServerProvider mCamera2PreviewServerProvider;
+    private final Camera2PreviewServerProvider mCamera2PreviewServerProvider;
 
     /**
      * カメラのプレビューを配信するクラス.
      */
-    private Camera2BroadcasterProvider mCamera2BroadcasterProvider;
+    private final Camera2BroadcasterProvider mCamera2BroadcasterProvider;
 
     /**
      * カメラの映像を Surface に描画を行うためのクラス.
      */
-    private CameraSurfaceDrawingThread mCameraSurfaceDrawingThread;
+    private final CameraSurfaceDrawingThread mCameraSurfaceDrawingThread;
 
     /**
      * コンテキスト.
      */
-    private Context mContext;
+    private final Context mContext;
 
     /**
      * レコーダの設定.
@@ -291,17 +292,22 @@ public class Camera2Recorder extends AbstractMediaRecorder {
 
     @Override
     public void requestPermission(final PermissionCallback callback) {
-        CapabilityUtil.requestPermissions(mContext, new PermissionUtility.PermissionRequestCallback() {
-            @Override
-            public void onSuccess() {
-                callback.onAllowed();
-            }
+        PermissionUtility.requestPermissions(mContext, new Handler(Looper.getMainLooper()), new String[]{
+                        Manifest.permission.CAMERA,
+                        Manifest.permission.RECORD_AUDIO,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                },
+                new PermissionUtility.PermissionRequestCallback() {
+                    @Override
+                    public void onSuccess() {
+                        callback.onAllowed();
+                    }
 
-            @Override
-            public void onFail(final @NonNull String deniedPermission) {
-                callback.onDisallowed();
-            }
-        });
+                    @Override
+                    public void onFail(@NonNull String deniedPermission) {
+                        callback.onDisallowed();
+                    }
+                });
     }
 
     // HostDevicePhotoRecorder

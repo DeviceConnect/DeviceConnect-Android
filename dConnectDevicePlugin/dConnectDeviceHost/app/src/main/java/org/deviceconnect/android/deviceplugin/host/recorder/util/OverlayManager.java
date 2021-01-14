@@ -1,13 +1,19 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.util;
 
+import android.Manifest;
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.ResultReceiver;
 import android.provider.Settings;
 import android.util.Size;
 import android.view.LayoutInflater;
@@ -16,6 +22,8 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
+import org.deviceconnect.android.activity.IntentHandlerActivity;
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
@@ -43,12 +51,12 @@ public class OverlayManager {
     /**
      * コンテキスト.
      */
-    private Context mContext;
+    private final Context mContext;
 
     /**
      * オーバーレイのレイアウトを管理するクラス.
      */
-    private OverlayLayoutManager mOverlayLayoutManager;
+    private final OverlayLayoutManager mOverlayLayoutManager;
 
     /**
      * プレビューを表示する SurfaceView.
@@ -58,12 +66,12 @@ public class OverlayManager {
     /**
      * UI スレッドで動作するハンドラ.
      */
-    private Handler mHandler = new Handler(Looper.getMainLooper());
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
 
     /**
      * オーバーレイに表示するレコーダ.
      */
-    private HostMediaRecorder mRecorder;
+    private final HostMediaRecorder mRecorder;
 
     /**
      * 描画を行うクラス.
@@ -355,4 +363,106 @@ public class OverlayManager {
             }
         }
     };
+
+    /**
+     * オーバーレイのパーミッションを確認します.
+     *
+     * @param context コンテキスト
+     * @param handler ハンドラ
+     * @param callback 結果を通知するコールバック
+     */
+    public static void checkCapability(final Context context, final Handler handler, final Callback callback) {
+        final ResultReceiver cameraCapabilityCallback = new ResultReceiver(handler) {
+            @Override
+            protected void onReceiveResult(int resultCode, Bundle resultData) {
+                try {
+                    if (resultCode == Activity.RESULT_OK) {
+                        callback.onSuccess();
+                    } else {
+                        callback.onFail();
+                    }
+                } catch (Throwable throwable) {
+                    callback.onFail();
+                }
+            }
+        };
+        final ResultReceiver overlayDrawingCapabilityCallback = new ResultReceiver(handler) {
+            @Override
+            protected void onReceiveResult(int resultCode, Bundle resultData) {
+                try {
+                    if (resultCode == Activity.RESULT_OK) {
+                        checkCameraCapability(context, cameraCapabilityCallback);
+                    } else {
+                        callback.onFail();
+                    }
+                } catch (Throwable throwable) {
+                    callback.onFail();
+                }
+            }
+        };
+        checkOverlayDrawingCapability(context, handler, overlayDrawingCapabilityCallback);
+    }
+
+    /**
+     * オーバーレイ表示のパーミッションを確認します.
+     *
+     * @param context コンテキスト
+     * @param handler ハンドラー
+     * @param resultReceiver 確認を受けるレシーバ
+     */
+    @TargetApi(Build.VERSION_CODES.M)
+    private static void checkOverlayDrawingCapability(final Context context, final Handler handler, final ResultReceiver resultReceiver) {
+        if (Settings.canDrawOverlays(context)) {
+            resultReceiver.send(Activity.RESULT_OK, null);
+        } else {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + context.getPackageName()));
+            IntentHandlerActivity.startActivityForResult(context, intent, new ResultReceiver(handler) {
+                @Override
+                protected void onReceiveResult(int resultCode, Bundle resultData) {
+                    if (Settings.canDrawOverlays(context)) {
+                        resultReceiver.send(Activity.RESULT_OK, null);
+                    } else {
+                        resultReceiver.send(Activity.RESULT_CANCELED, null);
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * カメラのパーミッションを確認します.
+     *
+     * @param context コンテキスト
+     * @param resultReceiver 確認を受けるレシーバ
+     */
+    private static void checkCameraCapability(final Context context, final ResultReceiver resultReceiver) {
+        PermissionUtility.requestPermissions(context, new Handler(Looper.getMainLooper()), new String[]{Manifest.permission.CAMERA},
+                new PermissionUtility.PermissionRequestCallback() {
+                    @Override
+                    public void onSuccess() {
+                        resultReceiver.send(Activity.RESULT_OK, null);
+                    }
+
+                    @Override
+                    public void onFail(final String deniedPermission) {
+                        resultReceiver.send(Activity.RESULT_CANCELED, null);
+                    }
+                });
+    }
+
+    /**
+     * Overlayの表示結果を通知するコールバック.
+     */
+    public interface Callback {
+        /**
+         * 表示できたことを通知します.
+         */
+        void onSuccess();
+
+        /**
+         * 表示できなかったことを通知します.
+         */
+        void onFail();
+    }
 }

@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.host.connection;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -14,6 +15,10 @@ import android.net.NetworkInfo;
 import android.net.NetworkRequest;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.ResultReceiver;
 import android.telephony.CellSignalStrength;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
@@ -22,6 +27,7 @@ import android.telephony.TelephonyManager;
 
 import androidx.annotation.NonNull;
 
+import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity;
 import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
@@ -37,6 +43,8 @@ public class HostConnectionManager {
     private TelephonyManager mTelephonyManager;
     private final ConnectivityManager mConnectivityManager;
     private NetworkType mMobileNetworkType = NetworkType.TYPE_NONE;
+
+    private final Handler mCallbackHandler = new Handler(Looper.getMainLooper());
 
     private final WeakReferenceList<ConnectionEventListener> mConnectionEventListeners = new WeakReferenceList<>();
 
@@ -268,6 +276,9 @@ public class HostConnectionManager {
         }
     }
 
+    /**
+     * ネットワークの接続イベントを受信するための Receiver を登録します.
+     */
     private void registerNetworkCallback() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             IntentFilter filter = new IntentFilter();
@@ -285,6 +296,9 @@ public class HostConnectionManager {
         }
     }
 
+    /**
+     * ネットワークの接続イベントを受信するための Receiver を解除します.
+     */
     private void unregisterNetworkCallback() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             try {
@@ -303,10 +317,7 @@ public class HostConnectionManager {
      * @return Wi-Fi 接続が有効の場合はtrue、それ以外はfalse
      */
     public boolean isWifiEnabled() {
-        if (mWifiManager == null) {
-            return false;
-        }
-        return mWifiManager.isWifiEnabled();
+        return mWifiManager != null && mWifiManager.isWifiEnabled();
     }
 
     /**
@@ -314,11 +325,17 @@ public class HostConnectionManager {
      *
      * @param enabled WiFi接続状態
      */
-    public boolean setWifiEnabled(final boolean enabled) {
-        if (mWifiManager == null) {
-            return false;
+    public void setWifiEnabled(boolean enabled, Callback callback) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            callback.onFailure();
+        } else {
+            boolean result = mWifiManager != null && mWifiManager.setWifiEnabled(enabled);
+            if (result) {
+                callback.onSuccess();
+            } else {
+                callback.onFailure();
+            }
         }
-        return mWifiManager.setWifiEnabled(enabled);
     }
 
     /**
@@ -327,35 +344,49 @@ public class HostConnectionManager {
      * @return 有効の場合はtrue、それ以外はfalse
      */
     public boolean isBluetoothEnabled() {
-        if (mBluetoothAdapter == null) {
-            return false;
-        }
-        return mBluetoothAdapter.isEnabled();
+        return mBluetoothAdapter != null && mBluetoothAdapter.isEnabled();
     }
 
     /**
-     * Bluetooth接続の状態を設定する.
+     * Bluetooth 接続状態を設定する.
      *
-     * @param enabled Bluetooth接続状態
+     * @param enabled Bluetooth 接続状態
+     * @param callback Bluetooth 設定結果を通知するリスナー
      */
-    public boolean setBluetoothEnabled(final boolean enabled) {
+    public void setBluetoothEnabled(boolean enabled, Callback callback) {
         if (enabled) {
             if (!mBluetoothAdapter.isEnabled()) {
-                // Bluetooth の
                 Intent intent = new Intent();
                 intent.setClass(mPluginContext.getContext(), BluetoothManageActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                intent.putExtra(BluetoothManageActivity.EXTRA_CALLBACK, new ResultReceiver(mCallbackHandler) {
+                    @Override
+                    protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                        if (resultCode == Activity.RESULT_OK) {
+                            callback.onSuccess();
+                        } else {
+                            callback.onFailure();
+                        }
+                    }
+                });
+
+                if (getApp().isDeviceConnectClassOfTopActivity() || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                     mPluginContext.getContext().startActivity(intent);
                 } else {
                     NotificationUtils.createNotificationChannel(mPluginContext.getContext());
                     NotificationUtils.notify(mPluginContext.getContext(), NOTIFICATION_ID, 0, intent,
                             mPluginContext.getContext().getString(R.string.host_notification_connection_warnning));
                 }
+            } else {
+                callback.onSuccess();
             }
-            return true;
         } else {
-            return mBluetoothAdapter.disable();
+            boolean result = mBluetoothAdapter != null && mBluetoothAdapter.disable();
+            if (result) {
+                callback.onSuccess();
+            } else {
+                callback.onFailure();
+            }
         }
     }
 
@@ -368,6 +399,10 @@ public class HostConnectionManager {
         // Bluetoothが機能していないときはBluetooth LEも機能しない扱いに。
         return (mPluginContext.getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
                 && mBluetoothAdapter.isEnabled());
+    }
+
+    private HostDeviceApplication getApp() {
+        return (HostDeviceApplication) mPluginContext.getContext().getApplicationContext();
     }
 
     private void postOnChangeNetwork() {
@@ -386,6 +421,11 @@ public class HostConnectionManager {
         for (ConnectionEventListener l : mConnectionEventListeners) {
             l.onChangedBluetoothStatus();
         }
+    }
+
+    public interface Callback {
+        void onSuccess();
+        void onFailure();
     }
 
     public interface ConnectionEventListener {

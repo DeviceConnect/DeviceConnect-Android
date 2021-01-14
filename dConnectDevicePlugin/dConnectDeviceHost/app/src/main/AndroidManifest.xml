@@ -40,11 +40,8 @@
         android:required="false" />
 
     <application android:allowBackup="false">
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- 各プロファイルで表示画面 -->
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoPlayer"
@@ -80,24 +77,32 @@
             android:taskAffinity=".keyevent"
             android:theme="@style/AppCompatTheme" />
 
+        <!-- パーミッション要求画面 -->
+
         <activity
             android:name=".recorder.util.OverlayPermissionActivity"
             android:configChanges="orientation|screenSize"
             android:exported="false"
-            android:theme="@style/AppTheme.Translucent" />
+            android:theme="@style/AppCompatTheme.Translucent" />
 
         <activity
             android:name=".recorder.util.PermissionReceiverActivity"
             android:configChanges="orientation|screenSize"
             android:exported="false"
-            android:theme="@style/AppTheme.Translucent" />
+            android:theme="@style/AppCompatTheme.Translucent" />
+
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:theme="@style/AppCompatTheme.Translucent" />
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.GeolocationAlertDialogActivity"
             android:excludeFromRecents="true"
-            android:launchMode="singleInstance"
             android:exported="false"
-            android:theme="@style/AppTheme.Translucent" />
+            android:launchMode="singleInstance"
+            android:theme="@style/AppCompatTheme.Translucent" />
 
         <!-- プラグイン設定画面用の Activity -->
         <activity
@@ -109,8 +114,9 @@
         <!-- レコーダー設定画面用の Activity -->
         <activity
             android:name=".activity.recorder.settings.SettingsActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:exported="false"
-            android:label="@string/host_recorder_settings_title" />
+            android:theme="@style/AppCompatTheme" />
 
         <!-- カメラを操作するための Activity -->
         <activity
@@ -137,13 +143,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- パーミッション要求画面 -->
-        <activity
-            android:name="org.deviceconnect.android.activity.PermissionRequestActivity"
-            android:exported="false"
-            android:taskAffinity=".permission"
-            android:theme="@style/Theme.Dialog.Transparent" />
 
         <!-- プラグイン本体サービス -->
         <service

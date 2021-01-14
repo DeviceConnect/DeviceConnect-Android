@@ -7,15 +7,11 @@
 package org.deviceconnect.android.deviceplugin.host.activity;
 
 import android.bluetooth.BluetoothAdapter;
-import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.ResultReceiver;
 
-import androidx.fragment.app.FragmentActivity;
-
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.ConnectionProfile;
-import org.deviceconnect.message.DConnectMessage;
+import androidx.appcompat.app.AppCompatActivity;
 
 /**
  * Bluetooth 管理アクティビティ.
@@ -23,36 +19,45 @@ import org.deviceconnect.message.DConnectMessage;
  * <p>
  * Bluetooth接続をONにするダイアログを表示するシステムActivityを表示するActivityである。 HostDeviceProvider
  * から呼び出されるActivityのため、UIレイヤーから呼び出してはならない。
+ *
  * @author NTT DOCOMO, INC.
  */
-public class BluetoothManageActivity extends FragmentActivity {
-    /**
-     * リクエストパラメータ.
-     */
-    private Bundle mRequestParam;
+public class BluetoothManageActivity extends AppCompatActivity {
+    public static final String EXTRA_CALLBACK = "callback";
+
+    private static final int REQUEST_CODE = 32421;
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    public void onResume() {
+        super.onResume();
 
-        mRequestParam = new Bundle(getIntent().getExtras());
+        Intent intent = getIntent();
+        if (intent == null) {
+            finish();
+            return;
+        }
 
-        if (MessageUtils.getAttribute(getIntent()).equals(ConnectionProfile.ATTRIBUTE_BLUETOOTH)) {
-            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+        Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+        try {
+            startActivityForResult(enableIntent, REQUEST_CODE);
+        } catch (Exception e) {
+            // Bluetooth 有効化の Activity が見つからない場合には、
+            // BluetoothAdapter#enable() を使用して設定します。
+            int result = RESULT_CANCELED;
             try {
-                startActivityForResult(enableIntent, 0);
-            } catch(ActivityNotFoundException e) {
-                BluetoothAdapter.getDefaultAdapter().enable();
+                boolean r = BluetoothAdapter.getDefaultAdapter().enable();
+                if (r) {
+                    result = RESULT_OK;
+                }
+            } catch (Exception exception) {
+                // ignore.
             }
-        } else if (MessageUtils.getAttribute(getIntent()).equals(ConnectionProfile.ATTRIBUTE_BLE)) {
-            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            try {
-                startActivityForResult(enableIntent, 0);
-            } catch(ActivityNotFoundException e) {
-                BluetoothAdapter.getDefaultAdapter().enable();
+
+            Bundle response = new Bundle();
+            ResultReceiver callback = getIntent().getParcelableExtra(EXTRA_CALLBACK);
+            if (callback != null) {
+                callback.send(result, response);
             }
-        } else {
-            // finish if attribute is unknown
             finish();
         }
     }
@@ -61,14 +66,15 @@ public class BluetoothManageActivity extends FragmentActivity {
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        Bundle response = new Bundle();
-        if (resultCode == RESULT_OK) {
-            response.putInt(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-        } else {
-            response.putInt(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+        if (requestCode != REQUEST_CODE) {
+            return;
         }
-        sendBroadcast(MessageUtils.createResponseIntent(mRequestParam, response));
 
+        Bundle response = new Bundle();
+        ResultReceiver callback = getIntent().getParcelableExtra(EXTRA_CALLBACK);
+        if (callback != null) {
+            callback.send(resultCode, response);
+        }
         finish();
     }
 }

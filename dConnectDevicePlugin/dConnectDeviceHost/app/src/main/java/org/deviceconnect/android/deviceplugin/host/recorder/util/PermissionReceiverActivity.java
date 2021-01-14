@@ -18,13 +18,15 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 /**
  * スクリーンキャプチャの許可を受け取るための Activity.
  *
  * @author NTT DOCOMO, INC.
  */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-public class PermissionReceiverActivity extends Activity {
+public class PermissionReceiverActivity extends AppCompatActivity {
 
     static final String RESULT_DATA = "result_data";
 
@@ -35,7 +37,7 @@ public class PermissionReceiverActivity extends Activity {
     private MediaProjectionManager mManager;
 
     @Override
-    protected void onCreate(final Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         // ステータスバーを消す

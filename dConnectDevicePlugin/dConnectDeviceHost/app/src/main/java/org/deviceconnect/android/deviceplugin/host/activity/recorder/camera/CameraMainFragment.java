@@ -91,7 +91,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     private final HostConnectionManager.ConnectionEventListener mConnectionEventListener = new HostConnectionManager.ConnectionEventListener() {
         @Override
         public void onChangedNetwork() {
-            CameraMainFragment.this.onChangeMobileNetwork();
+            onChangeMobileNetwork();
         }
 
         @Override

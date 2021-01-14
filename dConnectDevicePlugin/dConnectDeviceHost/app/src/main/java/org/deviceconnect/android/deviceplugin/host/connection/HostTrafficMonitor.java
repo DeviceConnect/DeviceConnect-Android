@@ -8,12 +8,22 @@ import android.net.ConnectivityManager;
 import android.os.Build;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 @TargetApi(Build.VERSION_CODES.M)
 public class HostTrafficMonitor {
+    /**
+     * 通信量を計測するネットワークタイプのリスト.
+     *
+     * ここに定義されているネットワークの通信量を合算します。
+     */
+    private static final List<Integer> NETWORK_TYPE_LIST = Arrays.asList(
+            ConnectivityManager.TYPE_MOBILE,
+            ConnectivityManager.TYPE_WIFI);
+
     private NetworkStatsManager mNetworkStatsManager;
 
     private final List<Stats> mStatsList = new ArrayList<>();
@@ -34,6 +44,11 @@ public class HostTrafficMonitor {
         mInterval = interval;
     }
 
+    /**
+     * 通信量を通知するリスナーを設定します.
+     *
+     * @param listener リスナー
+     */
     public void setOnTrafficListener(OnTrafficListener listener) {
         mOnTrafficListener = listener;
     }
@@ -78,8 +93,8 @@ public class HostTrafficMonitor {
             Stats pre = mStatsList.get(mStatsList.size() - 1);
             rx = (stats.getTotalRxBytes() - pre.getTotalRxBytes());
             tx = (stats.getTotalTxBytes() - pre.getTotalTxBytes());
-            bitrateRx = rx / ((stats.getEndTime() - pre.getEndTime()) / 1000);
-            bitrateTx = tx / ((stats.getEndTime() - pre.getEndTime()) / 1000);
+            bitrateRx = 8 * rx / ((stats.getEndTime() - pre.getEndTime()) / 1000);
+            bitrateTx = 8 * tx / ((stats.getEndTime() - pre.getEndTime()) / 1000);
         }
 
         if (mOnTrafficListener != null) {
@@ -93,31 +108,42 @@ public class HostTrafficMonitor {
         }
     }
 
-    public Stats getNetworkStats(long startTime, long endTime) {
+    private Stats getNetworkStats(long startTime, long endTime) {
         Stats stats = new Stats();
 
         stats.mStartTime = startTime;
         stats.mEndTime = endTime;
-        try (NetworkStats result = mNetworkStatsManager.querySummary(
-                ConnectivityManager.TYPE_WIFI, "", startTime, endTime)) {
-            NetworkStats.Bucket bucket = new NetworkStats.Bucket();
-            while (result.hasNextBucket()) {
-                result.getNextBucket(bucket);
-                if (bucket.getUid() == android.os.Process.myUid()) {
-                    stats.mTotalTxPackets += bucket.getTxPackets();
-                    stats.mTotalRxPackets += bucket.getRxPackets();
-                    stats.mTotalTxBytes += bucket.getTxBytes();
-                    stats.mTotalRxBytes += bucket.getRxBytes();
+
+        for (int networkType : NETWORK_TYPE_LIST) {
+            try (NetworkStats result = mNetworkStatsManager.querySummary(
+                    networkType, "", startTime, endTime)) {
+                NetworkStats.Bucket bucket = new NetworkStats.Bucket();
+                while (result.hasNextBucket()) {
+                    result.getNextBucket(bucket);
+                    if (bucket.getUid() == android.os.Process.myUid()) {
+                        stats.mTotalTxPackets += bucket.getTxPackets();
+                        stats.mTotalRxPackets += bucket.getRxPackets();
+                        stats.mTotalTxBytes += bucket.getTxBytes();
+                        stats.mTotalRxBytes += bucket.getRxBytes();
+                    }
                 }
+            } catch (Exception e) {
+                // ignore.
             }
-        } catch (Exception e) {
-            // ignore.
         }
 
         return stats;
     }
 
     public interface OnTrafficListener {
+        /**
+         * 通信量を通知します.
+         *
+         * @param rx 受信バイト数
+         * @param bitrateRx 受信 BPS
+         * @param tx 送信バイト数
+         * @param bitrateTx 送信 BPS
+         */
         void onTraffic(long rx, long bitrateRx, long tx, long bitrateTx);
     }
 
@@ -176,7 +202,7 @@ public class HostTrafficMonitor {
         }
 
         /**
-         * 受信バイト数を取得します.
+         * 受信 bps を取得します.
          *
          * @return 受信バイト数
          */

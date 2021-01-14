@@ -9,7 +9,6 @@ import android.util.Log;
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoder;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
-import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpPacketize;
 import org.deviceconnect.android.libmedia.streaming.rtp.packet.H265Packetize;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;

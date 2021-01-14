@@ -137,8 +137,8 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
     private void stopDrawingThreadInternal() {
         if (mSurfaceDrawingThread != null) {
             mSurfaceDrawingThread.removeEGLSurfaceBase(mMediaCodecSurface);
-            mSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
             mSurfaceDrawingThread.stop(false);
+            mSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
             if (mInternalCreateSurfaceDrawingThread) {
                 mSurfaceDrawingThread = null;
             }

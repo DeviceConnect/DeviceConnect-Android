@@ -116,6 +116,10 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         }
 
         @Override
+        public void onPreviewError(HostMediaRecorder recorder, Exception e) {
+        }
+
+        @Override
         public void onBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster) {
             setBroadcastButton();
         }
@@ -123,6 +127,10 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         @Override
         public void onBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster) {
             setBroadcastButton();
+        }
+
+        @Override
+        public void onBroadcasterError(HostMediaRecorder recorder, Broadcaster broadcaster, Exception e) {
         }
 
         @Override

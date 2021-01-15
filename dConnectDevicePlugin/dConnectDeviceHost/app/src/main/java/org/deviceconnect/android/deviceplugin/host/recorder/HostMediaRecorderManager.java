@@ -158,6 +158,11 @@ public class HostMediaRecorderManager {
                 }
 
                 @Override
+                public void onPreviewError(Exception e) {
+                    postOnPreviewError(recorder, e);
+                }
+
+                @Override
                 public void onBroadcasterStarted(Broadcaster broadcaster) {
                     postOnBroadcasterStarted(recorder, broadcaster);
                 }
@@ -165,6 +170,11 @@ public class HostMediaRecorderManager {
                 @Override
                 public void onBroadcasterStopped(Broadcaster broadcaster) {
                     postOnBroadcasterStopped(recorder, broadcaster);
+                }
+
+                @Override
+                public void onBroadcasterError(Broadcaster broadcaster, Exception e) {
+                    postOnBroadcasterError(recorder, broadcaster, e);
                 }
 
                 @Override
@@ -479,6 +489,12 @@ public class HostMediaRecorderManager {
         }
     }
 
+    private void postOnPreviewError(HostMediaRecorder recorder, Exception e) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onPreviewError(recorder, e);
+        }
+    }
+
     private void postOnBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster) {
         for (OnEventListener l : mOnEventListeners) {
             l.onBroadcasterStarted(recorder, broadcaster);
@@ -488,6 +504,12 @@ public class HostMediaRecorderManager {
     private void postOnBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster) {
         for (OnEventListener l : mOnEventListeners) {
             l.onBroadcasterStopped(recorder, broadcaster);
+        }
+    }
+
+    private void postOnBroadcasterError(HostMediaRecorder recorder, Broadcaster broadcaster, Exception e) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onBroadcasterError(recorder, broadcaster, e);
         }
     }
 
@@ -530,8 +552,11 @@ public class HostMediaRecorderManager {
     public interface OnEventListener {
         void onPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers);
         void onPreviewStopped(HostMediaRecorder recorder);
+        void onPreviewError(HostMediaRecorder recorder, Exception e);
+
         void onBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster);
         void onBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster);
+        void onBroadcasterError(HostMediaRecorder recorder, Broadcaster broadcaster, Exception e);
 
         void onTakePhoto(HostMediaRecorder recorder, String uri, String filePath, String mimeType);
 

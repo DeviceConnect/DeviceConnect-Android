@@ -102,6 +102,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                 setRecorderPreviewMaxFrameRate(info, settings.getPreviewMaxFrameRate());
                                 info.putInt("previewBitRate", settings.getPreviewBitRate() / 1024);
                                 info.putInt("previewKeyFrameInterval", settings.getPreviewKeyFrameInterval());
+                                info.putString("previewEncoder", settings.getPreviewEncoder());
                             }
                         } else if (recorder.getMimeType().startsWith("audio/")) {
                             // 音声の設定
@@ -183,6 +184,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             Double previewMaxFrameRate = getPreviewMaxFrameRate(request);
             Integer previewBitRate = parseInteger(request, "previewBitRate");
             Integer previewKeyFrameInterval = parseInteger(request, "previewKeyFrameInterval");
+            String previewEncoder = request.getStringExtra("previewEncoder");
 
             HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
@@ -234,6 +236,15 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
             if (previewKeyFrameInterval != null) {
                 settings.setPreviewKeyFrameInterval(previewKeyFrameInterval);
+            }
+
+            if (previewEncoder != null) {
+                if (!settings.isSupportedEncoder(previewEncoder)) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "Unsupported preview encoder: " + previewEncoder);
+                    return;
+                }
+                settings.setPreviewEncoder(previewEncoder);
             }
 
             recorder.onConfigChange();
@@ -826,11 +837,19 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
 
         @Override
+        public void onPreviewError(HostMediaRecorder recorder, Exception e) {
+        }
+
+        @Override
         public void onBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster) {
         }
 
         @Override
         public void onBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster) {
+        }
+
+        @Override
+        public void onBroadcasterError(HostMediaRecorder recorder, Broadcaster broadcaster, Exception e) {
         }
 
         @Override

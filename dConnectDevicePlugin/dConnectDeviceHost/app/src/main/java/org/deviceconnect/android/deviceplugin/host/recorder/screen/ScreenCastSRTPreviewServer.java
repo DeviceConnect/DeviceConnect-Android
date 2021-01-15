@@ -164,7 +164,7 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
             HostMediaRecorder.Settings settings = recorder.getSettings();
 
             ScreenCastVideoEncoder videoEncoder;
-            if ("video/hevc".equals(settings.getPreviewMimeType())) {
+            if ("video/hevc".equals(settings.getPreviewEncoder())) {
                 videoEncoder = new ScreenCastVideoEncoder(recorder, "video/hevc");
             } else {
                 videoEncoder = new ScreenCastVideoEncoder(recorder);

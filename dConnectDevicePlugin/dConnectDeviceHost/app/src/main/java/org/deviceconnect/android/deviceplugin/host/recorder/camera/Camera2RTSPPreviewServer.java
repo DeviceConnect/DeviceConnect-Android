@@ -170,7 +170,7 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
             HostMediaRecorder.Settings settings = recorder.getSettings();
 
             VideoStream videoStream;
-            if ("video/hevc".equals(settings.getPreviewMimeType())) {
+            if ("video/hevc".equals(settings.getPreviewEncoder())) {
                 videoStream = new CameraH265VideoStream(mRecorder, 5006);
             } else {
                 videoStream = new CameraH264VideoStream(mRecorder, 5006);

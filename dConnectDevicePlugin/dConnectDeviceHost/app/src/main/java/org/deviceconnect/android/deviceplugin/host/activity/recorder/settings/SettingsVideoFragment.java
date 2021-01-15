@@ -105,7 +105,7 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
     private void setPreviewVideoEncoderPreference(HostMediaRecorder.Settings settings) {
         ListPreference pref = findPreference("preview_mime_type");
         if (pref != null) {
-            pref.setValue(settings.getPreviewMimeType());
+            pref.setValue(settings.getPreviewEncoder());
         }
     }
 

@@ -40,7 +40,7 @@
             app:entries="@array/video_encoder_names"
             app:entryValues="@array/video_encoder_values"
             app:iconSpaceReserved="false"
-            app:key="preview_mime_type"
+            app:key="preview_encoder"
             app:title="@string/host_recorder_settings_video_encode"
             app:useSimpleSummaryProvider="true" />
 

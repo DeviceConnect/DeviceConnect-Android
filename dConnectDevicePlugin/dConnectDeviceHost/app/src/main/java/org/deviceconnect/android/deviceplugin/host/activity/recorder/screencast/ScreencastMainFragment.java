@@ -32,6 +32,10 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
         }
 
         @Override
+        public void onPreviewError(HostMediaRecorder recorder, Exception e) {
+        }
+
+        @Override
         public void onBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster) {
             setBroadcastButton();
         }
@@ -39,6 +43,10 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
         @Override
         public void onBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster) {
             setBroadcastButton();
+        }
+
+        @Override
+        public void onBroadcasterError(HostMediaRecorder recorder, Broadcaster broadcaster, Exception e) {
         }
 
         @Override

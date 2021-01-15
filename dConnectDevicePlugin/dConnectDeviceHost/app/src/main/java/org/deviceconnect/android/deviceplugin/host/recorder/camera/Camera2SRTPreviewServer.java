@@ -164,7 +164,7 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
             HostMediaRecorder.Settings settings = recorder.getSettings();
 
             CameraVideoEncoder encoder;
-            if ("video/hevc".equals(settings.getPreviewMimeType())) {
+            if ("video/hevc".equals(settings.getPreviewEncoder())) {
                 encoder = new CameraVideoEncoder(mRecorder, "video/hevc");
             } else {
                 encoder = new CameraVideoEncoder(mRecorder);

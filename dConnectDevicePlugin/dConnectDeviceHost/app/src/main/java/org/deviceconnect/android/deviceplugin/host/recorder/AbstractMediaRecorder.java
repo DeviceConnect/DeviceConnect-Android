@@ -106,7 +106,7 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
                 @Override
                 public void onError(Broadcaster broadcaster, Exception e) {
-                    postOnError(e);
+                    postOnBroadcasterError(broadcaster, e);
                 }
             });
         }
@@ -126,7 +126,7 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
                 @Override
                 public void onError(PreviewServer server, Exception e) {
-                    postOnError(e);
+                    postOnPreviewError(e);
                 }
             });
         }
@@ -548,6 +548,12 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
         }
     }
 
+    protected void postOnPreviewError(Exception e) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onPreviewError(e);
+        }
+    }
+
     protected void postOnBroadcasterStarted(Broadcaster broadcaster) {
         if (mOnEventListener != null) {
             mOnEventListener.onBroadcasterStarted(broadcaster);
@@ -557,6 +563,12 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     protected void postOnBroadcasterStopped(Broadcaster broadcaster) {
         if (mOnEventListener != null) {
             mOnEventListener.onBroadcasterStopped(broadcaster);
+        }
+    }
+
+    protected void postOnBroadcasterError(Broadcaster broadcaster, Exception e) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onBroadcasterError(broadcaster, e);
         }
     }
 

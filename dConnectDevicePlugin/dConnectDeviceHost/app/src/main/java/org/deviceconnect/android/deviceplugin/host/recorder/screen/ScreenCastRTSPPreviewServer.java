@@ -154,7 +154,7 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
             HostMediaRecorder.Settings settings = recorder.getSettings();
 
             VideoStream videoStream;
-            if ("video/hevc".equals(settings.getPreviewMimeType())) {
+            if ("video/hevc".equals(settings.getPreviewEncoder())) {
                 videoStream = new ScreenCastH265VideoStream(recorder, 5006);
             } else {
                 videoStream = new ScreenCastH264VideoStream(recorder, 5006);

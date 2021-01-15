@@ -60,6 +60,10 @@ public class HostLiveStreamingProfile extends DConnectProfile {
         }
 
         @Override
+        public void onPreviewError(HostMediaRecorder recorder, Exception e) {
+        }
+
+        @Override
         public void onBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster) {
             postOnStart(broadcaster);
         }
@@ -67,6 +71,11 @@ public class HostLiveStreamingProfile extends DConnectProfile {
         @Override
         public void onBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster) {
             postOnStop(broadcaster);
+        }
+
+        @Override
+        public void onBroadcasterError(HostMediaRecorder recorder, Broadcaster broadcaster, Exception e) {
+            postOnError(broadcaster);
         }
 
         @Override

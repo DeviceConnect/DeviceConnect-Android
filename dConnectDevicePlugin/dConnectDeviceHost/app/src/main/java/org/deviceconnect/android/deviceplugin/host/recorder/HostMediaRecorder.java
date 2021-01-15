@@ -267,6 +267,13 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         void onPreviewStopped();
 
         /**
+         * プレビュー配信でエラーが発生したときに呼び出されます.
+         *
+         * @param e エラー原因の例外
+         */
+        void onPreviewError(Exception e);
+
+        /**
          * ブロードキャストを開始した時に呼び出されます.
          *
          * @param broadcaster 開始したブロードキャスト
@@ -279,6 +286,14 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param broadcaster 停止したブロードキャスト
          */
         void onBroadcasterStopped(Broadcaster broadcaster);
+
+        /**
+         * ブロードキャストでエラーが発生したときに呼び出されます.
+         *
+         * @param broadcaster エラーが発生した Broadcaster
+         * @param e エラー原因の例外
+         */
+        void onBroadcasterError(Broadcaster broadcaster, Exception e);
 
         /**
          * レコーダで発生したエラーを通知します.
@@ -297,6 +312,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         private List<Size> mSupportedPreviewSizes;
         private List<Range<Integer>> mSupportedFps;
         private List<Integer> mSupportedWhiteBalances;
+        private List<String> mSupportedEncoders;
 
         private final PropertyUtil mPref;
 
@@ -324,17 +340,20 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          *
          * @return プレビューの配信エンコードのマイムタイプ
          */
-        public String getPreviewMimeType() {
-            return mPref.getString("preview_mime_type", "video/avc");
+        public String getPreviewEncoder() {
+            return mPref.getString("preview_encoder", "video/avc");
         }
 
         /**
          * プレビューの配信エンコードのマイムタイプを設定します.
          *
-         * @param mimeType プレビューの配信エンコードのマイムタイプ
+         * @param encoder プレビューの配信エンコードのマイムタイプ
          */
-        public void setPreviewMimeType(String mimeType) {
-            mPref.put("preview_mime_type", mimeType);
+        public void setPreviewEncoder(String encoder) {
+            if (!isSupportedEncoder(encoder)) {
+                throw new IllegalArgumentException("encoder is not supported.");
+            }
+            mPref.put("preview_encoder", encoder);
         }
 
         /**
@@ -605,6 +624,14 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             mSupportedWhiteBalances = whiteBalances;
         }
 
+        public List<String> getSupportedMimeTypes() {
+            return mSupportedEncoders;
+        }
+
+        public void setSupportedMimeTypes(List<String> mimeTypes) {
+            mSupportedEncoders = mimeTypes;
+        }
+
         /**
          * 指定されたサイズがサポートされているか確認します.
          *
@@ -678,6 +705,15 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         public boolean isSupportedWhiteBalance(int whiteBalance) {
             for (Integer wb : mSupportedWhiteBalances) {
                 if (wb == whiteBalance) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public boolean isSupportedEncoder(String encoder) {
+            for (String m : mSupportedEncoders) {
+                if (m.equals(encoder)) {
                     return true;
                 }
             }

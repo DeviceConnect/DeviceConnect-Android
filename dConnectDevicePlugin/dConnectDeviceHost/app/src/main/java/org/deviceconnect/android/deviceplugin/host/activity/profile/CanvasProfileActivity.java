@@ -7,20 +7,17 @@
 
 package org.deviceconnect.android.deviceplugin.host.activity.profile;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,18 +27,21 @@ import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.activity.fragment.AlertDialogFragment;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawImageObject;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawUtils;
+import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 
 /**
  * Canvas Profile Activity.
  *
  * @author NTT DOCOMO, INC.
  */
-public class CanvasProfileActivity extends Activity  {
+public class CanvasProfileActivity extends AppCompatActivity{
 
     /**
      * Defined a parameter name.
@@ -138,9 +138,7 @@ public class CanvasProfileActivity extends Activity  {
         mCanvasView = findViewById(R.id.canvasProfileView);
 
         Button btn =  findViewById(R.id.buttonClose);
-        btn.setOnClickListener((v) -> {
-            finish();
-        });
+        btn.setOnClickListener((v) -> finish());
 
         Intent intent = null;
         if (savedInstanceState != null) {
@@ -164,11 +162,23 @@ public class CanvasProfileActivity extends Activity  {
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
 
         refreshImage(mIntent);
+
+        if (mDownloadThread != null) {
+            mDownloadThread.terminate();
+        }
+        mDownloadThread = new DownloadThread();
+        mDownloadThread.setName("Canvas-Download-Thread");
+        mDownloadThread.start();
     }
 
     @Override
     protected void onPause() {
         mForegroundFlag = false;
+
+        if (mDownloadThread != null) {
+            mDownloadThread.terminate();
+            mDownloadThread = null;
+        }
 
         dismissDownloadDialog();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
@@ -178,6 +188,8 @@ public class CanvasProfileActivity extends Activity  {
 
     @Override
     protected void onSaveInstanceState(final Bundle outState) {
+        super.onSaveInstanceState(outState);
+
         if (mIntent != null) {
             outState.putParcelable(PARAM_INTENT, mIntent);
         }
@@ -202,7 +214,7 @@ public class CanvasProfileActivity extends Activity  {
                 getString(R.string.host_canvas_error_title),
                 getString(R.string.host_canvas_error_not_found_message),
                 getString(R.string.host_ok));
-        oomDialog.show(getFragmentManager(), DIALOG_TYPE_NOT_FOUND);
+        oomDialog.show(getSupportFragmentManager(), DIALOG_TYPE_NOT_FOUND);
     }
 
     /**
@@ -213,7 +225,7 @@ public class CanvasProfileActivity extends Activity  {
                 getString(R.string.host_canvas_error_title),
                 getString(R.string.host_canvas_error_oom_message),
                 getString(R.string.host_ok));
-        oomDialog.show(getFragmentManager(), DIALOG_TYPE_OOM);
+        oomDialog.show(getSupportFragmentManager(), DIALOG_TYPE_OOM);
     }
 
     /**
@@ -253,15 +265,10 @@ public class CanvasProfileActivity extends Activity  {
         }
         mDownloadFlag = true;
 
-        AsyncTask<Void, ResourceResult, ResourceResult> task = new AsyncTask<Void, ResourceResult, ResourceResult>() {
-            @Override
-            protected void onPreExecute() {
-                showDownloadDialog();
-            }
+        runOnUiThread(this::showDownloadDialog);
 
-            @Override
-            protected ResourceResult doInBackground(final Void... params) {
-
+        mDownloadThread.add(new Runnable() {
+            private ResourceResult download() {
                 if (mBitmap != null) {
                     // 同じデータへのURIならば、すでに画像を読み込んでいるの表示する
                     if (mDrawImageObject != null && drawImageObject.getData().equals(mDrawImageObject.getData())) {
@@ -297,29 +304,30 @@ public class CanvasProfileActivity extends Activity  {
             }
 
             @Override
-            protected void onPostExecute(final ResourceResult result) {
+            public void run() {
+                ResourceResult result = download();
+
                 mDrawImageObject = drawImageObject;
 
-                dismissDownloadDialog();
-
-                if (mForegroundFlag) {
-                    switch (result) {
-                        case Success:
-                            showDrawObject(mDrawImageObject);
-                            break;
-                        case OutOfMemory:
-                            openOutOfMemory();
-                            break;
-                        case NotFoundResource:
-                            openNotFoundDrawImage();
-                            break;
+                runOnUiThread(() -> {
+                    dismissDownloadDialog();
+                    if (mForegroundFlag) {
+                        switch (result) {
+                            case Success:
+                                showDrawObject(mDrawImageObject);
+                                break;
+                            case OutOfMemory:
+                                openOutOfMemory();
+                                break;
+                            case NotFoundResource:
+                                openNotFoundDrawImage();
+                                break;
+                        }
                     }
-                }
-
-                mDownloadFlag = false;
+                    mDownloadFlag = false;
+                });
             }
-        };
-        task.execute();
+        });
     }
 
     /**
@@ -355,7 +363,7 @@ public class CanvasProfileActivity extends Activity  {
     }
 
     /**
-     * Show a dialog of dwnload image.
+     * Show a dialog of download image.
      */
     public static class StartingDialogFragment extends DialogFragment {
         @Override
@@ -381,108 +389,28 @@ public class CanvasProfileActivity extends Activity  {
         }
     }
 
-    /**
-     * エラーダイアログ.
-     */
-    public static class AlertDialogFragment extends DialogFragment {
-        /**
-         * タグのキーを定義します.
-         */
-        private static final String KEY_TAG = "tag";
+    private DownloadThread mDownloadThread;
 
-        /**
-         * タイトルのキーを定義します.
-         */
-        private static final String KEY_TITLE = "title";
+    private static class DownloadThread extends QueueThread<Runnable> {
+        private void terminate() {
+            interrupt();
 
-        /**
-         * メッセージのキーを定義します.
-         */
-        private static final String KEY_MESSAGE = "message";
-
-        /**
-         * Positiveボタンのキーを定義します.
-         */
-        private static final String KEY_POSITIVE = "yes";
-
-        /**
-         * Negativeボタンのキーを定義します.
-         */
-        private static final String KEY_NEGATIVE = "no";
-
-        /**
-         * ボタン無しでAlertDialogを作成します.
-         * @param tag タグ
-         * @param title タイトル
-         * @param message メッセージ
-         * @return AlertDialogFragmentのインスタンス
-         */
-        public static AlertDialogFragment create(final String tag, final String title, final String message) {
-            return create(tag, title, message, null, null);
-        }
-
-        /**
-         * PositiveボタンのみでAlertDialogを作成します.
-         * @param tag タグ
-         * @param title タイトル
-         * @param message メッセージ
-         * @param positive positiveボタン名
-         * @return AlertDialogFragmentのインスタンス
-         */
-        public static AlertDialogFragment create(final String tag, final String title, final String message, final String positive) {
-            return create(tag, title, message, positive, null);
-        }
-
-        /**
-         * ボタン有りでAlertDialogを作成します.
-         * @param tag タグ
-         * @param title タイトル
-         * @param message メッセージ
-         * @param positive positiveボタン名
-         * @param negative negativeボタン名
-         * @return AlertDialogFragmentのインスタンス
-         */
-        public static AlertDialogFragment create(final String tag, final String title, final String message,
-                                                 final String positive, final String negative) {
-            Bundle args = new Bundle();
-            args.putString(KEY_TAG, tag);
-            args.putString(KEY_TITLE, title);
-            args.putString(KEY_MESSAGE, message);
-            if (positive != null) {
-                args.putString(KEY_POSITIVE, positive);
+            try {
+                join(300);
+            } catch (InterruptedException e) {
+                // ignore.
             }
-            if (negative != null) {
-                args.putString(KEY_NEGATIVE, negative);
-            }
-
-            AlertDialogFragment dialog = new AlertDialogFragment();
-            dialog.setArguments(args);
-            return dialog;
         }
 
         @Override
-        public Dialog onCreateDialog(final Bundle savedInstanceState) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setTitle(getArguments().getString(KEY_TITLE));
-            builder.setMessage(getArguments().getString(KEY_MESSAGE));
-            if (getArguments().getString(KEY_POSITIVE) != null) {
-                builder.setPositiveButton(getArguments().getString(KEY_POSITIVE),
-                        (dialog, which) -> {
-                            Activity activity = getActivity();
-                            if (activity != null) {
-                                activity.finish();
-                            }
-                        });
+        public void run() {
+            while (!isInterrupted()) {
+                try {
+                    get().run();
+                } catch (InterruptedException e) {
+                    return;
+                }
             }
-            if (getArguments().getString(KEY_NEGATIVE) != null) {
-                builder.setNegativeButton(getArguments().getString(KEY_NEGATIVE), null);
-            }
-            return builder.create();
-        }
-
-        @Override
-        public void onCancel(final DialogInterface dialog) {
-
         }
     }
 }

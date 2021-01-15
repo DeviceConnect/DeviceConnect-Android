@@ -217,8 +217,8 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     private void stopDrawingThreadInternal() {
         if (mSurfaceDrawingThread != null) {
             mSurfaceDrawingThread.removeEGLSurfaceBase(TAG_SURFACE);
-            mSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
             mSurfaceDrawingThread.stop(false);
+            mSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
             if (mInternalCreateSurfaceDrawingThread) {
                 mSurfaceDrawingThread = null;
             }

@@ -80,9 +80,9 @@ public class SurfaceMP4Recorder extends MP4Recorder {
     @Override
     public void tearDownMediaRecorder() {
         if (mEGLSurfaceDrawingThread != null) {
-            mEGLSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
             mEGLSurfaceDrawingThread.removeEGLSurfaceBase(mSurface);
             mEGLSurfaceDrawingThread.stop(false);
+            mEGLSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
         }
     }
 }

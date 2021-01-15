@@ -203,8 +203,8 @@ public class OverlayManager {
 
         if (mEGLSurfaceDrawingThread != null) {
             mEGLSurfaceDrawingThread.removeEGLSurfaceBase(mSurface);
-            mEGLSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
             mEGLSurfaceDrawingThread.stop(false);
+            mEGLSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
             mEGLSurfaceDrawingThread = null;
         }
         mOverlayLayoutManager.removeAllViews();

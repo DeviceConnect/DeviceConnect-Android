@@ -2,9 +2,6 @@ package org.deviceconnect.android.deviceplugin.host.activity.recorder.screencast
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.widget.Toast;
 
 import androidx.preference.Preference;
 import androidx.preference.SwitchPreferenceCompat;
@@ -81,14 +78,11 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
 
     @Override
     public void onBindService() {
-        if (mMediaRecorder != null) {
-            mMediaRecorder.onConfigChange();
-        } else {
+        if (mMediaRecorder == null) {
             mMediaRecorderManager = getHostDevicePlugin().getHostMediaRecorderManager();
             mMediaRecorderManager.addOnEventListener(mOnEventListener);
-            mMediaRecorder = getMediaRecorder();
+            mMediaRecorder = getScreenCastRecorder();
             if (mMediaRecorder == null) {
-                // TODO 画面キャプチャに対応していない
                 return;
             }
             refreshUI();
@@ -131,7 +125,14 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
         return super.onPreferenceTreeClick(preference);
     }
 
-    private HostMediaRecorder getMediaRecorder() {
+    /**
+     * ScreenCastRecorder のインスタンスを取得します.
+     *
+     * スクリーンキャストに対応していない場合には、null を返却します。
+     *
+     * @return ScreenCastRecorder のインスタンス
+     */
+    private HostMediaRecorder getScreenCastRecorder() {
         HostMediaRecorderManager manager = getHostDevicePlugin().getHostMediaRecorderManager();
         HostMediaRecorder[] recorders = manager.getRecorders();
         for (HostMediaRecorder recorder : recorders) {
@@ -141,7 +142,6 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
         }
         return null;
     }
-
 
     /**
      * レコーダの設定画面へ遷移します.
@@ -153,6 +153,11 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
         }
     }
 
+    /**
+     * スクリーンキャストのパーミッションを取得します.
+     *
+     * @param run パーミッション取得時の処理を行う Runnable
+     */
     private void requestPermission(Runnable run) {
         mMediaRecorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
             @Override
@@ -172,12 +177,6 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
         setBroadcastButton();
         setPreviewButton();
         setRecordingButton();
-    }
-
-    private final Handler mUIHandler = new Handler(Looper.getMainLooper());
-
-    private void runOnUiThread(Runnable run) {
-        mUIHandler.post(run);
     }
 
     private void setPreviewButton() {
@@ -246,14 +245,5 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
 
     private void stopRecording() {
         mMediaRecorder.stopRecording(null);
-    }
-
-    /**
-     * トーストを表示します.
-     *
-     * @param resId リソースID
-     */
-    public void showToast(int resId) {
-        runOnUiThread(() -> Toast.makeText(getContext(), resId, Toast.LENGTH_SHORT).show());
     }
 }

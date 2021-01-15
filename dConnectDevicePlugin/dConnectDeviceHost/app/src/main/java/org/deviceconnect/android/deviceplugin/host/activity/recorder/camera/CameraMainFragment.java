@@ -61,6 +61,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     private boolean mAdjustViewFlag = false;
     private boolean mMuted = false;
     private int mSelectedMode = 0;
+    private String mPhotoUri;
 
     private final EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
         @Override
@@ -187,7 +188,8 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        FragmentHostCameraMainBinding binding = DataBindingUtil.inflate(inflater, R.layout.fragment_host_camera_main, container, false);
+        FragmentHostCameraMainBinding binding = DataBindingUtil.inflate(inflater,
+                R.layout.fragment_host_camera_main, container, false);
         binding.setViewModel(mViewModel);
         binding.setPresenter(new Presenter());
 
@@ -236,32 +238,14 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             public void onTabSelected(TabLayout.Tab tab) {
                 mSelectedMode = tab.getPosition();
 
-                Animation anime = AnimationUtils.loadAnimation(getContext(), R.anim.scale_up);
                 View v = view.findViewById(idList[mSelectedMode]);
-                v.setVisibility(View.VISIBLE);
-                v.startAnimation(anime);
+                new ButtonFadeInTransition(v).start();
             }
 
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
                 View v = view.findViewById(idList[tab.getPosition()]);
-
-                Animation anime = AnimationUtils.loadAnimation(getContext(), R.anim.scale_down);
-                anime.setAnimationListener(new Animation.AnimationListener() {
-                    @Override
-                    public void onAnimationStart(Animation animation) {
-                    }
-
-                    @Override
-                    public void onAnimationEnd(Animation animation) {
-                        v.setVisibility(View.INVISIBLE);
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animation animation) {
-                    }
-                });
-                v.startAnimation(anime);
+                new ButtonFadeOutTransition(v).start();
             }
 
             @Override
@@ -314,7 +298,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     @Override
     public void onBindService() {
         if (mMediaRecorder != null) {
-            mMediaRecorder.onConfigChange();
             startEGLSurfaceDrawingThread();
         } else {
             mMediaRecorderManager = getHostDevicePlugin().getHostMediaRecorderManager();
@@ -324,21 +307,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             mHostConnectionManager.addConnectionEventListener(mConnectionEventListener);
 
             HostMediaRecorder[] recorders = mMediaRecorderManager.getRecorders();
-
-            mIndex = -1;
-            for (int i = 0; i < recorders.length; i++) {
-                if (recorders[i] instanceof Camera2Recorder) {
-                    Camera2Recorder camera2Recorder = (Camera2Recorder) recorders[i];
-                    if (mIndex == -1) {
-                        mIndex = i;
-                    }
-                    if (camera2Recorder.getCameraWrapper().isPreview()) {
-                        mIndex = i;
-                        break;
-                    }
-                }
-            }
-
+            mIndex = getUsedCamera(recorders);
             if (mIndex == -1) {
                 return;
             } else {
@@ -347,7 +316,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         }
 
         startTimer();
-
         onChangeMobileNetwork();
     }
 
@@ -360,6 +328,32 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             mMediaRecorderManager.removeOnEventListener(mOnEventListener);
         }
         stopEGLSurfaceDrawingThread();
+    }
+
+    /**
+     * 既に使用されているカメラがあれば、そのレコーダを洗濯します.
+     *
+     * 複数のカメラを同時に使用できない端末があるために、使用されているカメラ
+     * を画面に表示するようにします。
+     *
+     * @param recorders レコーダ一覧
+     * @return 使用されているレコーダのインデックス
+     */
+    private int getUsedCamera(HostMediaRecorder[] recorders) {
+        int index = -1;
+        for (int i = 0; i < recorders.length; i++) {
+            if (recorders[i] instanceof Camera2Recorder) {
+                Camera2Recorder camera2Recorder = (Camera2Recorder) recorders[i];
+                if (index == -1) {
+                    index = i;
+                }
+                if (camera2Recorder.getCameraWrapper().isPreview()) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        return index;
     }
 
     /**
@@ -456,8 +450,8 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     private void stopEGLSurfaceDrawingThread() {
         if (mEGLSurfaceDrawingThread != null) {
             mEGLSurfaceDrawingThread.removeEGLSurfaceBase(mSurface);
-            mEGLSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
             mEGLSurfaceDrawingThread.stop(false);
+            mEGLSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
             mEGLSurfaceDrawingThread = null;
         }
 
@@ -478,28 +472,34 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         adjustCameraSurfaceView();
     }
 
-    private String mPhotoUri;
-
+    /**
+     * 写真を他のアプリで表示します.
+     */
     private void showPhoto() {
         if (mPhotoUri != null) {
             Intent intent = new Intent(Intent.ACTION_VIEW);
             String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension("jpeg");
             intent.setDataAndType(Uri.parse(mPhotoUri), mimeType);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
+            try {
+                startActivity(intent);
+            } catch (Exception e) {
+                // ignore.
+            }
         }
     }
 
     private void setPhoto(String uri) {
         new Thread(() -> {
-            InputStream stream;
-            try {
-                Context context = getContext();
-                if (context == null) {
+            Context context = getContext();
+            if (context == null) {
+                return;
+            }
+            try (InputStream stream = context.getContentResolver().openInputStream(Uri.parse(uri))) {
+                Bitmap bitmap = BitmapFactory.decodeStream(new BufferedInputStream(stream));
+                if (bitmap == null) {
                     return;
                 }
-                stream = context.getContentResolver().openInputStream(Uri.parse(uri));
-                Bitmap bitmap = BitmapFactory.decodeStream(new BufferedInputStream(stream));
                 runOnUiThread(() -> {
                     View root = getView();
                     if (root != null) {
@@ -512,7 +512,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
                         }
                     }
                 });
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 // ignore.
             }
         }).start();
@@ -562,7 +562,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
                 }
             });
         }
-
     }
 
     private void toggleBroadcaster() {
@@ -698,6 +697,47 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             mViewModel.setToggleRecordingResId(R.drawable.ic_baseline_stop_24);
         } else {
             mViewModel.setToggleRecordingResId(R.drawable.ic_baseline_videocam_48);
+        }
+    }
+
+    private class ButtonFadeInTransition {
+        private final View mView;
+
+        ButtonFadeInTransition(View view) {
+            mView = view;
+        }
+
+        private void start() {
+            Animation anim = AnimationUtils.loadAnimation(getContext(), R.anim.scale_up);
+            mView.setVisibility(View.VISIBLE);
+            mView.startAnimation(anim);
+        }
+    }
+
+    private class ButtonFadeOutTransition {
+        private final View mView;
+
+        ButtonFadeOutTransition(View view) {
+            mView = view;
+        }
+
+        private void start() {
+            Animation anim = AnimationUtils.loadAnimation(getContext(), R.anim.scale_down);
+            anim.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
+                }
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    mView.setVisibility(View.INVISIBLE);
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+                }
+            });
+            mView.startAnimation(anim);
         }
     }
 }

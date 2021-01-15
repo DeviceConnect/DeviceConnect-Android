@@ -2,10 +2,13 @@ package org.deviceconnect.android.deviceplugin.host.activity.fragment;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.preference.EditTextPreference;
@@ -16,6 +19,8 @@ import org.deviceconnect.android.deviceplugin.host.activity.HostDevicePluginBind
 import org.deviceconnect.android.deviceplugin.host.activity.recorder.camera.CameraActivity;
 
 public abstract class HostDevicePluginBindPreferenceFragment extends PreferenceFragmentCompat implements CameraActivity.OnHostDevicePluginListener {
+
+    private final Handler mUIHandler = new Handler(Looper.getMainLooper());
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -82,5 +87,18 @@ public abstract class HostDevicePluginBindPreferenceFragment extends PreferenceF
             editTextPreference.setOnBindEditTextListener((editText) ->
                     editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED));
         }
+    }
+
+    /**
+     * トーストを表示します.
+     *
+     * @param resId リソースID
+     */
+    public void showToast(int resId) {
+        runOnUiThread(() -> Toast.makeText(getContext(), resId, Toast.LENGTH_SHORT).show());
+    }
+
+    public void runOnUiThread(Runnable run) {
+        mUIHandler.post(run);
     }
 }

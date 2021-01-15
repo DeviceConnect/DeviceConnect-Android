@@ -112,6 +112,24 @@ public class RtspServer {
     }
 
     /**
+     * データ送信量を取得します.
+     *
+     * @return データ送信量
+     */
+    public long getSentSize() {
+        return mRtspSession != null ? mRtspSession.getSentSize() : 0;
+    }
+
+    /**
+     * データ送信の BPS を取得します.
+     *
+     * @return データ送信の BPS
+     */
+    public long getBPS() {
+        return mRtspSession != null ? mRtspSession.getBPS() : 0;
+    }
+
+    /**
      * RTSP サーバを開始します.
      *
      * @throws IOException サーバの開始に失敗した場合に発生
@@ -139,6 +157,17 @@ public class RtspServer {
         if (mServerThread != null) {
             mServerThread.terminate();
             mServerThread = null;
+        }
+    }
+
+    /**
+     * RTSP サーバに接続しているクライアント数を取得します.
+     *
+     * @return RTSP サーバに接続しているクライアント数
+     */
+    public int getConnectionCount() {
+        synchronized (mClientSocketThreads) {
+            return mClientSocketThreads.size();
         }
     }
 
@@ -417,9 +446,7 @@ public class RtspServer {
                         }
                     }
 
-                    if (response != null) {
-                        response.send(mOutput);
-                    }
+                    response.send(mOutput);
                 }
             } catch (Exception e) {
                 if (DEBUG) {

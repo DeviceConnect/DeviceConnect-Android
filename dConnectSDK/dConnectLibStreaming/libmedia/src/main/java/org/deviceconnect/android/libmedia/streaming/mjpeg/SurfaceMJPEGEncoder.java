@@ -5,6 +5,7 @@ import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
+import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -50,6 +51,16 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
      * バッファを反転させるために一時的に値を格納するバッファ.
      */
     private byte[] mTmp2;
+
+    /**
+     * true の場合は JPEG に変換中。
+     */
+    private boolean mEncodeFlag;
+
+    /**
+     * JPEG にエンコードするためのスレッド.
+     */
+    private EncoderThread mEncoderThread;
 
     /**
      * EGLSurfaceDrawingThread のイベントを受け取るリスナー.
@@ -201,6 +212,14 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
         int w = isSwappedDimensions() ? quality.getHeight() : quality.getWidth();
         int h = isSwappedDimensions() ? quality.getWidth() : quality.getHeight();
 
+        if (mEncoderThread != null) {
+            mEncoderThread.terminate();
+        }
+        mEncoderThread = new EncoderThread();
+        mEncoderThread.setName("JPEG-ENCODE");
+        mEncoderThread.start();
+        mEncodeFlag = false;
+
         if (mInternalCreateSurfaceDrawingThread) {
             mSurfaceDrawingThread = createEGLSurfaceDrawingThread();
         }
@@ -224,6 +243,11 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
             }
         }
 
+        if (mEncoderThread != null) {
+            mEncoderThread.terminate();
+            mEncoderThread = null;
+        }
+
         mBuffer = null;
         mTmp1 = null;
         mTmp2 = null;
@@ -237,6 +261,11 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
      * @param height 映像の縦幅
      */
     private void drainEncoder(EGLSurfaceBase surface, int width, int height) {
+        if (mEncodeFlag || mEncoderThread == null) {
+            return;
+        }
+        mEncodeFlag = true;
+
         // OpenGLES からピクセルデータを取得するバッファを作成
         if (mBuffer == null || width != mBitmap.getWidth() || height != mBitmap.getHeight()) {
             mBuffer = ByteBuffer.allocateDirect(width * height * 4);
@@ -248,24 +277,55 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
 
         surface.readPixelBuffer(mBuffer, width, height);
 
-        // 上下逆なので、上下反転
-        int h = height / 2;
-        for (int y = 0; y < h; y++) {
-            mBuffer.position(y * width * 4);
-            mBuffer.get(mTmp1, 0, mTmp1.length);
-            mBuffer.position((height - 1 - y) * width * 4);
-            mBuffer.get(mTmp2, 0, mTmp2.length);
-            mBuffer.position((height - 1 - y) * width * 4);
-            mBuffer.put(mTmp1);
-            mBuffer.position(y * width * 4);
-            mBuffer.put(mTmp2);
+        // JPEG へのエンコードは処理が重いので、別スレッドで行うようにしています。
+        mEncoderThread.add(() -> {
+            // 上下逆なので、上下反転
+            int h = height / 2;
+            for (int y = 0; y < h; y++) {
+                mBuffer.position(y * width * 4);
+                mBuffer.get(mTmp1, 0, mTmp1.length);
+                mBuffer.position((height - 1 - y) * width * 4);
+                mBuffer.get(mTmp2, 0, mTmp2.length);
+                mBuffer.position((height - 1 - y) * width * 4);
+                mBuffer.put(mTmp1);
+                mBuffer.position(y * width * 4);
+                mBuffer.put(mTmp2);
+            }
+            mBuffer.position(0);
+
+            mJPEGOutputStream.reset();
+            mBitmap.copyPixelsFromBuffer(mBuffer);
+            mBitmap.compress(Bitmap.CompressFormat.JPEG, getMJPEGQuality().getQuality(), mJPEGOutputStream);
+
+            postJPEG(mJPEGOutputStream.toByteArray());
+
+            mEncodeFlag = false;
+        });
+    }
+
+    /**
+     * JPEG にエンコードするためのスレッド.
+     */
+    private static class EncoderThread extends QueueThread<Runnable> {
+        private void terminate() {
+            interrupt();
+
+            try {
+                join(300);
+            } catch (InterruptedException e) {
+                // ignore.
+            }
         }
-        mBuffer.position(0);
 
-        mJPEGOutputStream.reset();
-        mBitmap.copyPixelsFromBuffer(mBuffer);
-        mBitmap.compress(Bitmap.CompressFormat.JPEG, getMJPEGQuality().getQuality(), mJPEGOutputStream);
-
-        postJPEG(mJPEGOutputStream.toByteArray());
+        @Override
+        public void run() {
+            try {
+                while (!isInterrupted()) {
+                    get().run();
+                }
+            } catch (Throwable e) {
+                // ignore.
+            }
+        }
     }
 }

@@ -35,10 +35,10 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
     /**
      * カメラを操作するレコーダ.
      */
-    private Camera2Recorder mRecorder;
+    private final Camera2Recorder mRecorder;
 
     /**
-     * RTSP 配信サーバ.
+     * RTSP 配信サーバ.d
      */
     private RtspServer mRtspServer;
 
@@ -97,6 +97,11 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
             }
         }
         return false;
+    }
+
+    @Override
+    public long getBPS() {
+        return mRtspServer != null ? mRtspServer.getBPS() : 0;
     }
 
     @Override

@@ -26,17 +26,17 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
     /**
      * プレビュー配信を行うレコーダ.
      */
-    private Camera2Recorder mRecorder;
+    private final Camera2Recorder mRecorder;
+
+    /**
+     * SRTの設定.
+     */
+    private final SRTSettings mSettings;
 
     /**
      * SRT サーバ.
      */
     private SRTServer mSRTServer;
-
-    /**
-     * SRTの設定.
-     */
-    private SRTSettings mSettings;
 
     Camera2SRTPreviewServer(final Context context, final Camera2Recorder recorder, final int port) {
         super(context, recorder);
@@ -95,6 +95,12 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
             }
         }
         return false;
+    }
+
+    @Override
+    public long getBPS() {
+        // TODO
+        return 0;
     }
 
     @Override

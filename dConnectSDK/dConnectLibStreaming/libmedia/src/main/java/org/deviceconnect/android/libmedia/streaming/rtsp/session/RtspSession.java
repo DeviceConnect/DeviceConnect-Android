@@ -48,12 +48,12 @@ public class RtspSession {
     /**
      * ストリーミングを行うためのクラス.
      */
-    private MediaStreamer mMediaStreamer;
+    private final MediaStreamer mMediaStreamer;
 
     /**
      * MediaStream を格納するための Map.
      */
-    private Map<String, MediaStream> mStreamMap = new LinkedHashMap<>();
+    private final Map<String, MediaStream> mStreamMap = new LinkedHashMap<>();
 
     /**
      * イベントを配信するリスナー.
@@ -98,6 +98,32 @@ public class RtspSession {
      */
     public void stop() {
         mMediaStreamer.stop();
+    }
+
+    /**
+     * データ送信量を取得します.
+     *
+     * @return データ送信量
+     */
+    public long getSentSize() {
+        long sentSize = 0;
+        for (MediaStream mediaStream : mStreamMap.values()) {
+            sentSize += mediaStream.getSentSize();
+        }
+        return sentSize;
+    }
+
+    /**
+     * データ送信の BPS を取得します.
+     *
+     * @return データ送信の BPS
+     */
+    public long getBPS() {
+        long bps = 0;
+        for (MediaStream mediaStream : mStreamMap.values()) {
+            bps += mediaStream.getBPS();
+        }
+        return bps;
     }
 
     /**

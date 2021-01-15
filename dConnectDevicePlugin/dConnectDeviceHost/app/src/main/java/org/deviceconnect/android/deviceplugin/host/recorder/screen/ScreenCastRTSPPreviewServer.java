@@ -94,6 +94,11 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
     }
 
     @Override
+    public long getBPS() {
+        return mRtspServer != null ? mRtspServer.getBPS() : 0;
+    }
+
+    @Override
     public void onConfigChange() {
         setEncoderQuality();
 

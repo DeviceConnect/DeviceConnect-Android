@@ -28,8 +28,8 @@ public class SRTSettings {
         mSRTOptionItems.add(new SRTOptionItem(SRT.SRTO_PACKETFILTER, String.class, R.string.pref_key_settings_srt_packetfilter));
     }
 
-    private PropertyUtil mPref;
-    private Context mContext;
+    private final PropertyUtil mPref;
+    private final Context mContext;
 
     public SRTSettings(Context context) {
         mContext = context;

@@ -38,4 +38,9 @@ public class AudioPreviewServer extends AbstractPreviewServer {
     public boolean requestSyncFrame() {
         return false;
     }
+
+    @Override
+    public long getBPS() {
+        return 0;
+    }
 }

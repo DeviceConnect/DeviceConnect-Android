@@ -50,6 +50,7 @@ public class MJPEGServer {
      * MJPEG サーバのイベントを通知するコールバック.
      */
     private Callback mCallback;
+
     /**
      * SSL Context.
      */
@@ -207,6 +208,24 @@ public class MJPEGServer {
         if (DEBUG) {
             Log.i(TAG, "MixedReplaceMediaServer is stopped.");
         }
+    }
+
+    /**
+     * 送信したデータサイズを取得します.
+     *
+     * @return 送信したデータサイズ
+     */
+    public long getSentSize() {
+        return mMixedReplaceMediaServer != null ? mMixedReplaceMediaServer.getSentSize() : 0;
+    }
+
+    /**
+     * 送信したデータの BPS (bits per second) を取得します.
+     *
+     * @return BPS (bits per second)
+     */
+    public long getBPS() {
+        return mMixedReplaceMediaServer != null ? mMixedReplaceMediaServer.getBPS() : 0;
     }
 
     private synchronized void startMJPEGEncoder() {

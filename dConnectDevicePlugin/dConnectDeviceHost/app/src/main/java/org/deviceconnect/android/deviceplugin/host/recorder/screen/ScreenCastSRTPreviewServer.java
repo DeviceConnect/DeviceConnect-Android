@@ -105,6 +105,12 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
     }
 
     @Override
+    public long getBPS() {
+        // TODO
+        return 0;
+    }
+
+    @Override
     public void onConfigChange() {
         setEncoderQuality();
 

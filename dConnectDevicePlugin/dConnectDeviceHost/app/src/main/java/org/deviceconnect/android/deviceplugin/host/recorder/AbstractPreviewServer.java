@@ -75,7 +75,8 @@ public abstract class AbstractPreviewServer implements PreviewServer {
         mUseSSL = useSSL;
         mMute = true;
     }
-    // PreviewServer
+
+    // Implements PreviewServer methods.
 
     @Override
     public int getPort() {

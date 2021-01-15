@@ -99,6 +99,11 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
     }
 
     @Override
+    public long getBPS() {
+        return mMJPEGServer != null ? mMJPEGServer.getBPS() : 0;
+    }
+
+    @Override
     public void onConfigChange() {
         setEncoderQuality();
         restartCamera();

@@ -206,6 +206,13 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
     void setOnEventListener(OnEventListener listener);
 
     /**
+     * レコーダで映像を配信したデータの BPS を取得します.
+     *
+     * @return レコーダで映像を配信したデータの BPS
+     */
+    long getBPS();
+
+    /**
      * パーミッション結果通知用コールバック.
      */
     interface PermissionCallback {

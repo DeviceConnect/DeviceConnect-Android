@@ -89,6 +89,11 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     }
 
     @Override
+    public long getBPS() {
+        return mMJPEGServer != null ? mMJPEGServer.getBPS() : 0;
+    }
+
+    @Override
     public void onConfigChange() {
         setEncoderQuality();
 

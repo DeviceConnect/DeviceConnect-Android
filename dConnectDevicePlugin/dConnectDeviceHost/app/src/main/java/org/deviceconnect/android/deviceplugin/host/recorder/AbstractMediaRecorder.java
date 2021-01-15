@@ -251,6 +251,21 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
         mOnEventListener = listener;
     }
 
+    @Override
+    public long getBPS() {
+        PreviewServerProvider previewProvider = getServerProvider();
+        if (previewProvider == null) {
+            return 0;
+        }
+
+        long bps = 0;
+        List<PreviewServer> servers = previewProvider.getServers();
+        for (PreviewServer previewServer : servers) {
+            bps += previewServer.getBPS();
+        }
+        return bps;
+    }
+
     // HostDeviceStreamRecorder
 
     @Override

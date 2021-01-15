@@ -97,6 +97,13 @@ public interface PreviewServer {
     SSLContext getSSLContext();
 
     /**
+     * プレビューサーバから配信したデータの BPS を取得します.
+     *
+     * @return プレビューサーバから配信したデータの BPS
+     */
+    long getBPS();
+
+    /**
      * Callback interface used to receive the result of starting a web server.
      */
     interface OnWebServerStartCallback {

@@ -275,8 +275,10 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
 
         /**
          * ブロードキャストを停止した時に呼び出されます.
+         *
+         * @param broadcaster 停止したブロードキャスト
          */
-        void onBroadcasterStopped();
+        void onBroadcasterStopped(Broadcaster broadcaster);
 
         /**
          * レコーダで発生したエラーを通知します.
@@ -296,7 +298,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         private List<Range<Integer>> mSupportedFps;
         private List<Integer> mSupportedWhiteBalances;
 
-        private PropertyUtil mPref;
+        private final PropertyUtil mPref;
 
         public Settings(Context context, HostMediaRecorder recorder) {
             mPref = new PropertyUtil(context, recorder.getId());
@@ -310,6 +312,9 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             mPref.put("test", "test");
         }
 
+        /**
+         * 保存データを初期化します.
+         */
         public void clear() {
             mPref.clear();
         }
@@ -792,46 +797,105 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             mPref.put("preview_audio_mute", mute);
         }
 
+        /**
+         * 配信先の URI を取得します.
+         *
+         * 設定されていない場合は null を返却します.
+         *
+         * @return 配信先の URI
+         */
         public String getBroadcastURI() {
             return mPref.getString("broadcast_uri", null);
         }
 
+        /**
+         * 配信先の URI を設定します.
+         *
+         * @param broadcastURI 配信先の URI
+         */
         public void setBroadcastURI(String broadcastURI) {
             mPref.put("broadcast_uri", broadcastURI);
         }
 
+        /**
+         * Motion JPEG サーバ用のポート番号を取得します.
+         *
+         * @return Motion JPEG サーバ用のポート番号
+         */
         public Integer getMjpegPort() {
             return mPref.getInteger("mjpeg_port", 0);
         }
 
+        /**
+         * Motion JPEG サーバ用のポート番号を設定します.
+         *
+         * @param port Motion JPEG サーバ用のポート番号
+         */
         public void setMjpegPort(int port) {
             mPref.put("mjpeg_port", port);
         }
 
+        /**
+         * SSL で暗号化された Motion JPEG サーバ用のポート番号を取得します.
+         *
+         * @return Motion JPEG サーバ用のポート番号
+         */
         public Integer getMjpegSSLPort() {
             return mPref.getInteger("mjpeg_ssl_port", 0);
         }
 
+        /**
+         * SSL で暗号化された Motion JPEG サーバ用のポート番号を取得します.
+         *
+         * @param port Motion JPEG サーバ用のポート番号
+         */
         public void setMjpegSSLPort(int port) {
             mPref.put("mjpeg_ssl_port", port);
         }
 
+        /**
+         * RTSP サーバ用のポート番号を取得します.
+         *
+         * @return RTSP サーバ用のポート番号
+         */
         public Integer getRtspPort() {
             return mPref.getInteger("rtsp_port", 0);
         }
 
+        /**
+         * RTSP サーバ用のポート番号を設定します.
+         *
+         * @param port RTSP サーバ用のポート番号
+         */
         public void setRtspPort(int port) {
             mPref.put("rtsp_port", port);
         }
 
+        /**
+         * SRT サーバ用のポート番号を取得します.
+         *
+         * @return SRT サーバ用のポート番号
+         */
         public Integer getSrtPort() {
             return mPref.getInteger("srt_port", 0);
         }
 
+        /**
+         * SRT サーバ用のポート番号を設定します.
+         *
+         * @param port SRT サーバ用のポート番号
+         */
         public void setSrtPort(int port) {
             mPref.put("srt_port", port);
         }
 
+        /**
+         * 切り抜き範囲を取得します.
+         *
+         * 範囲ば設定されていない場合には、null を返却します.
+         *
+         * @return 切り抜き範囲
+         */
         public Rect getCutOutSize() {
             return mPref.getRect("preview_clip_left",
                     "preview_clip_top",
@@ -839,6 +903,13 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
                     "preview_clip_bottom");
         }
 
+        /**
+         * 切り抜き範囲を設定します.
+         *
+         * 引数に null が指定された場合には、切り抜き範囲を削除します。
+         *
+         * @param rect 切り抜き範囲
+         */
         public void setCutOutSize(Rect rect) {
             if (rect == null) {
                 mPref.remove("preview_clip_left");

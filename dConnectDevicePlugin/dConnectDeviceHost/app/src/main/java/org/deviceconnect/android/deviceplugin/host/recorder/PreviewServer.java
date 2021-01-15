@@ -80,7 +80,7 @@ public interface PreviewServer {
      *
      * @return SSLContext を使用する場合は<code>true</code>, そうでない場合は<code>false</code>
      */
-    boolean usesSSLContext();
+    boolean useSSLContext();
 
     /**
      * SSL コンテキストの設定を行います.

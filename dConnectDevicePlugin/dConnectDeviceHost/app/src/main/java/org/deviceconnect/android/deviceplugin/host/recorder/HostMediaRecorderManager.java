@@ -86,27 +86,17 @@ public class HostMediaRecorderManager {
     /**
      * MediaProjection
      */
-    private MediaProjectionProvider mMediaProjectionProvider;
+    private final MediaProjectionProvider mMediaProjectionProvider;
 
     /**
-     * 画面の回転イベントを受け取るための BroadcastReceiver.
+     * プレビュー停止・レコーディング停止・ブロードキャスト停止・画面の回転イベントなどを受け取るための BroadcastReceiver.
      */
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
             String action = intent.getAction();
             if (Intent.ACTION_CONFIGURATION_CHANGED.equals(action)) {
-                WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-                if (windowManager != null) {
-                    int rotation = windowManager.getDefaultDisplay().getRotation();
-                    for (HostMediaRecorder recorder : mRecorders) {
-                        try {
-                            recorder.onDisplayRotation(rotation);
-                        } catch (Exception e) {
-                            // ignore.
-                        }
-                    }
-                }
+                onDisplayRotationChanged(context);
             } else if (ACTION_STOP_PREVIEW.equals(action)) {
                 stopPreviewServer(intent.getStringExtra(KEY_RECORDER_ID));
             } else if (ACTION_STOP_RECORDING.equals(action)) {
@@ -173,8 +163,8 @@ public class HostMediaRecorderManager {
                 }
 
                 @Override
-                public void onBroadcasterStopped() {
-                    postOnBroadcasterStopped(recorder);
+                public void onBroadcasterStopped(Broadcaster broadcaster) {
+                    postOnBroadcasterStopped(recorder, broadcaster);
                 }
 
                 @Override
@@ -405,6 +395,25 @@ public class HostMediaRecorderManager {
     }
 
     /**
+     * 画面が回転されたときの処理を行います.
+     *
+     * @param context コンテキスト
+     */
+    private void onDisplayRotationChanged(Context context) {
+        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        if (windowManager != null) {
+            int rotation = windowManager.getDefaultDisplay().getRotation();
+            for (HostMediaRecorder recorder : mRecorders) {
+                try {
+                    recorder.onDisplayRotation(rotation);
+                } catch (Exception e) {
+                    // ignore.
+                }
+            }
+        }
+    }
+
+    /**
      * MediaProjection がサポートされている確認します.
      *
      * @return MediaProjection がサポートされている場合はtrue、それ以外はfalse
@@ -476,9 +485,9 @@ public class HostMediaRecorderManager {
         }
     }
 
-    private void postOnBroadcasterStopped(HostMediaRecorder recorder) {
+    private void postOnBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster) {
         for (OnEventListener l : mOnEventListeners) {
-            l.onBroadcasterStopped(recorder);
+            l.onBroadcasterStopped(recorder, broadcaster);
         }
     }
 
@@ -522,7 +531,7 @@ public class HostMediaRecorderManager {
         void onPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers);
         void onPreviewStopped(HostMediaRecorder recorder);
         void onBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster);
-        void onBroadcasterStopped(HostMediaRecorder recorder);
+        void onBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster);
 
         void onTakePhoto(HostMediaRecorder recorder, String uri, String filePath, String mimeType);
 

@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -306,6 +307,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         return mScreenCastMgr;
     }
 
+    @SuppressLint("WrongConstant")
     private void takePhotoInternal(final @NonNull OnPhotoEventListener listener) {
         try {
             setState(State.RECORDING);
@@ -314,15 +316,19 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
             int w = size.getWidth();
             int h = size.getHeight();
             ImageReader imageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);
-            final ImageScreenCast screenCast = mScreenCastMgr.createScreenCast(imageReader, size.getWidth(), size.getHeight());
+            final ImageScreenCast screenCast = mScreenCastMgr.createScreenCast(imageReader, w, h);
             final AtomicReference<Bitmap> screenshot = new AtomicReference<>();
-            final CountDownLatch mLatch = new CountDownLatch(1);
+            final CountDownLatch latch = new CountDownLatch(1);
             imageReader.setOnImageAvailableListener((reader) -> {
                 screenshot.set(screenCast.getScreenshot());
-                mLatch.countDown();
+                latch.countDown();
             }, mImageReaderHandler);
             screenCast.startCast();
-            mLatch.await(5, TimeUnit.SECONDS);
+            if (!latch.await(5, TimeUnit.SECONDS)) {
+                setState(State.INACTIVE);
+                listener.onFailedTakePhoto("Failed to take screenshot.");
+                return;
+            }
             screenCast.stopCast();
 
             Bitmap bitmap = screenshot.get();

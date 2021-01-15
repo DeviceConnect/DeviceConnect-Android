@@ -9,9 +9,9 @@
         <EditTextPreference
             android:defaultValue="rtmp://localhost:12345"
             android:singleLine="true"
-            android:title="URL"
+            android:title="@string/host_recorder_settings_broadcast_uri"
             app:iconSpaceReserved="false"
-            app:key="@string/host_recorder_settings_broadcast_uri"
+            app:key="broadcast_uri"
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>

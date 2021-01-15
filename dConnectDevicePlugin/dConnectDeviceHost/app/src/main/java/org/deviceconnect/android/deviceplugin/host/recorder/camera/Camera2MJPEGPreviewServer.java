@@ -37,27 +37,16 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
     private static final String SERVER_NAME = "Android Host Camera2 MJPEG Server";
 
     /**
-     * SSLContext を使用するかどうかのフラグ.
-     */
-    private final boolean mUsesSSLContext;
-
-    /**
      * MotionJPEG 配信サーバ.
      */
     private MJPEGServer mMJPEGServer;
 
-    Camera2MJPEGPreviewServer(Context context, Camera2Recorder recorder, int port, boolean isSSL) {
-        super(context, recorder);
-        mUsesSSLContext = isSSL;
+    Camera2MJPEGPreviewServer(Context context, Camera2Recorder recorder, int port, boolean useSSL) {
+        super(context, recorder, useSSL);
         setPort(port);
     }
 
     // PreviewServer
-
-    @Override
-    public boolean usesSSLContext() {
-        return mUsesSSLContext;
-    }
 
     @Override
     public String getUri() {
@@ -73,7 +62,7 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
     public void startWebServer(final OnWebServerStartCallback callback) {
         if (mMJPEGServer == null) {
             SSLContext sslContext = getSSLContext();
-            if (usesSSLContext() && sslContext == null) {
+            if (useSSLContext() && sslContext == null) {
                 callback.onFail();
                 return;
             }
@@ -82,7 +71,7 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
             mMJPEGServer.setServerName(SERVER_NAME);
             mMJPEGServer.setServerPort(getPort());
             mMJPEGServer.setCallback(mCallback);
-            if (mUsesSSLContext) {
+            if (useSSLContext()) {
                 mMJPEGServer.setSSLContext(sslContext);
             }
             try {

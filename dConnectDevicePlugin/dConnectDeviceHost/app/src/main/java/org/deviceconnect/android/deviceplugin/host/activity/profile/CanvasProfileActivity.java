@@ -41,7 +41,7 @@ import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
  *
  * @author NTT DOCOMO, INC.
  */
-public class CanvasProfileActivity extends AppCompatActivity{
+public class CanvasProfileActivity extends AppCompatActivity {
 
     /**
      * Defined a parameter name.

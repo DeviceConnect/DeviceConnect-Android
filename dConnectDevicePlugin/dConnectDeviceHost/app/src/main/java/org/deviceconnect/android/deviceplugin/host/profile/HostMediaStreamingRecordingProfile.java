@@ -192,7 +192,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
             HostMediaRecorder.Settings settings = recorder.getSettings();
 
-            if (!isSupportsMimeType(recorder, mimeType)) {
+            if (!isSupportedMimeType(recorder, mimeType)) {
                 MessageUtils.setInvalidRequestParameterError(response, "MIME-Type " + mimeType + " is unsupported.");
                 return;
             }
@@ -653,8 +653,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         public void onFailed(final HostDeviceStreamRecorder recorder, final String errorMessage) {
                             MessageUtils.setIllegalServerStateError(response, errorMessage);
                             sendResponse(response);
-//                            sendEventForRecordingChange(getServiceID(request), HostMediaRecorder.State.ERROR,"",
-//                                    "", recorder.getStreamMimeType(), errorMessage);
                         }
                     });
                 }
@@ -708,8 +706,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         public void onFailed(HostDeviceStreamRecorder recorder, String errorMessage) {
                             MessageUtils.setIllegalServerStateError(response, errorMessage);
                             sendResponse(response);
-//                            sendEventForRecordingChange(getServiceID(request), HostMediaRecorder.State.ERROR,"",
-//                                    "", recorder.getStreamMimeType(), errorMessage);
                         }
                     });
                 }
@@ -787,8 +783,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
             HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
-                MessageUtils.setInvalidRequestParameterError(response,
-                        "target is invalid.");
+                MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
 
@@ -835,7 +830,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
 
         @Override
-        public void onBroadcasterStopped(HostMediaRecorder recorder) {
+        public void onBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster) {
         }
 
         @Override
@@ -863,7 +858,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             sendEventForRecordingChange(getService().getId(), recorder.getState(),
                     mFileManager.getContentUri() + "/" + fileName,
                     "/" + fileName, recorder.getMimeType(), null);
-
         }
 
         @Override
@@ -872,34 +866,129 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     };
 
     public HostMediaStreamingRecordingProfile(final HostMediaRecorderManager mgr, final FileManager fileMgr) {
+        mFileManager = fileMgr;
         mRecorderMgr = mgr;
         mRecorderMgr.addOnEventListener(mOnEventListener);
 
-        mFileManager = fileMgr;
-
         addApi(mGetMediaRecorderApi);
+
         addApi(mGetOptionsApi);
         addApi(mPutOptionsApi);
-        addApi(mPostPreviewRequestKeyFrameApi);
+
         addApi(mPutOnPhotoApi);
         addApi(mDeleteOnPhotoApi);
         addApi(mPostTakePhotoApi);
-        addApi(mPutPreviewApi);
-        addApi(mDeletePreviewApi);
         addApi(mPostRecordApi);
         addApi(mPutStopApi);
         addApi(mPutPauseApi);
         addApi(mPutResumeApi);
         addApi(mPutOnRecordingChangeApi);
         addApi(mDeleteOnRecordingChangeApi);
+
+        addApi(mPutPreviewApi);
+        addApi(mDeletePreviewApi);
+        addApi(mPostPreviewRequestKeyFrameApi);
         addApi(mPutPreviewMuteApi);
         addApi(mDeletePreviewMuteApi);
+
+        // PUT /gotapi/mediaStreamRecording/broadcast
+        addApi(new PutApi() {
+            @Override
+            public String getAttribute() {
+                return "broadcast";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String target = getTarget(request);
+                String broadcastURI = request.getStringExtra("broadcastURI");
+
+                HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
+
+                if (recorder == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+                    return true;
+                }
+
+                if (broadcastURI == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "broadcastURI is not set.");
+                    return true;
+                }
+
+                if (recorder.isBroadcasterRunning()) {
+                    MessageUtils.setIllegalServerStateError(response, "broadcastURI is already running.");
+                    return true;
+                }
+
+                recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
+                    @Override
+                    public void onAllowed() {
+                        Broadcaster b = recorder.startBroadcaster(broadcastURI);
+                        if (b != null) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                        } else {
+                            MessageUtils.setIllegalServerStateError(response, "Failed to start a broadcast.");
+                        }
+                        sendResponse(response);
+                    }
+
+                    @Override
+                    public void onDisallowed() {
+                        MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                        sendResponse(response);
+                    }
+                });
+                return false;
+            }
+        });
+
+        // DELETE /gotapi/mediaStreamRecording/broadcast
+        addApi(new DeleteApi() {
+
+            @Override
+            public String getAttribute() {
+                return "broadcast";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String target = getTarget(request);
+
+                HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
+
+                if (recorder == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+                    return true;
+                }
+                recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
+                    @Override
+                    public void onAllowed() {
+                        recorder.stopBroadcaster();
+                        setResult(response, DConnectMessage.RESULT_OK);
+                        sendResponse(response);
+                    }
+
+                    @Override
+                    public void onDisallowed() {
+                        MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                        sendResponse(response);
+                    }
+                });
+                return false;
+            }
+        });
     }
 
     private HostDevicePlugin getHostDevicePlugin() {
         return (HostDevicePlugin) getContext();
      }
 
+    /**
+     * サポートしている静止画の解像度をレスポンスに格納します.
+     *
+     * @param response 静止画の解像度を格納するレスポンス
+     * @param sizes サポートしている静止画の解像度のリスト
+     */
     private static void setSupportedImageSizes(final Intent response, final List<Size> sizes) {
         Bundle[] array = new Bundle[sizes.size()];
         int i = 0;
@@ -912,6 +1001,12 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         setImageSizes(response, array);
     }
 
+    /**
+     * サポートしているプレビューの解像度をレスポンスに格納します.
+     *
+     * @param response プレビューの解像度を格納するレスポンス
+     * @param sizes サポートしているプレビューの解像度のリスト
+     */
     private static void setSupportedPreviewSizes(final Intent response, final List<Size> sizes) {
         Bundle[] array = new Bundle[sizes.size()];
         int i = 0;
@@ -924,7 +1019,14 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         setPreviewSizes(response, array);
     }
 
-    private boolean isSupportsMimeType(final HostMediaRecorder recorder, final String mimeType) {
+    /**
+     * 指定されたマイムタイプがレコーダでサポートされているか確認します.
+     *
+     * @param recorder レコーダ
+     * @param mimeType マイムタイプ
+     * @return サポートされている場合はtrue、それ以外はfalse
+     */
+    private boolean isSupportedMimeType(final HostMediaRecorder recorder, final String mimeType) {
         for (String supportedMimeType : recorder.getSupportedMimeTypes()) {
             if (supportedMimeType.equals(mimeType)) {
                 return true;

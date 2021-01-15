@@ -17,6 +17,10 @@ abstract class Camera2PreviewServer extends AbstractPreviewServer {
         super(context, recorder);
     }
 
+    Camera2PreviewServer(Context context, HostMediaRecorder recorder, boolean useSSL) {
+        super(context, recorder, useSSL);
+    }
+
     /**
      * カメラの再起動を要求します.
      */

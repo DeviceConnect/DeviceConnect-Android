@@ -28,8 +28,8 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
      */
     private OnEventListener mOnEventListener;
 
-    private Context mContext;
-    private HostMediaRecorder mRecorder;
+    private final Context mContext;
+    private final HostMediaRecorder mRecorder;
 
     public AbstractBroadcastProvider(Context context, HostMediaRecorder recorder) {
         mContext = context;
@@ -53,6 +53,10 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
 
     @Override
     public Broadcaster startBroadcaster(String broadcastURI) {
+        if (broadcastURI == null) {
+            return null;
+        }
+
         if (mBroadcaster != null && mBroadcaster.isRunning()) {
             return mBroadcaster;
         }
@@ -64,6 +68,22 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
         if (mBroadcaster == null) {
             return null;
         }
+        mBroadcaster.setOnEventListener(new Broadcaster.OnEventListener() {
+            @Override
+            public void onStarted() {
+                postBroadcastStarted(mBroadcaster);
+            }
+
+            @Override
+            public void onStopped() {
+                postBroadcastStopped(mBroadcaster);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                postBroadcastError(mBroadcaster, e);
+            }
+        });
 
         mBroadcaster.start(new Broadcaster.OnStartCallback() {
             @Override
@@ -90,22 +110,6 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
             mBroadcaster = null;
         } else {
             sendNotification(mRecorder.getId(), mRecorder.getName());
-            mBroadcaster.setOnEventListener(new Broadcaster.OnEventListener() {
-                @Override
-                public void onStarted() {
-                    postBroadcastStarted(mBroadcaster);
-                }
-
-                @Override
-                public void onStopped() {
-                    postBroadcastStopped(mBroadcaster);
-                }
-
-                @Override
-                public void onError(Exception e) {
-                    postBroadcastError(mBroadcaster, e);
-                }
-            });
         }
 
         return mBroadcaster;

@@ -10,6 +10,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -43,18 +44,55 @@ public class HostLiveStreamingProfile extends DConnectProfile {
     private static final String PARAM_KEY_MUTE = "mute";
     private static final String VIDEO_URI_TRUE = "true";
     private static final String VIDEO_URI_FALSE = "false";
-    private static final String VIDEO_URI_CAMERA_FRONT = "camera-front";
-    private static final String VIDEO_URI_CAMERA_BACK = "camera-back";
-    private static final String VIDEO_URI_CAMERA_0 = "camera_0";
-    private static final String VIDEO_URI_CAMERA_1 = "camera_1";
-    private static final String VIDEO_URI_SCREEN = "screen";
     private static final String AUDIO_URI_TRUE = "true";
     private static final String AUDIO_URI_FALSE = "false";
-    private static final int CAMERA_TYPE_FRONT = 0;
-    private static final int CAMERA_TYPE_BACK = 1;
 
-    private HostMediaRecorderManager mHostMediaRecorderManager;
+    private final HostMediaRecorderManager mHostMediaRecorderManager;
     private HostMediaRecorder mHostMediaRecorder;
+
+    private final HostMediaRecorderManager.OnEventListener mOnEventListener = new HostMediaRecorderManager.OnEventListener() {
+        @Override
+        public void onPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers) {
+        }
+
+        @Override
+        public void onPreviewStopped(HostMediaRecorder recorder) {
+        }
+
+        @Override
+        public void onBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster) {
+            postOnStart(broadcaster);
+        }
+
+        @Override
+        public void onBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster) {
+            postOnStop(broadcaster);
+        }
+
+        @Override
+        public void onTakePhoto(HostMediaRecorder recorder, String uri, String filePath, String mimeType) {
+        }
+
+        @Override
+        public void onRecordingStarted(HostMediaRecorder recorder, String fileName) {
+        }
+
+        @Override
+        public void onRecordingPause(HostMediaRecorder recorder) {
+        }
+
+        @Override
+        public void onRecordingResume(HostMediaRecorder recorder) {
+        }
+
+        @Override
+        public void onRecordingStopped(HostMediaRecorder recorder, String fileName) {
+        }
+
+        @Override
+        public void onError(HostMediaRecorder recorder, Exception e) {
+        }
+    };
 
     @Override
     public String getProfileName() {
@@ -63,6 +101,7 @@ public class HostLiveStreamingProfile extends DConnectProfile {
 
     public HostLiveStreamingProfile(final HostMediaRecorderManager hostMediaRecorderManager) {
         mHostMediaRecorderManager = hostMediaRecorderManager;
+        mHostMediaRecorderManager.addOnEventListener(mOnEventListener);
 
         // POST /gotapi/liveStreaming/start
         addApi(new PostApi() {
@@ -73,10 +112,6 @@ public class HostLiveStreamingProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                if (DEBUG) {
-                    Log.d(TAG, "onRequest() : post /start");
-                }
-
                 if (mHostMediaRecorder != null && mHostMediaRecorder.isBroadcasterRunning()) {
                     MessageUtils.setIllegalDeviceStateError(response, "LiveStreaming is already running.");
                     return true;
@@ -131,30 +166,15 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                 recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                     @Override
                     public void onAllowed() {
+                        mHostMediaRecorder = recorder;
+
                         Broadcaster broadcaster = recorder.startBroadcaster(broadcastURI);
                         if (broadcaster != null) {
-                            broadcaster.setOnEventListener(new Broadcaster.OnEventListener() {
-                                @Override
-                                public void onStarted() {
-                                }
-
-                                @Override
-                                public void onStopped() {
-                                    postOnStop(broadcaster);
-                                }
-
-                                @Override
-                                public void onError(Exception e) {
-                                    postOnError(broadcaster);
-                                }
-                            });
                             setResult(response, DConnectMessage.RESULT_OK);
-                            sendResponse(response);
-                            postOnStart(broadcaster);
                         } else {
                             MessageUtils.setUnknownError(response, "Failed to start a live streaming.");
-                            sendResponse(response);
                         }
+                        sendResponse(response);
                     }
 
                     @Override
@@ -181,7 +201,6 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     mHostMediaRecorder.stopBroadcaster();
                     mHostMediaRecorder = null;
                 }
-
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             }
@@ -273,10 +292,6 @@ public class HostLiveStreamingProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                if (DEBUG) {
-                    Log.d(TAG, "onRequest() : put /mute");
-                }
-
                 if (mHostMediaRecorder != null && mHostMediaRecorder.isBroadcasterRunning()) {
                     mHostMediaRecorder.setMute(true);
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -297,10 +312,6 @@ public class HostLiveStreamingProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                if (DEBUG) {
-                    Log.d(TAG, "onRequest() : delete /mute");
-                }
-
                 if (mHostMediaRecorder != null && mHostMediaRecorder.isBroadcasterRunning()) {
                     mHostMediaRecorder.setMute(false);
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -365,7 +376,7 @@ public class HostLiveStreamingProfile extends DConnectProfile {
         }
         streaming.putString(PARAM_KEY_STATUS, status);
 
-        if (broadcaster != null) {
+        if (broadcaster != null && mHostMediaRecorder != null) {
             HostMediaRecorder.Settings settings = mHostMediaRecorder.getSettings();
             Bundle video = new Bundle();
             video.putString(PARAM_KEY_URI, mHostMediaRecorder.getId());
@@ -376,52 +387,39 @@ public class HostLiveStreamingProfile extends DConnectProfile {
             video.putString(PARAM_KEY_MIME_TYPE, broadcaster.getMimeType());
             streaming.putParcelable(PARAM_KEY_VIDEO, video);
         }
-
         return streaming;
     }
 
     private void postOnStart(Broadcaster broadcaster) {
-        if (mHostMediaRecorder == null) {
-            return;
-        }
-
         List<Event> evtList = EventManager.INSTANCE.getEventList(getService().getId(),
                 PROFILE_NAME, null, AT_ON_STATUS_CHANGE);
 
         for (Event event : evtList) {
-            Bundle root = new Bundle();
-            root.putParcelable(PARAM_KEY_STREAMING, createStreamingBundle(broadcaster, "normal"));
-            sendEvent(event, root);
+            Intent intent = EventManager.createEventMessage(event);
+            intent.putExtra(PARAM_KEY_STREAMING, createStreamingBundle(broadcaster, "normal"));
+            sendEvent(intent, event.getAccessToken());
         }
     }
 
     private void postOnStop(Broadcaster broadcaster) {
-        if (mHostMediaRecorder == null) {
-            return;
-        }
-
         List<Event> evtList = EventManager.INSTANCE.getEventList(getService().getId(),
                 PROFILE_NAME, null, AT_ON_STATUS_CHANGE);
 
         for (Event event : evtList) {
-            Bundle root = new Bundle();
-            root.putParcelable(PARAM_KEY_STREAMING, createStreamingBundle(broadcaster, "stop"));
-            sendEvent(event, root);
+            Intent intent = EventManager.createEventMessage(event);
+            intent.putExtra(PARAM_KEY_STREAMING, createStreamingBundle(broadcaster, "stop"));
+            sendEvent(intent, event.getAccessToken());
         }
     }
 
     private void postOnError(Broadcaster broadcaster) {
-        if (mHostMediaRecorder == null) {
-            return;
-        }
-
         List<Event> evtList = EventManager.INSTANCE.getEventList(getService().getId(),
                 PROFILE_NAME, null, AT_ON_STATUS_CHANGE);
 
         for (Event event : evtList) {
-            Bundle root = new Bundle();
-            root.putParcelable(PARAM_KEY_STREAMING, createStreamingBundle(broadcaster, "error"));
-            sendEvent(event, root);
+            Intent intent = EventManager.createEventMessage(event);
+            intent.putExtra(PARAM_KEY_STREAMING, createStreamingBundle(broadcaster, "error"));
+            sendEvent(intent, event.getAccessToken());
         }
     }
 }

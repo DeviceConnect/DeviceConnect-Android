@@ -121,7 +121,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         }
 
         @Override
-        public void onBroadcasterStopped(HostMediaRecorder recorder) {
+        public void onBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster) {
             setBroadcastButton();
         }
 

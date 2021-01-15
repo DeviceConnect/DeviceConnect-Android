@@ -39,6 +39,26 @@ public abstract class AbstractPreviewServer implements PreviewServer {
     private SSLContext mSSLContext;
 
     /**
+     * SSL の使用フラグ.
+     */
+    private final boolean mUseSSL;
+
+    /**
+     * コンストラクタ.
+     *
+     * <p>
+     * デフォルトでは、mute は true に設定しています。
+     * デフォルトでは、mUseSSL は false に設定します。
+     * </p>
+     *
+     * @param context コンテキスト
+     * @param recorder プレビューで表示するレコーダ
+     */
+    public AbstractPreviewServer(Context context, HostMediaRecorder recorder) {
+        this(context, recorder, false);
+    }
+
+    /**
      * コンストラクタ.
      *
      * <p>
@@ -47,13 +67,14 @@ public abstract class AbstractPreviewServer implements PreviewServer {
      *
      * @param context コンテキスト
      * @param recorder プレビューで表示するレコーダ
+     * @param useSSL SSL使用フラグ
      */
-    public AbstractPreviewServer(Context context, HostMediaRecorder recorder) {
+    public AbstractPreviewServer(Context context, HostMediaRecorder recorder, boolean useSSL) {
         mContext = context;
         mHostMediaRecorder = recorder;
+        mUseSSL = useSSL;
         mMute = true;
     }
-
     // PreviewServer
 
     @Override
@@ -81,8 +102,8 @@ public abstract class AbstractPreviewServer implements PreviewServer {
     }
 
     @Override
-    public boolean usesSSLContext() {
-        return false;
+    public boolean useSSLContext() {
+        return mUseSSL;
     }
 
     @Override

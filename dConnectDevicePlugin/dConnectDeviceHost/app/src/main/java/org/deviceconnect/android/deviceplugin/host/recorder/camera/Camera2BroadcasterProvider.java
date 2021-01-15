@@ -9,7 +9,7 @@ public class Camera2BroadcasterProvider extends AbstractBroadcastProvider {
     /**
      * カメラを操作するレコーダ.
      */
-    private Camera2Recorder mRecorder;
+    private final Camera2Recorder mRecorder;
 
     public Camera2BroadcasterProvider(Context context, Camera2Recorder recorder) {
         super(context, recorder);
@@ -20,8 +20,10 @@ public class Camera2BroadcasterProvider extends AbstractBroadcastProvider {
     public Broadcaster createBroadcaster(String broadcastURI) {
         if (broadcastURI.startsWith("srt://")) {
             return new Camera2SRTBroadcaster(mRecorder, broadcastURI);
-        } else {
+        } else if (broadcastURI.startsWith("rtmp://")) {
             return new Camera2RTMPBroadcaster(mRecorder, broadcastURI);
+        } else {
+            return null;
         }
     }
 }

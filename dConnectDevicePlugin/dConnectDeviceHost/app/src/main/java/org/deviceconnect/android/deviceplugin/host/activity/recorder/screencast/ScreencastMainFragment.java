@@ -37,7 +37,7 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
         }
 
         @Override
-        public void onBroadcasterStopped(HostMediaRecorder recorder) {
+        public void onBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster) {
             setBroadcastButton();
         }
 

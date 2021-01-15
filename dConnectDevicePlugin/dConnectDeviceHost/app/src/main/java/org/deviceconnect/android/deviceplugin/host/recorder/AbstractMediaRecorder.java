@@ -101,7 +101,7 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
                 @Override
                 public void onStopped(Broadcaster broadcaster) {
-                    postOnBroadcasterStopped();
+                    postOnBroadcasterStopped(broadcaster);
                 }
 
                 @Override
@@ -554,9 +554,9 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
         }
     }
 
-    protected void postOnBroadcasterStopped() {
+    protected void postOnBroadcasterStopped(Broadcaster broadcaster) {
         if (mOnEventListener != null) {
-            mOnEventListener.onBroadcasterStopped();
+            mOnEventListener.onBroadcasterStopped(broadcaster);
         }
     }
 

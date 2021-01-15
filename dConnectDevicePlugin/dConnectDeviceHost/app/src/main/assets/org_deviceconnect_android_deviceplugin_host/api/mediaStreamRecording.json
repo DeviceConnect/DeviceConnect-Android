@@ -1014,6 +1014,89 @@
         }
       }
     },
+    "/broadcast": {
+      "put": {
+        "operationId": "mediaStreamRecordingBroadcastPut",
+        "x-type": "one-shot",
+        "summary": "スマートデバイスでの動画を指定された URI に配信を開始する。",
+        "description": "スマートデバイスでの動画を指定された URI に配信を開始する。",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "description": "サービスID。取得対象スマートデバイス",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "target",
+            "description": "ターゲット。レコーダーを識別するID。<br> 省略された場合にはデフォルトのレコーダーを使用する。<br> デバイスが音声・動画の両方のレコーダーをサポートする場合、 どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "broadcastURI",
+            "description": "配信先のサーバURI。<br>rtmp://、srt:// のプロトコルに対応",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "配信開始の結果を返す。",
+            "schema": {
+              "$ref": "#/definitions/BroadcastStartResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": 0,
+                "product": "Example System",
+                "version": "1.0.0"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "mediaStreamRecordingBroadcastDelete",
+        "x-type": "streaming",
+        "summary": "スマートデバイスでの撮影している映像の配信を停止する。",
+        "description": "スマートデバイスでの撮影している映像の配信を停止する。",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "description": "サービスID。取得対象スマートデバイス",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "target",
+            "description": "ターゲット。レコーダーを識別するID。<br> 省略された場合にはデフォルトのレコーダーを使用する。<br> デバイスが音声・動画の両方のレコーダーをサポートする場合、 どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "映像の配信停止の結果を返す。",
+            "schema": {
+              "$ref": "#/definitions/BroadcastStopResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": 0,
+                "product": "Example System",
+                "version": "1.0.0"
+              }
+            }
+          }
+        }
+      }
+    },
     "/onRecordingChange": {
       "get": {
         "operationId": "mediaStreamRecordingOnRecordingChangeGet",
@@ -1532,6 +1615,22 @@
       ]
     },
     "PreviewStopResponse": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/CommonResponse"
+        }
+      ]
+    },
+    "BroadcastStartResponse": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/CommonResponse"
+        }
+      ]
+    },
+    "BroadcastStopResponse": {
       "type": "object",
       "allOf": [
         {

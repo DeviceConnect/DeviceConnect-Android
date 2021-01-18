@@ -116,11 +116,14 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
             Size size = new Size(width, height);
             supportPictureSizes.add(size);
-            supportPreviewSizes.add(size);
+            if (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight()) {
+                supportPreviewSizes.add(size);
+            }
         }
         mSettings.setSupportedPreviewSizes(supportPreviewSizes);
         mSettings.setSupportedPictureSizes(supportPictureSizes);
         mSettings.setSupportedWhiteBalances(new ArrayList<>());
+        mSettings.setSupportedEncoders(CapabilityUtil.getSupportedVideoEncoders());
 
         List<Range<Integer>> supportFps = new ArrayList<>();
         supportFps.add(new Range<>(30, 30));

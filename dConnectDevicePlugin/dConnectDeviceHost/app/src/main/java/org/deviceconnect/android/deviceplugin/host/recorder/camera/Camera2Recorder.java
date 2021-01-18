@@ -190,6 +190,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         mSettings.setSupportedPreviewSizes(supportPreviewSizes);
         mSettings.setSupportedFps(options.getSupportedFpsList());
         mSettings.setSupportedWhiteBalances(options.getSupportedWhiteBalanceList());
+        mSettings.setSupportedEncoders(CapabilityUtil.getSupportedVideoEncoders());
 
         if (!mSettings.load()) {
             mSettings.setPictureSize(options.getDefaultPictureSize());

@@ -12,10 +12,61 @@ import android.os.Build;
 import android.util.Size;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public final class CapabilityUtil {
     private CapabilityUtil() {
+    }
+
+    private static List<MediaCodecInfo> getMediaCodecInfoList() {
+        List<MediaCodecInfo> infoList = new ArrayList<>();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            MediaCodecList list = new MediaCodecList(MediaCodecList.ALL_CODECS);
+            infoList.addAll(Arrays.asList(list.getCodecInfos()));
+        } else {
+            for (int j = MediaCodecList.getCodecCount() - 1; j >= 0; j--) {
+                infoList.add(MediaCodecList.getCodecInfoAt(j));
+            }
+        }
+        return infoList;
+    }
+
+
+    private static List<String> getSupportedEncoders(String mimeType) {
+        List<String> encoderList = new ArrayList<>();
+
+        for (MediaCodecInfo codecInfo : getMediaCodecInfoList()) {
+            if (codecInfo.isEncoder()) {
+                String[] types = codecInfo.getSupportedTypes();
+                for (String type : types) {
+                    if (!type.startsWith(mimeType)) {
+                        continue;
+                    }
+                    encoderList.add(type);
+                }
+            }
+        }
+
+        return encoderList;
+    }
+
+    /**
+     * サポートされている音声コーデックのリストを取得します.
+     *
+     * @return サポートされている音声コーデックのリスト
+     */
+    public static List<String> getSupportedAudioEncoders() {
+        return getSupportedEncoders("audio/");
+    }
+
+    /**
+     * サポートされている映像コーデックのリストを取得します.
+     *
+     * @return サポートされている映像コーデックのリスト
+     */
+    public static List<String> getSupportedVideoEncoders() {
+        return getSupportedEncoders("video/");
     }
 
     /**
@@ -27,28 +78,13 @@ public final class CapabilityUtil {
     public static Size getSupportedMaxSize(String mimeType) {
         List<Size> sizeList = new ArrayList<>();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            MediaCodecList list = new MediaCodecList(MediaCodecList.ALL_CODECS);
-            for (MediaCodecInfo codecInfo : list.getCodecInfos()) {
-                if (codecInfo.isEncoder() &&
-                        isHardware(codecInfo) &&
-                        isMediaCodecInfo(codecInfo, mimeType, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)) {
-                    Size size = getSizeFromCodecInfo(codecInfo, mimeType);
-                    if (size != null) {
-                        sizeList.add(size);
-                    }
-                }
-            }
-        } else {
-            for (int j = MediaCodecList.getCodecCount() - 1; j >= 0; j--) {
-                MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(j);
-                if (codecInfo.isEncoder() &&
-                        isHardware(codecInfo) &&
-                        isMediaCodecInfo(codecInfo, mimeType, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)) {
-                    Size size = getSizeFromCodecInfo(codecInfo, mimeType);
-                    if (size != null) {
-                        sizeList.add(size);
-                    }
+        for (MediaCodecInfo codecInfo : getMediaCodecInfoList()) {
+            if (codecInfo.isEncoder() &&
+                    isHardware(codecInfo) &&
+                    isMediaCodecInfo(codecInfo, mimeType, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)) {
+                Size size = getSizeFromCodecInfo(codecInfo, mimeType);
+                if (size != null) {
+                    sizeList.add(size);
                 }
             }
         }

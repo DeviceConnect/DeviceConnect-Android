@@ -12,6 +12,8 @@ public class VideoQuality {
     private int mFrameRate = DEFAULT_FRAME_RATE;
     private int mIFrameInterval = DEFAULT_IFRAME_INTERVAL;
     private int mIntraRefresh = 0;
+    private int mProfile = 0;
+    private int mLevel = 0;
 
     /**
      * ビットレートのモード.
@@ -46,6 +48,8 @@ public class VideoQuality {
         mIntraRefresh = quality.getIntraRefresh();
         mBitRateMode = quality.getBitRateMode();
         mUseSoftwareEncoder = quality.isUseSoftwareEncoder();
+        mProfile = quality.getProfile();
+        mLevel = quality.getLevel();
     }
 
     /**
@@ -169,12 +173,68 @@ public class VideoQuality {
         mUseSoftwareEncoder = useSoftwareEncoder;
     }
 
+    /**
+     * イントラリフレッシュのインターバルを取得します.
+     *
+     * 0 が指定されている場合には、イントラリフレッシュを使用しない。
+     *
+     * @return イントラリフレッシュのインターバル
+     */
     public int getIntraRefresh() {
         return mIntraRefresh;
     }
 
+    /**
+     * イントラリフレッシュのインターバルを設定します.
+     *
+     * 0 が指定された場合には、イントラリフレッシュを使用しない。
+     *
+     * @param refresh イントラリフレッシュのインターバル
+     */
     public void setIntraRefresh(int refresh) {
         mIntraRefresh = refresh;
+    }
+
+    /**
+     * コーデックのプロファイルを取得します.
+     *
+     * @return プロファイル
+     */
+    public int getProfile() {
+        return mProfile;
+    }
+
+    /**
+     * コーデックのプロファイルを設定します.
+     *
+     * 0 が指定された場合には、デフォルト値を使用します。
+     * また、{@link #setLevel(int)} が同時に設定されている必要があります。
+     *
+     * @param profile プロファイル
+     */
+    public void setProfile(int profile) {
+        mProfile = profile;
+    }
+
+    /**
+     * コーデックのレベルを取得します.
+     *
+     * @return コーデックのレベル
+     */
+    public int getLevel() {
+        return mLevel;
+    }
+
+    /**
+     * コーデックのレベルを設定します.
+     *
+     * 0 が指定された場合には、デフォルト値を使用します。
+     * また、{@link #setProfile(int)} が同時に設定されている必要があります。
+     *
+     * @param level コーデックのレベル
+     */
+    public void setLevel(int level) {
+        mLevel = level;
     }
 
     /**

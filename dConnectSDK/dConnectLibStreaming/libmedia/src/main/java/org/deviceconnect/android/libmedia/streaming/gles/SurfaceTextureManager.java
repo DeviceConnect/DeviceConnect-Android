@@ -138,7 +138,7 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
      * @param width 映像の横幅
      * @param height 映像の縦幅
      */
-    public void setCutOutRect(int l, int t, int r, int b, int width, int height) {
+    public void setDrawingRange(int l, int t, int r, int b, int width, int height) {
         mTextureRenderer.setDrawingRange(l, t, r, b, width, height);
     }
 

@@ -68,9 +68,9 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
         int width = isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
         int height = isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
         setSize(width, height);
-        Rect rect = settings.getCutOutSize();
+        Rect rect = settings.getDrawingRange();
         if (rect != null) {
-            setCutOutRect(rect);
+            setDrawingRange(rect);
         }
         super.start();
     }

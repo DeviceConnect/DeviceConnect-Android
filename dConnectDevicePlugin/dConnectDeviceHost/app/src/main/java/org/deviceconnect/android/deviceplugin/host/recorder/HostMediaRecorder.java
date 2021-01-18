@@ -631,12 +631,22 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             mSupportedWhiteBalances = whiteBalances;
         }
 
-        public List<String> getSupportedMimeTypes() {
+        /**
+         * サポートしているエンコーダのリストを取得します.
+         *
+         * @return サポートしているエンコーダのリスト
+         */
+        public List<String> getSupportedEncoders() {
             return mSupportedEncoders;
         }
 
-        public void setSupportedMimeTypes(List<String> mimeTypes) {
-            mSupportedEncoders = mimeTypes;
+        /**
+         * サポートしているエンコーダのリストを設定します.
+         *
+         * @param encoders エンコーダ
+         */
+        public void setSupportedEncoders(List<String> encoders) {
+            mSupportedEncoders = encoders;
         }
 
         /**
@@ -709,6 +719,12 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             return false;
         }
 
+        /**
+         * 指定されたホワイトバランスがサポートされているか確認します.
+         *
+         * @param whiteBalance ホワイトバランス.
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
         public boolean isSupportedWhiteBalance(int whiteBalance) {
             for (Integer wb : mSupportedWhiteBalances) {
                 if (wb == whiteBalance) {
@@ -718,6 +734,12 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             return false;
         }
 
+        /**
+         * 指定されたエンコーダがサポートされているか確認します.
+         *
+         * @param encoder エンコーダ名
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
         public boolean isSupportedEncoder(String encoder) {
             for (String m : mSupportedEncoders) {
                 if (m.equals(encoder)) {
@@ -939,7 +961,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          *
          * @return 切り抜き範囲
          */
-        public Rect getCutOutSize() {
+        public Rect getDrawingRange() {
             return mPref.getRect("preview_clip_left",
                     "preview_clip_top",
                     "preview_clip_right",
@@ -953,7 +975,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          *
          * @param rect 切り抜き範囲
          */
-        public void setCutOutSize(Rect rect) {
+        public void setDrawingRange(Rect rect) {
             if (rect == null) {
                 mPref.remove("preview_clip_left");
                 mPref.remove("preview_clip_top");

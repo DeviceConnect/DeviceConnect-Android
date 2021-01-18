@@ -211,7 +211,6 @@ public abstract class VideoEncoder extends MediaEncoder {
         String mimeType = videoQuality.getMimeType();
         MediaCodecInfo codecInfo = null;
 
-        boolean configureH264HighProfile = false;
         boolean useSoftware = videoQuality.isUseSoftwareEncoder();
 
         List<MediaCodecInfo> infoList = getMediaCodecInfo(mimeType, colorFormat);
@@ -222,15 +221,6 @@ public abstract class VideoEncoder extends MediaEncoder {
         for (MediaCodecInfo info : infoList) {
             if (codecInfo == null || (useSoftware == !isHardware(info))) {
                 codecInfo = info;
-            }
-        }
-
-        if (MIME_TYPE_H264.equalsIgnoreCase(mimeType)) {
-            for (MediaCodecInfo info : infoList) {
-                if (info.getName().startsWith("OMX.Exynos.") && (useSoftware == !isHardware(info))) {
-                    configureH264HighProfile = true;
-                    codecInfo = info;
-                }
             }
         }
 
@@ -291,15 +281,20 @@ public abstract class VideoEncoder extends MediaEncoder {
                     break;
             }
         }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // 0: realtime priority
             // 1: non-realtime priority (best effort).
             format.setInteger(MediaFormat.KEY_PRIORITY, 0x00);
 
-            // H264 で High Profile をサポートしている場合は使用するようにします。
-            if (configureH264HighProfile) {
-                format.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileHigh);
-                format.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel3);
+            // エンコーダのプロファイルとレベルを設定
+            int profile = videoQuality.getProfile();
+            int level = videoQuality.getLevel();
+            if (profile != 0 && level != 0) {
+                if (isProfileSupported(codecCapabilities, profile, level)) {
+                    format.setInteger(MediaFormat.KEY_PROFILE, profile);
+                    format.setInteger(MediaFormat.KEY_LEVEL, level);
+                }
             }
         }
 
@@ -309,9 +304,35 @@ public abstract class VideoEncoder extends MediaEncoder {
             format.setInteger(MediaFormat.KEY_LATENCY, 0);
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            int intraRefresh = videoQuality.getIntraRefresh();
+            if (intraRefresh != 0) {
+                format.setInteger(MediaFormat.KEY_INTRA_REFRESH_PERIOD, intraRefresh);
+            }
+        }
+
         MediaCodec mediaCodec = MediaCodec.createByCodecName(codecInfo.getName());
         mediaCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         return mediaCodec;
+    }
+
+    /**
+     * コーデックが指定されたプロファイルとレベルをサポートしているか確認します.
+     *
+     * @param codecCapabilities コーデックの機能
+     * @param profile プロファイル
+     * @param level レベル
+     * @return サポートしている場合はtrue、それ以外はfalse
+     */
+    private boolean isProfileSupported(MediaCodecInfo.CodecCapabilities codecCapabilities, int profile, int level) {
+        if (codecCapabilities.profileLevels != null) {
+            for (MediaCodecInfo.CodecProfileLevel c : codecCapabilities.profileLevels) {
+                if (c.profile == profile && c.level >= level) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**

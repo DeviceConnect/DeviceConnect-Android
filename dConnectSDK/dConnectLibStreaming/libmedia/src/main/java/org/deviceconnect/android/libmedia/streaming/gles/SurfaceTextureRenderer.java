@@ -24,20 +24,20 @@ public class SurfaceTextureRenderer {
     private static final float[] TRIANGLE_VERTICES_DATA = {
             // X, Y, Z, U, V
             -1.0f, -1.0f, 0.f, 0.f, 0.f,
-            1.0f, -1.0f, 0.f, 1.f, 0.f,
+             1.0f, -1.0f, 0.f, 1.f, 0.f,
             -1.0f,  1.0f, 0.f, 0.f, 1.f,
-            1.0f,  1.0f, 0.f, 1.f, 1.f,
+             1.0f,  1.0f, 0.f, 1.f, 1.f,
     };
 
     private static final float[] TRIANGLE_VERTICES_DATA_2 = {
             // X, Y, Z, U, V
             -1.0f, -1.0f, 0.f, 0.f, 1.f,
-            1.0f, -1.0f, 0.f, 1.f, 1.f,
+             1.0f, -1.0f, 0.f, 1.f, 1.f,
             -1.0f,  1.0f, 0.f, 0.f, 0.f,
-            1.0f,  1.0f, 0.f, 1.f, 0.f,
+             1.0f,  1.0f, 0.f, 1.f, 0.f,
     };
 
-    private FloatBuffer mTriangleVertices;
+    private final FloatBuffer mTriangleVertices;
 
     private static final String VERTEX_SHADER =
             "uniform mat4 uMVPMatrix;\n" +
@@ -59,8 +59,8 @@ public class SurfaceTextureRenderer {
                     "    gl_FragColor = texture2D(sTexture, vTextureCoord);\n" +
                     "}\n";
 
-    private float[] mMVPMatrix = new float[16];
-    private float[] mSTMatrix = new float[16];
+    private final float[] mMVPMatrix = new float[16];
+    private final float[] mSTMatrix = new float[16];
 
     private int mProgram;
     private int mVertexShader;
@@ -89,6 +89,20 @@ public class SurfaceTextureRenderer {
         Matrix.setIdentityM(mMVPMatrix, 0);
     }
 
+    /**
+     * テクスチャの ID を取得します.
+     *
+     * {@link #surfaceCreated()} が呼び出されていない場合には 0 が返却されます。
+     *
+     * @return テクスチャの ID
+     */
+    public int getTextureId() {
+        return mTextureID;
+    }
+
+    /**
+     * 描画用の SurfaceTexture を作成します.
+     */
     public void surfaceCreated() {
         mProgram = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
         if (mProgram == 0) {
@@ -122,6 +136,9 @@ public class SurfaceTextureRenderer {
         checkGlError("glTexParameter");
     }
 
+    /**
+     * 描画用の SurfaceTexture を破棄します.
+     */
     public void surfaceDestroy() {
         if (mTextureID != 0) {
             GLES20.glDeleteTextures(1, new int[] {mTextureID}, 0);
@@ -144,10 +161,12 @@ public class SurfaceTextureRenderer {
         }
     }
 
-    public int getTextureId() {
-        return mTextureID;
-    }
-
+    /**
+     * 描画処理を行います.
+     *
+     * @param st テクスチャに使用する SurfaceTexture
+     * @param displayRotation 画面の回転
+     */
     public void drawFrame(SurfaceTexture st, int displayRotation) {
         st.getTransformMatrix(mSTMatrix);
 
@@ -200,6 +219,16 @@ public class SurfaceTextureRenderer {
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
     }
 
+    /**
+     * 描画範囲を設定します.
+     *
+     * @param left 描画を開始するx座標
+     * @param top 描画を開始するy座標
+     * @param right 描画を終了するx座標
+     * @param bottom 描画を終了するy座標
+     * @param width 画像の横幅
+     * @param height 画像の縦幅
+     */
     public void setDrawingRange(int left, int top, int right, int bottom, int width, int height) {
         float l = left / (float) width;
         float t = 1.0f - bottom / (float) height;
@@ -208,17 +237,17 @@ public class SurfaceTextureRenderer {
         setDrawingRange(l, t, r, b);
     }
 
-    public void setDrawingRange(float l, float t, float r, float b) {
-        float[] TRIANGLE_VERTICES_DATA = {
+    private void setDrawingRange(float l, float t, float r, float b) {
+        float[] triangleVerticesData = {
                 // X, Y, Z, U, V
                 -1.0f, -1.0f, 0.f, l, t,
-                1.0f, -1.0f, 0.f, r, t,
+                 1.0f, -1.0f, 0.f, r, t,
                 -1.0f,  1.0f, 0.f, l, b,
-                1.0f,  1.0f, 0.f, r, b,
+                 1.0f,  1.0f, 0.f, r, b,
         };
 
         mTriangleVertices.clear();
-        mTriangleVertices.put(TRIANGLE_VERTICES_DATA).position(0);
+        mTriangleVertices.put(triangleVerticesData).position(0);
     }
 
     private int loadShader(int shaderType, String source) {

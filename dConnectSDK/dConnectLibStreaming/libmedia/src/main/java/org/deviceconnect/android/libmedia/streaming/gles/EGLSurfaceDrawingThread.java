@@ -320,13 +320,13 @@ public class EGLSurfaceDrawingThread {
         SurfaceTexture st = manager.getSurfaceTexture();
         int w = isSwappedDimensions() ? mHeight : mWidth;
         int h = isSwappedDimensions() ? mWidth : mHeight;
-        if (mCutOutRect != null) {
-            manager.setCutOutRect(
-                    mCutOutRect.left, mCutOutRect.top,
-                    mCutOutRect.right, mCutOutRect.bottom,
+        if (mDrawingRange != null) {
+            manager.setDrawingRange(
+                    mDrawingRange.left, mDrawingRange.top,
+                    mDrawingRange.right, mDrawingRange.bottom,
                     w, h);
-            int cutW = (mCutOutRect.right - mCutOutRect.left);
-            int cutH = (mCutOutRect.bottom - mCutOutRect.top);
+            int cutW = (mDrawingRange.right - mDrawingRange.left);
+            int cutH = (mDrawingRange.bottom - mDrawingRange.top);
             w = isSwappedDimensions() ? cutH : cutW;
             h = isSwappedDimensions() ? cutW : cutH;
         }
@@ -427,10 +427,10 @@ public class EGLSurfaceDrawingThread {
         }
     }
 
-    private Rect mCutOutRect;
+    private Rect mDrawingRange;
 
-    public void setCutOutRect(Rect rect) {
-        mCutOutRect = rect;
+    public void setDrawingRange(Rect rect) {
+        mDrawingRange = rect;
     }
 
     /**

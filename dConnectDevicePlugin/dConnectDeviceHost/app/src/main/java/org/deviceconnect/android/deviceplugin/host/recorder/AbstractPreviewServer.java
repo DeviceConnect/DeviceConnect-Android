@@ -1,8 +1,11 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.content.Context;
+import android.media.AudioFormat;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
+import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import javax.net.ssl.SSLContext;
 
@@ -133,5 +136,54 @@ public abstract class AbstractPreviewServer implements PreviewServer {
      */
     public HostMediaRecorder getRecorder() {
         return mHostMediaRecorder;
+    }
+
+    /**
+     * VideoEncoder の設定に、HostMediaRecorder の設定を反映します.
+     *
+     * @param videoQuality 設定を行う VideoEncoder の VideoQuality
+     */
+    public void setVideoQuality(VideoQuality videoQuality) {
+        HostMediaRecorder recorder = getRecorder();
+        HostMediaRecorder.Settings settings = recorder.getSettings();
+
+        videoQuality.setVideoWidth(settings.getPreviewSize().getWidth());
+        videoQuality.setVideoHeight(settings.getPreviewSize().getHeight());
+        videoQuality.setBitRate(settings.getPreviewBitRate());
+        videoQuality.setFrameRate(settings.getPreviewMaxFrameRate());
+        videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());
+        videoQuality.setUseSoftwareEncoder(settings.isUseSoftwareEncoder());
+        videoQuality.setIntraRefresh(settings.getIntraRefresh());
+    }
+
+    /**
+     * AudioEncoder の設定に、HostMediaRecorder の設定を反映します.
+     *
+     * @param audioQuality 設定を行う AudioEncoder の AudioQuality
+     */
+    public void setAudioQuality(AudioQuality audioQuality) {
+        HostMediaRecorder recorder = getRecorder();
+        HostMediaRecorder.Settings settings = recorder.getSettings();
+
+        audioQuality.setChannel(settings.getPreviewChannel() == 1 ?
+                AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO);
+        audioQuality.setSamplingRate(settings.getPreviewSampleRate());
+        audioQuality.setBitRate(settings.getPreviewAudioBitRate());
+        audioQuality.setUseAEC(settings.isUseAEC());
+
+//        // アプリの録音機能
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//            MediaProjectionProvider client = recorder.getMediaProjectionClient();
+//            if (client != null && client.getMediaProjection() != null) {
+//                MediaProjection mediaProjection = client.getMediaProjection();
+//                AudioPlaybackCaptureConfiguration configuration =
+//                        new AudioPlaybackCaptureConfiguration.Builder(mediaProjection)
+//                                .addMatchingUsage(AudioAttributes.USAGE_GAME)
+//                                .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
+//                                .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
+//                                .build();
+//                ((MicAudioQuality) audioQuality).setCaptureConfig(configuration);
+//            }
+//        }
     }
 }

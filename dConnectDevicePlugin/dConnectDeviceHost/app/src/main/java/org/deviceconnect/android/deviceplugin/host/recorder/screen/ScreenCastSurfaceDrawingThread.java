@@ -11,7 +11,7 @@ public class ScreenCastSurfaceDrawingThread extends EGLSurfaceDrawingThread {
     /**
      * Android 端末の画面をキャストを管理するクラス.
      */
-    private ScreenCastRecorder mRecorder;
+    private final ScreenCastRecorder mRecorder;
 
     /**
      * Android 端末の画面をキャストするためのクラス.

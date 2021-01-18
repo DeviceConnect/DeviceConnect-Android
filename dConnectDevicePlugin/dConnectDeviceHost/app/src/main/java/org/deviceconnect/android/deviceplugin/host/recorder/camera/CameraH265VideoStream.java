@@ -7,7 +7,7 @@ public class CameraH265VideoStream extends H265VideoStream {
     /**
      * 映像用エンコーダ.
      */
-    private VideoEncoder mVideoEncoder;
+    private final VideoEncoder mVideoEncoder;
 
     /**
      * コンストラクタ.

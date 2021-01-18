@@ -33,7 +33,6 @@ public class CameraVideoEncoder extends SurfaceVideoEncoder {
 
     @Override
     protected void onStartSurfaceDrawing() {
-
     }
 
     @Override

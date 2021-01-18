@@ -227,6 +227,36 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         void onDisallowed();
     }
 
+    enum VideoEncoderName {
+        H264("h264", "video/avc"),
+        H265("h265", "video/hevc");
+
+        private final String mName;
+        private final String mValue;
+
+        VideoEncoderName(String name, String value) {
+            mName = name;
+            mValue = value;
+        }
+
+        public String getName() {
+            return mName;
+        }
+
+        public String getValue() {
+            return mValue;
+        }
+
+        public static VideoEncoderName nameOf(String name) {
+            for (VideoEncoderName encoder : values()) {
+                if (encoder.getName().equalsIgnoreCase(name)) {
+                    return encoder;
+                }
+            }
+            return H264;
+        }
+    }
+
     /**
      * MediaRecorder の状態.
      */
@@ -343,18 +373,31 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         }
 
         /**
-         * プレビューの配信エンコードのマイムタイプを取得します.
+         * プレビュー配信エンコード名を取得します.
          *
-         * @return プレビューの配信エンコードのマイムタイプ
+         * @return エンコード名
+         */
+        public VideoEncoderName getPreviewEncoderName() {
+            return VideoEncoderName.nameOf(getPreviewEncoder());
+        }
+
+        public void setPreviewEncoderName(VideoEncoderName name) {
+            setPreviewEncoder(name.getName());
+        }
+
+        /**
+         * プレビューの配信エンコードの名前を取得します.
+         *
+         * @return プレビューの配信エンコードの名前
          */
         public String getPreviewEncoder() {
             return mPref.getString("preview_encoder", "video/avc");
         }
 
         /**
-         * プレビューの配信エンコードのマイムタイプを設定します.
+         * プレビューの配信エンコードの名前を設定します.
          *
-         * @param encoder プレビューの配信エンコードのマイムタイプ
+         * @param encoder プレビューの配信エンコードの名前
          */
         public void setPreviewEncoder(String encoder) {
             if (!isSupportedEncoder(encoder)) {

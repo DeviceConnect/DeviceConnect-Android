@@ -84,7 +84,7 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
             cameraWrapper.getOptions().setWhiteBalance(settings.getPreviewWhiteBalance());
             cameraWrapper.startPreview(new Surface(surfaceTexture), false);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -92,7 +92,7 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
         try {
             mRecorder.getCameraWrapper().stopPreview();
         } catch (Exception e) {
-            e.printStackTrace();
+            // ignore.
         }
     }
 }

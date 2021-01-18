@@ -631,6 +631,27 @@
             "type": "integer"
           },
           {
+            "name": "previewEncoder",
+            "description": "プレビュー配信を行う時のエンコーダ。<br>h264 とサポートしている場合には、h265を指定できる。",
+            "in": "formData",
+            "required": false,
+            "enum": [
+              "h264", "h265"
+            ],
+            "type": "string"
+          },
+          {
+            "name": "jpegQuality",
+            "description": "Motion JPEG を配信する時のクオリティ。<br>0.0 から 1.0 の範囲で設定できる。",
+            "in": "formData",
+            "required": false,
+            "minimum": 0.0,
+            "exclusiveMinimum": false,
+            "maximum": 1.0,
+            "exclusiveMaximum": false,
+            "type": "number"
+          },
+          {
             "name": "mimeType",
             "description": "MimeType。動画録画・音声録音するときのエンコードするタイプ。",
             "in": "formData",

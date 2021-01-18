@@ -185,6 +185,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             Integer previewBitRate = parseInteger(request, "previewBitRate");
             Integer previewKeyFrameInterval = parseInteger(request, "previewKeyFrameInterval");
             String previewEncoder = request.getStringExtra("previewEncoder");
+            Double jpegQuality = parseDouble(request, "jpegQuality");
 
             HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
@@ -245,6 +246,15 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     return;
                 }
                 settings.setPreviewEncoder(previewEncoder);
+            }
+
+            if (jpegQuality != null) {
+                if (jpegQuality < 0.0 || jpegQuality > 1.0) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "jpegQuality is invalid. jpegQuality=" + jpegQuality);
+                    return;
+                }
+                settings.setPreviewQuality((int) (jpegQuality * 100));
             }
 
             recorder.onConfigChange();

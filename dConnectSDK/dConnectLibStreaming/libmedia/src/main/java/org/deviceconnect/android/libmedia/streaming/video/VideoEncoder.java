@@ -21,26 +21,6 @@ public abstract class VideoEncoder extends MediaEncoder {
     private static final String TAG = "VIDEO-ENCODER";
 
     /**
-     * H.264 のマイムタイプを定義.
-     */
-    private static final String MIME_TYPE_H264 = "video/avc";
-
-    /**
-     * H.265 のマイムタイプを定義.
-     */
-    private static final String MIME_TYPE_H265 = "video/hevc";
-
-    /**
-     * VP8 のマイムタイプを定義.
-     */
-    private static final String MIME_TYPE_VP8 = "video/x-vnd.on2.vp8";
-
-    /**
-     * VP9 のマイムタイプを定義.
-     */
-    private static final String MIME_TYPE_VP9 = "video/x-vnd.on2.vp9";
-
-    /**
      * キーフレームの同期フラグ.
      */
     private boolean mSyncKeyFrame;

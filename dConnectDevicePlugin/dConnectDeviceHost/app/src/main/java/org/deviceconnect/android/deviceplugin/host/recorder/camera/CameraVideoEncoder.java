@@ -11,14 +11,14 @@ public class CameraVideoEncoder extends SurfaceVideoEncoder {
     /**
      * 映像のエンコード設定.
      */
-    private CameraVideoQuality mVideoQuality;
+    private final CameraVideoQuality mVideoQuality;
 
-    public CameraVideoEncoder(Camera2Recorder camera2Recorder) {
-        this(camera2Recorder, "video/avc");
+    public CameraVideoEncoder(Camera2Recorder recorder) {
+        this(recorder, "video/avc");
     }
 
-    public CameraVideoEncoder(Camera2Recorder camera2Recorder, String mimeType) {
-        super(camera2Recorder.getSurfaceDrawingThread());
+    public CameraVideoEncoder(Camera2Recorder recorder, String mimeType) {
+        super(recorder.getSurfaceDrawingThread());
         mVideoQuality = new CameraVideoQuality(mimeType);
     }
 

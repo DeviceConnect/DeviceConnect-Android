@@ -24,17 +24,7 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
     /**
      * オーバーレイを管理するクラス.
      */
-    private OverlayManager mOverlayManager;
-
-    /**
-     * コンテキスト.
-     */
-    private Context mContext;
-
-    /**
-     * カメラを操作するレコーダ.
-     */
-    private Camera2Recorder mRecorder;
+    private final OverlayManager mOverlayManager;
 
     /**
      * コンストラクタ.
@@ -45,9 +35,7 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
     Camera2PreviewServerProvider(final Context context, final Camera2Recorder recorder) {
         super(context, recorder);
 
-        mContext = context;
-        mRecorder = recorder;
-        mOverlayManager = new OverlayManager(mContext, recorder);
+        mOverlayManager = new OverlayManager(context, recorder);
 
         HostMediaRecorder.Settings settings = recorder.getSettings();
 
@@ -77,44 +65,4 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
         super.onConfigChange();
         mOverlayManager.onConfigChange();
     }
-
-//    @Override
-//    protected Notification createNotification(PendingIntent pendingIntent, String channelId, String name) {
-//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-//            int iconType = R.drawable.dconnect_icon_lollipop;
-//            NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext(), channelId);
-//            builder.setSmallIcon(iconType);
-//            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title, name));
-//            builder.setContentText(mContext.getString(R.string.overlay_preview_content_message2));
-//            builder.setWhen(System.currentTimeMillis());
-//            builder.setAutoCancel(true);
-//            builder.setOngoing(true);
-//            builder.addAction(new NotificationCompat.Action.Builder(iconType,
-//                    mContext.getString(R.string.overlay_preview_show), mOverlayManager.createShowActionIntent(mRecorder.getId())).build());
-//            builder.addAction(new NotificationCompat.Action.Builder(iconType,
-//                    mContext.getString(R.string.overlay_preview_hide), mOverlayManager.createHideActionIntent(mRecorder.getId())).build());
-//            builder.addAction(new NotificationCompat.Action.Builder(iconType,
-//                    mContext.getString(R.string.overlay_preview_stop), pendingIntent).build());
-//            return builder.build();
-//        } else {
-//            int iconType = R.drawable.dconnect_icon_lollipop;
-//            Notification.Builder builder = new Notification.Builder(mContext.getApplicationContext());
-//            builder.setSmallIcon(iconType);
-//            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title, name));
-//            builder.setContentText(mContext.getString(R.string.overlay_preview_content_message2));
-//            builder.setWhen(System.currentTimeMillis());
-//            builder.setAutoCancel(true);
-//            builder.setOngoing(true);
-//            builder.addAction(new Notification.Action.Builder(null,
-//                    mContext.getString(R.string.overlay_preview_show), mOverlayManager.createShowActionIntent(mRecorder.getId())).build());
-//            builder.addAction(new Notification.Action.Builder(null,
-//                    mContext.getString(R.string.overlay_preview_hide), mOverlayManager.createHideActionIntent(mRecorder.getId())).build());
-//            builder.addAction(new Notification.Action.Builder(null,
-//                    mContext.getString(R.string.overlay_preview_stop), pendingIntent).build());
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && channelId != null) {
-//                builder.setChannelId(channelId);
-//            }
-//            return builder.build();
-//        }
-//    }
 }

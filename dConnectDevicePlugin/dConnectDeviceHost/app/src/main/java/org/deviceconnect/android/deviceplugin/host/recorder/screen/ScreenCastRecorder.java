@@ -65,25 +65,24 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
     private final Context mContext;
-
     private final MediaProjectionProvider mMediaProjectionProvider;
     private final ScreenCastManager mScreenCastMgr;
-    private final Handler mImageReaderHandler = new Handler(Looper.getMainLooper());
     private final Settings mSettings;
+    private final Handler mImageReaderHandler = new Handler(Looper.getMainLooper());
 
     private final ScreenCastPreviewServerProvider mScreenCastPreviewServerProvider;
     private final ScreenCastBroadcasterProvider mScreenCastBroadcasterProvider;
     private final ScreenCastSurfaceDrawingThread mScreenCastSurfaceDrawingThread;
 
-    public ScreenCastRecorder(final Context context, final FileManager fileMgr, MediaProjectionProvider client) {
+    public ScreenCastRecorder(final Context context, final FileManager fileMgr, MediaProjectionProvider provider) {
         super(context, fileMgr);
         mContext = context;
         mSettings = new Settings(context, this);
 
         initSupportedSettings();
 
-        mMediaProjectionProvider = client;
-        mScreenCastMgr = new ScreenCastManager(context, client);
+        mMediaProjectionProvider = provider;
+        mScreenCastMgr = new ScreenCastManager(context, provider);
         mScreenCastSurfaceDrawingThread = new ScreenCastSurfaceDrawingThread(this);
         mScreenCastPreviewServerProvider = new ScreenCastPreviewServerProvider(context, this);
         mScreenCastBroadcasterProvider = new ScreenCastBroadcasterProvider(context, this);
@@ -292,22 +291,26 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
     @Override
     protected MP4Recorder createMP4Recorder() {
-        File filePath = new File(getFileManager().getBasePath(), generateVideoFileName());
-        return new SurfaceMP4Recorder(filePath, mSettings, mScreenCastSurfaceDrawingThread);
+        File file = new File(getFileManager().getBasePath(), generateVideoFileName());
+        return new SurfaceMP4Recorder(file, mSettings, mScreenCastSurfaceDrawingThread);
     }
 
     // private method.
+
+    public ScreenCastManager getScreenCastMgr() {
+        return mScreenCastMgr;
+    }
+
+    public MediaProjectionProvider getMediaProjectionProvider() {
+        return mMediaProjectionProvider;
+    }
 
     private String generateVideoFileName() {
         return FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + ".mp4";
     }
 
-    public MediaProjectionProvider getMediaProjectionClient() {
-        return mMediaProjectionProvider;
-    }
-
-    public ScreenCastManager getScreenCastMgr() {
-        return mScreenCastMgr;
+    private String generateImageFileName() {
+        return FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + FILE_EXTENSION;
     }
 
     @SuppressLint("WrongConstant")
@@ -343,7 +346,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-            storePhoto(createNewFileName(), baos.toByteArray(), listener);
+            storePhoto(generateImageFileName(), baos.toByteArray(), listener);
 
             setState(State.INACTIVE);
         } catch (OutOfMemoryError e) {
@@ -353,9 +356,5 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
             setState(State.ERROR);
             listener.onFailedTakePhoto("Taking screenshot is shutdown.");
         }
-    }
-
-    private String createNewFileName() {
-        return FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + FILE_EXTENSION;
     }
 }

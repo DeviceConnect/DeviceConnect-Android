@@ -354,12 +354,8 @@ public class Camera2Recorder extends AbstractMediaRecorder {
 
     @Override
     protected MP4Recorder createMP4Recorder() {
-        File filePath = new File(mFileManager.getBasePath(), generateVideoFileName());
-        return new SurfaceMP4Recorder(filePath, mSettings, mCameraSurfaceDrawingThread);
-    }
-
-    private String generateVideoFileName() {
-        return FILENAME_PREFIX + DATE_FORMAT.format(new Date()) + ".mp4";
+        File file = new File(mFileManager.getBasePath(), generateVideoFileName());
+        return new SurfaceMP4Recorder(file, mSettings, mCameraSurfaceDrawingThread);
     }
 
     /**
@@ -393,11 +389,20 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     }
 
     /**
-     * 新規のファイル名を作成する.
+     * 新規の動画ファイル名を作成します.
      *
      * @return ファイル名
      */
-    private String createNewFileName() {
+    private String generateVideoFileName() {
+        return FILENAME_PREFIX + DATE_FORMAT.format(new Date()) + ".mp4";
+    }
+
+    /**
+     * 新規の静止画ファイル名を作成します.
+     *
+     * @return ファイル名
+     */
+    private String generateImageFileName() {
         return FILENAME_PREFIX + DATE_FORMAT.format(new Date()) + FILE_EXTENSION;
     }
 
@@ -426,7 +431,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
                     degrees = (180 - degrees) % 360;
                 }
                 jpeg = ImageUtil.rotateJPEG(jpeg, PHOTO_JPEG_QUALITY, degrees);
-                storePhoto(createNewFileName(), jpeg, listener);
+                storePhoto(generateImageFileName(), jpeg, listener);
 
                 photo.close();
 

@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public abstract class MP4Recorder {
     private MediaRecorder mMediaRecorder;
-    private File mOutputFile;
+    private final File mOutputFile;
     private Handler mRecorderThread;
     private State mState = State.INACTIVE;
 

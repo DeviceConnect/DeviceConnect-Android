@@ -8,7 +8,7 @@ public class ScreenCastVideoEncoder extends SurfaceVideoEncoder {
     /**
      * エンコードするための情報を格納するクラス.
      */
-    private VideoQuality mVideoQuality;
+    private final VideoQuality mVideoQuality;
 
     public ScreenCastVideoEncoder(ScreenCastRecorder recorder) {
         this(recorder, "video/avc");

@@ -1,6 +1,7 @@
 package org.deviceconnect.android.libmedia.streaming.audio;
 
 import android.media.AudioFormat;
+import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.media.audiofx.AcousticEchoCanceler;
@@ -139,6 +140,23 @@ public class MicAACLATMEncoder extends AudioEncoder {
     }
 
     /**
+     * 音声ソースを取得します.
+     *
+     * @return 音声ソース
+     */
+    private int getAudioSource() {
+        switch (mAudioQuality.getSource()) {
+            case DEFAULT:
+                return MediaRecorder.AudioSource.DEFAULT;
+            case MIC:
+                return MediaRecorder.AudioSource.MIC;
+            case APP:
+            default:
+                throw new RuntimeException("Audio source is not supported.");
+        }
+    }
+
+    /**
      * AudioRecord を開始します.
      */
     private void startAudioRecord() {
@@ -161,15 +179,23 @@ public class MicAACLATMEncoder extends AudioEncoder {
                             .build())
                     .setBufferSizeInBytes(mBufferSize);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && mAudioQuality.getCaptureConfig() != null) {
-                builder.setAudioPlaybackCaptureConfig(mAudioQuality.getCaptureConfig());
-            } else {
-                builder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+            switch (mAudioQuality.getSource()) {
+                case DEFAULT:
+                case MIC:
+                    builder.setAudioSource(getAudioSource());
+                    break;
+                case APP:
+                    AudioPlaybackCaptureConfiguration config = mAudioQuality.getCaptureConfig();
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && config != null) {
+                        builder.setAudioPlaybackCaptureConfig(config);
+                    } else {
+                        throw new RuntimeException("Audio capture settings is invalid.");
+                    }
+                    break;
             }
-
             mAudioRecord = builder.build();
         } else {
-            mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.DEFAULT,
+            mAudioRecord = new AudioRecord(getAudioSource(),
                     mAudioQuality.getSamplingRate(),
                     mAudioQuality.getChannel(),
                     mAudioQuality.getFormat(),

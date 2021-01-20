@@ -227,24 +227,49 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         void onDisallowed();
     }
 
+    enum AudioSource {
+        DEFAULT("default"),
+        MIC("mic"),
+        APP("app");
+
+        private final String mSource;
+
+        AudioSource(String source) {
+            mSource = source;
+        }
+
+        public String getValue() {
+            return mSource;
+        }
+
+        public static AudioSource typeOf(String source) {
+            for (AudioSource audioSource : values()) {
+                if (audioSource.mSource.equalsIgnoreCase(source)) {
+                    return audioSource;
+                }
+            }
+            return null;
+        }
+    }
+
     enum VideoEncoderName {
         H264("h264", "video/avc"),
         H265("h265", "video/hevc");
 
         private final String mName;
-        private final String mValue;
+        private final String mMimeType;
 
-        VideoEncoderName(String name, String value) {
+        VideoEncoderName(String name, String mimeType) {
             mName = name;
-            mValue = value;
+            mMimeType = mimeType;
         }
 
         public String getName() {
             return mName;
         }
 
-        public String getValue() {
-            return mValue;
+        public String getMimeType() {
+            return mMimeType;
         }
 
         public static VideoEncoderName nameOf(String name) {
@@ -906,6 +931,26 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         }
 
         /**
+         * プレビューの音声タイプを取得します.
+         *
+         * @return 音声タイプ
+         */
+        public AudioSource getAudioSource() {
+            return AudioSource.typeOf(mPref.getString("preview_audio_source", "default"));
+        }
+
+        /**
+         * プレビューの音声タイプを設定します.
+         *
+         * @param audioSource 音声タイプ
+         */
+        public void setAudioSource(AudioSource audioSource) {
+            mPref.put("preview_audio_source", audioSource.mSource);
+        }
+
+        // 配信
+
+        /**
          * 配信先の URI を取得します.
          *
          * 設定されていない場合は null を返却します.
@@ -924,6 +969,8 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         public void setBroadcastURI(String broadcastURI) {
             mPref.put("broadcast_uri", broadcastURI);
         }
+
+        // ポート番号
 
         /**
          * Motion JPEG サーバ用のポート番号を取得します.

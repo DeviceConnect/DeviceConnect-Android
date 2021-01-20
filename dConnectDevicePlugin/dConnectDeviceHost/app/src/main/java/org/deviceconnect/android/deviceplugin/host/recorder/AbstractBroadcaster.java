@@ -1,0 +1,76 @@
+package org.deviceconnect.android.deviceplugin.host.recorder;
+
+import android.media.AudioFormat;
+
+import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
+import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
+
+public abstract class AbstractBroadcaster implements Broadcaster {
+    /**
+     * 配信先の URI.
+     */
+    private final String mBroadcastURI;
+
+    /**
+     * カメラを操作するレコーダ.
+     */
+    private final HostMediaRecorder mRecorder;
+
+    public AbstractBroadcaster(HostMediaRecorder recorder, String broadcastURI) {
+        mRecorder = recorder;
+        mBroadcastURI = broadcastURI;
+    }
+
+    @Override
+    public String getMimeType() {
+        return "";
+    }
+
+    @Override
+    public String getBroadcastURI() {
+        return mBroadcastURI;
+    }
+
+    /**
+     * Broadcaster で使用するレコーダを取得します.
+     *
+     * @return Broadcaster で使用するレコーダ
+     */
+    public HostMediaRecorder getRecorder() {
+        return mRecorder;
+    }
+
+    /**
+     * VideoEncoder の設定に、HostMediaRecorder の設定を反映します.
+     *
+     * @param videoQuality 設定を行う VideoEncoder の VideoQuality
+     */
+    public void setVideoQuality(VideoQuality videoQuality) {
+        HostMediaRecorder recorder = getRecorder();
+        HostMediaRecorder.Settings settings = recorder.getSettings();
+
+        videoQuality.setVideoWidth(settings.getPreviewSize().getWidth());
+        videoQuality.setVideoHeight(settings.getPreviewSize().getHeight());
+        videoQuality.setBitRate(settings.getPreviewBitRate());
+        videoQuality.setFrameRate(settings.getPreviewMaxFrameRate());
+        videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());
+        videoQuality.setUseSoftwareEncoder(settings.isUseSoftwareEncoder());
+        videoQuality.setIntraRefresh(settings.getIntraRefresh());
+    }
+
+    /**
+     * AudioEncoder の設定に、HostMediaRecorder の設定を反映します.
+     *
+     * @param audioQuality 設定を行う AudioEncoder の AudioQuality
+     */
+    public void setAudioQuality(AudioQuality audioQuality) {
+        HostMediaRecorder recorder = getRecorder();
+        HostMediaRecorder.Settings settings = recorder.getSettings();
+
+        audioQuality.setChannel(settings.getPreviewChannel() == 1 ?
+                AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO);
+        audioQuality.setSamplingRate(settings.getPreviewSampleRate());
+        audioQuality.setBitRate(settings.getPreviewAudioBitRate());
+        audioQuality.setUseAEC(settings.isUseAEC());
+    }
+}

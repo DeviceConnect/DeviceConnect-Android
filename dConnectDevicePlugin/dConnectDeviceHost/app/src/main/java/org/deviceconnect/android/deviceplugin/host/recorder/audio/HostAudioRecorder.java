@@ -45,7 +45,7 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     /**
      * マイムタイプ一覧を定義.
      */
-    private List<String> mMimeTypes = new ArrayList<String>() {
+    private final List<String> mMimeTypes = new ArrayList<String>() {
         {
             add("audio/aac");
         }
@@ -53,8 +53,7 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
 
     private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
     private final Context mContext;
-
-    private Settings mSettings;
+    private final Settings mSettings;
 
     private AudioPreviewServerProvider mAudioPreviewServerProvider;
     private AudioBroadcasterProvider mAudioBroadcasterProvider;

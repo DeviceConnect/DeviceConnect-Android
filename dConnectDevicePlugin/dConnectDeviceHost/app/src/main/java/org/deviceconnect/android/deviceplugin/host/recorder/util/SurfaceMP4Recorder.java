@@ -12,10 +12,9 @@ import java.io.File;
 import java.io.IOException;
 
 public class SurfaceMP4Recorder extends MP4Recorder {
-    private EGLSurfaceDrawingThread mEGLSurfaceDrawingThread;
+    private final EGLSurfaceDrawingThread mEGLSurfaceDrawingThread;
+    private final HostMediaRecorder.Settings mSettings;
     private Surface mSurface;
-
-    private HostMediaRecorder.Settings mSettings;
 
     private final EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
         @Override

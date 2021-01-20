@@ -4,8 +4,8 @@ import org.deviceconnect.android.libmedia.streaming.mjpeg.SurfaceMJPEGEncoder;
 
 public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
 
-    CameraMJPEGEncoder(Camera2Recorder camera2Recorder) {
-        super(camera2Recorder.getSurfaceDrawingThread());
+    CameraMJPEGEncoder(Camera2Recorder recorder) {
+        super(recorder.getSurfaceDrawingThread());
     }
 
     // SurfaceMJPEGEncoder

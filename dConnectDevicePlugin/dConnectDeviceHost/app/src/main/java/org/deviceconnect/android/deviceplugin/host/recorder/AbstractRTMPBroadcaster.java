@@ -2,22 +2,11 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
-import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.rtmp.RtmpClient;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
-import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
-public abstract class AbstractRTMPBroadcaster implements Broadcaster {
-    /**
-     * 配信先の URI.
-     */
-    private final String mBroadcastURI;
-
-    /**
-     * カメラを操作するレコーダ.
-     */
-    private final HostMediaRecorder mRecorder;
+public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
 
     /**
      * RTMP 配信クライアント.
@@ -30,17 +19,7 @@ public abstract class AbstractRTMPBroadcaster implements Broadcaster {
     private OnEventListener mOnBroadcasterEventListener;
 
     public AbstractRTMPBroadcaster(HostMediaRecorder recorder, String broadcastURI) {
-        mRecorder = recorder;
-        mBroadcastURI = broadcastURI;
-    }
-
-    /**
-     * レコーダを取得します.
-     *
-     * @return レコーダ
-     */
-    public HostMediaRecorder getRecorder() {
-        return mRecorder;
+        super(recorder, broadcastURI);
     }
 
     /**
@@ -49,16 +28,6 @@ public abstract class AbstractRTMPBroadcaster implements Broadcaster {
      * @return RTMP で配信するための映像用エンコーダ
      */
     protected abstract VideoEncoder createVideoEncoder();
-
-    @Override
-    public String getMimeType() {
-        return "";
-    }
-
-    @Override
-    public String getBroadcastURI() {
-        return mBroadcastURI;
-    }
 
     @Override
     public void setOnEventListener(OnEventListener listener) {
@@ -72,25 +41,18 @@ public abstract class AbstractRTMPBroadcaster implements Broadcaster {
 
     @Override
     public void start(OnStartCallback callback) {
-        HostMediaRecorder.Settings settings = mRecorder.getSettings();
+        HostMediaRecorder.Settings settings = getRecorder().getSettings();
 
         VideoEncoder videoEncoder = createVideoEncoder();
-        VideoQuality videoQuality = videoEncoder.getVideoQuality();
-        videoQuality.setVideoWidth(settings.getPreviewSize().getWidth());
-        videoQuality.setVideoHeight(settings.getPreviewSize().getHeight());
-        videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());
-        videoQuality.setFrameRate(settings.getPreviewMaxFrameRate());
-        videoQuality.setBitRate(settings.getPreviewBitRate());
+        setVideoQuality(videoEncoder.getVideoQuality());
 
         AudioEncoder audioEncoder = null;
         if (settings.isAudioEnabled()) {
             audioEncoder = new MicAACLATMEncoder();
-            AudioQuality audioQuality = audioEncoder.getAudioQuality();
-            audioQuality.setBitRate(settings.getPreviewAudioBitRate());
-            audioQuality.setSamplingRate(settings.getPreviewSampleRate());
+            setAudioQuality(audioEncoder.getAudioQuality());
         }
 
-        mRtmpClient = new RtmpClient(mBroadcastURI);
+        mRtmpClient = new RtmpClient(getBroadcastURI());
         mRtmpClient.setVideoEncoder(videoEncoder);
         mRtmpClient.setAudioEncoder(audioEncoder);
         mRtmpClient.setOnEventListener(new RtmpClient.OnEventListener() {
@@ -162,6 +124,16 @@ public abstract class AbstractRTMPBroadcaster implements Broadcaster {
     @Override
     public void onConfigChange() {
         if (mRtmpClient != null) {
+            VideoEncoder videoEncoder = mRtmpClient.getVideoEncoder();
+            if (videoEncoder != null) {
+                setVideoQuality(videoEncoder.getVideoQuality());
+            }
+
+            AudioEncoder audioEncoder = mRtmpClient.getAudioEncoder();
+            if (audioEncoder != null) {
+                setAudioQuality(audioEncoder.getAudioQuality());
+            }
+
             mRtmpClient.restartVideoEncoder();
         }
     }

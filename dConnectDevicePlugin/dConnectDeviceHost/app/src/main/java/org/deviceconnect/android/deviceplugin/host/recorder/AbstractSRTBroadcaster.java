@@ -2,22 +2,11 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
-import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
-import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.broadcast.SRTClient;
 
-public abstract class AbstractSRTBroadcaster implements Broadcaster {
-    /**
-     * 配信先の URI.
-     */
-    private final String mBroadcastURI;
-
-    /**
-     * カメラを操作するレコーダ.
-     */
-    private final HostMediaRecorder mRecorder;
+public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
 
     /**
      * RTMP 配信クライアント.
@@ -30,25 +19,15 @@ public abstract class AbstractSRTBroadcaster implements Broadcaster {
     private OnEventListener mOnBroadcasterEventListener;
 
     public AbstractSRTBroadcaster(HostMediaRecorder recorder, String broadcastURI) {
-        mRecorder = recorder;
-        mBroadcastURI = broadcastURI;
+       super(recorder, broadcastURI);
     }
 
+    /**
+     * SRT 配信に使用する VideoEncoder のインスタンスを作成します.
+     *
+     * @return SRT 配信に使用する VideoEncoder
+     */
     protected abstract VideoEncoder createVideoEncoder();
-
-    public HostMediaRecorder getRecorder() {
-        return mRecorder;
-    }
-
-    @Override
-    public String getMimeType() {
-        return "";
-    }
-
-    @Override
-    public String getBroadcastURI() {
-        return mBroadcastURI;
-    }
 
     @Override
     public void setOnEventListener(OnEventListener listener) {
@@ -62,25 +41,18 @@ public abstract class AbstractSRTBroadcaster implements Broadcaster {
 
     @Override
     public void start(OnStartCallback callback) {
-        HostMediaRecorder.Settings settings = mRecorder.getSettings();
+        HostMediaRecorder.Settings settings = getRecorder().getSettings();
 
         VideoEncoder videoEncoder = createVideoEncoder();
-        VideoQuality videoQuality = videoEncoder.getVideoQuality();
-        videoQuality.setVideoWidth(settings.getPreviewSize().getWidth());
-        videoQuality.setVideoHeight(settings.getPreviewSize().getHeight());
-        videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());
-        videoQuality.setFrameRate(settings.getPreviewMaxFrameRate());
-        videoQuality.setBitRate(settings.getPreviewBitRate());
+        setVideoQuality(videoEncoder.getVideoQuality());
 
         AudioEncoder audioEncoder = null;
         if (settings.isAudioEnabled()) {
             audioEncoder = new MicAACLATMEncoder();
-            AudioQuality audioQuality = audioEncoder.getAudioQuality();
-            audioQuality.setBitRate(settings.getPreviewAudioBitRate());
-            audioQuality.setSamplingRate(settings.getPreviewSampleRate());
+            setAudioQuality(audioEncoder.getAudioQuality());
         }
 
-        mSrtClient = new SRTClient(mBroadcastURI);
+        mSrtClient = new SRTClient(getBroadcastURI());
         mSrtClient.setVideoEncoder(videoEncoder);
         mSrtClient.setAudioEncoder(audioEncoder);
         mSrtClient.setOnEventListener(new SRTClient.OnEventListener() {
@@ -115,7 +87,6 @@ public abstract class AbstractSRTBroadcaster implements Broadcaster {
 
             @Override
             public void onConnected() {
-
             }
 
             @Override
@@ -125,7 +96,6 @@ public abstract class AbstractSRTBroadcaster implements Broadcaster {
 
             @Override
             public void onNewBitrate(long bitrate) {
-
             }
         });
         mSrtClient.start();
@@ -154,6 +124,16 @@ public abstract class AbstractSRTBroadcaster implements Broadcaster {
     @Override
     public void onConfigChange() {
         if (mSrtClient != null) {
+            VideoEncoder videoEncoder = mSrtClient.getVideoEncoder();
+            if (videoEncoder != null) {
+                setVideoQuality(videoEncoder.getVideoQuality());
+            }
+
+            AudioEncoder audioEncoder = mSrtClient.getAudioEncoder();
+            if (audioEncoder != null) {
+                setAudioQuality(audioEncoder.getAudioQuality());
+            }
+
             mSrtClient.restartVideoEncoder();
         }
     }

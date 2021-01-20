@@ -4,19 +4,17 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
 import org.deviceconnect.android.libmedia.streaming.IMediaMuxer;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
-public class Mpeg4Muxer implements IMediaMuxer {
-    private static final boolean DEBUG = false;
-    private static final String TAG = "MPEG4-MUXER";
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
+public class Mpeg4Muxer implements IMediaMuxer {
     private MediaMuxer mMuxer;
-    private int mTrackIndex;
+    private int mVideoTrackIndex;
+    private int mAudioTrackIndex;
     private boolean mMuxerStarted = false;
 
     public Mpeg4Muxer(String outputPath) {
@@ -25,7 +23,8 @@ public class Mpeg4Muxer implements IMediaMuxer {
         } catch (IOException ioe) {
             throw new RuntimeException("MediaMuxer creation failed", ioe);
         }
-        mTrackIndex = -1;
+        mVideoTrackIndex = -1;
+        mAudioTrackIndex = -1;
     }
 
     @Override
@@ -36,9 +35,8 @@ public class Mpeg4Muxer implements IMediaMuxer {
 
     @Override
     public void onVideoFormatChanged(MediaFormat newFormat) {
-        mTrackIndex = mMuxer.addTrack(newFormat);
-        mMuxer.start();
-        mMuxerStarted = true;
+        mVideoTrackIndex = mMuxer.addTrack(newFormat);
+        startMixer();
     }
 
     @Override
@@ -49,20 +47,30 @@ public class Mpeg4Muxer implements IMediaMuxer {
 
         if (bufferInfo.size != 0) {
             if (!mMuxerStarted) {
-                throw new RuntimeException("muxer hasn't started");
+                return;
             }
             encodedData.position(bufferInfo.offset);
             encodedData.limit(bufferInfo.offset + bufferInfo.size);
-            mMuxer.writeSampleData(mTrackIndex, encodedData, bufferInfo);
+            mMuxer.writeSampleData(mVideoTrackIndex, encodedData, bufferInfo);
         }
     }
 
     @Override
     public void onAudioFormatChanged(MediaFormat newFormat) {
+        mAudioTrackIndex = mMuxer.addTrack(newFormat);
+        startMixer();
     }
 
     @Override
     public void onWriteAudioData(ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
+        if (bufferInfo.size != 0) {
+            if (!mMuxerStarted) {
+                return;
+            }
+            encodedData.position(bufferInfo.offset);
+            encodedData.limit(bufferInfo.offset + bufferInfo.size);
+            mMuxer.writeSampleData(mAudioTrackIndex, encodedData, bufferInfo);
+        }
     }
 
     @Override
@@ -72,5 +80,13 @@ public class Mpeg4Muxer implements IMediaMuxer {
             mMuxer.release();
             mMuxer = null;
         }
+    }
+
+    private void startMixer() {
+        if (mMuxerStarted) {
+            return;
+        }
+        mMuxer.start();
+        mMuxerStarted = true;
     }
 }

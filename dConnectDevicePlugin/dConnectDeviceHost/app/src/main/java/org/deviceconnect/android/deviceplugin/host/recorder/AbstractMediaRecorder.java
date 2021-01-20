@@ -675,6 +675,8 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
                     mMP4Recorder = null;
                 }
 
+                setState(State.INACTIVE);
+
                 if (callback != null) {
                     callback.onFailed(AbstractMediaRecorder.this,
                             "Failed to start recording because of camera problem: " + e.getMessage());

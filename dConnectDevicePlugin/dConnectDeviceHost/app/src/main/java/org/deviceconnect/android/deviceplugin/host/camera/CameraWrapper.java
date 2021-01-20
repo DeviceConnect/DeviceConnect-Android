@@ -7,11 +7,10 @@
 package org.deviceconnect.android.deviceplugin.host.camera;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
+import android.graphics.Rect;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
@@ -19,6 +18,7 @@ import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
+import android.hardware.camera2.params.MeteringRectangle;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
@@ -76,47 +76,30 @@ public class CameraWrapper {
     }
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
-
     private static final String TAG = "host.dplugin";
 
     private final String mCameraId;
-
     private final CameraManager mCameraManager;
-
     private final HandlerThread mSessionConfigurationThread = new HandlerThread("session-config");
-
     private final Handler mBackgroundHandler;
-
     private final Handler mSessionConfigurationHandler;
-
     private final ImageReader mPlaceHolderPreviewReader;
-
     private final Options mOptions;
 
     private CameraDevice mCameraDevice;
-
     private CameraCaptureSession mCaptureSession;
 
     private boolean mIsTakingStillImage;
-
     private boolean mIsPreview;
-
     private boolean mIsRecording;
+    private boolean mIsTouchOn;
+    private boolean mUseTouch;
+
 
     private Surface mStillImageSurface;
-
     private Surface mPreviewSurface;
-
     private Surface mRecordingSurface;
-
-    /**
-     * プレビュー配信の画像を確認するための Surface.
-     */
     private Surface mTargetSurface;
-
-    private boolean mIsTouchOn;
-
-    private boolean mUseTouch;
 
     private byte mPreviewJpegQuality = 100;
 
@@ -244,8 +227,14 @@ public class CameraWrapper {
     private Options initOptions() {
         Options options = new CameraWrapper.Options();
 
-        options.mAutoFocusMode = choiceAutoFocusMode(mContext, mCameraManager, mCameraId);
-        options.mAutoExposureMode = choiceAutoExposureMode(mCameraManager, mCameraId);
+        options.mAutoFocusMode = Camera2Helper.choiceAutoFocusMode(mContext, mCameraManager, mCameraId);
+        options.mAutoExposureMode = Camera2Helper.choiceAutoExposureMode(mCameraManager, mCameraId);
+
+        options.mMaxDigitalZoom = Camera2Helper.getMaxDigitalZoom(mCameraManager, mCameraId);
+        options.mSupportedStabilizationList = Camera2Helper.getSupportedStabilization(mCameraManager, mCameraId);
+        options.mSupportedOpticalStabilizationList = Camera2Helper.getSupportedOpticalStabilization(mCameraManager, mCameraId);
+        options.mSupportedNoiseReductionList = Camera2Helper.getSupportedNoiseReductionMode(mCameraManager, mCameraId);
+        options.mMaxAutoFocusRegions = Camera2Helper.getMaxMeteringArea(mCameraManager, mCameraId);
 
         List<Size> supportedPictureList = Camera2Helper.getSupportedPictureSizes(mCameraManager, mCameraId);
         options.setSupportedPictureSizeList(supportedPictureList);
@@ -308,54 +297,6 @@ public class CameraWrapper {
             return camera;
         } catch (Exception e) {
             throw new CameraWrapperException(e);
-        }
-    }
-
-    private static Integer choiceAutoFocusMode(final Context context,
-                                               final CameraManager cameraManager,
-                                               final String cameraId) {
-        PackageManager pkgMgr = context.getPackageManager();
-        if (!pkgMgr.hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)) {
-            return null;
-        }
-
-        try {
-            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
-            int[] afModes = characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
-            if (afModes == null) {
-                return null;
-            }
-            for (int afMode : afModes) {
-                if (afMode == CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
-                    return afMode;
-                }
-            }
-            return null;
-        } catch (CameraAccessException e) {
-            return null;
-        }
-    }
-
-    private static Integer choiceAutoExposureMode(final CameraManager cameraManager, final String cameraId) {
-        try {
-            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
-            int[] aeModes = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES);
-            if (aeModes == null) {
-                return null;
-            }
-            for (int aeMode : aeModes) {
-                if (aeMode == CameraMetadata.CONTROL_AE_MODE_ON_AUTO_FLASH) {
-                    return aeMode;
-                }
-            }
-            for (int aeMode : aeModes) {
-                if (aeMode == CameraMetadata.CONTROL_AE_MODE_ON) {
-                    return aeMode;
-                }
-            }
-            return null;
-        } catch (CameraAccessException e) {
-            return null;
         }
     }
 
@@ -439,17 +380,52 @@ public class CameraWrapper {
     private void setDefaultCaptureRequest(final CaptureRequest.Builder request, final boolean trigger) {
         if (mOptions.hasAutoFocus()) {
             request.set(CaptureRequest.CONTROL_AF_MODE, mOptions.mAutoFocusMode);
+
+            if (mMeteringRectangle != null) {
+                request.set(CaptureRequest.CONTROL_AF_REGIONS, new MeteringRectangle[] {mMeteringRectangle});
+            }
+
             if (trigger) {
                 request.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
             }
         }
+
         if (mOptions.hasAutoExposure()) {
             request.set(CaptureRequest.CONTROL_AE_MODE, mOptions.mAutoExposureMode);
         }
+
+        if (mOptions.mWhiteBalance != null) {
+            request.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
+            request.set(CaptureRequest.CONTROL_AWB_MODE, mOptions.mWhiteBalance);
+        }
+
         if (mOptions.mFps != null) {
             request.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mOptions.mFps);
         }
-        setWhiteBalance(request);
+
+        if (mOptions.mDigitalZoom != null && mOptions.mDigitalZoom > 1) {
+            int w = mOptions.getPreviewSize().getWidth();
+            int h = mOptions.getPreviewSize().getHeight();
+            int cx = w / 2;
+            int cy = h / 2;
+            int hw = (int) ((w >> 1) / mOptions.mDigitalZoom);
+            int hh = (int) ((h >> 1) / mOptions.mDigitalZoom);
+            Rect region = new Rect(cx - hw, cy - hh, cx + hw, cy + hh);
+            request.set(CaptureRequest.SCALER_CROP_REGION, region);
+        }
+
+        if (mOptions.mNoiseReductionMode != null) {
+            request.set(CaptureRequest.NOISE_REDUCTION_MODE, mOptions.mNoiseReductionMode);
+        }
+
+        if (mOptions.mStabilizationMode != null) {
+            request.set(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, mOptions.mStabilizationMode);
+        }
+
+        if (mOptions.mOpticalStabilizationMode != null) {
+            request.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, mOptions.mOpticalStabilizationMode);
+        }
+
         // Light が ON の場合は、CONTROL_AE_MODE を CONTROL_AE_MODE_ON にする。
         if (mIsTouchOn) {
             mUseTouch = true;
@@ -522,7 +498,6 @@ public class CameraWrapper {
         mRecordingSurface = recordingSurface;
 
         try {
-
             CameraDevice cameraDevice = openCamera();
             CameraCaptureSession captureSession = createCaptureSession(cameraDevice);
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
@@ -590,13 +565,7 @@ public class CameraWrapper {
         mStillImageSurface = stillImageSurface;
         try {
             CameraDevice cameraDevice = openCamera();
-            if (DEBUG) {
-                Log.d(TAG, "takeStillImage: Camera is open: cameraId=" + cameraDevice.getId());
-            }
             mCaptureSession = createCaptureSession(createSurfaceListForStillImage(), cameraDevice);
-            if (DEBUG) {
-                Log.d(TAG, "takeStillImage: Created capture session.");
-            }
             if (!mIsPreview) {
                 prepareCapture(cameraDevice);
             }
@@ -638,9 +607,6 @@ public class CameraWrapper {
                     }
                 }
             }, mBackgroundHandler);
-            if (DEBUG) {
-                Log.d(TAG, "takeStillImage: Started capture:");
-            }
         } catch (Throwable e) {
             if (DEBUG) {
                 Log.e(TAG, "Failed to take still image.", e);
@@ -653,7 +619,6 @@ public class CameraWrapper {
     }
 
     private void resumeRepeatingRequest() {
-
         try {
             if (mIsRecording) {
                 startRecording(mRecordingSurface, true);
@@ -669,17 +634,6 @@ public class CameraWrapper {
             if (DEBUG) {
                 Log.e(TAG, "Failed to resume recording or preview.", e);
             }
-        }
-    }
-
-    private void setWhiteBalance(final CaptureRequest.Builder request) {
-        Integer whiteBalance = getOptions().mWhiteBalance;
-        if (DEBUG) {
-            Log.d(TAG, "White Balance: " + whiteBalance);
-        }
-        if (whiteBalance != null) {
-            request.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
-            request.set(CaptureRequest.CONTROL_AWB_MODE, whiteBalance);
         }
     }
 
@@ -879,11 +833,42 @@ public class CameraWrapper {
         }
     }
 
+    private final static int AF_TOUCH_WIDTH = 300;
+    private final static int AF_TOUCH_HEIGHT = 300;
+
+    private MeteringRectangle mMeteringRectangle;
+
+    public void setFocus(float ratioX, float ratioY, boolean isRotate) {
+        mMeteringRectangle = createMeteringRectangle(ratioX, ratioY, isRotate);
+    }
+
+    private MeteringRectangle createMeteringRectangle(float ratioX, float ratioY, boolean isRotate) {
+        Rect sensorArraySize = Camera2Helper.getActiveArraySize(mCameraManager, mCameraId);
+        if (sensorArraySize == null) {
+            return null;
+        }
+
+        int sensorWidth = sensorArraySize.width();
+        int sensorHeight = sensorArraySize.height();
+        int sensorX = (int) (ratioX * sensorWidth);
+        int sensorY = (int) (ratioY * sensorHeight);
+        if (isRotate) {
+            sensorX = (int) (ratioY * sensorWidth);
+            sensorY = (int) ((1 - ratioX) * sensorHeight);
+        }
+
+        int touchX = (int) (sensorX - AF_TOUCH_WIDTH / 2);
+        int touchY = (int) (sensorY - AF_TOUCH_HEIGHT / 2);
+        int origX = Math.max(touchX, 0);
+        int origY = Math.max(touchY, 0);
+        int meteringWeight = MeteringRectangle.METERING_WEIGHT_MAX - 1;
+        return new MeteringRectangle(origX, origY, AF_TOUCH_WIDTH, AF_TOUCH_HEIGHT, meteringWeight);
+    }
+
     /**
      * カメラオプションを保持するクラス.
      */
     public static class Options {
-
         /**
          * デフォルトのプレビューサイズの閾値を定義.
          */
@@ -900,11 +885,20 @@ public class CameraWrapper {
         private Integer mAutoFocusMode;
         private Integer mAutoExposureMode;
         private Range<Integer> mFps;
+        private Integer mStabilizationMode;
+        private Integer mOpticalStabilizationMode;
+        private Float mDigitalZoom;
+        private Integer mNoiseReductionMode;
 
+        private Integer mMaxAutoFocusRegions;
         private List<Size> mSupportedPictureSizeList = new ArrayList<>();
         private List<Size> mSupportedPreviewSizeList = new ArrayList<>();
         private List<Range<Integer>> mSupportedFpsList = new ArrayList<>();
         private List<Integer> mSupportedWhiteBalanceList = new ArrayList<>();
+        private Float mMaxDigitalZoom;
+        private List<Integer> mSupportedStabilizationList = new ArrayList<>();
+        private List<Integer> mSupportedOpticalStabilizationList = new ArrayList<>();
+        private List<Integer> mSupportedNoiseReductionList = new ArrayList<>();
 
         public Size getPictureSize() {
             return mPictureSize;
@@ -920,6 +914,52 @@ public class CameraWrapper {
 
         public void setPreviewSize(final Size previewSize) {
             mPreviewSize = previewSize;
+        }
+
+        public Float getMaxDigitalZoom() {
+            return mMaxDigitalZoom;
+        }
+
+        public boolean isSupportedDigitalZoom(float zoom) {
+            return (zoom >= 1.0f && zoom <= mMaxDigitalZoom);
+        }
+
+        public Float getDigitalZoom() {
+            return mDigitalZoom;
+        }
+
+        public void setDigitalZoom(Float zoom) {
+            if (zoom != null && !isSupportedDigitalZoom(zoom)) {
+                throw new RuntimeException("");
+            }
+            mDigitalZoom = zoom;
+        }
+
+        public Integer getNoiseReductionMode() {
+            return mNoiseReductionMode;
+        }
+
+        public void setNoiseReductionMode(Integer mode) {
+            if (mode != null && !isSupportedNoiseReduction(mode)) {
+                throw new RuntimeException("");
+            }
+            mNoiseReductionMode= mode;
+        }
+
+        public void setStabilizationMode(Integer mode) {
+            mStabilizationMode = mode;
+        }
+
+        public Integer getStabilizationMode() {
+            return mStabilizationMode;
+        }
+
+        public void setOpticalStabilizationMode(Integer mode) {
+            mOpticalStabilizationMode = mode;
+        }
+
+        public Integer getOpticalStabilizationMode() {
+            return mOpticalStabilizationMode;
         }
 
         public void setFps(int fps) {
@@ -988,6 +1028,49 @@ public class CameraWrapper {
 
         public void setSupportedWhiteBalanceList(List<Integer> list) {
             mSupportedWhiteBalanceList = list;
+        }
+
+        public List<Integer> getSupportedStabilizationList() {
+            return mSupportedStabilizationList;
+        }
+
+        public boolean isSupportedStabilization(int mode) {
+            for (Integer m : mSupportedStabilizationList) {
+                if (m == mode) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public List<Integer> getSupportedOpticalStabilizationList() {
+            return mSupportedOpticalStabilizationList;
+        }
+
+        public boolean isSupportedOpticalStabilization(int mode) {
+            for (Integer m : mSupportedOpticalStabilizationList) {
+                if (m == mode) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public List<Integer> getSupportedNoiseReductionList() {
+            return mSupportedNoiseReductionList;
+        }
+
+        public boolean isSupportedNoiseReduction(int mode) {
+            for (Integer m : mSupportedNoiseReductionList) {
+                if (m == mode) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public boolean isSupportMeteringArea() {
+            return mMaxAutoFocusRegions != null;
         }
 
         public Size getDefaultPictureSize() {

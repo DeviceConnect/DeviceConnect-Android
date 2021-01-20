@@ -26,6 +26,7 @@ import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
@@ -67,7 +68,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     private final Context mContext;
     private final MediaProjectionProvider mMediaProjectionProvider;
     private final ScreenCastManager mScreenCastMgr;
-    private final Settings mSettings;
+    private final ScreenCastSettings mSettings;
     private final Handler mImageReaderHandler = new Handler(Looper.getMainLooper());
 
     private final ScreenCastPreviewServerProvider mScreenCastPreviewServerProvider;
@@ -77,7 +78,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     public ScreenCastRecorder(final Context context, final FileManager fileMgr, MediaProjectionProvider provider) {
         super(context, fileMgr);
         mContext = context;
-        mSettings = new Settings(context, this);
+        mSettings = new ScreenCastSettings(context, this);
 
         initSupportedSettings();
 
@@ -119,14 +120,12 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
                 supportPreviewSizes.add(size);
             }
         }
-        mSettings.setSupportedPreviewSizes(supportPreviewSizes);
-        mSettings.setSupportedPictureSizes(supportPictureSizes);
-        mSettings.setSupportedWhiteBalances(new ArrayList<>());
-        mSettings.setSupportedEncoders(CapabilityUtil.getSupportedVideoEncoders());
+        mSettings.mSupportedPreviewSize = supportPreviewSizes;
+        mSettings.mSupportedPictureSize = supportPictureSizes;
 
         List<Range<Integer>> supportFps = new ArrayList<>();
         supportFps.add(new Range<>(30, 30));
-        mSettings.setSupportedFps(supportFps);
+        mSettings.mSupportedFps = supportFps;
 
         if (!mSettings.load()) {
             mSettings.setPreviewSize(mSettings.getSupportedPreviewSizes().get(0));
@@ -355,6 +354,36 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         } catch (Exception e) {
             setState(State.ERROR);
             listener.onFailedTakePhoto("Taking screenshot is shutdown.");
+        }
+    }
+
+    private class ScreenCastSettings extends Settings {
+        private List<Size> mSupportedPictureSize = new ArrayList<>();
+        private List<Size> mSupportedPreviewSize = new ArrayList<>();
+        private List<Range<Integer>> mSupportedFps = new ArrayList<>();
+
+        ScreenCastSettings(Context context, HostMediaRecorder recorder) {
+            super(context, recorder);
+        }
+
+        @Override
+        public List<Size> getSupportedPictureSizes() {
+            return mSupportedPictureSize;
+        }
+
+        @Override
+        public List<Size> getSupportedPreviewSizes() {
+            return mSupportedPreviewSize;
+        }
+
+        @Override
+        public List<Range<Integer>> getSupportedFps() {
+            return mSupportedFps;
+        }
+
+        @Override
+        public List<String> getSupportedVideoEncoders() {
+            return CapabilityUtil.getSupportedVideoEncoders();
         }
     }
 }

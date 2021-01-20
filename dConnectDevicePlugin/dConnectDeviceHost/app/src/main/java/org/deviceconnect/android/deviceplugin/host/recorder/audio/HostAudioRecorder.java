@@ -17,6 +17,7 @@ import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.AudioMP4Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
@@ -53,7 +54,7 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
 
     private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
     private final Context mContext;
-    private final Settings mSettings;
+    private final AudioSettings mSettings;
 
     private AudioPreviewServerProvider mAudioPreviewServerProvider;
     private AudioBroadcasterProvider mAudioBroadcasterProvider;
@@ -61,7 +62,7 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     public HostAudioRecorder(final Context context, FileManager fileManager) {
         super(context, fileManager);
         mContext = context;
-        mSettings = new Settings(context, this);
+        mSettings = new AudioSettings(context, this);
 
         initSettings();
     }
@@ -215,5 +216,12 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     protected MP4Recorder createMP4Recorder() {
         File filePath = new File(getFileManager().getBasePath(), generateAudioFileName());
         return new AudioMP4Recorder(filePath, mSettings);
+    }
+
+    private class AudioSettings extends Settings {
+
+        AudioSettings(Context context, HostMediaRecorder recorder) {
+            super(context, recorder);
+        }
     }
 }

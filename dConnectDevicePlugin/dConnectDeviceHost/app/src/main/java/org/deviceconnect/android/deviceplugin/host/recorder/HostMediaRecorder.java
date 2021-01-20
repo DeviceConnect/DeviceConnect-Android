@@ -14,6 +14,7 @@ import android.util.Size;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.PropertyUtil;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.net.ssl.SSLContext;
@@ -368,14 +369,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
     /**
      * HostMediaRecorder の設定を保持するクラス.
      */
-    class Settings {
-        // サポート範囲
-        private List<Size> mSupportedPictureSizes;
-        private List<Size> mSupportedPreviewSizes;
-        private List<Range<Integer>> mSupportedFps;
-        private List<Integer> mSupportedWhiteBalances;
-        private List<String> mSupportedEncoders;
-
+    abstract class Settings {
         private final PropertyUtil mPref;
 
         public Settings(Context context, HostMediaRecorder recorder) {
@@ -406,10 +400,6 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             return VideoEncoderName.nameOf(getPreviewEncoder());
         }
 
-        public void setPreviewEncoderName(VideoEncoderName name) {
-            setPreviewEncoder(name.getName());
-        }
-
         /**
          * プレビューの配信エンコードの名前を取得します.
          *
@@ -425,7 +415,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param encoder プレビューの配信エンコードの名前
          */
         public void setPreviewEncoder(String encoder) {
-            if (!isSupportedEncoder(encoder)) {
+            if (!isSupportedVideoEncoder(encoder)) {
                 throw new IllegalArgumentException("encoder is not supported.");
             }
             mPref.put("preview_encoder", encoder);
@@ -628,21 +618,87 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         }
 
         /**
+         * 手ぶれ補正モードを取得します.
+         *
+         * @return 手ぶれ補正モード
+         */
+        public Integer getStabilizationMode() {
+            return mPref.getInteger("preview_stabilization_mode", null);
+        }
+
+        /**
+         * 手ぶれ補正モードを設定します.
+         *
+         * @param mode 手ぶれ補正モード
+         */
+        public void setStabilizationMode(Integer mode) {
+            if (mode == null) {
+                mPref.remove("preview_stabilization_mode");
+            } else {
+                if (!isSupportedStabilization(mode)) {
+                    throw new IllegalArgumentException("Stabilization Mode is unsupported value.");
+                }
+                mPref.put("preview_stabilization_mode", mode);
+            }
+        }
+
+        /**
+         * 光学手ぶれ補正モードを取得します.
+         *
+         * @return 光学手ぶれ補正モード
+         */
+        public Integer getOpticalStabilizationMode() {
+            return mPref.getInteger("preview_optical_stabilization_mode", null);
+        }
+
+        /**
+         * 光学手ぶれ補正モードを設定します.
+         *
+         * @param mode 光学手ぶれ補正モード
+         */
+        public void setOpticalStabilizationMode(Integer mode) {
+            if (mode == null) {
+                mPref.remove("preview_optical_stabilization_mode");
+            } else {
+                if (!isSupportedOpticalStabilization(mode)) {
+                    throw new IllegalArgumentException("Optical Stabilization Mode is unsupported value.");
+                }
+                mPref.put("preview_optical_stabilization_mode", mode);
+            }
+        }
+
+        /**
+         * デジタルズームを取得します.
+         *
+         * @return デジタルズーム
+         */
+        public Float getDigitalZoom() {
+            return mPref.getFloat("preview_digital_zoom", null);
+        }
+
+        /**
+         * デジタルズームを設定します.
+         *
+         * @param zoom デジタルズーム
+         */
+        public void setDigitalZoom(Float zoom) {
+            if (zoom == null) {
+                mPref.remove("preview_digital_zoom");
+            } else {
+                if (!isSupportedDigitalZoom(zoom)) {
+                    throw new IllegalArgumentException("Digital zoom is unsupported value.");
+                }
+                mPref.put("preview_digital_zoom", zoom);
+            }
+        }
+
+        /**
          * サポートしている写真サイズを取得します.
          *
          * @return サポートしている写真サイズ
          */
         public List<Size> getSupportedPictureSizes() {
-            return mSupportedPictureSizes;
-        }
-
-        /**
-         * サポートしている写真サイズを設定します.
-         *
-         * @param sizes サポートサイズ
-         */
-        public void setSupportedPictureSizes(List<Size> sizes) {
-            mSupportedPictureSizes = sizes;
+            return new ArrayList<>();
         }
 
         /**
@@ -651,16 +707,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return サポートしているプレビューサイズ
          */
         public List<Size> getSupportedPreviewSizes() {
-            return mSupportedPreviewSizes;
-        }
-
-        /**
-         * サポートしているプレビューサイズを設定します.
-         *
-         * @param sizes サポートサイズ
-         */
-        public void setSupportedPreviewSizes(List<Size> sizes) {
-            mSupportedPreviewSizes = sizes;
+            return new ArrayList<>();
         }
 
         /**
@@ -669,16 +716,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return サポートしている FPS のリスト
          */
         public List<Range<Integer>> getSupportedFps() {
-            return mSupportedFps;
-        }
-
-        /**
-         * サポートしている FPS のリストを設定します.
-         *
-         * @param fps サポートしている FPS のリスト
-         */
-        public void setSupportedFps(List<Range<Integer>> fps) {
-            mSupportedFps = fps;
+            return new ArrayList<>();
         }
 
         /**
@@ -687,16 +725,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return サポートしているホワイトバランスのリスト
          */
         public List<Integer> getSupportedWhiteBalances() {
-            return mSupportedWhiteBalances;
-        }
-
-        /**
-         * サポートしているホワイトバランスのリストを設定します.
-         *
-         * @param whiteBalances サポートしているホワイトバランスのリスト
-         */
-        public void setSupportedWhiteBalances(List<Integer> whiteBalances) {
-            mSupportedWhiteBalances = whiteBalances;
+            return new ArrayList<>();
         }
 
         /**
@@ -704,17 +733,20 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          *
          * @return サポートしているエンコーダのリスト
          */
-        public List<String> getSupportedEncoders() {
-            return mSupportedEncoders;
+        public List<String> getSupportedVideoEncoders() {
+            return new ArrayList<>();
         }
 
-        /**
-         * サポートしているエンコーダのリストを設定します.
-         *
-         * @param encoders エンコーダ
-         */
-        public void setSupportedEncoders(List<String> encoders) {
-            mSupportedEncoders = encoders;
+        public List<Integer> getSupportedStabilizations() {
+            return new ArrayList<>();
+        }
+
+        public List<Integer> getSupportedOpticalStabilizations() {
+            return new ArrayList<>();
+        }
+
+        public Float getMaxDigitalZoom() {
+            return null;
         }
 
         /**
@@ -724,9 +756,9 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return サポートされている場合はtrue、それ以外はfalse
          */
         public boolean isSupportedPictureSize(final Size size) {
-            for (Size s : mSupportedPictureSizes) {
-                if (s.getWidth() == size.getWidth() &&
-                        s.getHeight() == size.getHeight()) {
+            for (Size s : getSupportedPictureSizes()) {
+                if (s.getWidth() == size.getWidth()
+                        && s.getHeight() == size.getHeight()) {
                     return true;
                 }
             }
@@ -745,15 +777,15 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         }
 
         /**
-         * 指定されたサイズがサポートされているか確認します.
+         * 指定されたサイズがプレビューでサポートされているか確認します.
          *
          * @param size 確認するサイズ
          * @return サポートされている場合はtrue、それ以外はfalse
          */
-        public boolean isSupportedPreviewSize(final Size size) {
-            for (Size s : mSupportedPreviewSizes) {
-                if (s.getWidth() == size.getWidth() &&
-                        s.getHeight() == size.getHeight()) {
+        public boolean isSupportedPreviewSize(Size size) {
+            for (Size s : getSupportedPreviewSizes()) {
+                if (s.getWidth() == size.getWidth()
+                        && s.getHeight() == size.getHeight()) {
                     return true;
                 }
             }
@@ -778,9 +810,9 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return サポートされている場合はtrue、それ以外はfalse
          */
         public boolean isSupportedFps(Range<Integer> fps) {
-            for (Range<Integer> r : mSupportedFps) {
+            for (Range<Integer> r : getSupportedFps()) {
                 if (r.getLower().equals(fps.getLower()) &&
-                        r.getUpper().equals(fps.getUpper())){
+                        r.getUpper().equals(fps.getUpper())) {
                     return true;
                 }
             }
@@ -794,7 +826,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return サポートされている場合はtrue、それ以外はfalse
          */
         public boolean isSupportedWhiteBalance(int whiteBalance) {
-            for (Integer wb : mSupportedWhiteBalances) {
+            for (Integer wb : getSupportedWhiteBalances()) {
                 if (wb == whiteBalance) {
                     return true;
                 }
@@ -808,13 +840,36 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param encoder エンコーダ名
          * @return サポートされている場合はtrue、それ以外はfalse
          */
-        public boolean isSupportedEncoder(String encoder) {
-            for (String m : mSupportedEncoders) {
-                if (m.equals(encoder)) {
+        public boolean isSupportedVideoEncoder(String encoder) {
+            for (String e : getSupportedVideoEncoders()) {
+                if (e.equalsIgnoreCase(encoder)) {
                     return true;
                 }
             }
             return false;
+        }
+
+        public boolean isSupportedStabilization(int mode) {
+            for (Integer m : getSupportedStabilizations()) {
+                if (m == mode) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public boolean isSupportedOpticalStabilization(int mode) {
+            for (Integer m : getSupportedOpticalStabilizations()) {
+                if (m == mode) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public boolean isSupportedDigitalZoom(float zoom) {
+            Float max = getMaxDigitalZoom();
+            return max != null && 0.0f <= zoom && zoom <= max;
         }
 
         // 音声

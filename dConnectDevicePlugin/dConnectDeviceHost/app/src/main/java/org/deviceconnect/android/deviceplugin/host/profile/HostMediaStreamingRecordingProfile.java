@@ -240,7 +240,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             }
 
             if (previewEncoder != null) {
-                if (!settings.isSupportedEncoder(previewEncoder)) {
+                if (!settings.isSupportedVideoEncoder(previewEncoder)) {
                     MessageUtils.setInvalidRequestParameterError(response,
                             "Unsupported preview encoder: " + previewEncoder);
                     return;

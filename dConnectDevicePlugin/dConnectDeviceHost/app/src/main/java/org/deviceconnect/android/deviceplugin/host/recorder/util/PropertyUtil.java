@@ -71,7 +71,7 @@ public final class PropertyUtil {
         return mPref.getString(key, defaultValue);
     }
 
-    public float getFloat(String key, float defaultValue) {
+    public Float getFloat(String key, Float defaultValue) {
         String value = mPref.getString(key, String.valueOf(defaultValue));
         try {
             if (value != null) {

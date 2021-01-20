@@ -82,6 +82,9 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
             cameraWrapper.getOptions().setFps(settings.getPreviewMaxFrameRate());
             cameraWrapper.getOptions().setPreviewSize(settings.getPreviewSize());
             cameraWrapper.getOptions().setWhiteBalance(settings.getPreviewWhiteBalance());
+            cameraWrapper.getOptions().setStabilizationMode(settings.getStabilizationMode());
+            cameraWrapper.getOptions().setOpticalStabilizationMode(settings.getOpticalStabilizationMode());
+            cameraWrapper.getOptions().setDigitalZoom(settings.getDigitalZoom());
             cameraWrapper.startPreview(new Surface(surfaceTexture), false);
         } catch (Exception e) {
             throw new RuntimeException(e);

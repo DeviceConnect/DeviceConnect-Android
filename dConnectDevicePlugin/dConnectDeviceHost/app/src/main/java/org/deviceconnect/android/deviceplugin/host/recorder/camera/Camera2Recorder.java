@@ -15,6 +15,7 @@ import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.util.Range;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
@@ -28,6 +29,7 @@ import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.ImageUtil;
@@ -133,7 +135,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     /**
      * レコーダの設定.
      */
-    private final Settings mSettings;
+    private final CameraSettings mSettings;
 
     /**
      * コンストラクタ.
@@ -150,7 +152,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         mCameraWrapper = camera;
         mCameraWrapper.setCameraEventListener(this::notifyEventToUser, new Handler(Looper.getMainLooper()));
         mFacing = CameraFacing.detect(mCameraWrapper);
-        mSettings = new Settings(context, this);
+        mSettings = new CameraSettings(context, this);
 
         initSupportedSettings();
 
@@ -180,11 +182,8 @@ public class Camera2Recorder extends AbstractMediaRecorder {
             }
         }
 
-        mSettings.setSupportedPictureSizes(new ArrayList<>(options.getSupportedPictureSizeList()));
-        mSettings.setSupportedPreviewSizes(supportPreviewSizes);
-        mSettings.setSupportedFps(options.getSupportedFpsList());
-        mSettings.setSupportedWhiteBalances(options.getSupportedWhiteBalanceList());
-        mSettings.setSupportedEncoders(CapabilityUtil.getSupportedVideoEncoders());
+        mSettings.mSupportedPictureSize = new ArrayList<>(options.getSupportedPictureSizeList());
+        mSettings.mSupportedPreviewSize = supportPreviewSizes;
 
         if (!mSettings.load()) {
             mSettings.setPictureSize(options.getDefaultPictureSize());
@@ -501,6 +500,56 @@ public class Camera2Recorder extends AbstractMediaRecorder {
                 default:
                     return CameraFacing.UNKNOWN;
             }
+        }
+    }
+
+    private class CameraSettings extends Settings {
+
+        private List<Size> mSupportedPictureSize = new ArrayList<>();
+        private List<Size> mSupportedPreviewSize = new ArrayList<>();
+
+        CameraSettings(Context context, HostMediaRecorder recorder) {
+            super(context, recorder);
+        }
+
+        @Override
+        public List<Size> getSupportedPictureSizes() {
+            return mSupportedPictureSize;
+        }
+
+        @Override
+        public List<Size> getSupportedPreviewSizes() {
+            return mSupportedPreviewSize;
+        }
+
+        @Override
+        public List<Range<Integer>> getSupportedFps() {
+            return mCameraWrapper.getOptions().getSupportedFpsList();
+        }
+
+        @Override
+        public List<Integer> getSupportedWhiteBalances() {
+            return mCameraWrapper.getOptions().getSupportedWhiteBalanceList();
+        }
+
+        @Override
+        public List<String> getSupportedVideoEncoders() {
+            return CapabilityUtil.getSupportedVideoEncoders();
+        }
+
+        @Override
+        public List<Integer> getSupportedStabilizations() {
+            return mCameraWrapper.getOptions().getSupportedStabilizationList();
+        }
+
+        @Override
+        public List<Integer> getSupportedOpticalStabilizations() {
+            return mCameraWrapper.getOptions().getSupportedOpticalStabilizationList();
+        }
+
+        @Override
+        public Float getMaxDigitalZoom() {
+            return mCameraWrapper.getOptions().getMaxDigitalZoom();
         }
     }
 }

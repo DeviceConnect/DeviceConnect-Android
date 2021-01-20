@@ -1,6 +1,5 @@
 package org.deviceconnect.android.libmedia.streaming.recorder;
 
-import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.MediaStreamer;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.muxer.Mpeg4Muxer;
@@ -11,22 +10,32 @@ import java.io.File;
 public class StreamingRecorder {
 
     private final MediaStreamer mMediaStreamer;
+    private final File mOutputFile;
 
+    /**
+     * コンストラクタ.
+     *
+     * @param file ストリーミングを保存するファイル
+     */
     public StreamingRecorder(File file) {
+        if (file == null) {
+            throw new IllegalArgumentException("file is not set.");
+        }
+        mOutputFile = file;
         mMediaStreamer = new MediaStreamer(new Mpeg4Muxer(file.getPath()));
-        mMediaStreamer.setOnEventListener(new MediaStreamer.OnEventListener() {
-            @Override
-            public void onStarted() {
-            }
+    }
 
-            @Override
-            public void onStopped() {
-            }
+    public File getOutputFile() {
+        return mOutputFile;
+    }
 
-            @Override
-            public void onError(MediaEncoderException e) {
-            }
-        });
+    /**
+     * イベントを通知するリスナーを設定します.
+     *
+     * @param listener リスナー
+     */
+    public void setOnEventListener(OnEventListener listener) {
+        mMediaStreamer.setOnEventListener(listener);
     }
 
     /**
@@ -77,5 +86,12 @@ public class StreamingRecorder {
      */
     public AudioEncoder getAudioEncoder() {
         return mMediaStreamer.getAudioEncoder();
+    }
+
+    /**
+     * StreamingRecorder のイベントを通知するリスナー.
+     */
+    public interface OnEventListener extends MediaStreamer.OnEventListener {
+
     }
 }

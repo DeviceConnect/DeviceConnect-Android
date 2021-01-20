@@ -86,11 +86,6 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     }
 
     /**
-     * ファイルマネージャ.
-     */
-    private final FileManager mFileManager;
-
-    /**
      * カメラ操作オブジェクト.
      */
     private final CameraWrapper mCameraWrapper;
@@ -152,7 +147,6 @@ public class Camera2Recorder extends AbstractMediaRecorder {
                            final FileManager fileManager) {
         super(context, fileManager);
         mContext = context;
-        mFileManager = fileManager;
         mCameraWrapper = camera;
         mCameraWrapper.setCameraEventListener(this::notifyEventToUser, new Handler(Looper.getMainLooper()));
         mFacing = CameraFacing.detect(mCameraWrapper);
@@ -354,7 +348,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
 
     @Override
     protected MP4Recorder createMP4Recorder() {
-        File file = new File(mFileManager.getBasePath(), generateVideoFileName());
+        File file = new File(getFileManager().getBasePath(), generateVideoFileName());
         return new SurfaceMP4Recorder(file, mSettings, mCameraSurfaceDrawingThread);
     }
 

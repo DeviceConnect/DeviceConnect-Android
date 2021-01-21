@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.media.MediaCodecInfo;
 import android.util.Range;
 import android.util.Size;
 
@@ -15,6 +16,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.util.PropertyUtil;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.net.ssl.SSLContext;
@@ -254,23 +256,17 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
     }
 
     enum VideoEncoderName {
-        H264("h264", "video/avc"),
-        H265("h265", "video/hevc");
+        H264("h264"),
+        H265("h265");
 
         private final String mName;
-        private final String mMimeType;
 
-        VideoEncoderName(String name, String mimeType) {
+        VideoEncoderName(String name) {
             mName = name;
-            mMimeType = mimeType;
         }
 
         public String getName() {
             return mName;
-        }
-
-        public String getMimeType() {
-            return mMimeType;
         }
 
         public static VideoEncoderName nameOf(String name) {
@@ -280,6 +276,186 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
                 }
             }
             return H264;
+        }
+    }
+
+    enum H264Profile {
+        AVCProfileBaseline("AVCProfileBaseline", MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline),
+        AVCProfileConstrainedBaseline("AVCProfileConstrainedBaseline", MediaCodecInfo.CodecProfileLevel.AVCProfileConstrainedBaseline),
+        AVCProfileConstrainedHigh("AVCProfileConstrainedHigh", MediaCodecInfo.CodecProfileLevel.AVCProfileConstrainedHigh),
+        AVCProfileExtended("AVCProfileExtended", MediaCodecInfo.CodecProfileLevel.AVCProfileExtended),
+        AVCProfileHigh("AVCProfileHigh", MediaCodecInfo.CodecProfileLevel.AVCProfileHigh),
+        AVCProfileHigh10("AVCProfileHigh10", MediaCodecInfo.CodecProfileLevel.AVCProfileHigh10),
+        AVCProfileHigh422("AVCProfileHigh422", MediaCodecInfo.CodecProfileLevel.AVCProfileHigh422),
+        AVCProfileHigh444("AVCProfileHigh444", MediaCodecInfo.CodecProfileLevel.AVCProfileHigh444),
+        AVCProfileMain("AVCProfileMain", MediaCodecInfo.CodecProfileLevel.AVCProfileMain);
+
+        private final String mName;
+        private final int mValue;
+
+        H264Profile(String name, int value) {
+            mName = name;
+            mValue = value;
+        }
+
+        public int getValue() {
+            return mValue;
+        }
+
+        public static H264Profile nameOf(String name) {
+            for (H264Profile p : values()) {
+                if (p.mName.equalsIgnoreCase(name)) {
+                    return p;
+                }
+            }
+            return null;
+        }
+    }
+
+    enum H264Level {
+        AVCLevel1("AVCLevel1", MediaCodecInfo.CodecProfileLevel.AVCLevel1),
+        AVCLevel11("AVCLevel1", MediaCodecInfo.CodecProfileLevel.AVCLevel1),
+        AVCLevel12("AVCLevel12", MediaCodecInfo.CodecProfileLevel.AVCLevel12),
+        AVCLevel13("AVCLevel13", MediaCodecInfo.CodecProfileLevel.AVCLevel13),
+        AVCLevel1b("AVCLevel1b", MediaCodecInfo.CodecProfileLevel.AVCLevel1b),
+        AVCLevel2("AVCLevel2", MediaCodecInfo.CodecProfileLevel.AVCLevel2),
+        AVCLevel21("AVCLevel21", MediaCodecInfo.CodecProfileLevel.AVCLevel21),
+        AVCLevel22("AVCLevel22", MediaCodecInfo.CodecProfileLevel.AVCLevel22),
+        AVCLevel3("AVCLevel3", MediaCodecInfo.CodecProfileLevel.AVCLevel3),
+        AVCLevel31("AVCLevel31", MediaCodecInfo.CodecProfileLevel.AVCLevel31),
+        AVCLevel32("AVCLevel32", MediaCodecInfo.CodecProfileLevel.AVCLevel32),
+        AVCLevel4("AVCLevel4", MediaCodecInfo.CodecProfileLevel.AVCLevel4),
+        AVCLevel41("AVCLevel41", MediaCodecInfo.CodecProfileLevel.AVCLevel41),
+        AVCLevel42("AVCLevel42", MediaCodecInfo.CodecProfileLevel.AVCLevel42),
+        AVCLevel5("AVCLevel5", MediaCodecInfo.CodecProfileLevel.AVCLevel5),
+        AVCLevel51("AVCLevel51", MediaCodecInfo.CodecProfileLevel.AVCLevel51),
+        AVCLevel52("AVCLevel52", MediaCodecInfo.CodecProfileLevel.AVCLevel52),
+        AVCLevel6("AVCLevel6", MediaCodecInfo.CodecProfileLevel.AVCLevel6),
+        AVCLevel61("AVCLevel61", MediaCodecInfo.CodecProfileLevel.AVCLevel61),
+        AVCLevel62("AVCLevel62", MediaCodecInfo.CodecProfileLevel.AVCLevel62);
+
+        private final String mName;
+        private final int mValue;
+
+        H264Level(String name, int value) {
+            mName = name;
+            mValue = value;
+        }
+
+        public int getValue() {
+            return mValue;
+        }
+
+        public static H264Level nameOf(String name) {
+            for (H264Level l : values()) {
+                if (l.mName.equalsIgnoreCase(name)) {
+                    return l;
+                }
+            }
+            return null;
+        }
+    }
+
+    enum H265Profile {
+        HEVCProfileMain("HEVCProfileMain", MediaCodecInfo.CodecProfileLevel.HEVCProfileMain),
+        HEVCProfileMain10("HEVCProfileMain10", MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10),
+        HEVCProfileMain10HDR10("HEVCProfileMain10HDR10", MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10HDR10),
+        HEVCProfileMain10HDR10Plus("HEVCProfileMain10HDR10Plus", MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10HDR10Plus),
+        HEVCProfileMainStill("HEVCProfileMainStill", MediaCodecInfo.CodecProfileLevel.HEVCProfileMainStill);
+
+        private final String mName;
+        private final int mValue;
+
+        H265Profile(String name, int value) {
+            mName = name;
+            mValue = value;
+        }
+
+        public int getValue() {
+            return mValue;
+        }
+
+        public static H265Profile nameOf(String name) {
+            for (H265Profile p : values()) {
+                if (p.mName.equalsIgnoreCase(name)) {
+                    return p;
+                }
+            }
+            return null;
+        }
+    }
+    
+    enum H265Level {
+        HEVCHighTierLevel1("HEVCHighTierLevel1", MediaCodecInfo.CodecProfileLevel.HEVCHighTierLevel1),
+        HEVCHighTierLevel2("HEVCHighTierLevel2", MediaCodecInfo.CodecProfileLevel.HEVCHighTierLevel2),
+        HEVCHighTierLevel21("HEVCHighTierLevel21", MediaCodecInfo.CodecProfileLevel.HEVCHighTierLevel21),
+        HEVCHighTierLevel3("HEVCHighTierLevel3", MediaCodecInfo.CodecProfileLevel.HEVCHighTierLevel3),
+        HEVCHighTierLevel31("HEVCHighTierLevel31", MediaCodecInfo.CodecProfileLevel.HEVCHighTierLevel31),
+        HEVCHighTierLevel4("HEVCHighTierLevel4", MediaCodecInfo.CodecProfileLevel.HEVCHighTierLevel4),
+        HEVCHighTierLevel41("HEVCHighTierLevel41", MediaCodecInfo.CodecProfileLevel.HEVCHighTierLevel41),
+        HEVCHighTierLevel5("HEVCHighTierLevel5", MediaCodecInfo.CodecProfileLevel.HEVCHighTierLevel5),
+        HEVCHighTierLevel51("HEVCHighTierLevel51", MediaCodecInfo.CodecProfileLevel.HEVCHighTierLevel51),
+        HEVCHighTierLevel52("HEVCHighTierLevel52", MediaCodecInfo.CodecProfileLevel.HEVCHighTierLevel52),
+        HEVCHighTierLevel6("HEVCHighTierLevel6", MediaCodecInfo.CodecProfileLevel.HEVCHighTierLevel6),
+        HEVCHighTierLevel61("HEVCHighTierLevel61", MediaCodecInfo.CodecProfileLevel.HEVCHighTierLevel61),
+        HEVCHighTierLevel62("HEVCHighTierLevel62", MediaCodecInfo.CodecProfileLevel.HEVCHighTierLevel62),
+        HEVCMainTierLevel1("HEVCMainTierLevel1", MediaCodecInfo.CodecProfileLevel.HEVCMainTierLevel1),
+        HEVCMainTierLevel2("HEVCMainTierLevel2", MediaCodecInfo.CodecProfileLevel.HEVCMainTierLevel2),
+        HEVCMainTierLevel21("HEVCMainTierLevel21", MediaCodecInfo.CodecProfileLevel.HEVCMainTierLevel21),
+        HEVCMainTierLevel3("HEVCMainTierLevel3", MediaCodecInfo.CodecProfileLevel.HEVCMainTierLevel3),
+        HEVCMainTierLevel31("HEVCMainTierLevel31", MediaCodecInfo.CodecProfileLevel.HEVCMainTierLevel31),
+        HEVCMainTierLevel4("HEVCMainTierLevel4", MediaCodecInfo.CodecProfileLevel.HEVCMainTierLevel4),
+        HEVCMainTierLevel41("HEVCMainTierLevel41", MediaCodecInfo.CodecProfileLevel.HEVCMainTierLevel41),
+        HEVCMainTierLevel5("HEVCMainTierLevel5", MediaCodecInfo.CodecProfileLevel.HEVCMainTierLevel5),
+        HEVCMainTierLevel51("HEVCMainTierLevel51", MediaCodecInfo.CodecProfileLevel.HEVCMainTierLevel51),
+        HEVCMainTierLevel52("HEVCMainTierLevel52", MediaCodecInfo.CodecProfileLevel.HEVCMainTierLevel52),
+        HEVCMainTierLevel6("HEVCMainTierLevel6", MediaCodecInfo.CodecProfileLevel.HEVCMainTierLevel6),
+        HEVCMainTierLevel61("HEVCMainTierLevel61", MediaCodecInfo.CodecProfileLevel.HEVCMainTierLevel61),
+        HEVCMainTierLevel62("HEVCMainTierLevel62", MediaCodecInfo.CodecProfileLevel.HEVCMainTierLevel62);
+
+        private final String mName;
+        private final int mValue;
+
+        H265Level(String name, int value) {
+            mName = name;
+            mValue = value;
+        }
+
+        public int getValue() {
+            return mValue;
+        }
+
+        public static H265Level nameOf(String name) {
+            for (H265Level l : values()) {
+                if (l.mName.equalsIgnoreCase(name)) {
+                    return l;
+                }
+            }
+            return null;
+        }
+    }
+
+    enum BitRateMode {
+        VBR("vbr"),
+        CBR("cbr"),
+        CQ("cq");
+
+        private final String mName;
+
+        BitRateMode(String name) {
+            mName = name;
+        }
+        public String getName() {
+            return mName;
+        }
+
+        public static BitRateMode nameOf(String name) {
+            for (BitRateMode mode : values()) {
+                if (mode.mName.equalsIgnoreCase(name)) {
+                    return mode;
+                }
+            }
+            return null;
         }
     }
 
@@ -692,6 +868,58 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             }
         }
 
+        public Integer getNoiseReduction() {
+            return mPref.getInteger("preview_reduction_noise", null);
+        }
+
+        public void setNoiseReduction(Integer mode) {
+            if (mode == null) {
+                mPref.remove("preview_reduction_noise");
+            } else {
+                mPref.put("preview_reduction_noise", mode);
+            }
+        }
+
+        public Integer getProfile() {
+            return mPref.getInteger("preview_profile", 0);
+        }
+
+        public void setProfile(Integer profile) {
+            if (profile == null) {
+                mPref.remove("preview_profile");
+            } else {
+                mPref.put("preview_profile", profile);
+            }
+        }
+
+        public Integer getLevel() {
+            return mPref.getInteger("preview_level", 0);
+        }
+
+        public void setLevel(Integer level) {
+            if (level == null) {
+                mPref.remove("preview_level");
+            } else {
+                mPref.put("preview_level", level);
+            }
+        }
+
+        public BitRateMode getPreviewBitRateMode() {
+            return BitRateMode.nameOf(mPref.getString("preview_bitrate_mode", null));
+        }
+
+        public void setPreviewBitRateMode(BitRateMode mode) {
+            if (mode == null) {
+                mPref.remove("preview_bitrate_mode");
+            } else {
+                mPref.put("preview_bitrate_mode", mode.getName());
+            }
+        }
+
+        public List<BitRateMode> getSupportedBitRateModes() {
+            return Arrays.asList(BitRateMode.values());
+        }
+
         /**
          * サポートしている写真サイズを取得します.
          *
@@ -1001,6 +1229,24 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public void setAudioSource(AudioSource audioSource) {
             mPref.put("preview_audio_source", audioSource.mSource);
+        }
+
+        public boolean isSupportedAudioSource(AudioSource source) {
+            for (AudioSource s : getSupportedAudioSource()) {
+                if (s == source) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * サポートしている音声入力のリストを取得します.
+         *
+         * @return サポートしている音声入力のリスト
+         */
+        public List<AudioSource> getSupportedAudioSource() {
+            return Arrays.asList(AudioSource.values());
         }
 
         // 配信

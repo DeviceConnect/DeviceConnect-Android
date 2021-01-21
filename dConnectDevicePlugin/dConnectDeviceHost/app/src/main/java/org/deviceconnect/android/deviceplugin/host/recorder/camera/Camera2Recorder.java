@@ -128,11 +128,6 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     private final CameraSurfaceDrawingThread mCameraSurfaceDrawingThread;
 
     /**
-     * コンテキスト.
-     */
-    private final Context mContext;
-
-    /**
      * レコーダの設定.
      */
     private final CameraSettings mSettings;
@@ -148,7 +143,6 @@ public class Camera2Recorder extends AbstractMediaRecorder {
                            final CameraWrapper camera,
                            final FileManager fileManager) {
         super(context, fileManager);
-        mContext = context;
         mCameraWrapper = camera;
         mCameraWrapper.setCameraEventListener(this::notifyEventToUser, new Handler(Looper.getMainLooper()));
         mFacing = CameraFacing.detect(mCameraWrapper);
@@ -286,7 +280,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
 
     @Override
     public void requestPermission(final PermissionCallback callback) {
-        PermissionUtility.requestPermissions(mContext, new Handler(Looper.getMainLooper()), new String[]{
+        PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()), new String[]{
                         Manifest.permission.CAMERA,
                         Manifest.permission.RECORD_AUDIO,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -359,13 +353,13 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     private void notifyEventToUser(final CameraWrapper.CameraEvent event) {
         switch (event) {
             case SHUTTERED:
-                showToast(mContext.getString(R.string.shuttered));
+                showToast(getContext().getString(R.string.shuttered));
                 break;
             case STARTED_VIDEO_RECORDING:
-                showToast(mContext.getString(R.string.started_video_recording));
+                showToast(getContext().getString(R.string.started_video_recording));
                 break;
             case STOPPED_VIDEO_RECORDING:
-                showToast(mContext.getString(R.string.stopped_video_recording));
+                showToast(getContext().getString(R.string.stopped_video_recording));
                 break;
             default:
                 break;
@@ -378,7 +372,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
      * @param message トーストに表示する文字列
      */
     private void showToast(final String message) {
-        Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     /**

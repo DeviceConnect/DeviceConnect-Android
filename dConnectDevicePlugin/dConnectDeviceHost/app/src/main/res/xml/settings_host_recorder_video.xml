@@ -25,15 +25,23 @@
             app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
+            app:key="preview_i_frame_interval"
+            app:title="@string/host_recorder_settings_i_frame_interval"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
             app:key="preview_bitrate"
             app:title="@string/host_recorder_settings_bitrate"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
-        <EditTextPreference
-            app:key="preview_i_frame_interval"
-            app:title="@string/host_recorder_settings_i_frame_interval"
+        <ListPreference
+            app:entries="@array/bitrate_mode_names"
+            app:entryValues="@array/bitrate_mode_values"
             app:iconSpaceReserved="false"
+            app:key="preview_bitrate_mode"
+            app:title="@string/host_recorder_settings_bitrate_mode"
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
@@ -44,12 +52,30 @@
             app:title="@string/host_recorder_settings_video_encode"
             app:useSimpleSummaryProvider="true" />
 
+        <ListPreference
+            app:key="preview_profile"
+            app:title="@string/host_recorder_settings_video_profile"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="preview_level"
+            app:title="@string/host_recorder_settings_video_level"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
         <SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="preview_use_software_encoder"
             android:title="@string/host_recorder_settings_use_software_encode"
             app:summary="@string/host_recorder_settings_use_software_encode_summary"
             app:iconSpaceReserved="false" />
+
+        <EditTextPreference
+            app:key="preview_intra_refresh"
+            app:title="@string/host_recorder_settings_intra_refresh"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
 
         <ListPreference
             app:entries="@array/video_white_balance_names"
@@ -59,9 +85,27 @@
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
-        <EditTextPreference
-            app:key="preview_intra_refresh"
-            app:title="@string/host_recorder_settings_intra_refresh"
+        <ListPreference
+            app:entries="@array/video_stabilization_names"
+            app:entryValues="@array/video_stabilization_values"
+            app:key="preview_stabilization_mode"
+            app:title="@string/host_recorder_settings_video_stabilization"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:entries="@array/video_stabilization_names"
+            app:entryValues="@array/video_stabilization_values"
+            app:key="preview_optical_stabilization_mode"
+            app:title="@string/host_recorder_settings_optical_stabilization"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:entries="@array/video_noise_reduction_names"
+            app:entryValues="@array/video_noise_reduction_values"
+            app:key="preview_reduction_noise"
+            app:title="@string/host_recorder_settings_noise_reduction"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 

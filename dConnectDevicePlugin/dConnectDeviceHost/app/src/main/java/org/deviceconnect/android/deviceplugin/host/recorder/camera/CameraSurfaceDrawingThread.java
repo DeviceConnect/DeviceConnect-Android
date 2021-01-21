@@ -1,9 +1,11 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
+import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.util.Size;
 import android.view.Surface;
+import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
@@ -26,7 +28,11 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
 
     @Override
     public int getDisplayRotation() {
-        return mRecorder.getCameraWrapper().getDisplayRotation();
+        WindowManager wm = (WindowManager) mRecorder.getContext().getSystemService(Context.WINDOW_SERVICE);
+        if (wm == null) {
+            throw new RuntimeException("WindowManager is not supported.");
+        }
+        return wm.getDefaultDisplay().getRotation();
     }
 
     @Override
@@ -85,6 +91,7 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
             cameraWrapper.getOptions().setStabilizationMode(settings.getStabilizationMode());
             cameraWrapper.getOptions().setOpticalStabilizationMode(settings.getOpticalStabilizationMode());
             cameraWrapper.getOptions().setDigitalZoom(settings.getDigitalZoom());
+            cameraWrapper.getOptions().setNoiseReductionMode(settings.getNoiseReduction());
             cameraWrapper.startPreview(new Surface(surfaceTexture), false);
         } catch (Exception e) {
             throw new RuntimeException(e);

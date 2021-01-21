@@ -154,6 +154,23 @@ public abstract class AbstractPreviewServer implements PreviewServer {
         videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());
         videoQuality.setUseSoftwareEncoder(settings.isUseSoftwareEncoder());
         videoQuality.setIntraRefresh(settings.getIntraRefresh());
+        videoQuality.setProfile(settings.getProfile());
+        videoQuality.setLevel(settings.getLevel());
+        if (settings.getPreviewBitRateMode() != null) {
+            switch (settings.getPreviewBitRateMode()) {
+                case VBR:
+                    videoQuality.setBitRateMode(VideoQuality.BitRateMode.VBR);
+                    break;
+                case CBR:
+                    videoQuality.setBitRateMode(VideoQuality.BitRateMode.CBR);
+                    break;
+                case CQ:
+                    videoQuality.setBitRateMode(VideoQuality.BitRateMode.CQ);
+                    break;
+            }
+        } else {
+            videoQuality.setBitRateMode(null);
+        }
     }
 
     /**

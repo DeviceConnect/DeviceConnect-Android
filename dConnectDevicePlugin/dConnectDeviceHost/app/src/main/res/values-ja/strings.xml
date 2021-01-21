@@ -75,12 +75,18 @@
     <string name="host_recorder_settings_preview_resolution">プレビュー解像度</string>
     <string name="host_recorder_settings_framerate">フレームレート (fps)</string>
     <string name="host_recorder_settings_bitrate">ビットレート (bps)</string>
+    <string name="host_recorder_settings_bitrate_mode">ビットレートモード</string>
     <string name="host_recorder_settings_i_frame_interval">キーフレームインターバル(秒)</string>
     <string name="host_recorder_settings_video_encode">エンコーダ</string>
+    <string name="host_recorder_settings_video_profile">プロファイル</string>
+    <string name="host_recorder_settings_video_level">レベル</string>
     <string name="host_recorder_settings_use_software_encode">ソフトウェアエンコーダ</string>
     <string name="host_recorder_settings_use_software_encode_summary">MediaCodec でソフトウェアエンコーダを優先して使用します。</string>
     <string name="host_recorder_settings_white_balance">ホワイトバランス</string>
     <string name="host_recorder_settings_intra_refresh">イントラリフレッシュ</string>
+    <string name="host_recorder_settings_video_stabilization">手ぶれ補正</string>
+    <string name="host_recorder_settings_optical_stabilization">光学手ぶれ補正</string>
+    <string name="host_recorder_settings_noise_reduction">ノイズ低減モード</string>
     <string name="host_recorder_settings_motion_jpeg">MotionJPEG 設定</string>
     <string name="host_recorder_settings_jpeg_quality">クオリティ (%)</string>
 

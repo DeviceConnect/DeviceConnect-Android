@@ -65,7 +65,6 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     /** 日付のフォーマット. */
     private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
-    private final Context mContext;
     private final MediaProjectionProvider mMediaProjectionProvider;
     private final ScreenCastManager mScreenCastMgr;
     private final ScreenCastSettings mSettings;
@@ -77,7 +76,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
     public ScreenCastRecorder(final Context context, final FileManager fileMgr, MediaProjectionProvider provider) {
         super(context, fileMgr);
-        mContext = context;
+
         mSettings = new ScreenCastSettings(context, this);
 
         initSupportedSettings();
@@ -156,11 +155,11 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
      * @return 画面サイズ
      */
     private Size getDisplaySize() {
-        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
         if (wm == null) {
             throw new RuntimeException("WindowManager is not supported.");
         }
-        DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
+        DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
         boolean isSwap;
         switch (wm.getDefaultDisplay().getRotation()) {
             case Surface.ROTATION_0:
@@ -257,7 +256,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         });
     }
 
-    // HostDevicePhotoRecorder
+    // Implements HostDevicePhotoRecorder method.
 
     @Override
     public void takePhoto(final OnPhotoEventListener listener) {
@@ -357,7 +356,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         }
     }
 
-    private class ScreenCastSettings extends Settings {
+    private static class ScreenCastSettings extends Settings {
         private List<Size> mSupportedPictureSize = new ArrayList<>();
         private List<Size> mSupportedPreviewSize = new ArrayList<>();
         private List<Range<Integer>> mSupportedFps = new ArrayList<>();

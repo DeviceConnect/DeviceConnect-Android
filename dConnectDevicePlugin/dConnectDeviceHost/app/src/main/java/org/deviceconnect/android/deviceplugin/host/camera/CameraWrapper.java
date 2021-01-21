@@ -28,7 +28,6 @@ import android.util.Log;
 import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
-import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -95,16 +94,15 @@ public class CameraWrapper {
     private boolean mIsTouchOn;
     private boolean mUseTouch;
 
-
     private Surface mStillImageSurface;
     private Surface mPreviewSurface;
     private Surface mRecordingSurface;
     private Surface mTargetSurface;
 
-    private byte mPreviewJpegQuality = 100;
+    private List<Surface> mTargetSurfaces;
 
     private CameraEventListenerHolder mCameraEventListenerHolder;
-    private Context mContext;
+    private final Context mContext;
 
     CameraWrapper(final @NonNull Context context,
                   final @NonNull String cameraId) throws CameraAccessException {
@@ -122,18 +120,6 @@ public class CameraWrapper {
                 image.close();
             }
         }, mBackgroundHandler);
-
-        if (DEBUG) {
-            Log.d(TAG, "CameraWrapper: cameraId=" + cameraId);
-        }
-    }
-
-    public int getDisplayRotation() {
-        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
-        if (wm == null) {
-            throw new RuntimeException("WindowManager is not supported.");
-        }
-        return wm.getDefaultDisplay().getRotation();
     }
 
     private void notifyCameraEvent(final CameraEvent event) {
@@ -143,8 +129,7 @@ public class CameraWrapper {
         }
     }
 
-    public void setCameraEventListener(final CameraEventListener listener,
-                                       final Handler handler) {
+    public void setCameraEventListener(final CameraEventListener listener, final Handler handler) {
         mCameraEventListenerHolder = new CameraEventListenerHolder(listener, handler);
     }
 
@@ -158,14 +143,6 @@ public class CameraWrapper {
         } catch (CameraAccessException e) {
             return -1;
         }
-    }
-
-    public int getPreviewJpegQuality() {
-        return mPreviewJpegQuality;
-    }
-
-    public void setPreviewJpegQuality(int previewJpegQuality) {
-        mPreviewJpegQuality = (byte) previewJpegQuality;
     }
 
     public boolean isTakingStillImage() {
@@ -182,7 +159,13 @@ public class CameraWrapper {
 
     public synchronized void destroy() {
         close();
-        mSessionConfigurationThread.quit();
+
+        try {
+            mSessionConfigurationThread.quit();
+            mSessionConfigurationThread.interrupt();
+        } catch (Exception e) {
+            // ignore.
+        }
     }
 
     private void close() {
@@ -214,10 +197,6 @@ public class CameraWrapper {
 
     public ImageReader createStillImageReader(final int format) {
         return createImageReader(mOptions.getPictureSize(), format);
-    }
-
-    public ImageReader createPreviewReader(final int format) {
-        return createImageReader(mOptions.getPreviewSize(), format);
     }
 
     private ImageReader createImageReader(final Size pictureSize, final int format) {
@@ -303,6 +282,15 @@ public class CameraWrapper {
     public void setTargetSurface(Surface surface) {
         mTargetSurface = surface;
     }
+    public void setStillImageSurface(Surface surface) {
+        mStillImageSurface = surface;
+    }
+    public void setPreviewSurface(Surface surface) {
+        mPreviewSurface = surface;
+    }
+    public void setRecordingSurface(Surface surface) {
+        mRecordingSurface = surface;
+    }
 
     private List<Surface> createSurfaceList() {
         List<Surface> surfaceList = new LinkedList<>();
@@ -316,12 +304,15 @@ public class CameraWrapper {
         } else {
             surfaceList.add(mPlaceHolderPreviewReader.getSurface());
         }
+
         if (mIsRecording) {
             surfaceList.add(mRecordingSurface);
         }
+
         if (mIsTakingStillImage) {
             surfaceList.add(mStillImageSurface);
         }
+
         return surfaceList;
     }
 
@@ -346,9 +337,12 @@ public class CameraWrapper {
                 }
                 mCaptureSession = null;
             }
+
+            mTargetSurfaces = targets;
+
             final CountDownLatch lock = new CountDownLatch(1);
             final AtomicReference<CameraCaptureSession> sessionRef = new AtomicReference<>();
-            cameraDevice.createCaptureSession(targets, new CameraCaptureSession.StateCallback() {
+            cameraDevice.createCaptureSession(mTargetSurfaces, new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(final @NonNull CameraCaptureSession session) {
                     sessionRef.set(session);
@@ -444,13 +438,9 @@ public class CameraWrapper {
             CameraDevice cameraDevice = openCamera();
             CameraCaptureSession captureSession = createCaptureSession(cameraDevice);
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            if (mPreviewSurface != null) {
-                request.addTarget(mPreviewSurface);
+            for (Surface surface : mTargetSurfaces) {
+                request.addTarget(surface);
             }
-            if (mTargetSurface != null) {
-                request.addTarget(mTargetSurface);
-            }
-            request.set(CaptureRequest.JPEG_QUALITY, mPreviewJpegQuality);
             setDefaultCaptureRequest(request);
             captureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
                 @Override
@@ -501,18 +491,11 @@ public class CameraWrapper {
             CameraDevice cameraDevice = openCamera();
             CameraCaptureSession captureSession = createCaptureSession(cameraDevice);
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
-            if (mIsPreview) {
-                if (mPreviewSurface != null) {
-                    request.addTarget(mPreviewSurface);
-                }
-                if (mTargetSurface != null) {
-                    request.addTarget(mTargetSurface);
-                }
+            for (Surface surface : mTargetSurfaces) {
+                request.addTarget(surface);
             }
-            request.addTarget(mRecordingSurface);
             setDefaultCaptureRequest(request);
             captureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
-
                 private boolean mStarted;
 
                 @Override
@@ -566,10 +549,11 @@ public class CameraWrapper {
         try {
             CameraDevice cameraDevice = openCamera();
             mCaptureSession = createCaptureSession(createSurfaceListForStillImage(), cameraDevice);
+            // 静止画を撮影する時にプレビューが開始されていない場合には
+            // プレビューの表示を行います。
             if (!mIsPreview) {
                 prepareCapture(cameraDevice);
             }
-
             int template = mIsRecording ? CameraDevice.TEMPLATE_VIDEO_SNAPSHOT : CameraDevice.TEMPLATE_STILL_CAPTURE;
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(template);
             request.addTarget(stillImageSurface);
@@ -641,19 +625,13 @@ public class CameraWrapper {
         if (!mOptions.hasAutoFocus() && !mOptions.hasAutoExposure()) {
             return;
         }
+
         try {
             final CountDownLatch lock = new CountDownLatch(1);
             final AtomicReference<CaptureResult> resultRef = new AtomicReference<>();
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            if (mIsPreview) {
-                if (mPreviewSurface != null) {
-                    request.addTarget(mPreviewSurface);
-                }
-                if (mTargetSurface != null) {
-                    request.addTarget(mTargetSurface);
-                }
-            } else {
-                request.addTarget(mPlaceHolderPreviewReader.getSurface());
+            for (Surface surface : createSurfaceList()) {
+                request.addTarget(surface);
             }
             setDefaultCaptureRequest(request, true);
             mCaptureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
@@ -688,17 +666,11 @@ public class CameraWrapper {
                     }
                     if (!mIsAeReady) {
                         Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-                        if (DEBUG) {
-                            Log.d(TAG, "prepareCapture: onCaptureCompleted: aeState=" + aeState);
-                        }
                         mIsAeReady = aeState == null
                                 || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED
                                 || aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED;
                     }
                     mIsCaptureReady |= isCompleted;
-                    if (DEBUG) {
-                        Log.d(TAG, "prepareCapture: onCaptureCompleted: isAfReady=" + mIsAfReady + " isAeReady=" + mIsAeReady + " isCaptureReady=" + mIsCaptureReady);
-                    }
 
                     if (mIsAfReady && mIsAeReady && mIsCaptureReady) {
                         resultRef.set(result);
@@ -740,22 +712,12 @@ public class CameraWrapper {
         }
         try {
             CameraDevice cameraDevice = openCamera();
-            mCaptureSession = createCaptureSession(cameraDevice);
-            final CaptureRequest.Builder requestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            if (mIsPreview) {
-                if (mPreviewSurface != null) {
-                    requestBuilder.addTarget(mPreviewSurface);
-                }
-                if (mTargetSurface != null) {
-                    requestBuilder.addTarget(mTargetSurface);
-                }
+            if (mCaptureSession == null) {
+                mCaptureSession = createCaptureSession(cameraDevice);
             }
-            if (mIsRecording) {
-                requestBuilder.addTarget(mRecordingSurface);
-            }
-
-            if (!mIsPreview && !mIsRecording) {
-                requestBuilder.addTarget(mPlaceHolderPreviewReader.getSurface());
+            CaptureRequest.Builder requestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            for (Surface surface : mTargetSurfaces) {
+                requestBuilder.addTarget(surface);
             }
             requestBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
             mCaptureSession.setRepeatingRequest(requestBuilder.build(), null, mBackgroundHandler);
@@ -788,28 +750,23 @@ public class CameraWrapper {
         if (mUseTouch && mIsTouchOn) {
             try {
                 CameraDevice cameraDevice = openCamera();
-                mCaptureSession = createCaptureSession(cameraDevice);
-                final CaptureRequest.Builder requestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-                if (mIsPreview) {
-                    if (mPreviewSurface != null) {
-                        requestBuilder.addTarget(mPreviewSurface);
-                    }
-                    if (mTargetSurface != null) {
-                        requestBuilder.addTarget(mTargetSurface);
-                    }
-                } else {
-                    requestBuilder.addTarget(mPlaceHolderPreviewReader.getSurface());
+                if (mCaptureSession == null) {
+                    mCaptureSession = createCaptureSession(cameraDevice);
+                }
+                CaptureRequest.Builder requestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+                for (Surface surface : mTargetSurfaces) {
+                    requestBuilder.addTarget(surface);
                 }
                 requestBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
                 mCaptureSession.setRepeatingRequest(requestBuilder.build(),null, mBackgroundHandler);
                 mIsTouchOn = false;
                 mUseTouch = false;
+                notifyTorchOffEvent(listener, handler);
             } catch (Exception e) {
                 throw new IllegalArgumentException(e);
             } finally {
                 resumeRepeatingRequest();
             }
-            notifyTorchOffEvent(listener, handler);
         }
     }
 
@@ -840,6 +797,10 @@ public class CameraWrapper {
 
     public void setFocus(float ratioX, float ratioY, boolean isRotate) {
         mMeteringRectangle = createMeteringRectangle(ratioX, ratioY, isRotate);
+
+        if (mCaptureSession != null) {
+
+        }
     }
 
     private MeteringRectangle createMeteringRectangle(float ratioX, float ratioY, boolean isRotate) {
@@ -916,22 +877,11 @@ public class CameraWrapper {
             mPreviewSize = previewSize;
         }
 
-        public Float getMaxDigitalZoom() {
-            return mMaxDigitalZoom;
-        }
-
-        public boolean isSupportedDigitalZoom(float zoom) {
-            return (zoom >= 1.0f && zoom <= mMaxDigitalZoom);
-        }
-
         public Float getDigitalZoom() {
             return mDigitalZoom;
         }
 
         public void setDigitalZoom(Float zoom) {
-            if (zoom != null && !isSupportedDigitalZoom(zoom)) {
-                throw new RuntimeException("");
-            }
             mDigitalZoom = zoom;
         }
 
@@ -940,10 +890,7 @@ public class CameraWrapper {
         }
 
         public void setNoiseReductionMode(Integer mode) {
-            if (mode != null && !isSupportedNoiseReduction(mode)) {
-                throw new RuntimeException("");
-            }
-            mNoiseReductionMode= mode;
+            mNoiseReductionMode = mode;
         }
 
         public void setStabilizationMode(Integer mode) {
@@ -1034,43 +981,16 @@ public class CameraWrapper {
             return mSupportedStabilizationList;
         }
 
-        public boolean isSupportedStabilization(int mode) {
-            for (Integer m : mSupportedStabilizationList) {
-                if (m == mode) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         public List<Integer> getSupportedOpticalStabilizationList() {
             return mSupportedOpticalStabilizationList;
-        }
-
-        public boolean isSupportedOpticalStabilization(int mode) {
-            for (Integer m : mSupportedOpticalStabilizationList) {
-                if (m == mode) {
-                    return true;
-                }
-            }
-            return false;
         }
 
         public List<Integer> getSupportedNoiseReductionList() {
             return mSupportedNoiseReductionList;
         }
 
-        public boolean isSupportedNoiseReduction(int mode) {
-            for (Integer m : mSupportedNoiseReductionList) {
-                if (m == mode) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public boolean isSupportMeteringArea() {
-            return mMaxAutoFocusRegions != null;
+        public Float getMaxDigitalZoom() {
+            return mMaxDigitalZoom;
         }
 
         public Size getDefaultPictureSize() {

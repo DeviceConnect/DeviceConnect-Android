@@ -1,5 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.activity.recorder.settings;
 
+import android.content.res.Resources;
 import android.hardware.camera2.CameraMetadata;
 import android.os.Bundle;
 import android.util.Size;
@@ -35,6 +36,8 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         setPreviewSizePreference(settings);
         setPreviewVideoEncoderPreference(settings);
         setPreviewWhiteBalancePreference(settings);
+        setPreviewProfilePreference(settings.getPreviewEncoderName(), false);
+        setPreviewLevelPreference(settings.getPreviewEncoderName(), false);
 
         setInputTypeNumber("preview_framerate");
         setInputTypeNumber("preview_bitrate");
@@ -103,11 +106,53 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
      * @param settings レコーダ設定
      */
     private void setPreviewVideoEncoderPreference(HostMediaRecorder.Settings settings) {
-        ListPreference pref = findPreference("preview_mime_type");
+        ListPreference pref = findPreference("preview_encoder");
         if (pref != null) {
-            pref.setValue(settings.getPreviewEncoder());
+            pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
         }
     }
+
+    private void setPreviewProfilePreference(HostMediaRecorder.VideoEncoderName encoderName, boolean reset) {
+        ListPreference pref = findPreference("preview_profile");
+        if (pref != null) {
+            Resources res = getContext().getResources();
+            switch (encoderName) {
+                case H264:
+                    pref.setEntries(res.getStringArray(R.array.h264_profile_names));
+                    pref.setEntryValues(res.getStringArray(R.array.h264_profile_values));
+                    break;
+                case H265:
+                    pref.setEntries(res.getStringArray(R.array.h265_profile_names));
+                    pref.setEntryValues(res.getStringArray(R.array.h265_profile_values));
+                    break;
+            }
+            if (reset) {
+                pref.setValue("default");
+            }
+        }
+    }
+
+    private void setPreviewLevelPreference(HostMediaRecorder.VideoEncoderName encoderName, boolean reset) {
+        ListPreference pref = findPreference("preview_level");
+        if (pref != null) {
+            Resources res = getContext().getResources();
+            switch (encoderName) {
+                case H264:
+                    pref.setEntries(res.getStringArray(R.array.h264_level_names));
+                    pref.setEntryValues(res.getStringArray(R.array.h264_level_values));
+                    break;
+                case H265:
+                    pref.setEntries(res.getStringArray(R.array.h265_level_names));
+                    pref.setEntryValues(res.getStringArray(R.array.h265_level_values));
+                    break;
+            }
+            if (reset) {
+                pref.setValue("default");
+            }
+        }
+    }
+
+
 
     /**
      * レコーダでサポートしているホワイトバランスのリストを設定します.
@@ -233,6 +278,13 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             Size size = getSizeFromValue((String) newValue);
             if (size != null) {
                 mMediaRecorder.getSettings().setPreviewSize(size);
+            }
+        } else if ("preview_encoder".equals(key)) {
+            if (mMediaRecorder != null) {
+                HostMediaRecorder.VideoEncoderName encoderName =
+                        HostMediaRecorder.VideoEncoderName.nameOf((String) newValue);
+                setPreviewProfilePreference(encoderName, true);
+                setPreviewLevelPreference(encoderName, true);
             }
         }
         return true;

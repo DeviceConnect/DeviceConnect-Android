@@ -73,12 +73,18 @@
     <string name="host_recorder_settings_preview_resolution">Preview Resolution</string>
     <string name="host_recorder_settings_framerate">Frame rate (fps)</string>
     <string name="host_recorder_settings_bitrate">Bitrate (bps)</string>
+    <string name="host_recorder_settings_bitrate_mode">Bitrate Mode</string>
     <string name="host_recorder_settings_i_frame_interval">Key frame interval (sec)</string>
     <string name="host_recorder_settings_video_encode">Encoder</string>
+    <string name="host_recorder_settings_video_profile">Profile</string>
+    <string name="host_recorder_settings_video_level">Level</string>
     <string name="host_recorder_settings_use_software_encode">Software encoder</string>
     <string name="host_recorder_settings_use_software_encode_summary">MediaCodec prefers to use the software encoder.</string>
     <string name="host_recorder_settings_white_balance">White Balance</string>
     <string name="host_recorder_settings_intra_refresh">Intra Refresh</string>
+    <string name="host_recorder_settings_video_stabilization">Stabilization</string>
+    <string name="host_recorder_settings_optical_stabilization">Optical Stabilization</string>
+    <string name="host_recorder_settings_noise_reduction">Noise Reduction</string>
     <string name="host_recorder_settings_motion_jpeg">MotionJPEG Settings</string>
     <string name="host_recorder_settings_jpeg_quality">Quality (%)</string>
 

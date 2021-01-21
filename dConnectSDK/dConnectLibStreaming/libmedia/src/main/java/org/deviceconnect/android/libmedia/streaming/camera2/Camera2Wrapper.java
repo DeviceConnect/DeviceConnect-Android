@@ -24,13 +24,12 @@ import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
 
+import androidx.annotation.NonNull;
+
 import org.deviceconnect.android.libmedia.BuildConfig;
-import org.deviceconnect.android.libmedia.streaming.muxer.RtmpMuxer;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import androidx.annotation.NonNull;
 
 /**
  * Camera2 API でカメラデバイスを制御するためのクラス.

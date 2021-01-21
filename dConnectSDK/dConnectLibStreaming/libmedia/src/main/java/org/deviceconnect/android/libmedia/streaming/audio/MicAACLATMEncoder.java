@@ -156,12 +156,20 @@ public class MicAACLATMEncoder extends AudioEncoder {
         }
     }
 
+    public static final int SAMPLES_PER_FRAME = 1024;
+    public static final int FRAMES_PER_BUFFER = 25;
+
     /**
      * AudioRecord を開始します.
      */
     private void startAudioRecord() {
-        mBufferSize = AudioRecord.getMinBufferSize(mAudioQuality.getSamplingRate(),
+        int minBufferSize = AudioRecord.getMinBufferSize(mAudioQuality.getSamplingRate(),
                 mAudioQuality.getChannel(), mAudioQuality.getFormat()) * 2;
+
+        mBufferSize = SAMPLES_PER_FRAME * FRAMES_PER_BUFFER;
+        if (mBufferSize < minBufferSize) {
+            mBufferSize = ((minBufferSize / SAMPLES_PER_FRAME) + 1) * SAMPLES_PER_FRAME * 2;
+        }
 
         if (DEBUG) {
             Log.d(TAG, "AudioQuality: " + mAudioQuality);

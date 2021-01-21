@@ -225,6 +225,20 @@
         <item>4</item>
     </string-array>
 
+    <string-array name="audio_source_names">
+        <item>None</item>
+        <item>System Default</item>
+        <item>マイク</item>
+        <item>アプリ録音</item>
+    </string-array>
+
+    <string-array name="audio_source_values">
+        <item>none</item>
+        <item>default</item>
+        <item>mic</item>
+        <item>app</item>
+    </string-array>
+
     <string name="settings_audio_bit_rate">64</string>
     <string name="settings_audio_sampling_rate">8000</string>
     <string-array name="settings_audio_sampling_rates">

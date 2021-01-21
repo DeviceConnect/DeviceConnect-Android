@@ -1108,16 +1108,29 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return プレビュー音声が有効の場合はtrue、それ以外はfalse
          */
         public boolean isAudioEnabled() {
-            return mPref.getBoolean("audio_enabled", false);
+            return getAudioSource() != null;
         }
 
         /**
-         * プレビュー音声が有効化を設定します.
+         * プレビューの音声タイプを取得します.
          *
-         * @param enabled プレビュー音声が有効の場合はtrue、それ以外はfalse
+         * @return 音声タイプ
          */
-        public void setAudioEnabled(boolean enabled) {
-            mPref.put("audio_enabled", enabled);
+        public AudioSource getAudioSource() {
+            return AudioSource.typeOf(mPref.getString("preview_audio_source", "none"));
+        }
+
+        /**
+         * プレビューの音声タイプを設定します.
+         *
+         * @param audioSource 音声タイプ
+         */
+        public void setAudioSource(AudioSource audioSource) {
+            if (audioSource == null) {
+                mPref.put("preview_audio_source", "none");
+            } else {
+                mPref.put("preview_audio_source", audioSource.mSource);
+            }
         }
 
         /**
@@ -1211,24 +1224,6 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public void setMute(boolean mute) {
             mPref.put("preview_audio_mute", mute);
-        }
-
-        /**
-         * プレビューの音声タイプを取得します.
-         *
-         * @return 音声タイプ
-         */
-        public AudioSource getAudioSource() {
-            return AudioSource.typeOf(mPref.getString("preview_audio_source", "default"));
-        }
-
-        /**
-         * プレビューの音声タイプを設定します.
-         *
-         * @param audioSource 音声タイプ
-         */
-        public void setAudioSource(AudioSource audioSource) {
-            mPref.put("preview_audio_source", audioSource.mSource);
         }
 
         public boolean isSupportedAudioSource(AudioSource source) {

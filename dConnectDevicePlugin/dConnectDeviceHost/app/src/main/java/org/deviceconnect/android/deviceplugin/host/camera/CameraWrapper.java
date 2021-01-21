@@ -87,6 +87,7 @@ public class CameraWrapper {
 
     private CameraDevice mCameraDevice;
     private CameraCaptureSession mCaptureSession;
+    private CaptureRequest.Builder mPreviewRequestBuilder;
 
     private boolean mIsTakingStillImage;
     private boolean mIsPreview;
@@ -97,7 +98,6 @@ public class CameraWrapper {
     private Surface mStillImageSurface;
     private Surface mPreviewSurface;
     private Surface mRecordingSurface;
-    private Surface mTargetSurface;
 
     private List<Surface> mTargetSurfaces;
 
@@ -279,9 +279,6 @@ public class CameraWrapper {
         }
     }
 
-    public void setTargetSurface(Surface surface) {
-        mTargetSurface = surface;
-    }
     public void setStillImageSurface(Surface surface) {
         mStillImageSurface = surface;
     }
@@ -297,9 +294,6 @@ public class CameraWrapper {
         if (mIsPreview) {
             if (mPreviewSurface != null) {
                 surfaceList.add(mPreviewSurface);
-            }
-            if (mTargetSurface != null) {
-                surfaceList.add(mTargetSurface);
             }
         } else {
             surfaceList.add(mPlaceHolderPreviewReader.getSurface());

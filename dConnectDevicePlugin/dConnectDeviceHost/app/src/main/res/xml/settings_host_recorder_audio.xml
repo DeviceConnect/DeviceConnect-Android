@@ -6,12 +6,14 @@
         android:title="@string/host_recorder_settings_audio"
         app:iconSpaceReserved="false">
 
-        <SwitchPreferenceCompat
-            android:defaultValue="false"
-            android:key="audio_enabled"
-            android:title="@string/host_recorder_settings_audio_enable"
+        <ListPreference
+            android:defaultValue="none"
+            android:entries="@array/audio_source_names"
+            android:entryValues="@array/audio_source_values"
+            android:key="preview_audio_source"
+            android:title="@string/host_recorder_settings_audio_source"
             app:iconSpaceReserved="false"
-            app:summary="@string/host_recorder_settings_audio_enable_summary" />
+            app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
             android:defaultValue="64"

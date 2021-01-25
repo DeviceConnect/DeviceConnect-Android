@@ -2,7 +2,9 @@ package org.deviceconnect.android.deviceplugin.host.activity.recorder.settings;
 
 import android.content.res.Resources;
 import android.hardware.camera2.CameraMetadata;
+import android.hardware.camera2.CaptureRequest;
 import android.os.Bundle;
+import android.util.Range;
 import android.util.Size;
 
 import androidx.annotation.NonNull;
@@ -10,6 +12,7 @@ import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 
 import java.util.ArrayList;
@@ -36,8 +39,16 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         setPreviewSizePreference(settings);
         setPreviewVideoEncoderPreference(settings);
         setPreviewWhiteBalancePreference(settings);
+        setPreviewAutoExposurePreference(settings);
         setPreviewProfilePreference(settings.getPreviewEncoderName(), false);
         setPreviewLevelPreference(settings.getPreviewEncoderName(), false);
+        setPreviewSensorExposureTime(settings);
+        setPreviewSensorSensitivity(settings);
+        setPreviewSensorFrameDuration(settings);
+        setPreviewStabilization(settings);
+        setPreviewOpticalStabilization(settings);
+        setPreviewNoiseReduction(settings);
+        setPreviewFocalLength(settings);
 
         setInputTypeNumber("preview_framerate");
         setInputTypeNumber("preview_bitrate");
@@ -127,7 +138,7 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
                     break;
             }
             if (reset) {
-                pref.setValue("default");
+                pref.setValue("none");
             }
         }
     }
@@ -147,12 +158,10 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
                     break;
             }
             if (reset) {
-                pref.setValue("default");
+                pref.setValue("none");
             }
         }
     }
-
-
 
     /**
      * レコーダでサポートしているホワイトバランスのリストを設定します.
@@ -162,43 +171,253 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
     private void setPreviewWhiteBalancePreference(HostMediaRecorder.Settings settings) {
         ListPreference pref = findPreference("preview_white_balance");
         if (pref != null) {
-            List<String> entryNames = new ArrayList<>();
-            List<String> entryValues = new ArrayList<>();
-            for (Integer mode : settings.getSupportedWhiteBalances()) {
-                switch (mode) {
-                    case CameraMetadata.CONTROL_AWB_MODE_OFF:
-                        entryNames.add("OFF");
-                        break;
-                    case CameraMetadata.CONTROL_AWB_MODE_AUTO:
-                        entryNames.add("AUTO");
-                        break;
-                    case CameraMetadata.CONTROL_AWB_MODE_INCANDESCENT:
-                        entryNames.add("INCANDESCENT");
-                        break;
-                    case CameraMetadata.CONTROL_AWB_MODE_FLUORESCENT:
-                        entryNames.add("FLUORESCENT");
-                        break;
-                    case CameraMetadata.CONTROL_AWB_MODE_WARM_FLUORESCENT:
-                        entryNames.add("WARM_FLUORESCENT");
-                        break;
-                    case CameraMetadata.CONTROL_AWB_MODE_DAYLIGHT:
-                        entryNames.add("DAYLIGHT");
-                        break;
-                    case CameraMetadata.CONTROL_AWB_MODE_CLOUDY_DAYLIGHT:
-                        entryNames.add("CLOUDY_DAYLIGHT");
-                        break;
-                    case CameraMetadata.CONTROL_AWB_MODE_TWILIGHT:
-                        entryNames.add("TWILIGHT");
-                        break;
-                    case CameraMetadata.CONTROL_AWB_MODE_SHADE:
-                        entryNames.add("SHADE");
-                        break;
+            List<Integer> modeList = settings.getSupportedWhiteBalances();
+            if (modeList != null && !modeList.isEmpty()) {
+                List<String> entryNames = new ArrayList<>();
+                List<String> entryValues = new ArrayList<>();
+                entryNames.add("None");
+                entryValues.add("none");
+                for (Integer mode : modeList) {
+                    switch (mode) {
+                        case CameraMetadata.CONTROL_AWB_MODE_OFF:
+                            entryNames.add("OFF");
+                            break;
+                        case CameraMetadata.CONTROL_AWB_MODE_AUTO:
+                            entryNames.add("AUTO");
+                            break;
+                        case CameraMetadata.CONTROL_AWB_MODE_INCANDESCENT:
+                            entryNames.add("INCANDESCENT");
+                            break;
+                        case CameraMetadata.CONTROL_AWB_MODE_FLUORESCENT:
+                            entryNames.add("FLUORESCENT");
+                            break;
+                        case CameraMetadata.CONTROL_AWB_MODE_WARM_FLUORESCENT:
+                            entryNames.add("WARM_FLUORESCENT");
+                            break;
+                        case CameraMetadata.CONTROL_AWB_MODE_DAYLIGHT:
+                            entryNames.add("DAYLIGHT");
+                            break;
+                        case CameraMetadata.CONTROL_AWB_MODE_CLOUDY_DAYLIGHT:
+                            entryNames.add("CLOUDY_DAYLIGHT");
+                            break;
+                        case CameraMetadata.CONTROL_AWB_MODE_TWILIGHT:
+                            entryNames.add("TWILIGHT");
+                            break;
+                        case CameraMetadata.CONTROL_AWB_MODE_SHADE:
+                            entryNames.add("SHADE");
+                            break;
+                    }
+                    entryValues.add(String.valueOf(mode));
                 }
-                entryValues.add(String.valueOf(mode));
+                pref.setEntries(entryNames.toArray(new String[0]));
+                pref.setEntryValues(entryValues.toArray(new String[0]));
+                pref.setValue(String.valueOf(settings.getPreviewWhiteBalance()));
+            } else {
+                pref.setEnabled(false);
             }
-            pref.setEntries(entryNames.toArray(new String[0]));
-            pref.setEntryValues(entryValues.toArray(new String[0]));
-            pref.setValue(String.valueOf(settings.getPreviewWhiteBalance()));
+        }
+    }
+
+    /**
+     * レコーダでサポートしているホワイトバランスのリストを設定します.
+     *
+     * @param settings レコーダ設定
+     */
+    private void setPreviewAutoExposurePreference(HostMediaRecorder.Settings settings) {
+        ListPreference pref = findPreference("preview_auto_exposure_mode");
+        if (pref != null) {
+            List<Integer> modeList = settings.getSupportedAutoExposureModeList();
+            if (modeList != null && !modeList.isEmpty()) {
+                List<String> entryNames = new ArrayList<>();
+                List<String> entryValues = new ArrayList<>();
+                entryNames.add("None");
+                entryValues.add("none");
+                for (Integer mode : modeList) {
+                    switch (mode) {
+                        case CameraMetadata.CONTROL_AE_MODE_OFF:
+                            entryNames.add("OFF");
+                            break;
+                        case CameraMetadata.CONTROL_AE_MODE_ON:
+                            entryNames.add("ON");
+                            break;
+                        case CameraMetadata.CONTROL_AE_MODE_ON_AUTO_FLASH:
+                            entryNames.add("ON_AUTO_FLASH");
+                            break;
+                        case CameraMetadata.CONTROL_AE_MODE_ON_ALWAYS_FLASH:
+                            entryNames.add("ON_ALWAYS_FLASH");
+                            break;
+                        case CameraMetadata.CONTROL_AE_MODE_ON_AUTO_FLASH_REDEYE:
+                            entryNames.add("ON_AUTO_FLASH_REDEYE");
+                            break;
+                        case CameraMetadata.CONTROL_AE_MODE_ON_EXTERNAL_FLASH:
+                            entryNames.add("ON_EXTERNAL_FLASH");
+                            break;
+                    }
+                    entryValues.add(String.valueOf(mode));
+                }
+                pref.setEntries(entryNames.toArray(new String[0]));
+                pref.setEntryValues(entryValues.toArray(new String[0]));
+                pref.setValue(String.valueOf(settings.getPreviewAutoExposureMode()));
+            } else {
+                pref.setEnabled(false);
+            }
+        }
+    }
+
+    private void setPreviewSensorExposureTime(HostMediaRecorder.Settings settings) {
+        SeekBarDialogPreference pref = findPreference("preview_sensor_exposure_time");
+        if (pref != null) {
+            Range<Long> range = settings.getSupportedSensorExposureTime();
+            if (range != null) {
+                pref.setMinValue(range.getLower().intValue());
+                pref.setMaxValue(range.getUpper().intValue());
+            } else {
+                pref.setEnabled(false);
+            }
+        }
+    }
+
+    private void setPreviewSensorSensitivity(HostMediaRecorder.Settings settings) {
+        SeekBarDialogPreference pref = findPreference("preview_sensor_sensitivity");
+        if (pref != null) {
+            Range<Integer> range = settings.getSupportedSensorSensitivity();
+            if (range != null) {
+                pref.setMinValue(range.getLower());
+                pref.setMaxValue(range.getUpper());
+            } else {
+                pref.setEnabled(false);
+            }
+        }
+    }
+
+    private void setPreviewSensorFrameDuration(HostMediaRecorder.Settings settings) {
+        SeekBarDialogPreference pref = findPreference("preview_sensor_frame_duration");
+        if (pref != null) {
+            Long max = settings.getMaxSensorFrameDuration();
+            if (max != null) {
+                pref.setMinValue(0);
+                pref.setMaxValue(max.intValue());
+            } else {
+                pref.setEnabled(false);
+            }
+        }
+    }
+
+    private void setPreviewStabilization(HostMediaRecorder.Settings settings) {
+        ListPreference pref = findPreference("preview_stabilization_mode");
+        if (pref != null) {
+            List<Integer> modeList = settings.getSupportedStabilizationList();
+            if (modeList != null && !modeList.isEmpty()) {
+                List<String> entryNames = new ArrayList<>();
+                List<String> entryValues = new ArrayList<>();
+                entryNames.add("None");
+                entryValues.add("none");
+                for (Integer mode : modeList) {
+                    switch (mode) {
+                        case CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON:
+                            entryNames.add("ON");
+                            break;
+                        case CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_OFF:
+                            entryNames.add("OFF");
+                            break;
+                    }
+                    entryValues.add(String.valueOf(mode));
+                }
+                pref.setEntries(entryNames.toArray(new String[0]));
+                pref.setEntryValues(entryValues.toArray(new String[0]));
+                pref.setValue(String.valueOf(settings.getStabilizationMode()));
+            } else {
+                pref.setEnabled(false);
+            }
+        }
+    }
+
+    private void setPreviewOpticalStabilization(HostMediaRecorder.Settings settings) {
+        ListPreference pref = findPreference("preview_optical_stabilization_mode");
+        if (pref != null) {
+            List<Integer> modeList = settings.getSupportedOpticalStabilizationList();
+            if (modeList != null && !modeList.isEmpty()) {
+                List<String> entryNames = new ArrayList<>();
+                List<String> entryValues = new ArrayList<>();
+                entryNames.add("None");
+                entryValues.add("none");
+                for (Integer mode : modeList) {
+                    switch (mode) {
+                        case CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON:
+                            entryNames.add("ON");
+                            break;
+                        case CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF:
+                            entryNames.add("OFF");
+                            break;
+                    }
+                    entryValues.add(String.valueOf(mode));
+                }
+                pref.setEntries(entryNames.toArray(new String[0]));
+                pref.setEntryValues(entryValues.toArray(new String[0]));
+                pref.setValue(String.valueOf(settings.getOpticalStabilizationMode()));
+            } else {
+                pref.setEnabled(false);
+            }
+        }
+    }
+
+    private void setPreviewNoiseReduction(HostMediaRecorder.Settings settings) {
+        ListPreference pref = findPreference("preview_reduction_noise");
+        if (pref != null) {
+            List<Integer> modeList = settings.getSupportedNoiseReductionList();
+            if (modeList != null && !modeList.isEmpty()) {
+                List<String> entryNames = new ArrayList<>();
+                List<String> entryValues = new ArrayList<>();
+                entryNames.add("None");
+                entryValues.add("none");
+                for (Integer mode : modeList) {
+                    switch (mode) {
+                        case CameraMetadata.NOISE_REDUCTION_MODE_FAST:
+                            entryNames.add("MODE_FAST");
+                            break;
+                        case CameraMetadata.NOISE_REDUCTION_MODE_HIGH_QUALITY:
+                            entryNames.add("HIGH_QUALITY");
+                            break;
+                        case CameraMetadata.NOISE_REDUCTION_MODE_MINIMAL:
+                            entryNames.add("MODE_MINIMAL");
+                            break;
+                        case CameraMetadata.NOISE_REDUCTION_MODE_OFF:
+                            entryNames.add("OFF");
+                            break;
+                        case CameraMetadata.NOISE_REDUCTION_MODE_ZERO_SHUTTER_LAG:
+                            entryNames.add("ZERO_SHUTTER_LAG");
+                            break;
+                    }
+                    entryValues.add(String.valueOf(mode));
+                }
+                pref.setEntries(entryNames.toArray(new String[0]));
+                pref.setEntryValues(entryValues.toArray(new String[0]));
+                pref.setValue(String.valueOf(settings.getNoiseReduction()));
+            } else {
+                pref.setEnabled(false);
+            }
+        }
+    }
+
+    private void setPreviewFocalLength(HostMediaRecorder.Settings settings) {
+        ListPreference pref = findPreference("preview_focal_length");
+        if (pref != null) {
+            List<Float> modeList = settings.getSupportedFocalLengthList();
+            if (modeList != null && !modeList.isEmpty()) {
+                List<String> entryNames = new ArrayList<>();
+                List<String> entryValues = new ArrayList<>();
+                entryNames.add("None");
+                entryValues.add("none");
+                for (Float mode : modeList) {
+                    entryNames.add(String.valueOf(mode));
+                    entryValues.add(String.valueOf(mode));
+                }
+                pref.setEntries(entryNames.toArray(new String[0]));
+                pref.setEntryValues(entryValues.toArray(new String[0]));
+                pref.setValue(String.valueOf(settings.getFocalLength()));
+            } else {
+                pref.setEnabled(false);
+            }
         }
     }
 

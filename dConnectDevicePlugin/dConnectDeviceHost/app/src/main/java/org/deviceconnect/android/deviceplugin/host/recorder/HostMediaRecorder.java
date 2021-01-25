@@ -752,9 +752,20 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public void setPreviewWhiteBalance(Integer whiteBalance) {
             if (!isSupportedWhiteBalance(whiteBalance)) {
-                throw new IllegalArgumentException("whiteBalance is unsupported value.");
+                throw new IllegalArgumentException("WhiteBalance is unsupported value.");
             }
             mPref.put("preview_white_balance", whiteBalance);
+        }
+
+        public Integer getPreviewAutoExposureMode() {
+            return mPref.getInteger("preview_auto_exposure_mode", null);
+        }
+
+        public void setPreviewAutoExposureMode(Integer mode) {
+            if (!isSupportedAutoExposureMode(mode)) {
+                throw new IllegalArgumentException("Exposure mode is unsupported value.");
+            }
+            mPref.put("preview_auto_exposure_mode", mode);
         }
 
         /**
@@ -868,6 +879,18 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             }
         }
 
+        public Float getFocalLength() {
+            return mPref.getFloat("preview_focal_length", null);
+        }
+
+        public void setFocalLength(Float focalLength) {
+            if (focalLength == null) {
+                mPref.remove("preview_focal_length");
+            } else {
+                mPref.put("preview_focal_length", focalLength);
+            }
+        }
+
         public Integer getNoiseReduction() {
             return mPref.getInteger("preview_reduction_noise", null);
         }
@@ -916,8 +939,52 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             }
         }
 
-        public List<BitRateMode> getSupportedBitRateModes() {
-            return Arrays.asList(BitRateMode.values());
+        public Integer getAutoExposureMode() {
+            return mPref.getInteger("preview_auto_exposure_mode", null);
+        }
+
+        public void setAutoExposureMode(Integer mode) {
+            if (mode == null) {
+                mPref.remove("preview_auto_exposure_mode");
+            } else {
+                mPref.put("preview_auto_exposure_mode", mode);
+            }
+        }
+
+        public Long getSensorExposureTime() {
+            return mPref.getLong("preview_sensor_exposure_time", null);
+        }
+
+        public void setSensorExposureTime(Long time) {
+            if (time == null) {
+                mPref.remove("preview_sensor_exposure_time");
+            } else {
+                mPref.put("preview_sensor_exposure_time", time);
+            }
+        }
+
+        public Integer getSensorSensitivity() {
+            return mPref.getInteger("preview_sensor_sensitivity", null);
+        }
+
+        public void setSensorSensitivity(Integer sensitivity) {
+            if (sensitivity == null) {
+                mPref.remove("preview_sensor_sensitivity");
+            } else {
+                mPref.put("preview_sensor_sensitivity", sensitivity);
+            }
+        }
+
+        public Long getSensorFrameDuration() {
+            return mPref.getLong("preview_sensor_frame_duration", null);
+        }
+
+        public void setSensorFrameDuration(Long frameDuration) {
+            if (frameDuration == null) {
+                mPref.remove("preview_sensor_frame_duration");
+            } else {
+                mPref.put("preview_sensor_frame_duration", frameDuration);
+            }
         }
 
         /**
@@ -947,6 +1014,10 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             return new ArrayList<>();
         }
 
+        public List<BitRateMode> getSupportedBitRateModeList() {
+            return Arrays.asList(BitRateMode.values());
+        }
+
         /**
          * サポートしているホワイトバランスのリストを取得します.
          *
@@ -954,6 +1025,22 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public List<Integer> getSupportedWhiteBalances() {
             return new ArrayList<>();
+        }
+
+        public List<Integer> getSupportedAutoExposureModeList() {
+            return new ArrayList<>();
+        }
+
+        public Range<Long> getSupportedSensorExposureTime() {
+            return null;
+        }
+
+        public Range<Integer> getSupportedSensorSensitivity() {
+            return null;
+        }
+
+        public Long getMaxSensorFrameDuration() {
+            return null;
         }
 
         /**
@@ -965,14 +1052,29 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             return new ArrayList<>();
         }
 
-        public List<Integer> getSupportedStabilizations() {
+        public List<Integer> getSupportedStabilizationList() {
             return new ArrayList<>();
         }
 
-        public List<Integer> getSupportedOpticalStabilizations() {
+        public List<Integer> getSupportedOpticalStabilizationList() {
             return new ArrayList<>();
         }
 
+        public List<Integer> getSupportedNoiseReductionList() {
+            return new ArrayList<>();
+        }
+
+        public List<Float> getSupportedFocalLengthList() {
+            return new ArrayList<>();
+        }
+
+        /**
+         * デジタルズームの最大倍率を取得します.
+         *
+         * デジタルズームに対応していない場合には null を返却します。
+         *
+         * @return デジタルズームの最大倍率
+         */
         public Float getMaxDigitalZoom() {
             return null;
         }
@@ -1054,10 +1156,49 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return サポートされている場合はtrue、それ以外はfalse
          */
         public boolean isSupportedWhiteBalance(int whiteBalance) {
-            for (Integer wb : getSupportedWhiteBalances()) {
-                if (wb == whiteBalance) {
-                    return true;
+            List<Integer> modeList = getSupportedWhiteBalances();
+            if (modeList != null) {
+                for (Integer wb : modeList) {
+                    if (wb == whiteBalance) {
+                        return true;
+                    }
                 }
+            }
+            return false;
+        }
+
+        public boolean isSupportedAutoExposureMode(Integer mode) {
+            List<Integer> modeList = getSupportedAutoExposureModeList();
+            if (modeList != null) {
+                for (Integer m : modeList) {
+                    if (m.equals(mode)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public boolean isSupportedSensorExposureTime(long time) {
+            Range<Long> range = getSupportedSensorExposureTime();
+            if (range != null) {
+                return range.getLower() <= time && time <= range.getUpper();
+            }
+            return false;
+        }
+
+        public boolean isSupportedSensorSensorSensitivity(int sensitivity) {
+            Range<Integer> range = getSupportedSensorSensitivity();
+            if (range != null) {
+                return range.getLower() <= sensitivity && sensitivity <= range.getUpper();
+            }
+            return false;
+        }
+
+        public boolean isSupportedSensorFrameDuration(long frameDuration) {
+            Long maxFrameDuration = getMaxSensorFrameDuration();
+            if (maxFrameDuration != null) {
+                return 0 <= frameDuration && frameDuration <= maxFrameDuration;
             }
             return false;
         }
@@ -1069,35 +1210,92 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return サポートされている場合はtrue、それ以外はfalse
          */
         public boolean isSupportedVideoEncoder(String encoder) {
-            for (String e : getSupportedVideoEncoders()) {
-                if (e.equalsIgnoreCase(encoder)) {
-                    return true;
+            List<String> encoderList = getSupportedVideoEncoders();
+            if (encoderList != null) {
+                for (String e : encoderList) {
+                    if (e.equalsIgnoreCase(encoder)) {
+                        return true;
+                    }
                 }
             }
             return false;
         }
 
+        /**
+         * 手ぶれ補正がサポートされている確認します.
+         *
+         * @param mode 手ぶれ補正モード
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
         public boolean isSupportedStabilization(int mode) {
-            for (Integer m : getSupportedStabilizations()) {
-                if (m == mode) {
-                    return true;
+            List<Integer> modeList = getSupportedStabilizationList();
+            if (modeList != null) {
+                for (Integer m : modeList) {
+                    if (m == mode) {
+                        return true;
+                    }
                 }
             }
             return false;
         }
 
+        /**
+         * 光学手ぶれ補正がサポートされている確認します.
+         *
+         * @param mode 光学手ぶれ補正モード
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
         public boolean isSupportedOpticalStabilization(int mode) {
-            for (Integer m : getSupportedOpticalStabilizations()) {
-                if (m == mode) {
-                    return true;
+            List<Integer> modeList = getSupportedOpticalStabilizationList();
+            if (modeList != null) {
+                for (Integer m : modeList) {
+                    if (m == mode) {
+                        return true;
+                    }
                 }
             }
             return false;
         }
 
+        /**
+         * ノイズ低減モードがサポートされているか確認します.
+         *
+         * @param mode ノイズ低減モード
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
+        public boolean isSupportedNoiseReduction(Integer mode) {
+            List<Integer> modeList = getSupportedNoiseReductionList();
+            if (modeList != null) {
+                for (Integer m : modeList) {
+                    if (m.equals(mode)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        /**
+         * デジタルズームの倍率がサポートされているか確認します.
+         *
+         * @param zoom ズームの倍率
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
         public boolean isSupportedDigitalZoom(float zoom) {
             Float max = getMaxDigitalZoom();
-            return max != null && 0.0f <= zoom && zoom <= max;
+            return max != null && 1.0f <= zoom && zoom <= max;
+        }
+
+        public boolean isSupportedFocalLengthList(Float focalLength) {
+            List<Float> list = getSupportedFocalLengthList();
+            if (list != null) {
+                for (Float length : list) {
+                    if (length.equals(focalLength)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         // 音声
@@ -1227,9 +1425,12 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         }
 
         public boolean isSupportedAudioSource(AudioSource source) {
-            for (AudioSource s : getSupportedAudioSource()) {
-                if (s == source) {
-                    return true;
+            List<AudioSource> sourceList = getSupportedAudioSource();
+            if (sourceList != null) {
+                for (AudioSource s : sourceList) {
+                    if (s == source) {
+                        return true;
+                    }
                 }
             }
             return false;

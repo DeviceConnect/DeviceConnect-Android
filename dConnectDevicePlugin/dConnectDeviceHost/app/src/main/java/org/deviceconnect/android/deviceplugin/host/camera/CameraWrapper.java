@@ -206,28 +206,25 @@ public class CameraWrapper {
     private Options initOptions() {
         Options options = new CameraWrapper.Options();
 
-        options.mAutoFocusMode = Camera2Helper.choiceAutoFocusMode(mContext, mCameraManager, mCameraId);
-        options.mAutoExposureMode = Camera2Helper.choiceAutoExposureMode(mCameraManager, mCameraId);
-
-        options.mMaxDigitalZoom = Camera2Helper.getMaxDigitalZoom(mCameraManager, mCameraId);
+        // カメラがサポートしている値を設定
+        options.mSupportedPictureSizeList = Camera2Helper.getSupportedPictureSizes(mCameraManager, mCameraId);
+        options.mSupportedPreviewSizeList = Camera2Helper.getSupportedPreviewSizes(mCameraManager, mCameraId);
+        options.mSupportedFpsList = Camera2Helper.getSupportedFps(mCameraManager, mCameraId);
+        options.mSupportedWhiteBalanceList = Camera2Helper.getSupportedAWB(mCameraManager, mCameraId);
+        options.mSupportedAutoExposureList = Camera2Helper.getSupportedAutoExposureMode(mCameraManager, mCameraId);
+        options.mSupportedExposureTimeRange = Camera2Helper.getSupportedSensorExposureTime(mCameraManager, mCameraId);
+        options.mSupportedSensitivityRange = Camera2Helper.getSupportedSensorSensitivity(mCameraManager, mCameraId);
+        options.mMaxFrameDuration = Camera2Helper.getMaxSensorFrameDuration(mCameraManager, mCameraId);
+        options.mMaxAutoFocusRegions = Camera2Helper.getMaxMeteringArea(mCameraManager, mCameraId);
         options.mSupportedStabilizationList = Camera2Helper.getSupportedStabilization(mCameraManager, mCameraId);
         options.mSupportedOpticalStabilizationList = Camera2Helper.getSupportedOpticalStabilization(mCameraManager, mCameraId);
         options.mSupportedNoiseReductionList = Camera2Helper.getSupportedNoiseReductionMode(mCameraManager, mCameraId);
-        options.mMaxAutoFocusRegions = Camera2Helper.getMaxMeteringArea(mCameraManager, mCameraId);
+        options.mMaxDigitalZoom = Camera2Helper.getMaxDigitalZoom(mCameraManager, mCameraId);
+        options.mSupportedFocalLengthList = Camera2Helper.getSupportedFocalLengthList(mCameraManager, mCameraId);
 
-        List<Size> supportedPictureList = Camera2Helper.getSupportedPictureSizes(mCameraManager, mCameraId);
-        options.setSupportedPictureSizeList(supportedPictureList);
-        options.setPictureSize(supportedPictureList.get(0));
-
-        List<Size> supportedPreviewList = Camera2Helper.getSupportedPreviewSizes(mCameraManager, mCameraId);
-        options.setSupportedPreviewSizeList(supportedPreviewList);
-        options.setPreviewSize(supportedPreviewList.get(0));
-
-        List<Range<Integer>> supportedFpsList = Camera2Helper.getSupportedFps(mCameraManager, mCameraId);
-        options.setSupportedFpsList(supportedFpsList);
-
-        List<Integer> supportedWBList = Camera2Helper.getSupportedAWB(mCameraManager, mCameraId);
-        options.setSupportedWhiteBalanceList(supportedWBList);
+        // デフォルト設定
+        options.mAutoFocusMode = Camera2Helper.choiceAutoFocusMode(mContext, mCameraManager, mCameraId);
+        options.mAutoExposureMode = Camera2Helper.choiceAutoExposureMode(mCameraManager, mCameraId);
 
         Size defaultSize = options.getDefaultPictureSize();
         if (defaultSize != null) {
@@ -237,6 +234,7 @@ public class CameraWrapper {
         if (defaultSize != null) {
             options.setPreviewSize(defaultSize);
         }
+
         return options;
     }
 
@@ -380,6 +378,20 @@ public class CameraWrapper {
 
         if (mOptions.hasAutoExposure()) {
             request.set(CaptureRequest.CONTROL_AE_MODE, mOptions.mAutoExposureMode);
+
+            // 自動露出を無効
+            if (mOptions.mAutoExposureMode == CaptureRequest.CONTROL_AE_MODE_OFF) {
+                // 露出時間、感度(ISO)、およびフレーム期間を手動で制御
+                if (mOptions.getSensorExposureTime() != null) {
+                    request.set(CaptureRequest.SENSOR_EXPOSURE_TIME, mOptions.getSensorExposureTime());
+                }
+                if (mOptions.getSensorSensitivity() != null) {
+                    request.set(CaptureRequest.SENSOR_SENSITIVITY, mOptions.getSensorSensitivity());
+                }
+                if (mOptions.getSensorFrameDuration() != null) {
+                    request.set(CaptureRequest.SENSOR_FRAME_DURATION, mOptions.getSensorFrameDuration());
+                }
+            }
         }
 
         if (mOptions.mWhiteBalance != null) {
@@ -412,6 +424,10 @@ public class CameraWrapper {
 
         if (mOptions.mOpticalStabilizationMode != null) {
             request.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, mOptions.mOpticalStabilizationMode);
+        }
+
+        if (mOptions.mFocalLength != null) {
+            request.set(CaptureRequest.LENS_FOCAL_LENGTH, mOptions.mFocalLength);
         }
 
         // Light が ON の場合は、CONTROL_AE_MODE を CONTROL_AE_MODE_ON にする。
@@ -512,6 +528,7 @@ public class CameraWrapper {
         }
         mIsRecording = false;
         mRecordingSurface = null;
+
         if (mCaptureSession != null) {
             try {
                 mCaptureSession.close();
@@ -532,9 +549,6 @@ public class CameraWrapper {
     }
 
     public synchronized void takeStillImage(final Surface stillImageSurface) throws CameraWrapperException {
-        if (DEBUG) {
-            Log.d(TAG, "takeStillImage: started.");
-        }
         if (mIsTakingStillImage) {
             throw new CameraWrapperException("still image is taking now.");
         }
@@ -556,24 +570,18 @@ public class CameraWrapper {
             mCaptureSession.capture(request.build(), new CameraCaptureSession.CaptureCallback() {
                 @Override
                 public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
-                    if (DEBUG) {
-                        Log.d(TAG, "takeStillImage: onCaptureStarted");
-                    }
                     notifyCameraEvent(CameraEvent.SHUTTERED);
                 }
 
                 @Override
                 public void onCaptureCompleted(final @NonNull CameraCaptureSession session, final @NonNull CaptureRequest request, final @NonNull TotalCaptureResult result) {
-                    if (DEBUG) {
-                        Log.d(TAG, "takeStillImage: onCaptureCompleted");
-                    }
                     resumeRepeatingRequest();
                 }
 
                 @Override
                 public void onCaptureFailed(final @NonNull CameraCaptureSession session, final @NonNull CaptureRequest request, final @NonNull CaptureFailure failure) {
                     if (DEBUG) {
-                        Log.e(TAG, "takeStillImage: onCaptureFailed");
+                        Log.e(TAG, "takeStillImage: onCaptureFailed " + failure);
                     }
                     resumeRepeatingRequest();
                 }
@@ -823,7 +831,7 @@ public class CameraWrapper {
     /**
      * カメラオプションを保持するクラス.
      */
-    public static class Options {
+    public class Options {
         /**
          * デフォルトのプレビューサイズの閾値を定義.
          */
@@ -844,16 +852,25 @@ public class CameraWrapper {
         private Integer mOpticalStabilizationMode;
         private Float mDigitalZoom;
         private Integer mNoiseReductionMode;
+        private Long mSensorExposureTime;
+        private Integer mSensorSensitivity;
+        private Long mSensorFrameDuration;
+        private Float mFocalLength;
 
         private Integer mMaxAutoFocusRegions;
         private List<Size> mSupportedPictureSizeList = new ArrayList<>();
         private List<Size> mSupportedPreviewSizeList = new ArrayList<>();
         private List<Range<Integer>> mSupportedFpsList = new ArrayList<>();
         private List<Integer> mSupportedWhiteBalanceList = new ArrayList<>();
+        private List<Integer> mSupportedAutoExposureList = new ArrayList<>();
         private Float mMaxDigitalZoom;
         private List<Integer> mSupportedStabilizationList = new ArrayList<>();
         private List<Integer> mSupportedOpticalStabilizationList = new ArrayList<>();
         private List<Integer> mSupportedNoiseReductionList = new ArrayList<>();
+        private Range<Long> mSupportedExposureTimeRange;
+        private Range<Integer> mSupportedSensitivityRange;
+        private Long mMaxFrameDuration;
+        private List<Float> mSupportedFocalLengthList = new ArrayList<>();
 
         public Size getPictureSize() {
             return mPictureSize;
@@ -903,6 +920,14 @@ public class CameraWrapper {
             return mOpticalStabilizationMode;
         }
 
+        public Float getFocalLength() {
+            return mFocalLength;
+        }
+
+        public void setFocalLength(Float focalLength) {
+            mFocalLength = focalLength;
+        }
+
         public void setFps(int fps) {
             // 下限と上限の fps が一致する値を探す
             for (Range<Integer> range : mSupportedFpsList) {
@@ -939,36 +964,68 @@ public class CameraWrapper {
             mWhiteBalance = whiteBalance;
         }
 
-        public List<Size> getSupportedPictureSizeList() {
-            return mSupportedPictureSizeList;
+        public Integer getAutoExposureMode() {
+            return mAutoExposureMode;
         }
 
-        public void setSupportedPictureSizeList(final List<Size> supportedPictureSizeList) {
-            mSupportedPictureSizeList = new ArrayList<>(supportedPictureSizeList);
+        public void setAutoExposureMode(Integer mode) {
+            mAutoExposureMode = mode;
+        }
+
+        public Long getSensorExposureTime() {
+            return mSensorExposureTime;
+        }
+
+        public void setSensorExposureTime(Long exposureTime) {
+            mSensorExposureTime = exposureTime;
+        }
+
+        public Integer getSensorSensitivity() {
+            return mSensorSensitivity;
+        }
+
+        public void setSensorSensitivity(Integer sensitivity) {
+            mSensorSensitivity = sensitivity;
+        }
+
+        public Long getSensorFrameDuration() {
+            return mSensorFrameDuration;
+        }
+
+        public void setSensorFrameDuration(Long frameDuration) {
+            mSensorFrameDuration = frameDuration;
+        }
+
+        public List<Size> getSupportedPictureSizeList() {
+            return mSupportedPictureSizeList;
         }
 
         public List<Size> getSupportedPreviewSizeList() {
             return mSupportedPreviewSizeList;
         }
 
-        public void setSupportedPreviewSizeList(final List<Size> supportedPreviewSizeList) {
-            mSupportedPreviewSizeList = new ArrayList<>(supportedPreviewSizeList);
-        }
-
         public List<Range<Integer>> getSupportedFpsList() {
             return mSupportedFpsList;
-        }
-
-        public void setSupportedFpsList(final List<Range<Integer>> fpsList) {
-            mSupportedFpsList = fpsList;
         }
 
         public List<Integer> getSupportedWhiteBalanceList() {
             return mSupportedWhiteBalanceList;
         }
 
-        public void setSupportedWhiteBalanceList(List<Integer> list) {
-            mSupportedWhiteBalanceList = list;
+        public List<Integer> getSupportedAutoExposureModeList() {
+            return mSupportedAutoExposureList;
+        }
+
+        public Range<Long> getSupportedExposureTimeRange() {
+            return mSupportedExposureTimeRange;
+        }
+
+        public Range<Integer> getSupportedSensitivityRange() {
+            return mSupportedSensitivityRange;
+        }
+
+        public Long getMaxFrameDuration() {
+            return mMaxFrameDuration;
         }
 
         public List<Integer> getSupportedStabilizationList() {
@@ -981,6 +1038,10 @@ public class CameraWrapper {
 
         public List<Integer> getSupportedNoiseReductionList() {
             return mSupportedNoiseReductionList;
+        }
+
+        public List<Float> getSupportedFocalLengthList() {
+            return mSupportedFocalLengthList;
         }
 
         public Float getMaxDigitalZoom() {
@@ -1003,7 +1064,7 @@ public class CameraWrapper {
             return mAutoExposureMode != null;
         }
 
-        private static Size getDefaultSizeFromList(final List<Size> sizeList) {
+        private Size getDefaultSizeFromList(final List<Size> sizeList) {
             if (sizeList.size() == 0) {
                 return null;
             }

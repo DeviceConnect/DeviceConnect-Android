@@ -86,6 +86,32 @@
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
+            app:entries="@array/video_white_balance_names"
+            app:entryValues="@array/video_white_balance_values"
+            app:key="preview_auto_exposure_mode"
+            app:title="@string/host_recorder_settings_auto_exposure"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference
+            app:key="preview_sensor_exposure_time"
+            app:title="@string/host_recorder_settings_sensor_exposure_time"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference
+            app:key="preview_sensor_sensitivity"
+            app:title="@string/host_recorder_settings_sensor_sensitivity"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference
+            app:key="preview_sensor_frame_duration"
+            app:title="@string/host_recorder_settings_sensor_frame_duration"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
             app:entries="@array/video_stabilization_names"
             app:entryValues="@array/video_stabilization_values"
             app:key="preview_stabilization_mode"
@@ -106,6 +132,12 @@
             app:entryValues="@array/video_noise_reduction_values"
             app:key="preview_reduction_noise"
             app:title="@string/host_recorder_settings_noise_reduction"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="preview_focal_length"
+            app:title="@string/host_recorder_settings_focal_length"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 

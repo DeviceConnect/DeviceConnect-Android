@@ -32,7 +32,6 @@ public final class CapabilityUtil {
         return infoList;
     }
 
-
     private static List<String> getSupportedEncoders(String mimeType) {
         List<String> encoderList = new ArrayList<>();
 

@@ -11,7 +11,7 @@ import java.util.Set;
  * Properties を使用して、データを保存するためのユーテリティクラス.
  */
 public final class PropertyUtil {
-    private SharedPreferences mPref;
+    private final SharedPreferences mPref;
 
     public PropertyUtil(Context context, String name) {
         mPref = context.getSharedPreferences(name, Context.MODE_PRIVATE);
@@ -60,6 +60,18 @@ public final class PropertyUtil {
         try {
             if (value != null) {
                 return Integer.parseInt(value);
+            }
+        } catch (Exception e) {
+            // ignore.
+        }
+        return defaultValue;
+    }
+
+    public Long getLong(String key, Long defaultValue) {
+        String value = mPref.getString(key, String.valueOf(defaultValue));
+        try {
+            if (value != null) {
+                return Long.parseLong(value);
             }
         } catch (Exception e) {
             // ignore.

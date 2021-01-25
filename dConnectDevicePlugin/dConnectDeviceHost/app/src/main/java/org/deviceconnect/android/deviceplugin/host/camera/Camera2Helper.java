@@ -178,6 +178,14 @@ public final class Camera2Helper {
         return list;
     }
 
+    /**
+     * デフォルトで使用する自動フォーカスモードを取得します.
+     *
+     * @param context コンテキスト
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @return デフォルトで使用する自動フォーカスモード
+     */
     static Integer choiceAutoFocusMode(final Context context, final CameraManager cameraManager, final String cameraId) {
         PackageManager pkgMgr = context.getPackageManager();
         if (!pkgMgr.hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)) {
@@ -201,6 +209,13 @@ public final class Camera2Helper {
         }
     }
 
+    /**
+     * デフォルトで使用する自動露出モードを取得します.
+     *
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @return デフォルトで使用する自動露出モード
+     */
     static Integer choiceAutoExposureMode(final CameraManager cameraManager, final String cameraId) {
         try {
             CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
@@ -234,6 +249,18 @@ public final class Camera2Helper {
     @NonNull
     static List<Integer> getSupportedAWB(final CameraManager cameraManager, final String cameraId) {
         return getSupportedParam(cameraManager, cameraId, CameraCharacteristics.CONTROL_AWB_AVAILABLE_MODES);
+    }
+
+    /**
+     * カメラがサポートしている自動露出モードを取得します.
+     *
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @return サポートしている自動露出モードのリスト
+     */
+    @NonNull
+    static List<Integer> getSupportedAutoExposureMode(final CameraManager cameraManager, final String cameraId) {
+        return getSupportedParam(cameraManager, cameraId, CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES);
     }
 
     /**
@@ -318,6 +345,77 @@ public final class Camera2Helper {
         } catch (CameraAccessException e) {
             return null;
         }
+    }
+
+    /**
+     * 露出時間の範囲を取得します.
+     *
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @return 露出時間の範囲
+     */
+    static Range<Long> getSupportedSensorExposureTime(final CameraManager cameraManager, final String cameraId) {
+        try {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            return characteristics.get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE);
+        } catch (CameraAccessException e) {
+            return null;
+        }
+    }
+
+    /**
+     * ISO感度の範囲を取得します.
+     *
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @return ISO感度の範囲
+     */
+    static Range<Integer> getSupportedSensorSensitivity(final CameraManager cameraManager, final String cameraId) {
+        try {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            return characteristics.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE);
+        } catch (CameraAccessException e) {
+            return null;
+        }
+    }
+
+    /**
+     * フレーム期間の最大値を取得します.
+     *
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @return フレーム期間の最大値
+     */
+    static Long getMaxSensorFrameDuration(final CameraManager cameraManager, final String cameraId) {
+        try {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            return characteristics.get(CameraCharacteristics.SENSOR_INFO_MAX_FRAME_DURATION);
+        } catch (CameraAccessException e) {
+            return null;
+        }
+    }
+
+    /**
+     * 焦点距離のリストを取得します.
+     *
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @return 焦点距離のリスト
+     */
+    static List<Float> getSupportedFocalLengthList(final CameraManager cameraManager, final String cameraId) {
+        List<Float> list = new ArrayList<>();
+        try {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            float[] modes = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS);
+            if (modes != null) {
+                for (float mode : modes) {
+                    list.add(mode);
+                }
+            }
+        } catch (CameraAccessException e) {
+            // ignore.
+        }
+        return list;
     }
 
     /**

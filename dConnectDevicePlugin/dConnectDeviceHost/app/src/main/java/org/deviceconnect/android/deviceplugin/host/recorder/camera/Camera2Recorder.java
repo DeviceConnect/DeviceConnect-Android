@@ -526,23 +526,53 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         }
 
         @Override
+        public List<Integer> getSupportedAutoExposureModeList() {
+            return mCameraWrapper.getOptions().getSupportedAutoExposureModeList();
+        }
+
+        @Override
         public List<String> getSupportedVideoEncoders() {
             return CapabilityUtil.getSupportedVideoEncoders();
         }
 
         @Override
-        public List<Integer> getSupportedStabilizations() {
+        public List<Integer> getSupportedStabilizationList() {
             return mCameraWrapper.getOptions().getSupportedStabilizationList();
         }
 
         @Override
-        public List<Integer> getSupportedOpticalStabilizations() {
+        public List<Integer> getSupportedOpticalStabilizationList() {
             return mCameraWrapper.getOptions().getSupportedOpticalStabilizationList();
         }
 
         @Override
         public Float getMaxDigitalZoom() {
             return mCameraWrapper.getOptions().getMaxDigitalZoom();
+        }
+
+        @Override
+        public Range<Long> getSupportedSensorExposureTime() {
+            return mCameraWrapper.getOptions().getSupportedExposureTimeRange();
+        }
+
+        @Override
+        public Range<Integer> getSupportedSensorSensitivity() {
+            return mCameraWrapper.getOptions().getSupportedSensitivityRange();
+        }
+
+        @Override
+        public Long getMaxSensorFrameDuration() {
+            return mCameraWrapper.getOptions().getMaxFrameDuration();
+        }
+
+        @Override
+        public List<Integer> getSupportedNoiseReductionList() {
+            return mCameraWrapper.getOptions().getSupportedNoiseReductionList();
+        }
+
+        @Override
+        public List<Float> getSupportedFocalLengthList() {
+            return mCameraWrapper.getOptions().getSupportedFocalLengthList();
         }
     }
 }

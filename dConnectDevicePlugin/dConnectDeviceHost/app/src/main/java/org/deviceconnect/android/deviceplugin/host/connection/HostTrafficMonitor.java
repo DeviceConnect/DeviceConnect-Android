@@ -195,7 +195,6 @@ class HostTrafficMonitor {
                 stats.mTotalRxPackets += bucket.getRxPackets();
                 stats.mTotalTxBytes += bucket.getTxBytes();
                 stats.mTotalRxBytes += bucket.getRxBytes();
-                Log.e("ABC", "$$$$ " + networkType + " " + stats);
             }
         } catch (Throwable t) {
             // ignore

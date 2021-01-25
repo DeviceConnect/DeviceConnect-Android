@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.host.profile;
 
 import android.content.Intent;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Size;
 
@@ -95,6 +96,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                 setRecorderImageHeight(info, pictureSize.getHeight());
                             }
 
+                            // プレビュー設定
                             Size previewSize = settings.getPreviewSize();
                             if (previewSize != null) {
                                 setRecorderPreviewWidth(info, previewSize.getWidth());
@@ -103,6 +105,18 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                 info.putInt("previewBitRate", settings.getPreviewBitRate() / 1024);
                                 info.putInt("previewKeyFrameInterval", settings.getPreviewKeyFrameInterval());
                                 info.putString("previewEncoder", settings.getPreviewEncoder());
+                                info.putFloat("previewJpegQuality", settings.getPreviewQuality() / 100.0f);
+                            }
+
+                            // 切り抜き設定
+                            Rect rect = settings.getDrawingRange();
+                            if (rect != null) {
+                                Bundle drawingRect = new Bundle();
+                                drawingRect.putInt("left", rect.left);
+                                drawingRect.putInt("top", rect.top);
+                                drawingRect.putInt("right", rect.right);
+                                drawingRect.putInt("bottom", rect.bottom);
+                                info.putBundle("previewClip", drawingRect);
                             }
                         } else if (recorder.getMimeType().startsWith("audio/")) {
                             // 音声の設定
@@ -185,7 +199,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             Integer previewBitRate = parseInteger(request, "previewBitRate");
             Integer previewKeyFrameInterval = parseInteger(request, "previewKeyFrameInterval");
             String previewEncoder = request.getStringExtra("previewEncoder");
-            Double jpegQuality = parseDouble(request, "jpegQuality");
+            Double jpegQuality = parseDouble(request, "previewJpegQuality");
+            Integer previewClipLeft = parseInteger(request, "previewClipLeft");
+            Integer previewClipTop = parseInteger(request, "previewClipTop");
+            Integer previewClipRight = parseInteger(request, "previewClipRight");
+            Integer previewClipBottom = parseInteger(request, "previewClipBottom");
 
             HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
@@ -255,6 +273,12 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     return;
                 }
                 settings.setPreviewQuality((int) (jpegQuality * 100));
+            }
+
+            if (previewClipLeft != null && previewClipTop != null
+                    && previewClipRight != null && previewClipBottom != null) {
+                Rect rect = new Rect(previewClipLeft, previewClipTop, previewClipRight, previewClipBottom);
+                settings.setDrawingRange(rect);
             }
 
             recorder.onConfigChange();

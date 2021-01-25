@@ -1,7 +1,9 @@
 package org.deviceconnect.android.deviceplugin.host.connection;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AppOpsManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -19,6 +21,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
+import android.provider.Settings;
 import android.telephony.CellSignalStrength;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
@@ -26,7 +29,9 @@ import android.telephony.TelephonyDisplayInfo;
 import android.telephony.TelephonyManager;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity;
@@ -34,22 +39,29 @@ import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
 import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.util.NotificationUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class HostConnectionManager {
     private static final int NOTIFICATION_ID = 3527;
 
     private final DevicePluginContext mPluginContext;
     private final WifiManager mWifiManager;
     private final BluetoothAdapter mBluetoothAdapter;
-    private TelephonyManager mTelephonyManager;
+    private final TelephonyManager mTelephonyManager;
     private final ConnectivityManager mConnectivityManager;
     private NetworkType mMobileNetworkType = NetworkType.TYPE_NONE;
-
     private HostTrafficMonitor mTrafficMonitor;
-
     private final Handler mCallbackHandler = new Handler(Looper.getMainLooper());
-
     private final WeakReferenceList<ConnectionEventListener> mConnectionEventListeners = new WeakReferenceList<>();
+    private final WeakReferenceList<TrafficEventListener> mTrafficEventListeners = new WeakReferenceList<>();
 
+    private AppOpsManager.OnOpChangedListener mOnOpChangedListener;
+    private AppOpsManager mAppOps;
+
+    /**
+     * Wi-Fi、Bluetooth の状態遷移のイベントを受け取るための BroadcastReceiver.
+     */
     private final BroadcastReceiver mHostConnectionReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
@@ -116,8 +128,6 @@ public class HostConnectionManager {
                             break;
                     }
                 }
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                int level = signalStrength.getLevel();
             }
         }
     };
@@ -128,6 +138,9 @@ public class HostConnectionManager {
         mWifiManager = (WifiManager) mPluginContext.getContext()
                 .getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
+        mTelephonyManager = (TelephonyManager) mPluginContext.getContext()
+                .getSystemService(Context.TELEPHONY_SERVICE);
+
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         mConnectivityManager = (ConnectivityManager) mPluginContext.getContext()
@@ -135,12 +148,17 @@ public class HostConnectionManager {
 
         registerNetworkCallback();
         registerTelephony();
+
+        startWatchingUsageStats(pluginContext.getContext());
     }
 
     public void destroy() {
+        stopWatchingUsageStats();
+        stopTrafficMonitor();
         unregisterNetworkCallback();
         unregisterTelephony();
         mConnectionEventListeners.clear();
+        mTrafficEventListeners.clear();
     }
 
     /**
@@ -257,8 +275,6 @@ public class HostConnectionManager {
     }
 
     private void registerTelephony() {
-        mTelephonyManager = (TelephonyManager) mPluginContext.getContext()
-                .getSystemService(Context.TELEPHONY_SERVICE);
         if (mTelephonyManager != null) {
             int events = PhoneStateListener.LISTEN_SIGNAL_STRENGTHS;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -403,22 +419,167 @@ public class HostConnectionManager {
                 && mBluetoothAdapter.isEnabled());
     }
 
+    /**
+     * ネットワーク通信量の計測を開始します.
+     *
+     * すでに計測を開始している場合には、何も処理を行いません。
+     */
     public synchronized void startTrafficMonitor() {
         if (mTrafficMonitor != null) {
             return;
         }
         mTrafficMonitor = new HostTrafficMonitor(mPluginContext.getContext());
         mTrafficMonitor.setOnTrafficListener((trafficList) -> {
+            for (TrafficEventListener l : mTrafficEventListeners) {
+                l.onTraffic(trafficList);
+            }
         });
         mTrafficMonitor.startTimer();
     }
 
+    /**
+     * ネットワーク通信量の計測を終了します.
+     */
     public synchronized void stopTrafficMonitor() {
         if (mTrafficMonitor == null) {
             return;
         }
         mTrafficMonitor.stopTimer();
         mTrafficMonitor = null;
+    }
+
+    /**
+     * ネットワーク通信量のリストを取得します.
+     *
+     * リストには、各ネットワークの通信量が格納されています。
+     *
+     * {@link #startTrafficMonitor()} が行われていない場合には、空のリストを返却します。
+     *
+     * @return ネットワーク通信量のリスト
+     */
+    public synchronized List<HostTraffic> getTrafficList() {
+        return mTrafficMonitor != null ? mTrafficMonitor.getTrafficList() : new ArrayList<>();
+    }
+
+    /**
+     * ネットワーク通信量の計測イベントを受け取るリスナーを追加します.
+     *
+     * @param listener 追加するリスナー
+     */
+    public void addTrafficEventListener(TrafficEventListener listener) {
+        if (listener != null) {
+            mTrafficEventListeners.add(listener);
+        }
+    }
+
+    /**
+     * ネットワーク通信量の計測イベントを受け取るリスナーを削除します.
+     *
+     * @param listener 削除するリスナー
+     */
+    public void removeTrafficEventListener(TrafficEventListener listener) {
+        if (listener != null) {
+            mTrafficEventListeners.remove(listener);
+        }
+    }
+
+    /**
+     * 使用履歴許可の設定を監視を開始します.
+     *
+     * 使用許可が降りた時に計測を開始します。
+     *
+     * @param context コンテキスト
+     */
+    private void startWatchingUsageStats(Context context) {
+        if (checkUsageAccessSettings(context)) {
+            startTrafficMonitor();
+        } else {
+            mOnOpChangedListener = (op, packageName) -> {
+                if (checkUsageAccessSettings(context)) {
+                    startTrafficMonitor();
+                }
+            };
+            mAppOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
+            if (mAppOps != null) {
+                mAppOps.startWatchingMode(AppOpsManager.OPSTR_GET_USAGE_STATS,
+                        context.getPackageName(), mOnOpChangedListener);
+            }
+        }
+    }
+
+    /**
+     *  使用履歴許可の設定を監視を停止します.
+     */
+    private void stopWatchingUsageStats() {
+        if (mAppOps != null && mOnOpChangedListener != null) {
+            mAppOps.stopWatchingMode(mOnOpChangedListener);
+        }
+    }
+
+    /**
+     * 端末の使用履歴を使用するための許可が降りているか確認します.
+     *
+     * ネットワークの通信量を取得するために端末の使用履歴利用許可が必要になります。
+     *
+     * @param context コンテキスト
+     * @return 許可が降りている場合はtrue、それ以外はfalse
+     */
+    public static boolean checkUsageAccessSettings(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true;
+        }
+        AppOpsManager appOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
+        int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
+                android.os.Process.myUid(), context.getPackageName());
+        return mode == AppOpsManager.MODE_ALLOWED;
+    }
+
+    /**
+     * 端末の使用履歴許可の設定を行う画面を開きます.
+     *
+     * 端末の使用履歴許可を設定する API がないので、設定画面を開きます。
+     *
+     * @param context コンテキスト
+     */
+    public static void openUsageAccessSettings(Context context) {
+        Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+        context.startActivity(intent);
+    }
+
+    /**
+     * READ_PHONE_STATE パーミッションの確認をします.
+     *
+     * モバイルネットワークの通信量を取得するためには、READ_PHONE_STATE のパーミッションが必要になります。
+     *
+     * @param context コンテキスト
+     * @return パーミッションがある場合にはtrue、それ以外はfalse
+     */
+    public static boolean hasPermissionToReadPhoneStats(Context context) {
+        return ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE)
+                != PackageManager.PERMISSION_DENIED;
+    }
+
+    /**
+     * READ_PHONE_STATE パーミッションの要求を行います.
+     *
+     * @param callback コールバック
+     */
+    public void requestPermission(final PermissionCallback callback) {
+        PermissionUtility.requestPermissions(mPluginContext.getContext(), new Handler(Looper.getMainLooper()),
+                new String[]{
+                        Manifest.permission.READ_PHONE_STATE,
+                },
+                new PermissionUtility.PermissionRequestCallback() {
+                    @Override
+                    public void onSuccess() {
+                        callback.onAllowed();
+                    }
+
+                    @Override
+                    public void onFail(@NonNull String deniedPermission) {
+                        callback.onDisallowed();
+                    }
+                });
     }
 
     private HostDeviceApplication getApp() {
@@ -443,14 +604,54 @@ public class HostConnectionManager {
         }
     }
 
+
+    /**
+     * パーミッション結果通知用コールバック.
+     */
+    public interface PermissionCallback {
+        /**
+         * 許可された場合に呼び出されます.
+         */
+        void onAllowed();
+
+        /**
+         * 拒否された場合に呼び出されます.
+         */
+        void onDisallowed();
+    }
+
     public interface Callback {
         void onSuccess();
         void onFailure();
     }
 
+    /**
+     * ネットワーク状況を通知するリスナー.
+     */
     public interface ConnectionEventListener {
+        /**
+         * ネットワークが切り替わったことを通知します.
+         */
         void onChangedNetwork();
+
+        /**
+         * Wi-Fi の状態が切り替わったことを通知します.
+         *
+         * Wi-Fi の ON/OFF のイベント。
+         */
         void onChangedWifiStatus();
+
+        /**
+         * Bluetooth の状態が切り替わったことを通知します.
+         *
+         * Bluetooth の ON/OFF のイベント。
+         */
         void onChangedBluetoothStatus();
+    }
+
+    /**
+     * 通信量の計測イベントを通知するリスナー.
+     */
+    public interface TrafficEventListener extends HostTrafficMonitor.OnTrafficListener {
     }
 }

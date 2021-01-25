@@ -6,6 +6,8 @@ import android.app.usage.NetworkStatsManager;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.os.Build;
+import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,7 +18,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 @TargetApi(Build.VERSION_CODES.M)
-public class HostTrafficMonitor {
+class HostTrafficMonitor {
     /**
      * 通信量を計測するネットワークタイプのリスト.
      */
@@ -24,24 +26,25 @@ public class HostTrafficMonitor {
             ConnectivityManager.TYPE_MOBILE,
             ConnectivityManager.TYPE_WIFI);
 
-    private NetworkStatsManager mNetworkStatsManager;
-
+    private final Context mContext;
     private final Map<Integer, List<Stats>> mStatsMap = new HashMap<>();
     private final long mInterval;
     private Timer mTimer;
 
+    private NetworkStatsManager mNetworkStatsManager;
     private OnTrafficListener mOnTrafficListener;
 
-    public HostTrafficMonitor(Context context) {
-        this(context, 30 * 1000);
+    HostTrafficMonitor(Context context) {
+        this(context, 10 * 1000);
     }
 
-    public HostTrafficMonitor(Context context, long interval) {
+    HostTrafficMonitor(Context context, long interval) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mNetworkStatsManager = (NetworkStatsManager) context
                     .getSystemService(Context.NETWORK_STATS_SERVICE);
         }
         mInterval = interval;
+        mContext = context;
 
         for (int networkType : NETWORK_TYPE_LIST) {
             mStatsMap.put(networkType, new ArrayList<>());
@@ -53,14 +56,14 @@ public class HostTrafficMonitor {
      *
      * @param listener リスナー
      */
-    public void setOnTrafficListener(OnTrafficListener listener) {
+    void setOnTrafficListener(OnTrafficListener listener) {
         mOnTrafficListener = listener;
     }
 
     /**
      * 通信量のモニタリングを開始します.
      */
-    public void startTimer() {
+    void startTimer() {
         if (mTimer == null) {
             mTimer = new Timer();
             mTimer.scheduleAtFixedRate(new TimerTask() {
@@ -75,7 +78,7 @@ public class HostTrafficMonitor {
     /**
      * 通信量のモニタリングを停止します.
      */
-    public void stopTimer() {
+    void stopTimer() {
         if (mTimer != null) {
             mTimer.cancel();
             mTimer = null;
@@ -88,7 +91,7 @@ public class HostTrafficMonitor {
      * @param networkType ネットワークタイプ
      * @return ネットワークごとの通信量
      */
-    public Traffic getTraffic(int networkType) {
+    private HostTraffic getTraffic(int networkType) {
         List<Stats> statsList = mStatsMap.get(networkType);
         if (statsList != null && statsList.size() > 1) {
             Stats pre = statsList.get(statsList.size() - 2);
@@ -97,7 +100,7 @@ public class HostTrafficMonitor {
             long tx = (stats.getTotalTxBytes() - pre.getTotalTxBytes());
             long bitrateRx = 8 * rx / ((stats.getEndTime() - pre.getEndTime()) / 1000);
             long bitrateTx = 8 * tx / ((stats.getEndTime() - pre.getEndTime()) / 1000);
-            Traffic traffic = new Traffic();
+            HostTraffic traffic = new HostTraffic();
             traffic.mNetworkType = networkType;
             traffic.mRx = rx;
             traffic.mTx = tx;
@@ -109,13 +112,29 @@ public class HostTrafficMonitor {
     }
 
     /**
+     * ネットワークの通信量を取得します.
+     *
+     * @return ネットワークの通信量
+     */
+    List<HostTraffic> getTrafficList() {
+        List<HostTraffic> trafficList = new ArrayList<>();
+        for (int networkType : NETWORK_TYPE_LIST) {
+            HostTraffic traffic = getTraffic(networkType);
+            if (traffic != null) {
+                trafficList.add(traffic);
+            }
+        }
+        return trafficList;
+    }
+
+    /**
      * 通信量の取得処理を行います.
      */
     private void monitoring() {
-        List<Traffic> trafficList = new ArrayList<>();
+        List<HostTraffic> trafficList = new ArrayList<>();
 
         for (int networkType : NETWORK_TYPE_LIST) {
-            Traffic traffic = getNetworkStats(networkType);
+            HostTraffic traffic = getNetworkStats(networkType);
             if (traffic != null) {
                 trafficList.add(traffic);
             }
@@ -126,8 +145,8 @@ public class HostTrafficMonitor {
         }
     }
 
-    private Traffic getNetworkStats(int networkType) {
-        Traffic traffic = null;
+    private HostTraffic getNetworkStats(int networkType) {
+        HostTraffic traffic = null;
 
         List<Stats> statsList = mStatsMap.get(networkType);
         if (statsList == null) {
@@ -154,80 +173,48 @@ public class HostTrafficMonitor {
         return traffic;
     }
 
-    private Stats getNetworkStats(int networkType, long startTime, long endTime) {
-        Stats stats = new Stats();
-
-        stats.mStartTime = startTime;
-        stats.mEndTime = endTime;
-
-        try (NetworkStats result = mNetworkStatsManager.querySummary(
-                networkType, "", startTime, endTime)) {
-            NetworkStats.Bucket bucket = new NetworkStats.Bucket();
-            while (result.hasNextBucket()) {
-                result.getNextBucket(bucket);
-                if (bucket.getUid() == android.os.Process.myUid()) {
-                    stats.mTotalTxPackets += bucket.getTxPackets();
-                    stats.mTotalRxPackets += bucket.getRxPackets();
-                    stats.mTotalTxBytes += bucket.getTxBytes();
-                    stats.mTotalRxBytes += bucket.getRxBytes();
-                }
+    private String getSubscriberId(Context context, int networkType) {
+        if (ConnectivityManager.TYPE_MOBILE == networkType) {
+            TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            if (tm != null) {
+                return tm.getSubscriberId();
             }
-        } catch (Exception e) {
-            // ignore.
         }
-
-        return stats;
+        return "";
     }
 
-    public static class Traffic {
-        int mNetworkType;
-        long mRx;
-        long mTx;
-        long mBitrateRx;
-        long mBitrateTx;
-
-        public int getNetworkType() {
-            return mNetworkType;
+    private Stats getNetworkStats(int networkType, long startTime, long endTime) {
+        Stats stats = new Stats();
+        stats.mStartTime = startTime;
+        stats.mEndTime = endTime;
+        try {
+            NetworkStats.Bucket bucket = mNetworkStatsManager.querySummaryForDevice(networkType,
+                    getSubscriberId(mContext, networkType), startTime, endTime);
+            if (bucket != null) {
+                stats.mTotalTxPackets += bucket.getTxPackets();
+                stats.mTotalRxPackets += bucket.getRxPackets();
+                stats.mTotalTxBytes += bucket.getTxBytes();
+                stats.mTotalRxBytes += bucket.getRxBytes();
+                Log.e("ABC", "$$$$ " + networkType + " " + stats);
+            }
+        } catch (Throwable t) {
+            // ignore
         }
-
-        public long getRx() {
-            return mRx;
-        }
-
-        public long getTx() {
-            return mTx;
-        }
-
-        public long getBitrateRx() {
-            return mBitrateRx;
-        }
-
-        public long getBitrateTx() {
-            return mBitrateTx;
-        }
-
-        @Override
-        public String toString() {
-            return "networkType: " + mNetworkType + "\n"
-                    +  "rx: " + mRx + "\n"
-                    +  "tx: " + mTx + "\n"
-                    +  "BitrateRx: " + mBitrateRx + "\n"
-                    +  "BitrateTx: " + mBitrateTx + "\n";
-        }
+        return stats;
     }
 
     public interface OnTrafficListener {
         /**
          * 通信量を通知します.
-
+         *
+         * @param trafficList ネットワークごとの通信量を格納したリスト
          */
-        void onTraffic(List<Traffic> trafficList);
+        void onTraffic(List<HostTraffic> trafficList);
     }
 
-    public static class Stats {
+    private static class Stats {
         private long mStartTime;
         private long mEndTime;
-
         private long mTotalTxPackets;
         private long mTotalRxPackets;
         private long mTotalTxBytes;

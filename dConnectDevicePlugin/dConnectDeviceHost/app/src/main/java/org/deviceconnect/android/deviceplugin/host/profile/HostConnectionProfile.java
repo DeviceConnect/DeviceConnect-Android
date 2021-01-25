@@ -8,12 +8,14 @@
 package org.deviceconnect.android.deviceplugin.host.profile;
 
 import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.nfc.NfcAdapter;
 import android.os.Build;
 import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.deviceplugin.host.connection.HostConnectionManager;
+import org.deviceconnect.android.deviceplugin.host.connection.HostTraffic;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -273,11 +275,103 @@ public class HostConnectionProfile extends ConnectionProfile {
         }
     };
 
+    // GET /gotapi/connection/network
+    private final DConnectApi mGetNetworkApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return "network";
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            setResult(response, DConnectMessage.RESULT_OK);
+            response.putExtra("network", mHostConnectionManager.getActivityNetworkString());
+            return true;
+        }
+    };
+
+    // PUT /gotapi/connection/network/onChange
+    private final DConnectApi mPutNetworkApi = new PutApi() {
+        @Override
+        public String getInterface() {
+            return "network";
+        }
+
+        @Override
+        public String getAttribute() {
+            return "onChange";
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                setResult(response, DConnectMessage.RESULT_ERROR);
+            }
+            return true;
+        }
+    };
+
+    // DELETE /gotapi/connection/network/onChange
+    private final DConnectApi mDeleteNetworkApi = new DeleteApi() {
+        @Override
+        public String getInterface() {
+            return "network";
+        }
+
+        @Override
+        public String getAttribute() {
+            return "onChange";
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
+            }
+            return true;
+        }
+    };
+
+    // GET /gotapi/connection/network/bitrate
+    private final DConnectApi mGetNetworkBitrateApi = new GetApi() {
+        @Override
+        public String getInterface() {
+            return "network";
+        }
+
+        @Override
+        public String getAttribute() {
+            return "bitrate";
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            List<HostTraffic> trafficList = mHostConnectionManager.getTrafficList();
+            for (HostTraffic traffic : trafficList) {
+                response.putExtra(convertNetworkTypeToString(
+                        traffic.getNetworkType()), createNetworkBitrate(traffic));
+            }
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
 
     /**
      * 接続管理クラスからのイベントを受信するリスナー.
      */
     private HostConnectionManager.ConnectionEventListener mConnectionListener;
+
+    /**
+     * 通信量計測結果を受信するリスナー.
+     */
+    private HostConnectionManager.TrafficEventListener mTrafficEventListener;
 
     /**
      * 接続管理クラス.
@@ -293,6 +387,7 @@ public class HostConnectionProfile extends ConnectionProfile {
         mConnectionListener = new HostConnectionManager.ConnectionEventListener() {
             @Override
             public void onChangedNetwork() {
+                postOnChangeNetwork();
             }
 
             @Override
@@ -305,8 +400,12 @@ public class HostConnectionProfile extends ConnectionProfile {
                 postOnChangedBluetoothStatus();
             }
         };
+
+        mTrafficEventListener = this::postOnBitrate;
+
         mHostConnectionManager = manager;
         mHostConnectionManager.addConnectionEventListener(mConnectionListener);
+        mHostConnectionManager.addTrafficEventListener(mTrafficEventListener);
 
         addApi(mGetWifiApi);
         addApi(mGetBluetoothApi);
@@ -325,10 +424,22 @@ public class HostConnectionProfile extends ConnectionProfile {
             addApi(mPutWifiApi);
             addApi(mDeleteWifiApi);
         }
+
+        addApi(mGetNetworkApi);
+        addApi(mPutNetworkApi);
+        addApi(mDeleteNetworkApi);
+        addApi(mGetNetworkBitrateApi);
     }
 
     public void destroy() {
+        if (mHostConnectionManager != null && mConnectionListener != null) {
+            mHostConnectionManager.removeConnectionEventListener(mConnectionListener);
+        }
+        if (mHostConnectionManager != null && mTrafficEventListener != null) {
+            mHostConnectionManager.removeTrafficEventListener(mTrafficEventListener);
+        }
         mConnectionListener = null;
+        mTrafficEventListener = null;
     }
 
     /**
@@ -381,6 +492,55 @@ public class HostConnectionProfile extends ConnectionProfile {
                 sendResponse(response);
             }
         });
+    }
+
+    private String convertNetworkTypeToString(int networkType) {
+        switch (networkType) {
+            case ConnectivityManager.TYPE_MOBILE:
+                return "mobile";
+            case ConnectivityManager.TYPE_WIFI:
+                return "wifi";
+            default:
+                return "unknown";
+        }
+    }
+
+    private Bundle createNetworkBitrate(HostTraffic traffic) {
+        Bundle send = new Bundle();
+        send.putLong("bytes", traffic.getTx() / 1024);
+        send.putLong("bitrate", traffic.getBitrateTx() / 1024);
+
+        Bundle receive = new Bundle();
+        receive.putLong("bytes", traffic.getRx() / 1024);
+        receive.putLong("bitrate", traffic.getBitrateRx() / 1024);
+
+        Bundle data = new Bundle();
+        data.putBundle("send", send);
+        data.putBundle("receive", receive);
+        return data;
+    }
+
+    /**
+     * ネットワークが変更されたことを通知します.
+     */
+    private void postOnChangeNetwork() {
+        List<Event> events = EventManager.INSTANCE.getEventList(HostDevicePlugin.SERVICE_ID,
+                HostConnectionProfile.PROFILE_NAME, "network", "onChange");
+
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
+            Intent intent = EventManager.createEventMessage(event);
+            intent.putExtra("network", mHostConnectionManager.getActivityNetworkString());
+            sendEvent(intent, event.getAccessToken());
+        }
+    }
+
+    /**
+     * ビットレートの計測イベントを通知します.
+     *
+     * @param trafficList ビットレートの計測結果のリスト
+     */
+    private void postOnBitrate(List<HostTraffic> trafficList) {
     }
 
     /**

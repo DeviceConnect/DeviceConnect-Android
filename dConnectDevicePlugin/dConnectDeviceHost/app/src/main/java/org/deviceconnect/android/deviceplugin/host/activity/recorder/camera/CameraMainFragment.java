@@ -29,7 +29,7 @@ import org.deviceconnect.android.deviceplugin.host.activity.fragment.HostDeviceP
 import org.deviceconnect.android.deviceplugin.host.activity.recorder.settings.SettingsActivity;
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.connection.HostConnectionManager;
-import org.deviceconnect.android.deviceplugin.host.connection.HostTrafficMonitor;
+import org.deviceconnect.android.deviceplugin.host.connection.HostTraffic;
 import org.deviceconnect.android.deviceplugin.host.databinding.FragmentHostCameraMainBinding;
 import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
@@ -56,7 +56,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     private Surface mSurface;
     private String mRecorderId;
     private int mIndex;
-    private HostTrafficMonitor mMonitor;
     private boolean mDrawFlag = false;
     private boolean mAdjustViewFlag = false;
     private boolean mMuted = false;
@@ -162,6 +161,8 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         public void onError(HostMediaRecorder recorder, Exception e) {
         }
     };
+
+    private final HostConnectionManager.TrafficEventListener mTrafficEventListener = this::onChangeRecorderParam;
 
     public class Presenter {
         public void onClickToggleDisplayRotationButton() {
@@ -284,6 +285,11 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     public void onResume() {
         super.onResume();
         refreshUI();
+
+        Context context = getContext();
+        if (context != null && !HostConnectionManager.checkUsageAccessSettings(context)) {
+            HostConnectionManager.openUsageAccessSettings(context);
+        }
     }
 
     @Override
@@ -298,7 +304,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
 
     @Override
     public void onPause() {
-        stopTimer();
         stopEGLSurfaceDrawingThread();
         super.onPause();
     }
@@ -313,6 +318,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
 
             mHostConnectionManager = getHostDevicePlugin().getHostConnectionManager();
             mHostConnectionManager.addConnectionEventListener(mConnectionEventListener);
+            mHostConnectionManager.addTrafficEventListener(mTrafficEventListener);
 
             HostMediaRecorder[] recorders = mMediaRecorderManager.getRecorders();
             mIndex = getUsedCamera(recorders);
@@ -323,14 +329,18 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             }
         }
 
-        startTimer();
         onChangeMobileNetwork();
+
+        if (mHostConnectionManager != null) {
+            onChangeRecorderParam(mHostConnectionManager.getTrafficList());
+        }
     }
 
     @Override
     public void onUnbindService() {
         if (mHostConnectionManager != null) {
             mHostConnectionManager.removeConnectionEventListener(mConnectionEventListener);
+            mHostConnectionManager.removeTrafficEventListener(mTrafficEventListener);
         }
         if (mMediaRecorderManager != null) {
             mMediaRecorderManager.removeOnEventListener(mOnEventListener);
@@ -404,41 +414,32 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         }, 100);
     }
 
-    private static final long INTERVAL_PERIOD = 30 * 1000;
-
-    private synchronized void startTimer() {
-        if (mMonitor == null) {
-            mMonitor = new HostTrafficMonitor(getContext(), INTERVAL_PERIOD);
-            mMonitor.setOnTrafficListener((trafficList) -> {
-                HostDevicePlugin plugin = getHostDevicePlugin();
-                if (plugin == null) {
-                    return;
-                }
-
-                int bitrate = 0;
-                for (HostTrafficMonitor.Traffic t : trafficList) {
-                    bitrate += t.getBitrateTx();
-                }
-
-                HostBatteryManager battery = plugin.getHostBatteryManager();
-                battery.getBatteryInfo();
-                float temperature = battery.getTemperature();
-                int batteryLevel = battery.getBatteryLevel();
-                mViewModel.setBatteryLevel(batteryLevel + "%");
-                mViewModel.setTemperature(temperature + "℃");
-                mViewModel.setBitRate((bitrate / 1024) + "kbps");
-                mViewModel.setParamVisibility(View.VISIBLE);
-            });
-            mMonitor.startTimer();
+    /**
+     * 画面に表示するパラメータが変化した時に呼び出されます.
+     *
+     * @param trafficList 通信量
+     */
+    private void onChangeRecorderParam(List<HostTraffic> trafficList) {
+        HostDevicePlugin plugin = getHostDevicePlugin();
+        if (plugin == null) {
+            return;
         }
-    }
 
-    private synchronized void stopTimer() {
-        if (mMonitor != null) {
-            mMonitor.stopTimer();
-            mMonitor = null;
+        int bitrate = 0;
+        if (trafficList != null) {
+            for (HostTraffic t : trafficList) {
+                bitrate += t.getBitrateTx();
+            }
         }
-        mViewModel.setParamVisibility(View.INVISIBLE);
+
+        HostBatteryManager battery = plugin.getHostBatteryManager();
+        battery.getBatteryInfo();
+        float temperature = battery.getTemperature();
+        int batteryLevel = battery.getBatteryLevel();
+        mViewModel.setBatteryLevel(batteryLevel + "%");
+        mViewModel.setTemperature(temperature + "℃");
+        mViewModel.setBitRate((bitrate / 1024) + "kbps");
+        mViewModel.setParamVisibility(View.VISIBLE);
     }
 
     /**
@@ -502,6 +503,11 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         }
     }
 
+    /**
+     * 撮影した写真を画面に表示します.
+     *
+     * @param uri 撮影した写真の URI
+     */
     private void setPhoto(String uri) {
         new Thread(() -> {
             Context context = getContext();
@@ -531,6 +537,11 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         }).start();
     }
 
+    /**
+     * 写真を撮影します.
+     *
+     * すでに録画している場合などは、撮影が行えないので、処理を無視します。
+     */
     private void takePhoto() {
         if (mMediaRecorder.getState() == HostMediaRecorder.State.RECORDING) {
             return;
@@ -548,6 +559,9 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         });
     }
 
+    /**
+     * 録画の開始・停止を切り替えます.
+     */
     private void toggleRecording() {
         if (mMediaRecorder.getState() == HostMediaRecorder.State.RECORDING) {
             mMediaRecorder.stopRecording(new HostDeviceStreamRecorder.StoppingCallback() {
@@ -577,6 +591,9 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         }
     }
 
+    /**
+     * ブロードキャストの開始・停止を切り替えます.
+     */
     private void toggleBroadcaster() {
         HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
         if (mMediaRecorder.isBroadcasterRunning()) {
@@ -591,6 +608,9 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         setBroadcastButton();
     }
 
+    /**
+     * プレビュー配信の開始・停止を切り替えます.
+     */
     private void togglePreviewServer() {
         if (mMediaRecorder.isPreviewRunning()) {
             mMediaRecorder.stopPreview();

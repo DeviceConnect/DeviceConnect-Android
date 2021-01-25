@@ -409,10 +409,15 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     private synchronized void startTimer() {
         if (mMonitor == null) {
             mMonitor = new HostTrafficMonitor(getContext(), INTERVAL_PERIOD);
-            mMonitor.setOnTrafficListener((long rx, long bitrateRx, long tx, long bitrateTx) -> {
+            mMonitor.setOnTrafficListener((trafficList) -> {
                 HostDevicePlugin plugin = getHostDevicePlugin();
                 if (plugin == null) {
                     return;
+                }
+
+                int bitrate = 0;
+                for (HostTrafficMonitor.Traffic t : trafficList) {
+                    bitrate += t.getBitrateTx();
                 }
 
                 HostBatteryManager battery = plugin.getHostBatteryManager();
@@ -421,7 +426,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
                 int batteryLevel = battery.getBatteryLevel();
                 mViewModel.setBatteryLevel(batteryLevel + "%");
                 mViewModel.setTemperature(temperature + "℃");
-                mViewModel.setBitRate((bitrateTx / 1024) + "kbps");
+                mViewModel.setBitRate((bitrate / 1024) + "kbps");
                 mViewModel.setParamVisibility(View.VISIBLE);
             });
             mMonitor.startTimer();

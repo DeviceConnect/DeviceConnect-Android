@@ -44,6 +44,8 @@ public class HostConnectionManager {
     private final ConnectivityManager mConnectivityManager;
     private NetworkType mMobileNetworkType = NetworkType.TYPE_NONE;
 
+    private HostTrafficMonitor mTrafficMonitor;
+
     private final Handler mCallbackHandler = new Handler(Looper.getMainLooper());
 
     private final WeakReferenceList<ConnectionEventListener> mConnectionEventListeners = new WeakReferenceList<>();
@@ -399,6 +401,24 @@ public class HostConnectionManager {
         // Bluetoothが機能していないときはBluetooth LEも機能しない扱いに。
         return (mPluginContext.getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
                 && mBluetoothAdapter.isEnabled());
+    }
+
+    public synchronized void startTrafficMonitor() {
+        if (mTrafficMonitor != null) {
+            return;
+        }
+        mTrafficMonitor = new HostTrafficMonitor(mPluginContext.getContext());
+        mTrafficMonitor.setOnTrafficListener((trafficList) -> {
+        });
+        mTrafficMonitor.startTimer();
+    }
+
+    public synchronized void stopTrafficMonitor() {
+        if (mTrafficMonitor == null) {
+            return;
+        }
+        mTrafficMonitor.stopTimer();
+        mTrafficMonitor = null;
     }
 
     private HostDeviceApplication getApp() {

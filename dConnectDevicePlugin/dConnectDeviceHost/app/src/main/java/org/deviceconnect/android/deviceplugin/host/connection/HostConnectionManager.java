@@ -543,7 +543,14 @@ public class HostConnectionManager {
      */
     public static void openUsageAccessSettings(Context context) {
         Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
-        context.startActivity(intent);
+        HostDeviceApplication app = (HostDeviceApplication) context.getApplicationContext();
+        if (app.isDeviceConnectClassOfTopActivity() || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            context.startActivity(intent);
+        } else {
+            NotificationUtils.createNotificationChannel(context);
+            NotificationUtils.notify(context, NOTIFICATION_ID, 0, intent,
+                    context.getString(R.string.host_notification_connection_warnning));
+        }
     }
 
     /**

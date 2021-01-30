@@ -7,7 +7,6 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.os.Build;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,7 +34,7 @@ class HostTrafficMonitor {
     private OnTrafficListener mOnTrafficListener;
 
     HostTrafficMonitor(Context context) {
-        this(context, 10 * 1000);
+        this(context, 30 * 1000);
     }
 
     HostTrafficMonitor(Context context, long interval) {
@@ -154,6 +153,8 @@ class HostTrafficMonitor {
             mStatsMap.put(networkType, statsList);
         }
 
+        // startTime から endTime の区間の情報を取得するような API だが実際には通信の総量が取得されるため
+        // ここでは、前回の総量から現在の総量を引いて通信量を計測するようにしている。
         Stats stats = getNetworkStats(networkType, 0, System.currentTimeMillis());
         if (statsList.isEmpty()) {
             Stats oldStats = getNetworkStats(networkType, 0, System.currentTimeMillis() - mInterval);

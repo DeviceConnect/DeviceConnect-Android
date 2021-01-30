@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 import android.content.Context;
 import android.graphics.Rect;
 import android.media.MediaCodecInfo;
+import android.os.Build;
 import android.util.Range;
 import android.util.Size;
 
@@ -1482,7 +1483,17 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return サポートしている音声入力のリスト
          */
         public List<AudioSource> getSupportedAudioSource() {
-            return Arrays.asList(AudioSource.values());
+            List<AudioSource> list = new ArrayList<>();
+            for (AudioSource audioSource : AudioSource.values()) {
+                if (audioSource == AudioSource.APP) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        list.add(audioSource);
+                    }
+                } else {
+                    list.add(audioSource);
+                }
+            }
+            return list;
         }
 
         // 配信

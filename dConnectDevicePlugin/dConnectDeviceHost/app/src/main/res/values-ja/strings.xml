@@ -105,6 +105,10 @@
     <string name="host_recorder_settings_audio_channel">チャンネル</string>
     <string name="host_recorder_settings_audio_echo_canceler">エコーキャンセラー</string>
     <string name="host_recorder_settings_audio_echo_canceler_summary">エコーキャンセラー有効化の設定を行います。</string>
+    <string name="host_recorder_settings_audio_source_default">System Default</string>
+    <string name="host_recorder_settings_audio_source_mic">マイク</string>
+    <string name="host_recorder_settings_audio_source_app">アプリ音声</string>
+
 
     <!-- Broadcast -->
     <string name="host_recorder_settings_broadcast_uri">URL</string>

@@ -240,27 +240,23 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
     @Override
     public void requestPermission(final PermissionCallback callback) {
-        switch (mSettings.getPreviewAudioSource()) {
-            default:
-                requestMediaProjection(callback);
-                break;
-            case DEFAULT:
-            case MIC:
-                // マイクを使用する場合にはパーミッションを確認
-                requestPermission(new String[]{
-                        Manifest.permission.RECORD_AUDIO
-                }, new PermissionCallback() {
-                    @Override
-                    public void onAllowed() {
-                        requestMediaProjection(callback);
-                    }
-
-                    @Override
-                    public void onDisallowed() {
-                        callback.onDisallowed();
-                    }
-                });
-                break;
+        if (mSettings.getPreviewAudioSource() == AudioSource.DEFAULT ||
+                mSettings.getPreviewAudioSource() == AudioSource.MIC) {
+            // マイクを使用する場合にはパーミッションを確認
+            requestPermission(new String[]{
+                    Manifest.permission.RECORD_AUDIO
+            }, new PermissionCallback() {
+                @Override
+                public void onAllowed() {
+                    requestMediaProjection(callback);
+                }
+                @Override
+                public void onDisallowed() {
+                    callback.onDisallowed();
+                }
+            });
+        } else {
+            requestMediaProjection(callback);
         }
     }
 

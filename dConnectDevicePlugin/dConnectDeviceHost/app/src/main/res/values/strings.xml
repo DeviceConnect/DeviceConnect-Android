@@ -102,6 +102,9 @@
     <string name="host_recorder_settings_audio_channel">Channel</string>
     <string name="host_recorder_settings_audio_echo_canceler">Echo canceler</string>
     <string name="host_recorder_settings_audio_echo_canceler_summary">Set whether to enable the echo canceller.</string>
+    <string name="host_recorder_settings_audio_source_default">System Default</string>
+    <string name="host_recorder_settings_audio_source_mic">Mic</string>
+    <string name="host_recorder_settings_audio_source_app">App Audio</string>
 
     <string name="host_recorder_settings_broadcast_uri">URL</string>
 

@@ -2,10 +2,14 @@ package org.deviceconnect.android.deviceplugin.host.activity.recorder.settings;
 
 import android.os.Bundle;
 
+import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SettingsAudioFragment extends SettingsParameterFragment {
     private HostMediaRecorder mMediaRecorder;
@@ -20,15 +24,47 @@ public class SettingsAudioFragment extends SettingsParameterFragment {
     public void onBindService() {
         mMediaRecorder = getRecorder();
 
-        setAudioEnabled();
+        setPreviewAudioSource(mMediaRecorder.getSettings());
         setInputTypeNumber("preview_audio_bitrate");
         setInputTypeNumber("preview_audio_channel");
     }
 
-    private void setAudioEnabled() {
-        Preference pref = findPreference("audio_enabled");
+    /**
+     * 静止画の解像度の Preference を作成します.
+     *
+     * @param settings レコーダの設定
+     */
+    private void setPreviewAudioSource(HostMediaRecorder.Settings settings) {
+        ListPreference pref = findPreference("preview_audio_source");
         if (pref != null) {
-            pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
+            List<HostMediaRecorder.AudioSource> list = settings.getSupportedAudioSource();
+            if (list != null && !list.isEmpty()) {
+                List<String> entryNames = new ArrayList<>();
+                List<String> entryValues = new ArrayList<>();
+                entryNames.add("None");
+                entryValues.add("none");
+                for (HostMediaRecorder.AudioSource audioSource : list) {
+                    switch (audioSource) {
+                        case APP:
+                            entryNames.add(getString(R.string.host_recorder_settings_audio_source_app));
+                            entryValues.add("app");
+                            break;
+                        case MIC:
+                            entryNames.add(getString(R.string.host_recorder_settings_audio_source_mic));
+                            entryValues.add("mic");
+                            break;
+                        case DEFAULT:
+                            entryNames.add(getString(R.string.host_recorder_settings_audio_source_default));
+                            entryValues.add("default");
+                            break;
+                    }
+                }
+                pref.setEntries(entryNames.toArray(new String[0]));
+                pref.setEntryValues(entryValues.toArray(new String[0]));
+                pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
+            } else {
+                pref.setEnabled(false);
+            }
         }
     }
 

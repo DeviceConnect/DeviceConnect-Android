@@ -12,6 +12,7 @@ import android.media.MediaCodecInfo;
 import android.util.Range;
 import android.util.Size;
 
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.PropertyUtil;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
@@ -156,7 +157,15 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
     EGLSurfaceDrawingThread getSurfaceDrawingThread();
 
     /**
+     * スクリーンキャスト管理クラスを取得します.
+     *
+     * @return MediaProjectionProvider
+     */
+    MediaProjectionProvider getMediaProjectionProvider();
+
+    /**
      * 端末の画面が回転したタイミングで実行されるメソッド.
+     *
      * @param degree 角度を示す定数
      */
     void onDisplayRotation(int degree);
@@ -565,6 +574,21 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public void clear() {
             mPref.clear();
+        }
+
+        public Integer getPreviewAutoFocusMode() {
+            return mPref.getInteger("preview_auto_focus", null);
+        }
+
+        public void setPreviewAutoFocusMode(Integer mode) {
+            if (mode == null) {
+                mPref.remove("preview_auto_focus");
+            } else {
+                if (!isSupportedAutoFocusMode(mode)) {
+                    throw new IllegalArgumentException("focus mode is not supported.");
+                }
+                mPref.put("preview_auto_focus", mode);
+            }
         }
 
         /**
@@ -1018,6 +1042,10 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             return Arrays.asList(BitRateMode.values());
         }
 
+        public List<Integer> getSupportedAutoFocusModeList() {
+            return new ArrayList<>();
+        }
+
         /**
          * サポートしているホワイトバランスのリストを取得します.
          *
@@ -1144,6 +1172,18 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
                 if (r.getLower().equals(fps.getLower()) &&
                         r.getUpper().equals(fps.getUpper())) {
                     return true;
+                }
+            }
+            return false;
+        }
+
+        public boolean isSupportedAutoFocusMode(int mode) {
+            List<Integer> modeList = getSupportedAutoFocusModeList();
+            if (modeList != null) {
+                for (Integer m : modeList) {
+                    if (m == mode) {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -1306,7 +1346,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return プレビュー音声が有効の場合はtrue、それ以外はfalse
          */
         public boolean isAudioEnabled() {
-            return getAudioSource() != null;
+            return getPreviewAudioSource() != null;
         }
 
         /**
@@ -1314,7 +1354,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          *
          * @return 音声タイプ
          */
-        public AudioSource getAudioSource() {
+        public AudioSource getPreviewAudioSource() {
             return AudioSource.typeOf(mPref.getString("preview_audio_source", "none"));
         }
 
@@ -1323,7 +1363,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          *
          * @param audioSource 音声タイプ
          */
-        public void setAudioSource(AudioSource audioSource) {
+        public void setPreviewAudioSource(AudioSource audioSource) {
             if (audioSource == null) {
                 mPref.put("preview_audio_source", "none");
             } else {

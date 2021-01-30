@@ -240,6 +240,18 @@ public final class Camera2Helper {
     }
 
     /**
+     * カメラがサポートしている自動フォーカスモードの一覧を取得します.
+     *
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @return サポートしている自動フォーカスモードのリスト
+     */
+    @NonNull
+    static List<Integer> getSupportedAutoFocusMode(final CameraManager cameraManager, final String cameraId) {
+        return getSupportedParam(cameraManager, cameraId, CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
+    }
+
+    /**
      * カメラがサポートしているホワイトバランスモードの一覧を取得します.
      *
      * @param cameraManager カメラマネージャ

@@ -8,10 +8,8 @@ package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.Manifest;
 import android.content.Context;
-import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraCharacteristics;
 import android.media.Image;
-import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -23,7 +21,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
@@ -34,6 +31,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvide
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.ImageUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceMP4Recorder;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.provider.FileManager;
@@ -139,10 +137,8 @@ public class Camera2Recorder extends AbstractMediaRecorder {
      * @param camera カメラ
      * @param fileManager ファイルマネージャ
      */
-    public Camera2Recorder(final Context context,
-                           final CameraWrapper camera,
-                           final FileManager fileManager) {
-        super(context, fileManager);
+    public Camera2Recorder(Context context, CameraWrapper camera, FileManager fileManager, MediaProjectionProvider provider) {
+        super(context, fileManager, provider);
         mCameraWrapper = camera;
         mCameraWrapper.setCameraEventListener(this::notifyEventToUser, new Handler(Looper.getMainLooper()));
         mFacing = CameraFacing.detect(mCameraWrapper);
@@ -186,7 +182,10 @@ public class Camera2Recorder extends AbstractMediaRecorder {
             mSettings.setPreviewMaxFrameRate(30);
             mSettings.setPreviewKeyFrameInterval(1);
             mSettings.setPreviewQuality(80);
+            mSettings.setPreviewAutoFocusMode(options.getAutoFocusMode());
+            mSettings.setPreviewWhiteBalance(options.getAutoWhiteBalanceMode());
 
+            mSettings.setPreviewAudioSource(null);
             mSettings.setPreviewAudioBitRate(64 * 1024);
             mSettings.setPreviewSampleRate(8000);
             mSettings.setPreviewChannel(1);
@@ -279,22 +278,25 @@ public class Camera2Recorder extends AbstractMediaRecorder {
 
     @Override
     public void requestPermission(final PermissionCallback callback) {
-        PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()), new String[]{
-                        Manifest.permission.CAMERA,
-                        Manifest.permission.RECORD_AUDIO,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE
-                },
-                new PermissionUtility.PermissionRequestCallback() {
-                    @Override
-                    public void onSuccess() {
-                        callback.onAllowed();
-                    }
+        requestPermission(new String[]{
+                Manifest.permission.CAMERA,
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+        }, new PermissionCallback() {
+            @Override
+            public void onAllowed() {
+                if (mSettings.getPreviewAudioSource() == AudioSource.APP) {
+                    requestMediaProjection(callback);
+                } else {
+                    callback.onAllowed();
+                }
+            }
 
-                    @Override
-                    public void onFail(@NonNull String deniedPermission) {
-                        callback.onDisallowed();
-                    }
-                });
+            @Override
+            public void onDisallowed() {
+                callback.onDisallowed();
+            }
+        });
     }
 
     // HostDevicePhotoRecorder
@@ -400,8 +402,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     private void takePhotoInternal(final @NonNull OnPhotoEventListener listener) {
         try {
             mCameraWrapper.getOptions().setPictureSize(mSettings.getPictureSize());
-            ImageReader stillImageReader = mCameraWrapper.createStillImageReader(ImageFormat.JPEG);
-            stillImageReader.setOnImageAvailableListener((reader) -> {
+            mCameraWrapper.takeStillImage((reader) -> {
                 Image photo = reader.acquireNextImage();
                 if (photo == null) {
                     setState(State.INACTIVE);
@@ -423,7 +424,6 @@ public class Camera2Recorder extends AbstractMediaRecorder {
 
                 setState(State.INACTIVE);
             }, mPhotoHandler);
-            mCameraWrapper.takeStillImage(stillImageReader.getSurface());
             setState(State.RECORDING);
         } catch (CameraWrapperException e) {
             listener.onFailedTakePhoto("Failed to take photo.");
@@ -518,6 +518,11 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         @Override
         public List<Range<Integer>> getSupportedFps() {
             return mCameraWrapper.getOptions().getSupportedFpsList();
+        }
+
+        @Override
+        public List<Integer> getSupportedAutoFocusModeList() {
+            return mCameraWrapper.getOptions().getSupportedAutoFocusModeList();
         }
 
         @Override

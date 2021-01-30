@@ -7,18 +7,22 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.media.projection.MediaProjection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceMP4Recorder;
 import org.deviceconnect.android.provider.FileManager;
@@ -51,6 +55,11 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     private final FileManager mFileManager;
 
     /**
+     * スクリーンキャスト管理クラス.
+     */
+    private final MediaProjectionProvider mMediaProjectionProvider;
+
+    /**
      * ファイルを Android 端末内で共有するためのクラス.
      */
     private final MediaSharing mMediaSharing = MediaSharing.getInstance();
@@ -78,9 +87,10 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     /**
      * コンストラクタ.
      */
-    public AbstractMediaRecorder(Context context, FileManager fileManager) {
+    public AbstractMediaRecorder(Context context, FileManager fileManager, MediaProjectionProvider provider) {
         mContext = context;
         mFileManager = fileManager;
+        mMediaProjectionProvider = provider;
 
         HandlerThread requestThread = new HandlerThread("host-media-recorder");
         requestThread.start();
@@ -266,6 +276,11 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
         return bps;
     }
 
+    @Override
+    public MediaProjectionProvider getMediaProjectionProvider() {
+        return mMediaProjectionProvider;
+    }
+
     // HostDeviceStreamRecorder
 
     @Override
@@ -360,6 +375,35 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
      */
     public FileManager getFileManager() {
         return mFileManager;
+    }
+
+    protected void requestPermission(String[] permissions, PermissionCallback callback) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        PermissionUtility.requestPermissions(getContext(), handler, permissions, new PermissionUtility.PermissionRequestCallback() {
+            @Override
+            public void onSuccess() {
+                callback.onAllowed();
+            }
+
+            @Override
+            public void onFail(@NonNull String deniedPermission) {
+                callback.onDisallowed();
+            }
+        });
+    }
+
+    protected void requestMediaProjection(PermissionCallback callback) {
+        getMediaProjectionProvider().requestPermission(new MediaProjectionProvider.Callback() {
+            @Override
+            public void onAllowed(MediaProjection mediaProjection) {
+                callback.onAllowed();
+            }
+
+            @Override
+            public void onDisallowed() {
+                callback.onDisallowed();
+            }
+        });
     }
 
     /**

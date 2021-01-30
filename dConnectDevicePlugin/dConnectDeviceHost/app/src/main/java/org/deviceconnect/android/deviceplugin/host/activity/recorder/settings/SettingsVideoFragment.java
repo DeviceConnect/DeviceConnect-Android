@@ -38,6 +38,7 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         setPictureSizePreference(settings);
         setPreviewSizePreference(settings);
         setPreviewVideoEncoderPreference(settings);
+        setPreviewAutoFocusPreference(settings);
         setPreviewWhiteBalancePreference(settings);
         setPreviewAutoExposurePreference(settings);
         setPreviewProfilePreference(settings.getPreviewEncoderName(), false);
@@ -159,6 +160,47 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             }
             if (reset) {
                 pref.setValue("none");
+            }
+        }
+    }
+
+    private void setPreviewAutoFocusPreference(HostMediaRecorder.Settings settings) {
+        ListPreference pref = findPreference("preview_auto_focus");
+        if (pref != null) {
+            List<Integer> modeList = settings.getSupportedAutoFocusModeList();
+            if (modeList != null && !modeList.isEmpty()) {
+                List<String> entryNames = new ArrayList<>();
+                List<String> entryValues = new ArrayList<>();
+                entryNames.add("None");
+                entryValues.add("none");
+                for (Integer mode : modeList) {
+                    switch (mode) {
+                        case CameraMetadata.CONTROL_AF_MODE_OFF:
+                            entryNames.add("OFF");
+                            break;
+                        case CameraMetadata.CONTROL_AF_MODE_AUTO:
+                            entryNames.add("AUTO");
+                            break;
+                        case CameraMetadata.CONTROL_AF_MODE_MACRO:
+                            entryNames.add("MACRO");
+                            break;
+                        case CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_VIDEO:
+                            entryNames.add("CONTINUOUS_VIDEO");
+                            break;
+                        case CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_PICTURE:
+                            entryNames.add("CONTINUOUS_PICTURE");
+                            break;
+                        case CameraMetadata.CONTROL_AF_MODE_EDOF:
+                            entryNames.add("EDOF");
+                            break;
+                    }
+                    entryValues.add(String.valueOf(mode));
+                }
+                pref.setEntries(entryNames.toArray(new String[0]));
+                pref.setEntryValues(entryValues.toArray(new String[0]));
+                pref.setValue(String.valueOf(settings.getPreviewAutoFocusMode()));
+            } else {
+                pref.setEnabled(false);
             }
         }
     }

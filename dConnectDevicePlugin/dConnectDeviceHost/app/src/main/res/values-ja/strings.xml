@@ -82,6 +82,7 @@
     <string name="host_recorder_settings_video_level">レベル</string>
     <string name="host_recorder_settings_use_software_encode">ソフトウェアエンコーダ</string>
     <string name="host_recorder_settings_use_software_encode_summary">MediaCodec でソフトウェアエンコーダを優先して使用します。</string>
+    <string name="host_recorder_settings_auto_focus_mode">自動フォーカス</string>
     <string name="host_recorder_settings_white_balance">自動ホワイトバランス</string>
     <string name="host_recorder_settings_auto_exposure">自動露出</string>
     <string name="host_recorder_settings_sensor_exposure_time">露出時間</string>

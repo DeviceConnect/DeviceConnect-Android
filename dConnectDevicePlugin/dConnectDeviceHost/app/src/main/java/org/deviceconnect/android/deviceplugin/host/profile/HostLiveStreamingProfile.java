@@ -165,9 +165,9 @@ public class HostLiveStreamingProfile extends DConnectProfile {
 
                     // 映像が有効な時の音声設定を行う
                     if (VIDEO_URI_FALSE.equals(video)) {
-                        settings.setAudioSource(null);
+                        settings.setPreviewAudioSource(null);
                     } else {
-                        settings.setAudioSource(HostMediaRecorder.AudioSource.typeOf(audio));
+                        settings.setPreviewAudioSource(HostMediaRecorder.AudioSource.typeOf(audio));
                     }
                 } catch (Exception e) {
                     MessageUtils.setInvalidRequestParameterError(response, "Parameter is invalid.");

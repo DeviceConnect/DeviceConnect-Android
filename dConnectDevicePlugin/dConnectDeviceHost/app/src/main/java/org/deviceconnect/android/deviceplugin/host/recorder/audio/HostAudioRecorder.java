@@ -21,6 +21,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.AudioMP4Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -59,8 +60,8 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     private AudioPreviewServerProvider mAudioPreviewServerProvider;
     private AudioBroadcasterProvider mAudioBroadcasterProvider;
 
-    public HostAudioRecorder(final Context context, FileManager fileManager) {
-        super(context, fileManager);
+    public HostAudioRecorder(final Context context, FileManager fileManager, MediaProjectionProvider provider) {
+        super(context, fileManager, provider);
         mContext = context;
         mSettings = new AudioSettings(context, this);
 

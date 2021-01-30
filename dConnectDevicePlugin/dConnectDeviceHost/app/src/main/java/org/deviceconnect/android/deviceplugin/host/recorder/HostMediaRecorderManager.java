@@ -216,7 +216,7 @@ public class HostMediaRecorderManager {
      * @param fileMgr ファイル管理クラス
      */
     private void createAudioRecorders(final FileManager fileMgr) {
-        mRecorders.add(new HostAudioRecorder(getContext(), fileMgr));
+        mRecorders.add(new HostAudioRecorder(getContext(), fileMgr, mMediaProjectionProvider));
     }
 
     /**
@@ -237,7 +237,7 @@ public class HostMediaRecorderManager {
     private void createCameraRecorders(final CameraWrapperManager cameraMgr, final FileManager fileMgr) {
         List<Camera2Recorder> photoRecorders = new ArrayList<>();
         for (CameraWrapper camera : cameraMgr.getCameraList()) {
-            photoRecorders.add(new Camera2Recorder(getContext(), camera, fileMgr));
+            photoRecorders.add(new Camera2Recorder(getContext(), camera, fileMgr, mMediaProjectionProvider));
         }
         mRecorders.addAll(photoRecorders);
 
@@ -254,6 +254,7 @@ public class HostMediaRecorderManager {
         for (HostMediaRecorder recorder : getRecorders()) {
             recorder.initialize();
         }
+        onDisplayRotationChanged(getContext());
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);

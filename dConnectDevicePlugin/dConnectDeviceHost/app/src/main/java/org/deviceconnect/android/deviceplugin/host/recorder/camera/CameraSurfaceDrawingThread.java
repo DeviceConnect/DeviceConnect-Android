@@ -85,9 +85,11 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
         try {
             HostMediaRecorder.Settings settings = mRecorder.getSettings();
             CameraWrapper cameraWrapper = mRecorder.getCameraWrapper();
-            cameraWrapper.getOptions().setFps(settings.getPreviewMaxFrameRate());
+            cameraWrapper.getOptions().setPictureSize(settings.getPictureSize());
             cameraWrapper.getOptions().setPreviewSize(settings.getPreviewSize());
-            cameraWrapper.getOptions().setWhiteBalance(settings.getPreviewWhiteBalance());
+            cameraWrapper.getOptions().setFps(settings.getPreviewMaxFrameRate());
+            cameraWrapper.getOptions().setAutoFocusMode(settings.getPreviewAutoFocusMode());
+            cameraWrapper.getOptions().setAutoWhiteBalanceMode(settings.getPreviewWhiteBalance());
             cameraWrapper.getOptions().setAutoExposureMode(settings.getAutoExposureMode());
             cameraWrapper.getOptions().setSensorExposureTime(settings.getSensorExposureTime());
             cameraWrapper.getOptions().setSensorSensitivity(settings.getSensorSensitivity());
@@ -97,7 +99,7 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
             cameraWrapper.getOptions().setDigitalZoom(settings.getDigitalZoom());
             cameraWrapper.getOptions().setNoiseReductionMode(settings.getNoiseReduction());
             cameraWrapper.getOptions().setFocalLength(settings.getFocalLength());
-            cameraWrapper.startPreview(new Surface(surfaceTexture), false);
+            cameraWrapper.startPreview(new Surface(surfaceTexture));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -6,13 +6,13 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.media.ImageReader;
-import android.media.projection.MediaProjection;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -65,7 +65,6 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     /** 日付のフォーマット. */
     private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
-    private final MediaProjectionProvider mMediaProjectionProvider;
     private final ScreenCastManager mScreenCastMgr;
     private final ScreenCastSettings mSettings;
     private final Handler mImageReaderHandler = new Handler(Looper.getMainLooper());
@@ -74,14 +73,13 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     private final ScreenCastBroadcasterProvider mScreenCastBroadcasterProvider;
     private final ScreenCastSurfaceDrawingThread mScreenCastSurfaceDrawingThread;
 
-    public ScreenCastRecorder(final Context context, final FileManager fileMgr, MediaProjectionProvider provider) {
-        super(context, fileMgr);
+    public ScreenCastRecorder(Context context, FileManager fileMgr, MediaProjectionProvider provider) {
+        super(context, fileMgr, provider);
 
         mSettings = new ScreenCastSettings(context, this);
 
         initSupportedSettings();
 
-        mMediaProjectionProvider = provider;
         mScreenCastMgr = new ScreenCastManager(context, provider);
         mScreenCastSurfaceDrawingThread = new ScreenCastSurfaceDrawingThread(this);
         mScreenCastPreviewServerProvider = new ScreenCastPreviewServerProvider(context, this);
@@ -242,17 +240,28 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
     @Override
     public void requestPermission(final PermissionCallback callback) {
-        mMediaProjectionProvider.requestPermission(new MediaProjectionProvider.Callback() {
-            @Override
-            public void onAllowed(MediaProjection mediaProjection) {
-                callback.onAllowed();
-            }
+        switch (mSettings.getPreviewAudioSource()) {
+            default:
+                requestMediaProjection(callback);
+                break;
+            case DEFAULT:
+            case MIC:
+                // マイクを使用する場合にはパーミッションを確認
+                requestPermission(new String[]{
+                        Manifest.permission.RECORD_AUDIO
+                }, new PermissionCallback() {
+                    @Override
+                    public void onAllowed() {
+                        requestMediaProjection(callback);
+                    }
 
-            @Override
-            public void onDisallowed() {
-                callback.onDisallowed();
-            }
-        });
+                    @Override
+                    public void onDisallowed() {
+                        callback.onDisallowed();
+                    }
+                });
+                break;
+        }
     }
 
     // Implements HostDevicePhotoRecorder method.
@@ -296,10 +305,6 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
     public ScreenCastManager getScreenCastMgr() {
         return mScreenCastMgr;
-    }
-
-    public MediaProjectionProvider getMediaProjectionProvider() {
-        return mMediaProjectionProvider;
     }
 
     private String generateVideoFileName() {

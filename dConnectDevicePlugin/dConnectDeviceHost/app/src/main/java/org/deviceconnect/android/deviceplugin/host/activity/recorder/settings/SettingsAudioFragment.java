@@ -35,7 +35,7 @@ public class SettingsAudioFragment extends SettingsParameterFragment {
     private final Preference.OnPreferenceChangeListener mOnPreferenceChangeListener = (preference, newValue) -> {
         String key = preference.getKey();
         if ("preview_audio_source".equals(key)) {
-            mMediaRecorder.getSettings().setMute(! ((String) newValue).equalsIgnoreCase("none"));
+            mMediaRecorder.getSettings().setMute(!"none".equalsIgnoreCase((String) newValue));
         }
         return true;
     };

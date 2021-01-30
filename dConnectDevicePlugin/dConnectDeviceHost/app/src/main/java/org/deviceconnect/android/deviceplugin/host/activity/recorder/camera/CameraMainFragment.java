@@ -57,7 +57,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     private String mRecorderId;
     private int mIndex;
     private boolean mDrawFlag = false;
-    private boolean mAdjustViewFlag = false;
+    private boolean mAdjustViewFlag = true;
     private boolean mMuted = false;
     private int mSelectedMode = 0;
     private String mPhotoUri;
@@ -206,7 +206,11 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         SurfaceView surfaceView = view.findViewById(R.id.preview_surface_view);
         surfaceView.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_UP) {
-                toggleAdjustView();
+                if (mMediaRecorder instanceof Camera2Recorder) {
+                    Camera2Recorder r = (Camera2Recorder) mMediaRecorder;
+                    r.getCameraWrapper().startFocus(event.getX(), event.getY(),
+                            surfaceView.getWidth(), surfaceView.getHeight());
+                }
             }
             return true;
         });
@@ -388,6 +392,10 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
      * カメラ用レコーダを切り替えます.
      */
     private void switchCameraRecorder() {
+        if (mMediaRecorder instanceof Camera2Recorder) {
+            // カメラが使用されている場合は切り替えられないようにしたい.
+        }
+
         HostMediaRecorder[] recorders = mMediaRecorderManager.getRecorders();
         do {
             mIndex = (mIndex + 1) % recorders.length;
@@ -576,18 +584,31 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
                 }
             });
         } else {
-            mMediaRecorder.startRecording(new HostDeviceStreamRecorder.RecordingCallback() {
-                @Override
-                public void onRecorded(HostDeviceStreamRecorder recorder, String fileName) {
-                    setRecordingButton();
-                }
+            if (mMediaRecorder.getSettings().getPreviewAudioSource() == HostMediaRecorder.AudioSource.APP) {
+                mMediaRecorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
+                    @Override
+                    public void onAllowed() {
+                        mMediaRecorder.startRecording(new HostDeviceStreamRecorder.RecordingCallback() {
+                            @Override
+                            public void onRecorded(HostDeviceStreamRecorder recorder, String fileName) {
+                                setRecordingButton();
+                            }
 
-                @Override
-                public void onFailed(HostDeviceStreamRecorder recorder, String errorMessage) {
-                    showToast(R.string.host_recorder_failed_to_start_recording);
-                    setRecordingButton();
-                }
-            });
+                            @Override
+                            public void onFailed(HostDeviceStreamRecorder recorder, String errorMessage) {
+                                showToast(R.string.host_recorder_failed_to_start_recording);
+                                setRecordingButton();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onDisallowed() {
+                        showToast(R.string.host_recorder_failed_to_start_recording);
+                        setRecordingButton();
+                    }
+                });
+            }
         }
     }
 
@@ -598,14 +619,26 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
         if (mMediaRecorder.isBroadcasterRunning()) {
             mMediaRecorder.stopBroadcaster();
+            setBroadcastButton();
         } else {
-            String uri = settings.getBroadcastURI();
-            Broadcaster broadcaster = mMediaRecorder.startBroadcaster(uri);
-            if (broadcaster == null) {
-                showToast(R.string.host_recorder_failed_to_broadcast);
-            }
+            mMediaRecorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
+                @Override
+                public void onAllowed() {
+                    String uri = settings.getBroadcastURI();
+                    Broadcaster broadcaster = mMediaRecorder.startBroadcaster(uri);
+                    if (broadcaster == null) {
+                        showToast(R.string.host_recorder_failed_to_broadcast);
+                    }
+                    setBroadcastButton();
+                }
+
+                @Override
+                public void onDisallowed() {
+                    showToast(R.string.host_recorder_failed_to_broadcast);
+                    setBroadcastButton();
+                }
+            });
         }
-        setBroadcastButton();
     }
 
     /**
@@ -614,13 +647,25 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     private void togglePreviewServer() {
         if (mMediaRecorder.isPreviewRunning()) {
             mMediaRecorder.stopPreview();
+            setPreviewButton();
         } else {
-            List<PreviewServer> servers = mMediaRecorder.startPreview();
-            if (servers.isEmpty()) {
-                showToast(R.string.host_recorder_failed_to_start_preview);
-            }
+            mMediaRecorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
+                @Override
+                public void onAllowed() {
+                    List<PreviewServer> servers = mMediaRecorder.startPreview();
+                    if (servers.isEmpty()) {
+                        showToast(R.string.host_recorder_failed_to_start_preview);
+                    }
+                    setPreviewButton();
+                }
+
+                @Override
+                public void onDisallowed() {
+                    showToast(R.string.host_recorder_failed_to_start_preview);
+                    setPreviewButton();
+                }
+            });
         }
-        setPreviewButton();
     }
 
     @Override

@@ -78,6 +78,12 @@
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
+            app:key="preview_auto_focus"
+            app:title="@string/host_recorder_settings_auto_focus_mode"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
             app:entries="@array/video_white_balance_names"
             app:entryValues="@array/video_white_balance_values"
             app:key="preview_white_balance"

@@ -149,6 +149,8 @@
     <string name="host_app_screencast_recording_summary">画面の録画を行います。</string>
     <string name="host_app_screencast_settings">設定</string>
     <string name="host_app_screencast_settings_change">設定変更</string>
+    <string name="host_app_screencast_settings_overlay">オーバーレイ</string>
+    <string name="host_app_screencast_settings_overlay_summary">スクリーンキャスト中に画面が更新されなかった場合に強制的に更新するためにオーバーレイを使用します。</string>
 
     <!-- Canvas プロファイル画面 -->
     <string name="host_canvas_download_title">ダウンロード</string>

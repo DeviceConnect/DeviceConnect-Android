@@ -157,6 +157,8 @@
     <string name="host_app_screencast_recording_summary">Record the screen.</string>
     <string name="host_app_screencast_settings">Settings</string>
     <string name="host_app_screencast_settings_change">Settings change</string>
+    <string name="host_app_screencast_settings_overlay">Overlay</string>
+    <string name="host_app_screencast_settings_overlay_summary">Use overlays to force refresh if the screen is not refreshed during the screencast.</string>
 
     <string name="host_canvas_download_title">Download</string>
     <string name="host_canvas_download_message">Downloading...</string>

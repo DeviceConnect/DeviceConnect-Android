@@ -1,11 +1,19 @@
 package org.deviceconnect.android.deviceplugin.host.activity.recorder.screencast;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.ResultReceiver;
+import android.provider.Settings;
 
 import androidx.preference.Preference;
 import androidx.preference.SwitchPreferenceCompat;
 
+import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.fragment.HostDevicePluginBindPreferenceFragment;
 import org.deviceconnect.android.deviceplugin.host.activity.recorder.settings.SettingsActivity;
@@ -129,6 +137,8 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
             } else {
                 stopRecording();
             }
+        } else if ("overlay".equals(preference.getKey())) {
+            openOverlay(getContext());
         }
         return super.onPreferenceTreeClick(preference);
     }
@@ -185,6 +195,7 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
         setBroadcastButton();
         setPreviewButton();
         setRecordingButton();
+        setOverlaySwitch();
     }
 
     private void setPreviewButton() {
@@ -210,6 +221,19 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
             SwitchPreferenceCompat pref = findPreference("start_recording");
             if (pref != null) {
                 pref.setChecked(mMediaRecorder.getState() == HostMediaRecorder.State.RECORDING);
+            }
+        });
+    }
+
+    private void setOverlaySwitch() {
+        runOnUiThread(() -> {
+            SwitchPreferenceCompat pref = findPreference("overlay");
+            if (pref != null) {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                    pref.setEnabled(false);
+                } else {
+                    pref.setChecked(isOverlay());
+                }
             }
         });
     }
@@ -253,5 +277,23 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
 
     private void stopRecording() {
         mMediaRecorder.stopRecording(null);
+    }
+
+    private boolean isOverlay() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Settings.canDrawOverlays(getContext());
+    }
+
+    private void openOverlay(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Handler h = new Handler(Looper.getMainLooper());
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + context.getPackageName()));
+            IntentHandlerActivity.startActivityForResult(context, intent, new ResultReceiver(h) {
+                @Override
+                protected void onReceiveResult(int resultCode, Bundle resultData) {
+                    setOverlaySwitch();
+                }
+            });
+        }
     }
 }

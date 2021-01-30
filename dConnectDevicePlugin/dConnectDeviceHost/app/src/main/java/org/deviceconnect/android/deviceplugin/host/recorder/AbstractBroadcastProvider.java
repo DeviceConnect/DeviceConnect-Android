@@ -76,6 +76,7 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
 
             @Override
             public void onStopped() {
+                hideNotification(mRecorder.getId());
                 postBroadcastStopped(mBroadcaster);
             }
 
@@ -170,7 +171,7 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
      *
      * @return Notification の Id
      */
-    protected int getNotificationId() {
+    private int getNotificationId() {
         return 1000 + mRecorder.getId().hashCode();
     }
 
@@ -221,7 +222,7 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
      * @param name 名前
      * @return Notification
      */
-    protected Notification createNotification(final PendingIntent pendingIntent, final String channelId, String name) {
+    private Notification createNotification(final PendingIntent pendingIntent, final String channelId, String name) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext());
             builder.setContentIntent(pendingIntent);

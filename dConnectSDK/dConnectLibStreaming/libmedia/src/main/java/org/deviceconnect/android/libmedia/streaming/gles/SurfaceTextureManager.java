@@ -15,6 +15,7 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
 
     private final Object mFrameSyncObject = new Object();
     private boolean mFrameAvailable;
+    private int mTimeoutWaitRefresh = 10000;
 
     /**
      * Creates instances of SurfaceTextureRenderer and SurfaceTexture.
@@ -61,6 +62,13 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
         mSurfaceTexture.setOnFrameAvailableListener(this);
     }
 
+    public void setTimeout(int timeout) {
+        if (timeout < 0) {
+            throw new IllegalArgumentException("timeout cannot set negative value.");
+        }
+        mTimeoutWaitRefresh = timeout;
+    }
+
     /**
      * Release the TextureRender and SurfaceTexture.
      */
@@ -92,14 +100,12 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
      * the OutputSurface object.
      */
     public void awaitNewImage() {
-        final int TIMEOUT_MS = 10000;
-
         synchronized (mFrameSyncObject) {
             while (!mFrameAvailable) {
                 try {
                     // Wait for onFrameAvailable() to signal us.  Use a timeout to avoid
                     // stalling the test if it doesn't arrive.
-                    mFrameSyncObject.wait(TIMEOUT_MS);
+                    mFrameSyncObject.wait(mTimeoutWaitRefresh);
                     if (!mFrameAvailable) {
                         // TODO: if "spurious wakeup", continue while loop
                         throw new RuntimeException("Camera frame wait timed out");

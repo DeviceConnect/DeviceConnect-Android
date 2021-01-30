@@ -36,6 +36,11 @@ public class EGLSurfaceDrawingThread {
     private int mHeight;
 
     /**
+     * レンダリングのタイムアウト(ミリ秒).
+     */
+    private int mTimeout = 10 * 1000;
+
+    /**
      * イベントを通知するリスナー.
      */
     private final WeakReferenceList<OnDrawingEventListener> mOnDrawingEventListeners = new WeakReferenceList<>();
@@ -66,6 +71,22 @@ public class EGLSurfaceDrawingThread {
      */
     public void removeOnDrawingEventListener(OnDrawingEventListener listener) {
         mOnDrawingEventListeners.remove(listener);
+    }
+
+    /**
+     * レンダリングのタイムアウトを設定します.
+     *
+     * 描画先の映像が更新されない場合にタイムアウトするまでの時間を設定します。
+     *
+     * 0 が指定された場合にはタイムアウトしません。
+     *
+     * @param timeout タイムアウト
+     */
+    public void setTimeout(int timeout) {
+        if (timeout < 0) {
+            throw new IllegalArgumentException("timeout cannot set negative value.");
+        }
+        mTimeout = timeout;
     }
 
     /**
@@ -316,6 +337,7 @@ public class EGLSurfaceDrawingThread {
      */
     private SurfaceTextureManager createStManager() {
         SurfaceTextureManager manager = new SurfaceTextureManager();
+        manager.setTimeout(mTimeout);
         // SurfaceTexture に解像度を設定
         SurfaceTexture st = manager.getSurfaceTexture();
         int w = isSwappedDimensions() ? mHeight : mWidth;

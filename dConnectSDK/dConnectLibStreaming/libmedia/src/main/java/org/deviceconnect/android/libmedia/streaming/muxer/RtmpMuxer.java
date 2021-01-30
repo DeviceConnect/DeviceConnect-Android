@@ -139,6 +139,13 @@ public class RtmpMuxer implements IMediaMuxer {
     @Override
     public void onVideoFormatChanged(MediaFormat newFormat) {
         mSrsFlvMuxer.setSpsPPs(newFormat.getByteBuffer("csd-0"), newFormat.getByteBuffer("csd-1"));
+        try {
+            int width = newFormat.getInteger(MediaFormat.KEY_WIDTH);
+            int height = newFormat.getInteger(MediaFormat.KEY_HEIGHT);
+            mSrsFlvMuxer.setVideoResolution(width, height);
+        } catch (Exception e) {
+            // ignore.
+        }
     }
 
     @Override

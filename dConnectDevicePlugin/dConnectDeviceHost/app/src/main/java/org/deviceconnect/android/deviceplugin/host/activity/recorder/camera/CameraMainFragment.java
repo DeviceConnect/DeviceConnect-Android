@@ -90,21 +90,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         }
     };
 
-    private final HostConnectionManager.ConnectionEventListener mConnectionEventListener = new HostConnectionManager.ConnectionEventListener() {
-        @Override
-        public void onChangedNetwork() {
-            onChangeMobileNetwork();
-        }
-
-        @Override
-        public void onChangedWifiStatus() {
-        }
-
-        @Override
-        public void onChangedBluetoothStatus() {
-        }
-    };
-
     private final HostMediaRecorderManager.OnEventListener mOnEventListener = new HostMediaRecorderManager.OnEventListener() {
         @Override
         public void onPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers) {
@@ -323,7 +308,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             mMediaRecorderManager.addOnEventListener(mOnEventListener);
 
             mHostConnectionManager = getHostDevicePlugin().getHostConnectionManager();
-            mHostConnectionManager.addConnectionEventListener(mConnectionEventListener);
             mHostConnectionManager.addTrafficEventListener(mTrafficEventListener);
 
             HostMediaRecorder[] recorders = mMediaRecorderManager.getRecorders();
@@ -335,8 +319,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             }
         }
 
-        onChangeMobileNetwork();
-
         if (mHostConnectionManager != null) {
             onChangeRecorderParam(mHostConnectionManager.getTrafficList());
         }
@@ -345,7 +327,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     @Override
     public void onUnbindService() {
         if (mHostConnectionManager != null) {
-            mHostConnectionManager.removeConnectionEventListener(mConnectionEventListener);
             mHostConnectionManager.removeTrafficEventListener(mTrafficEventListener);
         }
         if (mMediaRecorderManager != null) {
@@ -446,17 +427,9 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         battery.getBatteryInfo();
         float temperature = battery.getTemperature();
         int batteryLevel = battery.getBatteryLevel();
-        mViewModel.setBatteryLevel(batteryLevel + "%");
         mViewModel.setTemperature(temperature + "℃");
         mViewModel.setBitRate((bitrate / 1024) + "kbps");
         mViewModel.setParamVisibility(View.VISIBLE);
-    }
-
-    /**
-     * ネットワークが変更された時に呼び出されます.
-     */
-    private void onChangeMobileNetwork() {
-        mViewModel.setNetworkType(mHostConnectionManager.getActivityNetworkString());
     }
 
     /**

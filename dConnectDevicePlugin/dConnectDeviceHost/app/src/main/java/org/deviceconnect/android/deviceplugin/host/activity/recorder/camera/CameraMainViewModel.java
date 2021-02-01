@@ -26,16 +26,6 @@ public class CameraMainViewModel extends BaseObservable {
     private int mPhotoVisibility = View.GONE;
 
     @Bindable
-    public String getNetworkType() {
-        return mNetworkType;
-    }
-
-    public void setNetworkType(String type) {
-        mNetworkType = type;
-        notifyPropertyChanged(BR.networkType);
-    }
-
-    @Bindable
     public String getBitRate() {
         return mBitRate;
     }
@@ -53,16 +43,6 @@ public class CameraMainViewModel extends BaseObservable {
     public void setTemperature(String temperature) {
         mTemperature = temperature;
         notifyPropertyChanged(BR.temperature);
-    }
-
-    @Bindable
-    public String getBatteryLevel() {
-        return mBatteryLevel;
-    }
-
-    public void setBatteryLevel(String batteryLevel) {
-        mBatteryLevel = batteryLevel;
-        notifyPropertyChanged(BR.batteryLevel);
     }
 
     @Bindable

@@ -189,25 +189,26 @@ public class HostConnectionManager {
      * @return 有効になっているネットワーク名
      */
     public String getActivityNetworkString() {
+        Context context = mPluginContext.getContext();
         switch (getActivityNetwork()) {
             case TYPE_MOBILE:
-                return "MOBILE";
+                return context.getString(R.string.host_connection_network_type_mobile);
             case TYPE_WIFI:
-                return "Wi-Fi";
+                return context.getString(R.string.host_connection_network_type_wifi);
             case TYPE_ETHERNET:
-                return "Ethernet";
+                return context.getString(R.string.host_connection_network_type_ethernet);
             case TYPE_BLUETOOTH:
-                return "Bluetooth";
+                return context.getString(R.string.host_connection_network_type_bluetooth);
             case TYPE_LTE_CA:
-                return "LTE CA";
+                return context.getString(R.string.host_connection_network_type_lte);
             case TYPE_LTE_ADVANCED_PRO:
-                return "LTE Advanced Pro（5Ge)";
+                return context.getString(R.string.host_connection_network_type_lte_advanced);
             case TYPE_NR_NSA:
-                return "5G Sub-6";
+                return context.getString(R.string.host_connection_network_type_nsa);
             case TYPE_NR_NSA_MMWAV:
-                return "5G ミリ波";
+                return context.getString(R.string.host_connection_network_type_nsa_mmwav);
             default:
-                return "No connect";
+                return context.getString(R.string.host_connection_network_type_no_connect);
         }
     }
 

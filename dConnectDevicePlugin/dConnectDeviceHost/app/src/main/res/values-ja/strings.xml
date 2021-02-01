@@ -181,4 +181,15 @@
     <string name="host_notification_recorder_recording_ticker">録画を開始します</string>
     <string name="host_notification_recorder_recording">録画 [ %1$s ]</string>
     <string name="host_notification_recorder_recording_content">タップして録画を停止します。</string>
+
+    <!-- ネットワーク -->
+    <string name="host_connection_network_type_no_connect">No Connect</string>
+    <string name="host_connection_network_type_mobile">MOBILE</string>
+    <string name="host_connection_network_type_wifi">Wi-Fi</string>
+    <string name="host_connection_network_type_ethernet">Ethernet</string>
+    <string name="host_connection_network_type_bluetooth">Bluetooth</string>
+    <string name="host_connection_network_type_lte">LTE CA</string>
+    <string name="host_connection_network_type_lte_advanced">LTE Advanced Pro（5Ge)</string>
+    <string name="host_connection_network_type_nsa">5G Sub-6</string>
+    <string name="host_connection_network_type_nsa_mmwav">5G ミリ波</string>
 </resources>

@@ -776,10 +776,14 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param whiteBalance ホワイトバランス
          */
         public void setPreviewWhiteBalance(Integer whiteBalance) {
-            if (!isSupportedWhiteBalanceMode(whiteBalance)) {
-                throw new IllegalArgumentException("WhiteBalance is unsupported value.");
+            if (whiteBalance == null) {
+                mPref.remove("preview_white_balance");
+            } else {
+                if (!isSupportedWhiteBalanceMode(whiteBalance)) {
+                    throw new IllegalArgumentException("WhiteBalance is unsupported value.");
+                }
+                mPref.put("preview_white_balance", whiteBalance);
             }
-            mPref.put("preview_white_balance", whiteBalance);
         }
 
         public Integer getPreviewAutoExposureMode() {
@@ -787,10 +791,14 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         }
 
         public void setPreviewAutoExposureMode(Integer mode) {
-            if (!isSupportedAutoExposureMode(mode)) {
-                throw new IllegalArgumentException("Exposure mode is unsupported value.");
+            if (mode == null) {
+                mPref.remove("preview_auto_exposure_mode");
+            } else {
+                if (!isSupportedAutoExposureMode(mode)) {
+                    throw new IllegalArgumentException("Exposure mode is unsupported value.");
+                }
+                mPref.put("preview_auto_exposure_mode", mode);
             }
-            mPref.put("preview_auto_exposure_mode", mode);
         }
 
         /**
@@ -825,8 +833,12 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          *
          * @param refresh イントラリフレッシュのフレーム数
          */
-        public void setIntraRefresh(int refresh) {
-            mPref.put("preview_intra_refresh", refresh);
+        public void setIntraRefresh(Integer refresh) {
+            if (refresh == null) {
+                mPref.remove("preview_intra_refresh");
+            } else {
+                mPref.put("preview_intra_refresh", refresh);
+            }
         }
 
         /**

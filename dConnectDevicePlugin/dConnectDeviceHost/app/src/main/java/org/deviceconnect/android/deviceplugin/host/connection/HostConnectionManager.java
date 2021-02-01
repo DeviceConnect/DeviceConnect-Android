@@ -276,11 +276,15 @@ public class HostConnectionManager {
 
     private void registerTelephony() {
         if (mTelephonyManager != null) {
-            int events = PhoneStateListener.LISTEN_SIGNAL_STRENGTHS;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                events |= PhoneStateListener.LISTEN_DISPLAY_INFO_CHANGED;
+            try {
+                int events = PhoneStateListener.LISTEN_SIGNAL_STRENGTHS;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    events |= PhoneStateListener.LISTEN_DISPLAY_INFO_CHANGED;
+                }
+                mTelephonyManager.listen(mPhoneStateListener, events);
+            } catch (Exception e) {
+                // ignore.
             }
-            mTelephonyManager.listen(mPhoneStateListener, events);
         }
     }
 

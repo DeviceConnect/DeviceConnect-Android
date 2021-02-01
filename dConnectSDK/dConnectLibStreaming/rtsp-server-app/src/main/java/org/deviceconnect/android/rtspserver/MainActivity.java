@@ -14,17 +14,19 @@ import android.util.Log;
 import android.util.Size;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
-import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperException;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
@@ -32,24 +34,18 @@ import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.AudioStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.MicAACLATMStream;
-import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.CameraH265VideoStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.CameraH264VideoStream;
+import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.CameraH265VideoStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStream;
 import org.deviceconnect.android.libmedia.streaming.util.CameraSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
 import org.deviceconnect.android.libmedia.streaming.util.StreamingRecorder;
-import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
 public class MainActivity extends AppCompatActivity {
     /**
@@ -179,19 +175,21 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if (mRtspServer == null || mRtspServer.getRtspSession() == null) {
-            mHandler.postDelayed(() -> {
-                if (mCamera2 != null) {
-                    adjustSurfaceView(mCamera2.isSwappedDimensions());
-                }
-            }, 500);
-        } else {
+
+        if (mRtspServer != null && mRtspServer.getRtspSession() != null) {
             RtspSession session = mRtspServer.getRtspSession();
-            session.restartVideoStream();
             CameraH264VideoStream videoStream = (CameraH264VideoStream) session.getVideoStream();
-            CameraSurfaceVideoEncoder videoEncoder = (CameraSurfaceVideoEncoder) videoStream.getVideoEncoder();
-            mHandler.postDelayed(() -> adjustSurfaceView(videoEncoder.isSwappedDimensions()), 500);
+            if (videoStream != null && videoStream.getVideoEncoder() != null) {
+                CameraVideoQuality videoQuality = (CameraVideoQuality) videoStream.getVideoEncoder().getVideoQuality();
+                boolean swap = mCameraSurfaceDrawingThread.isSwappedDimensions();
+                int videoWidth = swap ? mPreferences.getVideoHeight() : mPreferences.getVideoWidth();
+                int videoHeight = swap ? mPreferences.getVideoWidth() : mPreferences.getVideoHeight();
+                videoQuality.setVideoWidth(videoWidth);
+                videoQuality.setVideoHeight(videoHeight);
+            }
+            session.restartVideoStream();
         }
+        mHandler.postDelayed(() -> adjustSurfaceView(mCameraSurfaceDrawingThread.isSwappedDimensions()), 500);
     }
 
     private void gotoPreferences() {
@@ -256,11 +254,14 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
+                boolean swap = mCameraSurfaceDrawingThread.isSwappedDimensions();
+                int videoWidth = swap ? mPreferences.getVideoHeight() : mPreferences.getVideoWidth();
+                int videoHeight = swap ? mPreferences.getVideoWidth() : mPreferences.getVideoHeight();
                 VideoEncoder videoEncoder = videoStream.getVideoEncoder();
                 CameraVideoQuality videoQuality = (CameraVideoQuality) videoEncoder.getVideoQuality();
                 videoQuality.setFacing(mPreferences.getFacing());
-                videoQuality.setVideoWidth(mPreferences.getVideoWidth());
-                videoQuality.setVideoHeight(mPreferences.getVideoHeight());
+                videoQuality.setVideoWidth(videoWidth);
+                videoQuality.setVideoHeight(videoHeight);
                 videoQuality.setIFrameInterval(mPreferences.getIFrameInterval());
                 videoQuality.setFrameRate(mPreferences.getFrameRate());
                 videoQuality.setBitRate(mPreferences.getVideoBitRate() * 1024);

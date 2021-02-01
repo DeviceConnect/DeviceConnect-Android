@@ -17,10 +17,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
-import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperException;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
@@ -29,6 +33,7 @@ import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
 import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
 import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
+import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.SRT;
 import org.deviceconnect.android.libsrt.SRTSocket;
 import org.deviceconnect.android.libsrt.SRTStats;
@@ -37,15 +42,9 @@ import org.deviceconnect.android.libsrt.server.SRTSession;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
 
 /**
  * SRTサーバからAndroid端末のカメラ映像を配信する画面.
@@ -180,18 +179,19 @@ public class MainActivity extends AppCompatActivity {
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
-        if (mCamera2 != null) {
-            mHandler.postDelayed(() -> adjustSurfaceView(mCamera2.isSwappedDimensions()), 500);
-        } else {
-            if (mSRTServer != null && mSRTServer.getSRTSession() != null) {
-                SRTSession srtSession = mSRTServer.getSRTSession();
-                srtSession.restartVideoEncoder();
-                CameraSurfaceVideoEncoder videoEncoder = (CameraSurfaceVideoEncoder) srtSession.getVideoEncoder();
-                if (videoEncoder != null) {
-                    mHandler.postDelayed(() -> adjustSurfaceView(videoEncoder.isSwappedDimensions()), 500);
-                }
-            }
+        if (mSRTServer != null && mSRTServer.getSRTSession() != null) {
+            SRTSession srtSession = mSRTServer.getSRTSession();
+            boolean swap = mCameraSurfaceDrawingThread.isSwappedDimensions();
+            int facing = mSettings.getCameraFacing();
+            Size previewSize = mSettings.getCameraPreviewSize(facing);
+            int videoWidth = swap ? previewSize.getHeight() : previewSize.getWidth();
+            int videoHeight = swap ? previewSize.getWidth() : previewSize.getHeight();
+            VideoQuality quality = srtSession.getVideoEncoder().getVideoQuality();
+            quality.setVideoWidth(videoWidth);
+            quality.setVideoHeight(videoHeight);
+            srtSession.restartVideoEncoder();
         }
+        mHandler.postDelayed(() -> adjustSurfaceView(mCameraSurfaceDrawingThread.isSwappedDimensions()), 500);
     }
 
     private void gotoPreferences() {
@@ -201,16 +201,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setVideoQuality(CameraVideoQuality videoQuality) {
+        boolean swap = mCameraSurfaceDrawingThread.isSwappedDimensions();
         int facing = mSettings.getCameraFacing();
         int fps = mSettings.getEncoderFrameRate();
         int biteRate = mSettings.getEncoderBitRate();
         Size previewSize = mSettings.getCameraPreviewSize(facing);
-
+        int videoWidth = swap ? previewSize.getHeight() : previewSize.getWidth();
+        int videoHeight = swap ? previewSize.getWidth() : previewSize.getHeight();
         videoQuality.setFacing(facing);
         videoQuality.setBitRate(biteRate);
         videoQuality.setFrameRate(fps);
-        videoQuality.setVideoWidth(previewSize.getWidth());
-        videoQuality.setVideoHeight(previewSize.getHeight());
+        videoQuality.setVideoWidth(videoWidth);
+        videoQuality.setVideoHeight(videoHeight);
     }
 
     private void startStreaming() {
@@ -369,7 +371,7 @@ public class MainActivity extends AppCompatActivity {
         mCameraSurfaceDrawingThread.start();
 
         // SurfaceView のサイズを調整
-        adjustSurfaceView(mCamera2.isSwappedDimensions());
+        adjustSurfaceView(mCameraSurfaceDrawingThread.isSwappedDimensions());
     }
 
     private synchronized void stopCamera() {

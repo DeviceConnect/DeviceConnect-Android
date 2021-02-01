@@ -1,9 +1,5 @@
 package org.deviceconnect.android.mjpeg_server_app;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.Manifest;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -21,6 +17,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
@@ -29,10 +29,11 @@ import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread
 import org.deviceconnect.android.libmedia.streaming.mjpeg.CameraMJPEGEncoder;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoderException;
+import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGQuality;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
+import org.deviceconnect.android.libmedia.streaming.util.CameraSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
 import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
-import org.deviceconnect.android.libmedia.streaming.util.CameraSurfaceDrawingThread;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -167,15 +168,18 @@ public class MainActivity extends AppCompatActivity {
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
-        if (mCamera2 != null) {
-            mHandler.postDelayed(() -> adjustSurfaceView(mCamera2.isSwappedDimensions()), 500);
-        } else {
-            if (mMJPEGServer != null && mMJPEGServer.getMJPEGEncoder() != null) {
-                mMJPEGServer.restartEncoder();
-                CameraMJPEGEncoder encoder = (CameraMJPEGEncoder) mMJPEGServer.getMJPEGEncoder();
-                mHandler.postDelayed(() -> adjustSurfaceView(encoder.isSwappedDimensions()), 500);
-            }
+        if (mMJPEGServer != null && mMJPEGServer.getMJPEGEncoder() != null) {
+            boolean swap = mCameraSurfaceDrawingThread.isSwappedDimensions();
+            int facing = mSettings.getCameraFacing();
+            Size previewSize = mSettings.getCameraPreviewSize(facing);
+            int videoWidth = swap ? previewSize.getHeight() : previewSize.getWidth();
+            int videoHeight = swap ? previewSize.getWidth() : previewSize.getHeight();
+            MJPEGQuality quality = mMJPEGServer.getMJPEGEncoder().getMJPEGQuality();
+            quality.setWidth(videoWidth);
+            quality.setHeight(videoHeight);
+            mMJPEGServer.restartEncoder();
         }
+        mHandler.postDelayed(() -> adjustSurfaceView(mCameraSurfaceDrawingThread.isSwappedDimensions()), 500);
     }
 
     private void gotoPreferences() {
@@ -218,15 +222,18 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public MJPEGEncoder createMJPEGEncoder() throws MJPEGEncoderException {
+                    boolean swap = mCameraSurfaceDrawingThread.isSwappedDimensions();
                     int facing = mSettings.getCameraFacing();
                     int fps = mSettings.getEncoderFrameRate();
                     int quality = mSettings.getEncoderQuality();
                     Size previewSize = mSettings.getCameraPreviewSize(facing);
+                    int videoWidth = swap ? previewSize.getHeight() : previewSize.getWidth();
+                    int videoHeight = swap ? previewSize.getWidth() : previewSize.getHeight();
 
                     CameraMJPEGEncoder encoder = new CameraMJPEGEncoder(mCameraSurfaceDrawingThread);
                     encoder.getMJPEGQuality().setFacing(facing);
-                    encoder.getMJPEGQuality().setWidth(previewSize.getWidth());
-                    encoder.getMJPEGQuality().setHeight(previewSize.getHeight());
+                    encoder.getMJPEGQuality().setWidth(videoWidth);
+                    encoder.getMJPEGQuality().setHeight(videoHeight);
                     encoder.getMJPEGQuality().setFrameRate(fps);
                     encoder.getMJPEGQuality().setQuality(quality);
 
@@ -325,7 +332,7 @@ public class MainActivity extends AppCompatActivity {
         mCameraSurfaceDrawingThread.start();
 
         // SurfaceView のサイズを調整
-        adjustSurfaceView(mCamera2.isSwappedDimensions());
+        adjustSurfaceView(mCameraSurfaceDrawingThread.isSwappedDimensions());
     }
 
     private synchronized void stopCamera() {

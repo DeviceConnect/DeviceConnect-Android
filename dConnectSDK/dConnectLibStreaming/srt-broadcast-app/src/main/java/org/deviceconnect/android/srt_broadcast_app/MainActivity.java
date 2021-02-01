@@ -1,9 +1,5 @@
 package org.deviceconnect.android.srt_broadcast_app;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -25,6 +21,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
@@ -39,6 +39,7 @@ import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
 import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
 import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
+import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.SRT;
 import org.deviceconnect.android.libsrt.broadcast.SRTClient;
 
@@ -179,15 +180,17 @@ public class MainActivity extends AppCompatActivity {
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
-        if (mCamera2 != null) {
-            mHandler.postDelayed(() -> adjustSurfaceView(mCamera2.isSwappedDimensions()), 500);
-        } else {
-            if (mSRTClient != null && mSRTClient.getVideoEncoder() != null) {
-                mSRTClient.restartVideoEncoder();
-                CameraSurfaceVideoEncoder encoder = (CameraSurfaceVideoEncoder) mSRTClient.getVideoEncoder();
-                mHandler.postDelayed(() -> adjustSurfaceView(encoder.isSwappedDimensions()), 500);
-            }
+        if (mSRTClient != null && mSRTClient.getVideoEncoder() != null) {
+            Size size = mSettings.getCameraPreviewSize(mSettings.getCameraFacing());
+            boolean swap = mCameraSurfaceDrawingThread.isSwappedDimensions();
+            int videoWidth = swap ? size.getHeight() : size.getWidth();
+            int videoHeight = swap ? size.getWidth() : size.getHeight();
+            VideoQuality quality = mSRTClient.getVideoEncoder().getVideoQuality();
+            quality.setVideoWidth(videoWidth);
+            quality.setVideoHeight(videoHeight);
+            mSRTClient.restartVideoEncoder();
         }
+        mHandler.postDelayed(() -> adjustSurfaceView(mCameraSurfaceDrawingThread.isSwappedDimensions()), 500);
     }
 
     private void gotoPreferences() {
@@ -274,12 +277,17 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        Size size = mSettings.getCameraPreviewSize(mSettings.getCameraFacing());
+        boolean swap = mCameraSurfaceDrawingThread.isSwappedDimensions();
+        int videoWidth = swap ? size.getHeight() : size.getWidth();
+        int videoHeight = swap ? size.getWidth() : size.getHeight();
+
         CameraSurfaceVideoEncoder videoEncoder = new CameraSurfaceVideoEncoder("video/avc", mCameraSurfaceDrawingThread);
 
         CameraVideoQuality videoQuality = (CameraVideoQuality) videoEncoder.getVideoQuality();
         videoQuality.setFacing(mSettings.getCameraFacing());
-        videoQuality.setVideoWidth(mSettings.getCameraPreviewSize(mSettings.getCameraFacing()).getWidth());
-        videoQuality.setVideoHeight(mSettings.getCameraPreviewSize(mSettings.getCameraFacing()).getHeight());
+        videoQuality.setVideoWidth(videoWidth);
+        videoQuality.setVideoHeight(videoHeight);
         videoQuality.setIFrameInterval(mSettings.getEncoderIFrameInterval());
         videoQuality.setFrameRate(mSettings.getEncoderFrameRate());
         videoQuality.setBitRate(mSettings.getEncoderBitrate() * 1024);

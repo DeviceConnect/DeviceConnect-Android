@@ -5,3 +5,11 @@ include 'dconnect-server-nano-httpd'
 project(':dconnect-server-nano-httpd').projectDir = new File('../dConnectServerNanoHttpd/nanohttpd')
 include 'dconnect-device-plugin-host'
 project(':dconnect-device-plugin-host').projectDir = new File('../../dConnectDevicePlugin/dConnectDeviceHost/app')
+
+def deviceConnectAndroid = new File('../../')
+
+include ':libmedia'
+project(':libmedia').projectDir = new File(deviceConnectAndroid, 'dConnectSDK/dConnectLibStreaming/libmedia');
+
+include ':libsrt'
+project(':libsrt').projectDir = new File(deviceConnectAndroid, 'dConnectSDK/dConnectLibStreaming/libsrt');

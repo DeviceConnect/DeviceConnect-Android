@@ -547,34 +547,13 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
      */
     private void toggleRecording() {
         if (mMediaRecorder.getState() == HostMediaRecorder.State.RECORDING) {
-            mMediaRecorder.stopRecording(new HostDeviceStreamRecorder.StoppingCallback() {
-                @Override
-                public void onStopped(HostDeviceStreamRecorder recorder, String fileName) {
-                    setRecordingButton();
-                }
-
-                @Override
-                public void onFailed(HostDeviceStreamRecorder recorder, String errorMessage) {
-                    setRecordingButton();
-                }
-            });
+            stopRecordingInternal();
         } else {
             if (mMediaRecorder.getSettings().getPreviewAudioSource() == HostMediaRecorder.AudioSource.APP) {
                 mMediaRecorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                     @Override
                     public void onAllowed() {
-                        mMediaRecorder.startRecording(new HostDeviceStreamRecorder.RecordingCallback() {
-                            @Override
-                            public void onRecorded(HostDeviceStreamRecorder recorder, String fileName) {
-                                setRecordingButton();
-                            }
-
-                            @Override
-                            public void onFailed(HostDeviceStreamRecorder recorder, String errorMessage) {
-                                showToast(R.string.host_recorder_failed_to_start_recording);
-                                setRecordingButton();
-                            }
-                        });
+                        startRecordingInternal();
                     }
 
                     @Override
@@ -583,8 +562,39 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
                         setRecordingButton();
                     }
                 });
+            } else {
+                startRecordingInternal();
             }
         }
+    }
+
+    private void stopRecordingInternal() {
+        mMediaRecorder.stopRecording(new HostDeviceStreamRecorder.StoppingCallback() {
+            @Override
+            public void onStopped(HostDeviceStreamRecorder recorder, String fileName) {
+                setRecordingButton();
+            }
+
+            @Override
+            public void onFailed(HostDeviceStreamRecorder recorder, String errorMessage) {
+                setRecordingButton();
+            }
+        });
+    }
+
+    private void startRecordingInternal() {
+        mMediaRecorder.startRecording(new HostDeviceStreamRecorder.RecordingCallback() {
+            @Override
+            public void onRecorded(HostDeviceStreamRecorder recorder, String fileName) {
+                setRecordingButton();
+            }
+
+            @Override
+            public void onFailed(HostDeviceStreamRecorder recorder, String errorMessage) {
+                showToast(R.string.host_recorder_failed_to_start_recording);
+                setRecordingButton();
+            }
+        });
     }
 
     /**

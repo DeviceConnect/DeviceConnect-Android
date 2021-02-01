@@ -5,8 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -706,12 +708,18 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
 
             PreviewSurfaceView surfaceView = view.findViewById(R.id.fragment_host_camera_surface_view);
             if (surfaceView != null && mEGLSurfaceDrawingThread != null) {
+                Rect rect = mMediaRecorder.getSettings().getDrawingRange();
+                Size size = mMediaRecorder.getSettings().getPreviewSize();
+                int w = mEGLSurfaceDrawingThread.isSwappedDimensions() ? size.getHeight() : size.getWidth();
+                int h = mEGLSurfaceDrawingThread.isSwappedDimensions() ? size.getWidth() : size.getHeight();
+                if (rect != null) {
+                    w = rect.width();
+                    h = rect.height();
+                }
                 if (mAdjustViewFlag) {
-                    surfaceView.adjustSurfaceView(mEGLSurfaceDrawingThread.isSwappedDimensions(),
-                            mMediaRecorder.getSettings().getPreviewSize());
+                    surfaceView.adjustSurfaceView(w, h);
                 } else {
-                    surfaceView.fullSurfaceView(mEGLSurfaceDrawingThread.isSwappedDimensions(),
-                            mMediaRecorder.getSettings().getPreviewSize());
+                    surfaceView.fullSurfaceView(w, h);
                 }
             }
         });

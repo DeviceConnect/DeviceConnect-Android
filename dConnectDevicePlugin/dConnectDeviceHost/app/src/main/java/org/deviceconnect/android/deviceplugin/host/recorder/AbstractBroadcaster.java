@@ -1,8 +1,11 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
+import android.graphics.Rect;
 import android.media.AudioFormat;
+import android.util.Size;
 
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 public abstract class AbstractBroadcaster implements Broadcaster {
@@ -49,8 +52,18 @@ public abstract class AbstractBroadcaster implements Broadcaster {
         HostMediaRecorder recorder = getRecorder();
         HostMediaRecorder.Settings settings = recorder.getSettings();
 
-        videoQuality.setVideoWidth(settings.getPreviewSize().getWidth());
-        videoQuality.setVideoHeight(settings.getPreviewSize().getHeight());
+        Rect rect = settings.getDrawingRange();
+        if (rect != null) {
+            videoQuality.setVideoWidth(rect.width());
+            videoQuality.setVideoHeight(rect.height());
+        } else {
+            EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
+            Size previewSize = settings.getPreviewSize();
+            int w = d.isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
+            int h = d.isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
+            videoQuality.setVideoWidth(w);
+            videoQuality.setVideoHeight(h);
+        }
         videoQuality.setBitRate(settings.getPreviewBitRate());
         videoQuality.setFrameRate(settings.getPreviewMaxFrameRate());
         videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());

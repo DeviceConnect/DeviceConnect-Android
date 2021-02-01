@@ -641,7 +641,7 @@
             "type": "string"
           },
           {
-            "name": "jpegQuality",
+            "name": "previewJpegQuality",
             "description": "Motion JPEG を配信する時のクオリティ。<br>0.0 から 1.0 の範囲で設定できる。",
             "in": "formData",
             "required": false,
@@ -650,6 +650,34 @@
             "maximum": 1.0,
             "exclusiveMaximum": false,
             "type": "number"
+          },
+          {
+            "name": "previewClipLeft",
+            "description": "プレビューの切り抜き範囲のx座標の開始位置。",
+            "in": "formData",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "previewClipTop",
+            "description": "プレビューの切り抜き範囲のy座標の開始位置。",
+            "in": "formData",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "previewClipRight",
+            "description": "プレビューの切り抜き範囲のx座標の終了位置。",
+            "in": "formData",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "previewClipBottom",
+            "description": "プレビューの切り抜き範囲のy座標の終了位置。",
+            "in": "formData",
+            "required": false,
+            "type": "integer"
           },
           {
             "name": "mimeType",

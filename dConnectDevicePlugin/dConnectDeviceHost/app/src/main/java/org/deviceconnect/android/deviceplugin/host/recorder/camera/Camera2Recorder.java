@@ -526,7 +526,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         }
 
         @Override
-        public List<Integer> getSupportedWhiteBalances() {
+        public List<Integer> getSupportedWhiteBalanceModeList() {
             return mCameraWrapper.getOptions().getSupportedWhiteBalanceList();
         }
 

@@ -1,16 +1,19 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.projection.MediaProjection;
 import android.os.Build;
+import android.util.Size;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAudioQuality;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import javax.net.ssl.SSLContext;
@@ -153,8 +156,18 @@ public abstract class AbstractPreviewServer implements PreviewServer {
         HostMediaRecorder recorder = getRecorder();
         HostMediaRecorder.Settings settings = recorder.getSettings();
 
-        videoQuality.setVideoWidth(settings.getPreviewSize().getWidth());
-        videoQuality.setVideoHeight(settings.getPreviewSize().getHeight());
+        Rect rect = settings.getDrawingRange();
+        if (rect != null) {
+            videoQuality.setVideoWidth(rect.width());
+            videoQuality.setVideoHeight(rect.height());
+        } else {
+            EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
+            Size previewSize = settings.getPreviewSize();
+            int w = d.isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
+            int h = d.isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
+            videoQuality.setVideoWidth(w);
+            videoQuality.setVideoHeight(h);
+        }
         videoQuality.setBitRate(settings.getPreviewBitRate());
         videoQuality.setFrameRate(settings.getPreviewMaxFrameRate());
         videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());

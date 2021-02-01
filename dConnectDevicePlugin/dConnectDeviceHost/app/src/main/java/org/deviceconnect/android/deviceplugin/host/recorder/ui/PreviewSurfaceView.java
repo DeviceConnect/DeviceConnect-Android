@@ -31,14 +31,14 @@ public class PreviewSurfaceView extends FrameLayout {
         LayoutInflater.from(context).inflate(R.layout.host_preview_surface_view, this);
     }
 
-    public void fullSurfaceView(boolean isSwappedDimensions, Size previewSize) {
+    public void fullSurfaceView(int previewWidth, int previewHeight) {
         post(() -> {
-            int gcd = calculatedGcd(previewSize.getWidth(), previewSize.getHeight());
+            int gcd = calculatedGcd(previewWidth, previewHeight);
 
             View root = findViewById(R.id.preview_root);
             SurfaceView surfaceView = root.findViewById(R.id.preview_surface_view);
-            int cameraWidth = isSwappedDimensions ? previewSize.getHeight() : previewSize.getWidth();
-            int cameraHeight = isSwappedDimensions ? previewSize.getWidth() : previewSize.getHeight();
+            int cameraWidth = previewWidth;
+            int cameraHeight = previewHeight;
 
             int widthRatio = cameraWidth / gcd;
             int heightRatio = cameraHeight / gcd;
@@ -62,33 +62,29 @@ public class PreviewSurfaceView extends FrameLayout {
             layoutParams.width = width;
             layoutParams.height = height;
             surfaceView.setLayoutParams(layoutParams);
-
-            surfaceView.getHolder().setFixedSize(previewSize.getWidth(), previewSize.getHeight());
+            surfaceView.getHolder().setFixedSize(previewWidth, previewHeight);
         });
     }
 
     /**
      * Surface のサイズを画面のサイズに収まるように合わせて調整します.
      *
-     * @param isSwappedDimensions 縦横の切り替えフラグ
-     * @param previewSize プレビューのサイズ
+     * @param previewWidth プレビューの横幅
+     * @param previewHeight プレビューの縦幅
      */
-    public void adjustSurfaceView(boolean isSwappedDimensions, Size previewSize) {
+    public void adjustSurfaceView(int previewWidth, int previewHeight) {
         post(() -> {
             View root = findViewById(R.id.preview_root);
 
             SurfaceView surfaceView = root.findViewById(R.id.preview_surface_view);
-            int cameraWidth = isSwappedDimensions ? previewSize.getHeight() : previewSize.getWidth();
-            int cameraHeight = isSwappedDimensions ? previewSize.getWidth() : previewSize.getHeight();
             Size viewSize = new Size(root.getWidth(), root.getHeight());
-            Size changeSize = calculateViewSize(cameraWidth, cameraHeight, viewSize);
+            Size changeSize = calculateViewSize(previewWidth, previewHeight, viewSize);
 
             ViewGroup.LayoutParams layoutParams = surfaceView.getLayoutParams();
             layoutParams.width = changeSize.getWidth();
             layoutParams.height = changeSize.getHeight();
             surfaceView.setLayoutParams(layoutParams);
-
-            surfaceView.getHolder().setFixedSize(previewSize.getWidth(), previewSize.getHeight());
+            surfaceView.getHolder().setFixedSize(previewWidth, previewHeight);
         });
     }
 

@@ -95,24 +95,6 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
         return MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface;
     }
 
-    @Override
-    protected int getDisplayRotation() {
-        if (mSurfaceDrawingThread == null) {
-            return super.getDisplayRotation();
-        } else {
-            return mSurfaceDrawingThread.getDisplayRotation();
-        }
-    }
-
-    @Override
-    public boolean isSwappedDimensions() {
-        if (mSurfaceDrawingThread == null) {
-            return super.isSwappedDimensions();
-        } else {
-            return mSurfaceDrawingThread.isSwappedDimensions();
-        }
-    }
-
     // private method.
 
     /**
@@ -124,6 +106,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
         if (mInternalCreateSurfaceDrawingThread) {
             mSurfaceDrawingThread = createEGLSurfaceDrawingThread();
         }
+
         mSurfaceDrawingThread.setSize(quality.getVideoWidth(), quality.getVideoHeight());
         mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
         if (!mSurfaceDrawingThread.isRunning()) {

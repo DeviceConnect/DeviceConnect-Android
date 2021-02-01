@@ -269,7 +269,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             if (jpegQuality != null) {
                 if (jpegQuality < 0.0 || jpegQuality > 1.0) {
                     MessageUtils.setInvalidRequestParameterError(response,
-                            "jpegQuality is invalid. jpegQuality=" + jpegQuality);
+                            "previewJpegQuality is invalid. value=" + jpegQuality);
                     return;
                 }
                 settings.setPreviewQuality((int) (jpegQuality * 100));
@@ -277,8 +277,37 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
             if (previewClipLeft != null && previewClipTop != null
                     && previewClipRight != null && previewClipBottom != null) {
-                Rect rect = new Rect(previewClipLeft, previewClipTop, previewClipRight, previewClipBottom);
-                settings.setDrawingRange(rect);
+                if (previewClipLeft == 0 && previewClipTop == 0
+                        && previewClipRight == 0 && previewClipBottom == 0) {
+                    settings.setDrawingRange(null);
+                } else {
+                    if (previewClipLeft < 0) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "previewClipLeft cannot set a negative value.");
+                        return;
+                    }
+
+                    if (previewClipBottom < 0) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "previewClipBottom cannot set a negative value.");
+                        return;
+                    }
+
+                    if (previewClipLeft >= previewClipRight) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "previewClipLeft is larger than previewClipRight.");
+                        return;
+                    }
+
+                    if (previewClipTop >= previewClipBottom) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "previewClipTop is larger than previewClipBottom.");
+                        return;
+                    }
+
+                    Rect rect = new Rect(previewClipLeft, previewClipTop, previewClipRight, previewClipBottom);
+                    settings.setDrawingRange(rect);
+                }
             }
 
             recorder.onConfigChange();

@@ -1,5 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.gles;
 
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
@@ -219,6 +220,10 @@ public class SurfaceTextureRenderer {
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
     }
 
+    public void setDrawingRange(Rect rect, int width, int height) {
+        setDrawingRange(rect.left, rect.top, rect.right, rect.bottom, width, height);
+    }
+
     /**
      * 描画範囲を設定します.
      *
@@ -230,10 +235,10 @@ public class SurfaceTextureRenderer {
      * @param height 画像の縦幅
      */
     public void setDrawingRange(int left, int top, int right, int bottom, int width, int height) {
-        float l = left / (float) width;
-        float t = 1.0f - bottom / (float) height;
-        float r = right / (float) width;
-        float b = 1.0f - top / (float) height;
+        float l = Math.max(0.0f, left / (float) width);
+        float t = Math.max(0.0f, top / (float) height);
+        float r = Math.min(1.0f, right / (float) width);
+        float b = Math.min(1.0f, bottom / (float) height);
         setDrawingRange(l, t, r, b);
     }
 

@@ -17,7 +17,6 @@ import org.deviceconnect.android.libmedia.streaming.sdp.attribute.FormatAttribut
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribute;
 import org.deviceconnect.android.libmedia.streaming.video.CanvasVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
-import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
@@ -69,16 +68,9 @@ public abstract class H265VideoStream extends VideoStream {
             final AtomicBoolean result = new AtomicBoolean();
 
             VideoEncoder videoEncoder = getVideoEncoder();
-            VideoQuality quality = videoEncoder.getVideoQuality();
-
-            boolean isSwapped = videoEncoder.isSwappedDimensions();
-            int w = isSwapped ? quality.getVideoHeight() : quality.getVideoWidth();
-            int h = isSwapped ? quality.getVideoWidth() : quality.getVideoHeight();
 
             VideoEncoder encoder = new TempVideoEncoder();
-            encoder.getVideoQuality().set(getVideoEncoder().getVideoQuality());
-            encoder.getVideoQuality().setVideoWidth(w);
-            encoder.getVideoQuality().setVideoHeight(h);
+            encoder.getVideoQuality().set(videoEncoder.getVideoQuality());
             encoder.setCallback(new MediaEncoder.Callback() {
                 @Override
                 public void onStarted() {

@@ -1,8 +1,11 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.util.Log;
+import android.util.Size;
 
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGQuality;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
@@ -129,8 +132,18 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
         HostMediaRecorder recorder = getRecorder();
         HostMediaRecorder.Settings settings = recorder.getSettings();
 
-        quality.setWidth(settings.getPreviewSize().getWidth());
-        quality.setHeight(settings.getPreviewSize().getHeight());
+        Rect rect = settings.getDrawingRange();
+        if (rect != null) {
+            quality.setWidth(rect.width());
+            quality.setHeight(rect.height());
+        } else {
+            EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
+            Size previewSize = settings.getPreviewSize();
+            int w = d.isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
+            int h = d.isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
+            quality.setWidth(w);
+            quality.setHeight(h);
+        }
         quality.setFrameRate(settings.getPreviewMaxFrameRate());
         quality.setQuality(settings.getPreviewQuality());
     }

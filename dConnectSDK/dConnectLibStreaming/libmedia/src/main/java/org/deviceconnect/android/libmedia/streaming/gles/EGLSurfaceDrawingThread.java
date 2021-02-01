@@ -51,6 +51,11 @@ public class EGLSurfaceDrawingThread {
     private DrawingThread mDrawingThread;
 
     /**
+     * 描画範囲.
+     */
+    private Rect mDrawingRange;
+
+    /**
      * イベントを通知するリスナーを追加します.
      *
      * @param listener リスナー
@@ -87,6 +92,15 @@ public class EGLSurfaceDrawingThread {
             throw new IllegalArgumentException("timeout cannot set negative value.");
         }
         mTimeout = timeout;
+    }
+
+    /**
+     * 描画範囲を設定します.
+     *
+     * @param rect 描画範囲
+     */
+    public void setDrawingRange(Rect rect) {
+        mDrawingRange = rect;
     }
 
     /**
@@ -288,12 +302,13 @@ public class EGLSurfaceDrawingThread {
 
     /**
      * スレッドを開始します.
+     *
+     * 既に開始されている場合には何も処理を行いません。
      */
     public synchronized void start() {
         if (isRunning()) {
             return;
         }
-
         mDrawingThread = new DrawingThread();
         mDrawingThread.setName("Surface-Drawing-Thread");
         mDrawingThread.start();
@@ -340,20 +355,10 @@ public class EGLSurfaceDrawingThread {
         manager.setTimeout(mTimeout);
         // SurfaceTexture に解像度を設定
         SurfaceTexture st = manager.getSurfaceTexture();
-        int w = isSwappedDimensions() ? mHeight : mWidth;
-        int h = isSwappedDimensions() ? mWidth : mHeight;
+        st.setDefaultBufferSize(mWidth, mHeight);
         if (mDrawingRange != null) {
-            manager.setDrawingRange(
-                    mDrawingRange.left, mDrawingRange.top,
-                    mDrawingRange.right, mDrawingRange.bottom,
-                    w, h);
-            int cutW = (mDrawingRange.right - mDrawingRange.left);
-            int cutH = (mDrawingRange.bottom - mDrawingRange.top);
-            w = isSwappedDimensions() ? cutH : cutW;
-            h = isSwappedDimensions() ? cutW : cutH;
+            manager.setDrawingRange(mDrawingRange, mWidth, mHeight);
         }
-        st.setDefaultBufferSize(w, h);
-
         return manager;
     }
 
@@ -447,12 +452,6 @@ public class EGLSurfaceDrawingThread {
         for (OnDrawingEventListener l : mOnDrawingEventListeners) {
             l.onDrawn(eglSurfaceBase);
         }
-    }
-
-    private Rect mDrawingRange;
-
-    public void setDrawingRange(Rect rect) {
-        mDrawingRange = rect;
     }
 
     /**

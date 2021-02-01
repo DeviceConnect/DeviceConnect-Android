@@ -61,7 +61,10 @@ public class ScreenCastSurfaceDrawingThread extends EGLSurfaceDrawingThread {
     public void start() {
         HostMediaRecorder.Settings settings = mRecorder.getSettings();
         Size previewSize = settings.getPreviewSize();
-        setSize(previewSize.getWidth(), previewSize.getHeight());
+        int width = isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
+        int height = isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
+        setSize(width, height);
+        setDrawingRange(settings.getDrawingRange());
         super.start();
     }
 

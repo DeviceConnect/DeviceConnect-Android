@@ -1,5 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.gles;
 
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
 import android.util.Log;
@@ -146,6 +147,17 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
      */
     public void setDrawingRange(int l, int t, int r, int b, int width, int height) {
         mTextureRenderer.setDrawingRange(l, t, r, b, width, height);
+    }
+
+    /**
+     * 描画する範囲を設定します.
+     *
+     * @param rect 描画する範囲
+     * @param width 映像の横幅
+     * @param height 映像の縦幅
+     */
+    public void setDrawingRange(Rect rect, int width, int height) {
+        mTextureRenderer.setDrawingRange(rect, width, height);
     }
 
     /**

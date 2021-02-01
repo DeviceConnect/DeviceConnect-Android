@@ -213,7 +213,7 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
     private void setPreviewWhiteBalancePreference(HostMediaRecorder.Settings settings) {
         ListPreference pref = findPreference("preview_white_balance");
         if (pref != null) {
-            List<Integer> modeList = settings.getSupportedWhiteBalances();
+            List<Integer> modeList = settings.getSupportedWhiteBalanceModeList();
             if (modeList != null && !modeList.isEmpty()) {
                 List<String> entryNames = new ArrayList<>();
                 List<String> entryValues = new ArrayList<>();

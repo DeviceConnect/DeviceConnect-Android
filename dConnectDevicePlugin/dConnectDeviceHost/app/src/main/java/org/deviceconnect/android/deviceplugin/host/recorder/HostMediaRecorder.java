@@ -776,7 +776,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param whiteBalance ホワイトバランス
          */
         public void setPreviewWhiteBalance(Integer whiteBalance) {
-            if (!isSupportedWhiteBalance(whiteBalance)) {
+            if (!isSupportedWhiteBalanceMode(whiteBalance)) {
                 throw new IllegalArgumentException("WhiteBalance is unsupported value.");
             }
             mPref.put("preview_white_balance", whiteBalance);
@@ -912,6 +912,9 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             if (focalLength == null) {
                 mPref.remove("preview_focal_length");
             } else {
+                if (!isSupportedFocalLength(focalLength)) {
+                    throw new IllegalArgumentException("focalLength cannot set.");
+                }
                 mPref.put("preview_focal_length", focalLength);
             }
         }
@@ -924,6 +927,9 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             if (mode == null) {
                 mPref.remove("preview_reduction_noise");
             } else {
+                if (!isSupportedNoiseReduction(mode)) {
+                    throw new IllegalArgumentException("mode cannot set.");
+                }
                 mPref.put("preview_reduction_noise", mode);
             }
         }
@@ -972,6 +978,9 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             if (mode == null) {
                 mPref.remove("preview_auto_exposure_mode");
             } else {
+                if (!isSupportedAutoExposureMode(mode)) {
+                    throw new IllegalArgumentException("mode cannot set.");
+                }
                 mPref.put("preview_auto_exposure_mode", mode);
             }
         }
@@ -980,11 +989,14 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             return mPref.getLong("preview_sensor_exposure_time", null);
         }
 
-        public void setSensorExposureTime(Long time) {
-            if (time == null) {
+        public void setSensorExposureTime(Long exposureTime) {
+            if (exposureTime == null) {
                 mPref.remove("preview_sensor_exposure_time");
             } else {
-                mPref.put("preview_sensor_exposure_time", time);
+                if (!isSupportedSensorExposureTime(exposureTime)) {
+                    throw new IllegalArgumentException("exposureTime cannot set.");
+                }
+                mPref.put("preview_sensor_exposure_time", exposureTime);
             }
         }
 
@@ -996,6 +1008,9 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             if (sensitivity == null) {
                 mPref.remove("preview_sensor_sensitivity");
             } else {
+                if (!isSupportedSensorSensorSensitivity(sensitivity)) {
+                    throw new IllegalArgumentException("sensitivity cannot set.");
+                }
                 mPref.put("preview_sensor_sensitivity", sensitivity);
             }
         }
@@ -1008,12 +1023,54 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             if (frameDuration == null) {
                 mPref.remove("preview_sensor_frame_duration");
             } else {
+                if (!isSupportedSensorFrameDuration(frameDuration)) {
+                    throw new IllegalArgumentException("frameDuration cannot set.");
+                }
                 mPref.put("preview_sensor_frame_duration", frameDuration);
             }
         }
 
         /**
+         * 切り抜き範囲を取得します.
+         *
+         * 範囲ば設定されていない場合には、null を返却します.
+         *
+         * @return 切り抜き範囲
+         */
+        public Rect getDrawingRange() {
+            return mPref.getRect("preview_clip_left",
+                    "preview_clip_top",
+                    "preview_clip_right",
+                    "preview_clip_bottom");
+        }
+
+        /**
+         * 切り抜き範囲を設定します.
+         *
+         * 引数に null が指定された場合には、切り抜き範囲を削除します。
+         *
+         * @param rect 切り抜き範囲
+         */
+        public void setDrawingRange(Rect rect) {
+            if (rect == null) {
+                mPref.remove("preview_clip_left");
+                mPref.remove("preview_clip_top");
+                mPref.remove("preview_clip_right");
+                mPref.remove("preview_clip_bottom");
+            } else {
+                mPref.put(
+                        "preview_clip_left",
+                        "preview_clip_top",
+                        "preview_clip_right",
+                        "preview_clip_bottom",
+                        rect);
+            }
+        }
+
+        /**
          * サポートしている写真サイズを取得します.
+         *
+         * サポートしていない場合には空のリストを返却します。
          *
          * @return サポートしている写真サイズ
          */
@@ -1024,6 +1081,8 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         /**
          * サポートしているプレビューサイズを取得します.
          *
+         * サポートしていない場合には空のリストを返却します。
+         *
          * @return サポートしているプレビューサイズ
          */
         public List<Size> getSupportedPreviewSizes() {
@@ -1033,16 +1092,32 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         /**
          * サポートしている FPS のリストを取得します.
          *
+         * サポートしていない場合には空のリストを返却します。
+         *
          * @return サポートしている FPS のリスト
          */
         public List<Range<Integer>> getSupportedFps() {
             return new ArrayList<>();
         }
 
+        /**
+         * サポートしているビットレートモードのリストを取得します.
+         *
+         * サポートしていない場合には空のリストを返却します。
+         *
+         * @return サポートしているビットレートモードのリスト
+         */
         public List<BitRateMode> getSupportedBitRateModeList() {
             return Arrays.asList(BitRateMode.values());
         }
 
+        /**
+         * サポートしている自動フォーカスモードのリストを取得します.
+         *
+         * サポートしていない場合には空のリストを返却します。
+         *
+         * @return サポートしている自動フォーカスモードのリスト
+         */
         public List<Integer> getSupportedAutoFocusModeList() {
             return new ArrayList<>();
         }
@@ -1050,24 +1125,54 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         /**
          * サポートしているホワイトバランスのリストを取得します.
          *
+         * サポートしていない場合には空のリストを返却します。
+         *
          * @return サポートしているホワイトバランスのリスト
          */
-        public List<Integer> getSupportedWhiteBalances() {
+        public List<Integer> getSupportedWhiteBalanceModeList() {
             return new ArrayList<>();
         }
 
+        /**
+         * サポートしている自動露出モードのリストを取得します.
+         *
+         * サポートしていない場合には空のリストを返却します。
+         *
+         * @return サポートしている自動露出モードのリスト
+         */
         public List<Integer> getSupportedAutoExposureModeList() {
             return new ArrayList<>();
         }
 
+        /**
+         * サポートしている露出時間の範囲を取得します.
+         *
+         * サポートしていない場合には、null を返却します。
+         *
+         * @return 露出時間の範囲
+         */
         public Range<Long> getSupportedSensorExposureTime() {
             return null;
         }
 
+        /**
+         * サポートしている ISO 感度の範囲を取得します.
+         *
+         * サポートしていない場合には、null を返却します。
+         *
+         * @return ISO 感度の範囲
+         */
         public Range<Integer> getSupportedSensorSensitivity() {
             return null;
         }
 
+        /**
+         * サポートしているフレーム時間の最大値を取得します.
+         *
+         * サポートしていない場合には、null を返却します。
+         *
+         * @return フレーム時間の最大値
+         */
         public Long getMaxSensorFrameDuration() {
             return null;
         }
@@ -1196,8 +1301,8 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param whiteBalance ホワイトバランス.
          * @return サポートされている場合はtrue、それ以外はfalse
          */
-        public boolean isSupportedWhiteBalance(int whiteBalance) {
-            List<Integer> modeList = getSupportedWhiteBalances();
+        public boolean isSupportedWhiteBalanceMode(int whiteBalance) {
+            List<Integer> modeList = getSupportedWhiteBalanceModeList();
             if (modeList != null) {
                 for (Integer wb : modeList) {
                     if (wb == whiteBalance) {
@@ -1327,7 +1432,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             return max != null && 1.0f <= zoom && zoom <= max;
         }
 
-        public boolean isSupportedFocalLengthList(Float focalLength) {
+        public boolean isSupportedFocalLength(Float focalLength) {
             List<Float> list = getSupportedFocalLengthList();
             if (list != null) {
                 for (Float length : list) {
@@ -1590,43 +1695,6 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public void setSrtPort(int port) {
             mPref.put("srt_port", port);
-        }
-
-        /**
-         * 切り抜き範囲を取得します.
-         *
-         * 範囲ば設定されていない場合には、null を返却します.
-         *
-         * @return 切り抜き範囲
-         */
-        public Rect getDrawingRange() {
-            return mPref.getRect("preview_clip_left",
-                    "preview_clip_top",
-                    "preview_clip_right",
-                    "preview_clip_bottom");
-        }
-
-        /**
-         * 切り抜き範囲を設定します.
-         *
-         * 引数に null が指定された場合には、切り抜き範囲を削除します。
-         *
-         * @param rect 切り抜き範囲
-         */
-        public void setDrawingRange(Rect rect) {
-            if (rect == null) {
-                mPref.remove("preview_clip_left");
-                mPref.remove("preview_clip_top");
-                mPref.remove("preview_clip_right");
-                mPref.remove("preview_clip_bottom");
-            } else {
-                mPref.put(
-                        "preview_clip_left",
-                        "preview_clip_top",
-                        "preview_clip_right",
-                        "preview_clip_bottom",
-                        rect);
-            }
         }
     }
 }

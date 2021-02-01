@@ -7,7 +7,6 @@ import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoder;
@@ -35,11 +34,8 @@ public abstract class VideoEncoder extends MediaEncoder {
     @Override
     protected void prepare() throws IOException {
         VideoQuality videoQuality = getVideoQuality();
-        int videoWidth = videoQuality.getVideoWidth();
-        int videoHeight = videoQuality.getVideoHeight();
-        boolean isSwapped = isSwappedDimensions();
-        int w = isSwapped ? videoHeight : videoWidth;
-        int h = isSwapped ? videoWidth : videoHeight;
+        int w = videoQuality.getVideoWidth();
+        int h = videoQuality.getVideoHeight();
         mMediaCodec = createMediaCodec(getColorFormat(), w, h);
     }
 
@@ -74,38 +70,6 @@ public abstract class VideoEncoder extends MediaEncoder {
      * @return 映像のエンコード設定
      */
     public abstract VideoQuality getVideoQuality();
-
-    /**
-     * 映像の回転を取得します.
-     *
-     * <p>
-     * 端末の向きに合わせて、映像を回転する場合などに使用します。
-     * </p>
-     *
-     * @return 映像の回転
-     */
-    protected int getDisplayRotation() {
-        return Surface.ROTATION_0;
-    }
-
-    /**
-     * MediaCodec に渡す解像度の縦横のサイズをスワップするか判断します.
-     *
-     * <p>
-     * 端末の回転に合わせて、解像度を変更する時に使用します。
-     * </p>
-     *
-     * @return スワップする場合は true、それ以外は false
-     */
-    public boolean isSwappedDimensions() {
-        switch (getDisplayRotation()) {
-            case Surface.ROTATION_0:
-            case Surface.ROTATION_180:
-                return false;
-            default:
-                return true;
-        }
-    }
 
     /**
      * キーフレームを要求します.

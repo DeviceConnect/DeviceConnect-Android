@@ -1,7 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.mjpeg;
 
 import android.graphics.Bitmap;
-import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
@@ -69,11 +68,7 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
         @Override
         public void onStarted() {
             MJPEGQuality quality = getMJPEGQuality();
-            int w = isSwappedDimensions() ? quality.getHeight() : quality.getWidth();
-            int h = isSwappedDimensions() ? quality.getWidth() : quality.getHeight();
-
-            mSurfaceDrawingThread.addEGLSurfaceBase(w, h, TAG_SURFACE);
-
+            mSurfaceDrawingThread.addEGLSurfaceBase(quality.getWidth(), quality.getHeight(), TAG_SURFACE);
             try {
                 prepare();
                 startRecording();
@@ -129,38 +124,6 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     }
 
     /**
-     * 解像度の縦横のサイズをスワップするか判断します.
-     *
-     * @return スワップする場合は true、それ以外は false
-     */
-    public boolean isSwappedDimensions() {
-        if (mSurfaceDrawingThread == null) {
-            switch (getDisplayRotation()) {
-                case Surface.ROTATION_0:
-                case Surface.ROTATION_180:
-                    return false;
-                default:
-                    return true;
-            }
-        } else {
-            return mSurfaceDrawingThread.isSwappedDimensions();
-        }
-    }
-
-    /**
-     * 画面の回転を取得します.
-     *
-     * @return 画面の回転
-     */
-    protected int getDisplayRotation() {
-        if (mSurfaceDrawingThread == null) {
-            return Surface.ROTATION_0;
-        } else {
-            return mSurfaceDrawingThread.getDisplayRotation();
-        }
-    }
-
-    /**
      * エンコーダーの準備を行います.
      *
      * @throws IOException エンコーダーの準備に失敗した場合に発生
@@ -209,8 +172,8 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
      */
     private void startDrawingThreadInternal() {
         MJPEGQuality quality = getMJPEGQuality();
-        int w = isSwappedDimensions() ? quality.getHeight() : quality.getWidth();
-        int h = isSwappedDimensions() ? quality.getWidth() : quality.getHeight();
+        int w = quality.getWidth();
+        int h = quality.getHeight();
 
         if (mEncoderThread != null) {
             mEncoderThread.terminate();

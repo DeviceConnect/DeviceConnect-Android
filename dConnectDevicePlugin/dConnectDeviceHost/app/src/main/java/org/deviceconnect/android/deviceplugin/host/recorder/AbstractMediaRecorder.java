@@ -706,10 +706,10 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
                 showNotificationForStopRecording(getId(), getName());
 
                 if (callback != null) {
-                    callback.onRecorded(AbstractMediaRecorder.this, outputFile.getAbsolutePath());
+                    callback.onRecorded(AbstractMediaRecorder.this, outputFile.getName());
                 }
 
-                postOnRecordingStarted(outputFile.getAbsolutePath());
+                postOnRecordingStarted(outputFile.getName());
             }
 
             @Override
@@ -761,10 +761,10 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
                 mMP4Recorder = null;
 
                 if (callback != null) {
-                    callback.onStopped(AbstractMediaRecorder.this, outputFile.getAbsolutePath());
+                    callback.onStopped(AbstractMediaRecorder.this, outputFile.getName());
                 }
 
-                postOnRecordingStopped(outputFile.getAbsolutePath());
+                postOnRecordingStopped(outputFile.getName());
             }
 
             @Override

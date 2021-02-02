@@ -6,25 +6,19 @@
  */
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
-import androidx.annotation.NonNull;
-
-import android.telecom.TelecomManager;
 import android.telephony.TelephonyManager;
 
 import org.deviceconnect.android.activity.IntentHandlerActivity;
-import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.phone.HostPhoneManager;
@@ -54,7 +48,7 @@ import java.util.logging.Logger;
 public class HostPhoneProfile extends PhoneProfile {
 
     /** Notification Id */
-    private final int NOTIFICATION_ID = 3537;
+    private static final int NOTIFICATION_ID = 3537;
 
     /**
      * 現在の通話状態.
@@ -129,6 +123,8 @@ public class HostPhoneProfile extends PhoneProfile {
                         if (notificationManager.isNotificationPolicyAccessGranted()) {
                             if (!mHostPhoneManager.setPhoneMode(mode)) {
                                 MessageUtils.setInvalidRequestParameterError(response, "mode is invalid.");
+                            } else {
+                                setResult(response, DConnectMessage.RESULT_OK);
                             }
                         } else {
                             MessageUtils.setIllegalServerStateError(response, "PHOME_MODE setting permisson not granted");
@@ -230,7 +226,7 @@ public class HostPhoneProfile extends PhoneProfile {
     private final DConnectApi mGetPhoneStateApi = new GetApi() {
         @Override
         public String getAttribute() {
-            return "PhoneState";
+            return "callState";
         }
 
         @Override

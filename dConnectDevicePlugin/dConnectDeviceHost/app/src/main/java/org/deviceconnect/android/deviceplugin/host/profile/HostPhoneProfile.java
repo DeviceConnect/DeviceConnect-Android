@@ -136,6 +136,8 @@ public class HostPhoneProfile extends PhoneProfile {
             } else {
                 if (!mHostPhoneManager.setPhoneMode(mode)) {
                     MessageUtils.setInvalidRequestParameterError(response, "mode is invalid.");
+                } else {
+                    setResult(response, DConnectMessage.RESULT_OK);
                 }
                 return true;
             }

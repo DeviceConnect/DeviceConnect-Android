@@ -281,11 +281,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         if (context != null && !HostConnectionManager.checkUsageAccessSettings(context)) {
             HostConnectionManager.openUsageAccessSettings(context);
         }
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
 
         CameraActivity a = (CameraActivity) getActivity();
         if (a != null) {
@@ -401,7 +396,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         // ここでは、停止から少しだけ開始を送らせておきます。
         postDelay(() -> {
             startEGLSurfaceDrawingThread();
-            setPreviewButton();
+            refreshUI();
         }, 100);
     }
 
@@ -426,7 +421,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         HostBatteryManager battery = plugin.getHostBatteryManager();
         battery.getBatteryInfo();
         float temperature = battery.getTemperature();
-        int batteryLevel = battery.getBatteryLevel();
         mViewModel.setTemperature(temperature + "℃");
         mViewModel.setBitRate((bitrate / 1024) + "kbps");
         mViewModel.setParamVisibility(View.VISIBLE);

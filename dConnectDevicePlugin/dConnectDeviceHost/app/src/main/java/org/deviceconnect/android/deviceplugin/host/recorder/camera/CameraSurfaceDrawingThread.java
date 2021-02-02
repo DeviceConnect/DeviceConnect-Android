@@ -84,6 +84,7 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
             cameraWrapper.getOptions().setFps(settings.getPreviewMaxFrameRate());
             cameraWrapper.getOptions().setAutoFocusMode(settings.getPreviewAutoFocusMode());
             cameraWrapper.getOptions().setAutoWhiteBalanceMode(settings.getPreviewWhiteBalance());
+            cameraWrapper.getOptions().setWhiteBalanceTemperature(settings.getPreviewWhiteBalanceTemperature());
             cameraWrapper.getOptions().setAutoExposureMode(settings.getAutoExposureMode());
             cameraWrapper.getOptions().setSensorExposureTime(settings.getSensorExposureTime());
             cameraWrapper.getOptions().setSensorSensitivity(settings.getSensorSensitivity());

@@ -40,6 +40,7 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         setPreviewVideoEncoderPreference(settings);
         setPreviewAutoFocusPreference(settings);
         setPreviewWhiteBalancePreference(settings);
+        setPreviewWhiteBalanceTemperaturePreference(settings);
         setPreviewAutoExposurePreference(settings);
         setPreviewProfilePreference(settings.getPreviewEncoderName(), false);
         setPreviewLevelPreference(settings.getPreviewEncoderName(), false);
@@ -254,6 +255,19 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
                 pref.setEntries(entryNames.toArray(new String[0]));
                 pref.setEntryValues(entryValues.toArray(new String[0]));
                 pref.setValue(String.valueOf(settings.getPreviewWhiteBalance()));
+            } else {
+                pref.setEnabled(false);
+            }
+        }
+    }
+
+    private void setPreviewWhiteBalanceTemperaturePreference(HostMediaRecorder.Settings settings) {
+        SeekBarDialogPreference pref = findPreference("preview_sensor_white_balance_temperature");
+        if (pref != null) {
+            Range<Integer> range = settings.getSupportedWhiteBalanceTemperature();
+            if (range != null) {
+                pref.setMinValue(range.getLower());
+                pref.setMaxValue(range.getUpper());
             } else {
                 pref.setEnabled(false);
             }

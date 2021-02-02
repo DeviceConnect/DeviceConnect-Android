@@ -184,6 +184,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
             mSettings.setPreviewQuality(80);
             mSettings.setPreviewAutoFocusMode(options.getAutoFocusMode());
             mSettings.setPreviewWhiteBalance(options.getAutoWhiteBalanceMode());
+            mSettings.setPreviewWhiteBalanceTemperature(5600);
 
             mSettings.setPreviewAudioSource(null);
             mSettings.setPreviewAudioBitRate(64 * 1024);
@@ -578,6 +579,11 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         @Override
         public List<Float> getSupportedFocalLengthList() {
             return mCameraWrapper.getOptions().getSupportedFocalLengthList();
+        }
+
+        @Override
+        public Range<Integer> getSupportedWhiteBalanceTemperature() {
+            return new Range<>(1000, 12000);
         }
     }
 }

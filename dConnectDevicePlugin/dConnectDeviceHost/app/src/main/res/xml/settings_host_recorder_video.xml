@@ -91,6 +91,12 @@
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
+        <org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference
+            app:key="preview_sensor_white_balance_temperature"
+            app:title="@string/host_recorder_settings_white_balance_temperature"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
         <ListPreference
             app:entries="@array/video_white_balance_names"
             app:entryValues="@array/video_white_balance_values"

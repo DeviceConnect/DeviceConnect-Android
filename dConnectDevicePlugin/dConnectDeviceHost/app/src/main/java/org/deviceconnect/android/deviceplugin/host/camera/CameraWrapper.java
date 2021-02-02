@@ -19,6 +19,7 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.MeteringRectangle;
+import android.hardware.camera2.params.RggbChannelVector;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
@@ -357,6 +358,10 @@ public class CameraWrapper {
         if (mOptions.mAutoWhiteBalanceMode != null) {
             requestBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
             requestBuilder.set(CaptureRequest.CONTROL_AWB_MODE, mOptions.mAutoWhiteBalanceMode);
+            if (mOptions.mAutoWhiteBalanceMode == CameraMetadata.CONTROL_AWB_MODE_OFF && mOptions.mWhiteBalanceTemperature != null) {
+                requestBuilder.set(CaptureRequest.COLOR_CORRECTION_MODE, CaptureRequest.COLOR_CORRECTION_MODE_TRANSFORM_MATRIX);
+                requestBuilder.set(CaptureRequest.COLOR_CORRECTION_GAINS, convertTemperatureToRggb(mOptions.mWhiteBalanceTemperature));
+            }
         }
 
         if (mOptions.mFps != null) {
@@ -835,6 +840,45 @@ public class CameraWrapper {
         return (a * b) / getGCD(a, b);
     }
 
+    private RggbChannelVector convertTemperatureToRggb(int whiteBalanceTemperature) {
+        float temperature = whiteBalanceTemperature / 100.0f;
+        float red;
+        float green;
+        float blue;
+
+        if (temperature <= 66) {
+            red = 255;
+        } else {
+            red = temperature - 60;
+            red = (float) (329.698727446 * (Math.pow(red, -0.1332047592)));
+            red = Math.max(red, 0);
+            red = Math.min(red, 255);
+        }
+
+        if (temperature <= 66) {
+            green = temperature;
+            green = (float) (99.4708025861 * Math.log(green) - 161.1195681661);
+        } else {
+            green = temperature - 60;
+            green = (float) (288.1221695283 * (Math.pow(green, -0.0755148492)));
+        }
+        green = Math.max(green, 0);
+        green = Math.min(green, 255);
+
+        if (temperature >= 66) {
+            blue = 255;
+        } else if (temperature <= 19) {
+            blue = 0;
+        } else {
+            blue = temperature - 10;
+            blue = (float) (138.5177312231 * Math.log(blue) - 305.0447927307);
+            blue = Math.max(blue, 0);
+            blue = Math.min(blue, 255);
+        }
+
+        return new RggbChannelVector((red / 255) * 2, (green / 255), (green / 255), (blue / 255) * 2);
+    }
+
     /**
      * カメラのライトをONにする.
      *
@@ -952,6 +996,7 @@ public class CameraWrapper {
         private Integer mSensorSensitivity;
         private Long mSensorFrameDuration;
         private Float mFocalLength;
+        private Integer mWhiteBalanceTemperature;
 
         private Integer mMaxAutoFocusRegions;
         private List<Size> mSupportedPictureSizeList = new ArrayList<>();
@@ -1067,6 +1112,14 @@ public class CameraWrapper {
 
         public void setAutoWhiteBalanceMode(final Integer whiteBalance) {
             mAutoWhiteBalanceMode = whiteBalance;
+        }
+
+        public Integer getWhiteBalanceTemperature() {
+            return mWhiteBalanceTemperature;
+        }
+
+        public void setWhiteBalanceTemperature(Integer whiteBalanceTemperature) {
+            mWhiteBalanceTemperature = whiteBalanceTemperature;
         }
 
         public Integer getAutoExposureMode() {

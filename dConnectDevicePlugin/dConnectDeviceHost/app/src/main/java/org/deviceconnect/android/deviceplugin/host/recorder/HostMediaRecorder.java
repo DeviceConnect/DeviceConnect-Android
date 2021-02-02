@@ -1042,6 +1042,21 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             }
         }
 
+        public Integer getPreviewWhiteBalanceTemperature() {
+            return mPref.getInteger("preview_sensor_white_balance_temperature", null);
+        }
+
+        public void setPreviewWhiteBalanceTemperature(Integer temperature) {
+            if (temperature == null) {
+                mPref.remove("preview_sensor_white_balance_temperature");
+            } else {
+                if (!isSupportedWhiteBalanceTemperature(temperature)) {
+                    throw new IllegalArgumentException("whiteBalanceTemperature cannot set.");
+                }
+                mPref.put("preview_sensor_white_balance_temperature", temperature);
+            }
+        }
+
         /**
          * 切り抜き範囲を取得します.
          *
@@ -1189,6 +1204,10 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             return null;
         }
 
+        public Range<Integer> getSupportedWhiteBalanceTemperature() {
+            return null;
+        }
+
         /**
          * サポートしているエンコーダのリストを取得します.
          *
@@ -1321,6 +1340,14 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
                         return true;
                     }
                 }
+            }
+            return false;
+        }
+
+        public boolean isSupportedWhiteBalanceTemperature(int temperature) {
+            Range<Integer> range = getSupportedWhiteBalanceTemperature();
+            if (range != null) {
+                return range.getLower() <= temperature && temperature <= range.getUpper();
             }
             return false;
         }

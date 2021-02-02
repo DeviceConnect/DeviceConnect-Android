@@ -82,6 +82,7 @@
     <string name="host_recorder_settings_use_software_encode_summary">MediaCodec prefers to use the software encoder.</string>
     <string name="host_recorder_settings_auto_focus_mode">Auto Focus</string>
     <string name="host_recorder_settings_white_balance">Auto White Balance</string>
+    <string name="host_recorder_settings_white_balance_temperature">Color Temperature</string>
     <string name="host_recorder_settings_auto_exposure">Auto Exposure</string>
     <string name="host_recorder_settings_sensor_exposure_time">Exposure Time</string>
     <string name="host_recorder_settings_sensor_sensitivity">ISO Sensitivity</string>

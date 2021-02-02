@@ -9,12 +9,12 @@ public class RtmpClient {
     /**
      * RTMP 配信を行うミキサー,
      */
-    private RtmpMuxer mRtmpMuxer;
+    private final RtmpMuxer mRtmpMuxer;
 
     /**
      * ストリーミングを行うためのクラス.
      */
-    private MediaStreamer mMediaStreamer;
+    private final MediaStreamer mMediaStreamer;
 
     /**
      * コンストラクタ.

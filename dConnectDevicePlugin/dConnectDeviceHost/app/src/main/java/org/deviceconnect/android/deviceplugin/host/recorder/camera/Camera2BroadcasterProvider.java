@@ -20,7 +20,7 @@ public class Camera2BroadcasterProvider extends AbstractBroadcastProvider {
     public Broadcaster createBroadcaster(String broadcastURI) {
         if (broadcastURI.startsWith("srt://")) {
             return new Camera2SRTBroadcaster(mRecorder, broadcastURI);
-        } else if (broadcastURI.startsWith("rtmp://")) {
+        } else if (broadcastURI.startsWith("rtmp://") || broadcastURI.startsWith("rtmps://")) {
             return new Camera2RTMPBroadcaster(mRecorder, broadcastURI);
         } else {
             return null;

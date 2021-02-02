@@ -18,7 +18,7 @@ public class ScreenCastBroadcasterProvider extends AbstractBroadcastProvider {
     public Broadcaster createBroadcaster(String broadcastURI) {
         if (broadcastURI.startsWith("srt://")) {
             return new ScreenCastSRTBroadcaster(mRecorder, broadcastURI);
-        } else if (broadcastURI.startsWith("rtmp://")) {
+        } else if (broadcastURI.startsWith("rtmp://") || broadcastURI.startsWith("rtmps://")) {
             return new ScreenCastRTMPBroadcaster(mRecorder, broadcastURI);
         } else {
             return null;

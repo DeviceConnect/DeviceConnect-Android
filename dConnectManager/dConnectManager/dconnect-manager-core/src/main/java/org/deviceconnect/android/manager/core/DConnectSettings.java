@@ -284,7 +284,7 @@ public final class DConnectSettings {
      * @return 使用する場合はtrue、それ以外はfalse
      */
     public boolean isDefaultUseALocalOAuth() {
-        return true;
+        return false;
     }
 
     /**

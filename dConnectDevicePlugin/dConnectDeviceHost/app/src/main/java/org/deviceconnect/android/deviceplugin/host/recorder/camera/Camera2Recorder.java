@@ -402,11 +402,15 @@ public class Camera2Recorder extends AbstractMediaRecorder {
      */
     private void takePhotoInternal(final @NonNull OnPhotoEventListener listener) {
         try {
+            if (mCameraWrapper.isTakingStillImage()) {
+                listener.onFailedTakePhoto("Already taking a picture.");
+                return;
+            }
+
             mCameraWrapper.getOptions().setPictureSize(mSettings.getPictureSize());
             mCameraWrapper.takeStillImage((reader) -> {
                 Image photo = reader.acquireNextImage();
                 if (photo == null) {
-                    setState(State.INACTIVE);
                     listener.onFailedTakePhoto("Failed to acquire image.");
                     return;
                 }
@@ -422,10 +426,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
                 storePhoto(generateImageFileName(), jpeg, listener);
 
                 photo.close();
-
-                setState(State.INACTIVE);
             }, mPhotoHandler);
-            setState(State.RECORDING);
         } catch (CameraWrapperException e) {
             listener.onFailedTakePhoto("Failed to take photo.");
         }

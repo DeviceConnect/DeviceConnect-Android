@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -520,18 +521,29 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
      * すでに録画している場合などは、撮影が行えないので、処理を無視します。
      */
     private void takePhoto() {
-        if (mMediaRecorder.getState() == HostMediaRecorder.State.RECORDING) {
-            return;
-        }
-
+        setTakePhotoButton(false);
         mMediaRecorder.takePhoto(new HostDevicePhotoRecorder.OnPhotoEventListener() {
             @Override
             public void onTakePhoto(String uri, String filePath, String mimeType) {
+                setTakePhotoButton(true);
             }
 
             @Override
             public void onFailedTakePhoto(String errorMessage) {
+                setTakePhotoButton(true);
                 showToast(R.string.host_recorder_failed_to_take_photo);
+            }
+        });
+    }
+
+    private void setTakePhotoButton(boolean enable) {
+        runOnUiThread(() -> {
+            View root = getView();
+            if (root != null) {
+                View view = root.findViewById(R.id.fragment_host_camera_toggle_photo_button);
+                if (view != null) {
+                    view.setEnabled(enable);
+                }
             }
         });
     }

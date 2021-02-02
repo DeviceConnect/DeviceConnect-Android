@@ -157,6 +157,10 @@ public class CameraWrapper {
         return mPreviewSurface != null;
     }
 
+    public boolean isTakingStillImage() {
+        return mIsTakingStillImage;
+    }
+
     public void destroy() {
         closeCameraDevice();
 

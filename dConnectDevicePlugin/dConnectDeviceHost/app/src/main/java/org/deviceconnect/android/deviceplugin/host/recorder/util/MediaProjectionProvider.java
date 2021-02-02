@@ -25,6 +25,14 @@ public class MediaProjectionProvider {
     private final MediaProjectionManager mMediaProjectionMgr;
     private MediaProjection mMediaProjection;
 
+    private final MediaProjection.Callback mCallback = new MediaProjection.Callback() {
+        @Override
+        public void onStop() {
+            super.onStop();
+            stopMediaProjection();
+        }
+    };
+
     /**
      * コールバックの通知を受けるスレッド.
      */
@@ -48,9 +56,7 @@ public class MediaProjectionProvider {
      * MediaProjection を停止します.
      */
     public void stop() {
-        if (mMediaProjection != null) {
-            mMediaProjection.stop();
-        }
+        stopMediaProjection();
     }
 
     /**
@@ -74,11 +80,7 @@ public class MediaProjectionProvider {
                     Intent data = resultData.getParcelable(PermissionReceiverActivity.RESULT_DATA);
                     if (data != null) {
                         mMediaProjection = mMediaProjectionMgr.getMediaProjection(resultCode, data);
-                        mMediaProjection.registerCallback(new MediaProjection.Callback() {
-                            @Override
-                            public void onStop() {
-                            }
-                        }, new Handler(Looper.getMainLooper()));
+                        mMediaProjection.registerCallback(mCallback, mCallbackHandler);
                     }
                 }
 
@@ -100,6 +102,13 @@ public class MediaProjectionProvider {
             NotificationUtils.createNotificationChannel(mContext);
             NotificationUtils.notify(mContext, NOTIFICATION_ID, 0, intent,
                     mContext.getString(R.string.host_notification_projection_warnning));
+        }
+    }
+
+    private synchronized void stopMediaProjection() {
+        if (mMediaProjection != null) {
+            mMediaProjection.stop();
+            mMediaProjection = null;
         }
     }
 

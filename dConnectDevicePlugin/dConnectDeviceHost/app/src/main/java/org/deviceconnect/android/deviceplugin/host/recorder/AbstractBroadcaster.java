@@ -1,10 +1,16 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.graphics.Rect;
+import android.media.AudioAttributes;
 import android.media.AudioFormat;
+import android.media.AudioPlaybackCaptureConfiguration;
+import android.media.projection.MediaProjection;
+import android.os.Build;
 import android.util.Size;
 
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
+import org.deviceconnect.android.libmedia.streaming.audio.MicAudioQuality;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
@@ -140,5 +146,24 @@ public abstract class AbstractBroadcaster implements Broadcaster {
         audioQuality.setSamplingRate(settings.getPreviewSampleRate());
         audioQuality.setBitRate(settings.getPreviewAudioBitRate());
         audioQuality.setUseAEC(settings.isUseAEC());
+
+        MicAudioQuality quality = (MicAudioQuality) audioQuality;
+        if (settings.getPreviewAudioSource() == HostMediaRecorder.AudioSource.APP) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // アプリの録音機能
+                MediaProjectionProvider provider = recorder.getMediaProjectionProvider();
+                if (provider != null && provider.getMediaProjection() != null) {
+                    MediaProjection mediaProjection = provider.getMediaProjection();
+                    AudioPlaybackCaptureConfiguration configuration =
+                            new AudioPlaybackCaptureConfiguration.Builder(mediaProjection)
+                                    .addMatchingUsage(AudioAttributes.USAGE_GAME)
+                                    .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
+                                    .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
+                                    .build();
+                    quality.setCaptureConfig(configuration);
+                }
+            }
+            quality.setSource(MicAudioQuality.Source.APP);
+        }
     }
 }

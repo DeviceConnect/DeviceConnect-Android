@@ -659,7 +659,8 @@ public class CameraWrapper {
             return;
         }
 
-        if (mOptions.mAutoFocusMode != CaptureRequest.CONTROL_AF_MODE_AUTO) {
+        if (mOptions.mAutoFocusMode == null ||
+                mOptions.mAutoFocusMode != CaptureRequest.CONTROL_AF_MODE_AUTO) {
             return;
         }
 

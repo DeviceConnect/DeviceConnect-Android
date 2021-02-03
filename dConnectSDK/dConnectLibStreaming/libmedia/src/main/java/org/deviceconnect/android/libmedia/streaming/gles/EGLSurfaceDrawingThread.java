@@ -357,7 +357,9 @@ public class EGLSurfaceDrawingThread {
         SurfaceTexture st = manager.getSurfaceTexture();
         st.setDefaultBufferSize(mWidth, mHeight);
         if (mDrawingRange != null) {
-            manager.setDrawingRange(mDrawingRange, mWidth, mHeight);
+            int w = isSwappedDimensions() ? mHeight : mWidth;
+            int h = isSwappedDimensions() ? mWidth : mHeight;
+            manager.setDrawingRange(mDrawingRange, w, h);
         }
         return manager;
     }

@@ -190,7 +190,7 @@ public class SurfaceTextureRenderer {
         }
 
         // (optional) clear to green so we can see if we're failing to set pixels
-        GLES20.glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 
         GLES20.glUseProgram(mProgram);
@@ -235,20 +235,33 @@ public class SurfaceTextureRenderer {
      * @param height 画像の縦幅
      */
     public void setDrawingRange(int left, int top, int right, int bottom, int width, int height) {
-        float l = Math.max(0.0f, left / (float) width);
-        float t = Math.max(0.0f, top / (float) height);
-        float r = Math.min(1.0f, right / (float) width);
-        float b = Math.min(1.0f, bottom / (float) height);
+        float l = left / (float) width;
+        float t = top / (float) height;
+        float r = right / (float) width;
+        float b = bottom / (float) height;
         setDrawingRange(l, t, r, b);
     }
 
     private void setDrawingRange(float l, float t, float r, float b) {
+        // 映像がはみ出した分は縮めて描画するように座標を計算
+        float sx = -1.0f;
+        float sy = 1.0f;
+        float ex = 1.0f;
+        float ey = -1.0f;
+        if (r > 1.0f) {
+            ex = 2.0f / r - 1.0f;
+            r = 1.0f;
+        }
+        if (b > 1.0f) {
+            ey = -2.0f / b + 1.0f;
+            b = 1.0f;
+        }
         float[] triangleVerticesData = {
                 // X, Y, Z, U, V
-                -1.0f, -1.0f, 0.f, l, t,
-                 1.0f, -1.0f, 0.f, r, t,
-                -1.0f,  1.0f, 0.f, l, b,
-                 1.0f,  1.0f, 0.f, r, b,
+                sx, sy, 0.f, l, (1 - t),
+                sx, ey, 0.f, l, (1 - b),
+                ex, sy, 0.f, r, (1 - t),
+                ex, ey, 0.f, r, (1 - b),
         };
 
         mTriangleVertices.clear();

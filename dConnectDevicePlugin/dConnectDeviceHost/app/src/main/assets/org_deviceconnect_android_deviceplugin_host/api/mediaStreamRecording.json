@@ -680,6 +680,13 @@
             "type": "integer"
           },
           {
+            "name": "previewClipReset",
+            "description": "true が指定された時にプレビューの切り抜き範囲を解除する。<br>previewClipLeft などと同時に指定された場合には、previewClipReset を優先する。",
+            "in": "formData",
+            "required": false,
+            "type": "boolean"
+          },
+          {
             "name": "mimeType",
             "description": "MimeType。動画録画・音声録音するときのエンコードするタイプ。",
             "in": "formData",

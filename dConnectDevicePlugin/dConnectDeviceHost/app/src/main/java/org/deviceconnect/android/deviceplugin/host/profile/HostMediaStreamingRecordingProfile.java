@@ -204,6 +204,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             Integer previewClipTop = parseInteger(request, "previewClipTop");
             Integer previewClipRight = parseInteger(request, "previewClipRight");
             Integer previewClipBottom = parseInteger(request, "previewClipBottom");
+            Boolean previewClipReset = parseBoolean(request, "previewClipReset");
 
             HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
@@ -275,7 +276,9 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 settings.setPreviewQuality((int) (jpegQuality * 100));
             }
 
-            if (previewClipLeft != null && previewClipTop != null
+            if (previewClipReset != null && previewClipReset) {
+                settings.setDrawingRange(null);
+            } else if (previewClipLeft != null && previewClipTop != null
                     && previewClipRight != null && previewClipBottom != null) {
                 if (previewClipLeft == 0 && previewClipTop == 0
                         && previewClipRight == 0 && previewClipBottom == 0) {

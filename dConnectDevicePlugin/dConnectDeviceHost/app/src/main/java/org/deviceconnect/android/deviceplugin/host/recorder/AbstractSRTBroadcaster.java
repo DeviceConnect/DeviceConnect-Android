@@ -123,17 +123,9 @@ public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
 
     @Override
     public void onConfigChange() {
+        super.onConfigChange();
+
         if (mSrtClient != null) {
-            VideoEncoder videoEncoder = mSrtClient.getVideoEncoder();
-            if (videoEncoder != null) {
-                setVideoQuality(videoEncoder.getVideoQuality());
-            }
-
-            AudioEncoder audioEncoder = mSrtClient.getAudioEncoder();
-            if (audioEncoder != null) {
-                setAudioQuality(audioEncoder.getAudioQuality());
-            }
-
             mSrtClient.restartVideoEncoder();
         }
     }

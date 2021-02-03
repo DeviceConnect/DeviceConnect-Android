@@ -102,6 +102,18 @@ public abstract class AbstractPreviewServer implements PreviewServer {
 
     @Override
     public void onConfigChange() {
+        VideoQuality videoQuality = getVideoQuality();
+        if (videoQuality != null) {
+            setVideoQuality(videoQuality);
+        }
+
+        AudioQuality audioQuality = getAudioQuality();
+        if (audioQuality != null) {
+            setAudioQuality(audioQuality);
+
+            HostMediaRecorder.Settings settings = getRecorder().getSettings();
+            setMute(settings.isMute());
+        }
     }
 
     @Override
@@ -145,6 +157,28 @@ public abstract class AbstractPreviewServer implements PreviewServer {
      */
     public HostMediaRecorder getRecorder() {
         return mHostMediaRecorder;
+    }
+
+    /**
+     * 映像の設定を取得します.
+     *
+     * 映像が使用されていない場合は null を返却すること。
+     *
+     * @return 映像の設定
+     */
+    protected VideoQuality getVideoQuality() {
+        return null;
+    }
+
+    /**
+     * 音声の設定を取得します.
+     *
+     * 音声が使用されていない場合は null を返却すること。
+     *
+     * @return 音声の設定
+     */
+    protected AudioQuality getAudioQuality() {
+        return null;
     }
 
     /**

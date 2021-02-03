@@ -104,6 +104,8 @@
     <string name="host_recorder_settings_audio_sampling_rate">サンプリングレート</string>
     <string name="host_recorder_settings_audio_source">音声入力</string>
     <string name="host_recorder_settings_audio_channel">チャンネル</string>
+    <string name="host_recorder_settings_audio_mute">ミュート</string>
+    <string name="host_recorder_settings_audio_mute_summary">ミュートの設定を行います。</string>
     <string name="host_recorder_settings_audio_echo_canceler">エコーキャンセラー</string>
     <string name="host_recorder_settings_audio_echo_canceler_summary">エコーキャンセラー有効化の設定を行います。</string>
     <string name="host_recorder_settings_audio_source_default">System Default</string>

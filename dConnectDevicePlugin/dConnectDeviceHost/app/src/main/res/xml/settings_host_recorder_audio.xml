@@ -15,6 +15,13 @@
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="preview_audio_mute"
+            android:summary="@string/host_recorder_settings_audio_mute_summary"
+            android:title="@string/host_recorder_settings_audio_mute"
+            app:iconSpaceReserved="false" />
+
         <EditTextPreference
             android:defaultValue="64"
             android:key="preview_audio_bitrate"

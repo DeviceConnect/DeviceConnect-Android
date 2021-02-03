@@ -4,11 +4,13 @@ import android.content.Context;
 import android.util.Log;
 
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.AudioStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.MicAACLATMStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStream;
+import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import java.io.IOException;
 
@@ -95,7 +97,7 @@ public abstract class AbstractRTSPPreviewServer extends AbstractPreviewServer {
 
     @Override
     public void onConfigChange() {
-        setEncoderQuality();
+        super.onConfigChange();
         restartVideoStream();
     }
 
@@ -114,24 +116,32 @@ public abstract class AbstractRTSPPreviewServer extends AbstractPreviewServer {
         }
     }
 
-    /**
-     * エンコーダーの設定を行います.
-     */
-    private void setEncoderQuality() {
+    @Override
+    protected VideoQuality getVideoQuality() {
         if (mRtspServer != null) {
             RtspSession session = mRtspServer.getRtspSession();
             if (session != null) {
                 VideoStream videoStream = session.getVideoStream();
                 if (videoStream != null) {
-                    setVideoQuality(videoStream.getVideoEncoder().getVideoQuality());
-                }
-
-                AudioStream audioStream = session.getAudioStream();
-                if (audioStream != null) {
-                    setAudioQuality(audioStream.getAudioEncoder().getAudioQuality());
+                    return videoStream.getVideoEncoder().getVideoQuality();
                 }
             }
         }
+        return null;
+    }
+
+    @Override
+    protected AudioQuality getAudioQuality() {
+        if (mRtspServer != null) {
+            RtspSession session = mRtspServer.getRtspSession();
+            if (session != null) {
+                AudioStream audioStream = session.getAudioStream();
+                if (audioStream != null) {
+                    return audioStream.getAudioEncoder().getAudioQuality();
+                }
+            }
+        }
+        return null;
     }
 
     /**

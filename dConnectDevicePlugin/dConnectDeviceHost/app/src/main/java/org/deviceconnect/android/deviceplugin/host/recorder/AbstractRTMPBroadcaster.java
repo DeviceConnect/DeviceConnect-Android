@@ -123,17 +123,9 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
 
     @Override
     public void onConfigChange() {
+        super.onConfigChange();
+
         if (mRtmpClient != null) {
-            VideoEncoder videoEncoder = mRtmpClient.getVideoEncoder();
-            if (videoEncoder != null) {
-                setVideoQuality(videoEncoder.getVideoQuality());
-            }
-
-            AudioEncoder audioEncoder = mRtmpClient.getAudioEncoder();
-            if (audioEncoder != null) {
-                setAudioQuality(audioEncoder.getAudioQuality());
-            }
-
             mRtmpClient.restartVideoEncoder();
         }
     }

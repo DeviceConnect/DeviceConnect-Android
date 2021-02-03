@@ -101,6 +101,8 @@
     <string name="host_recorder_settings_audio_sampling_rate">Sampling Rate</string>
     <string name="host_recorder_settings_audio_source">Audio Source</string>
     <string name="host_recorder_settings_audio_channel">Channel</string>
+    <string name="host_recorder_settings_audio_mute">Mute</string>
+    <string name="host_recorder_settings_audio_mute_summary">Set the mute.</string>
     <string name="host_recorder_settings_audio_echo_canceler">Echo canceler</string>
     <string name="host_recorder_settings_audio_echo_canceler_summary">Set whether to enable the echo canceller.</string>
     <string name="host_recorder_settings_audio_source_default">System Default</string>

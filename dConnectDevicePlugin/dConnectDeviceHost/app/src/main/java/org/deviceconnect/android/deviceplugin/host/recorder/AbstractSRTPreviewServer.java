@@ -6,8 +6,10 @@ import android.util.Log;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.SRTSettings;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
+import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
 
@@ -102,7 +104,7 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
 
     @Override
     public void onConfigChange() {
-        setEncoderQuality();
+        super.onConfigChange();
         restartVideoEncoder();
     }
 
@@ -121,24 +123,32 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
         }
     }
 
-    /**
-     * エンコーダの設定を行います.
-     */
-    private void setEncoderQuality() {
+    @Override
+    protected VideoQuality getVideoQuality() {
         if (mSRTServer != null) {
             SRTSession session = mSRTServer.getSRTSession();
             if (session != null) {
                 VideoEncoder videoEncoder = session.getVideoEncoder();
                 if (videoEncoder != null) {
-                    setVideoQuality(videoEncoder.getVideoQuality());
-                }
-
-                AudioEncoder audioEncoder = session.getAudioEncoder();
-                if (audioEncoder != null) {
-                    setAudioQuality(audioEncoder.getAudioQuality());
+                    return videoEncoder.getVideoQuality();
                 }
             }
         }
+        return null;
+    }
+
+    @Override
+    protected AudioQuality getAudioQuality() {
+        if (mSRTServer != null) {
+            SRTSession session = mSRTServer.getSRTSession();
+            if (session != null) {
+                AudioEncoder audioEncoder = session.getAudioEncoder();
+                if (audioEncoder != null) {
+                    return audioEncoder.getAudioQuality();
+                }
+            }
+        }
+        return null;
     }
 
     /**

@@ -784,7 +784,12 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         }
 
         private void start() {
-            Animation anim = AnimationUtils.loadAnimation(getContext(), R.anim.scale_up);
+            Context context = getContext();
+            if (context == null) {
+                return;
+            }
+
+            Animation anim = AnimationUtils.loadAnimation(context, R.anim.scale_up);
             mView.setVisibility(View.VISIBLE);
             mView.startAnimation(anim);
         }
@@ -798,7 +803,12 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         }
 
         private void start() {
-            Animation anim = AnimationUtils.loadAnimation(getContext(), R.anim.scale_down);
+            Context context = getContext();
+            if (context == null) {
+                return;
+            }
+
+            Animation anim = AnimationUtils.loadAnimation(context, R.anim.scale_down);
             anim.setAnimationListener(new Animation.AnimationListener() {
                 @Override
                 public void onAnimationStart(Animation animation) {

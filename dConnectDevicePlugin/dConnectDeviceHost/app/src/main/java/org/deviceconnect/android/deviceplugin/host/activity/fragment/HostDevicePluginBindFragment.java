@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.host.activity.fragment;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.os.Handler;
 import android.os.Looper;
@@ -15,7 +16,7 @@ public abstract class HostDevicePluginBindFragment extends Fragment implements H
     /**
      * UI 操作用の Handler.
      */
-    private Handler mUIHandler = new Handler(Looper.getMainLooper());
+    private final Handler mUIHandler = new Handler(Looper.getMainLooper());
 
     @Override
     public void onResume() {
@@ -93,7 +94,7 @@ public abstract class HostDevicePluginBindFragment extends Fragment implements H
     public int getDisplayOrientation() {
         Activity activity = getActivity();
         if (activity != null) {
-            return ((HostDevicePluginBindActivity) activity).getRequestedOrientation();
+            return activity.getRequestedOrientation();
         }
         return ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
     }
@@ -104,16 +105,12 @@ public abstract class HostDevicePluginBindFragment extends Fragment implements H
      * @param resId リソースID
      */
     public void showToast(int resId) {
-        runOnUiThread(() -> Toast.makeText(getContext(), resId, Toast.LENGTH_SHORT).show());
-    }
-
-    /**
-     * トーストを表示します.
-     *
-     * @param message トーストに表示する文字列
-     */
-    public void showToast(String message) {
-        runOnUiThread(() -> Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show());
+        runOnUiThread(() -> {
+            Context context = getContext();
+            if (context != null) {
+                Toast.makeText(context, resId, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     /**

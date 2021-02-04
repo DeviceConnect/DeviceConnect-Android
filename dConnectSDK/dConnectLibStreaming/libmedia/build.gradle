@@ -63,10 +63,10 @@ allprojects {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
-    implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.9.1'
+    implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.9.7'
     implementation 'com.google.guava:guava:28.2-android'
 
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 }

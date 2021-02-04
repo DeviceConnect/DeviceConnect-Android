@@ -175,7 +175,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         mSettings.mSupportedPictureSize = new ArrayList<>(options.getSupportedPictureSizeList());
         mSettings.mSupportedPreviewSize = supportPreviewSizes;
 
-        if (!mSettings.load()) {
+        if (!mSettings.isInitialized()) {
             mSettings.setPictureSize(options.getDefaultPictureSize());
             mSettings.setPreviewSize(options.getDefaultPreviewSize());
             mSettings.setPreviewBitRate(2 * 1024 * 1024);
@@ -197,7 +197,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
             mSettings.setRtspPort(12000 + mFacing.mValue);
             mSettings.setSrtPort(13000 + mFacing.mValue);
 
-            mSettings.save();
+            mSettings.finishInitialization();
         }
     }
 

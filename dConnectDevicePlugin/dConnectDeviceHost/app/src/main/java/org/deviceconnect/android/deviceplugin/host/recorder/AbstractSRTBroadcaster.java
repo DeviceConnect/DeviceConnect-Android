@@ -2,8 +2,10 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
+import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.broadcast.SRTClient;
 
 public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
@@ -27,7 +29,22 @@ public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
      *
      * @return SRT 配信に使用する VideoEncoder
      */
-    protected abstract VideoEncoder createVideoEncoder();
+    protected VideoEncoder createVideoEncoder() {
+        return null;
+    }
+
+    /**
+     * SRT 配信に使用する AudioEncoder のインスタンスを作成します.
+     *
+     * @return SRT 配信に使用する AudioEncoder
+     */
+    protected AudioEncoder createAudioEncoder() {
+        HostMediaRecorder.Settings settings = getRecorder().getSettings();
+        if (settings.isAudioEnabled()) {
+            return new MicAACLATMEncoder();
+        }
+        return null;
+    }
 
     @Override
     public void setOnEventListener(OnEventListener listener) {
@@ -41,14 +58,13 @@ public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
 
     @Override
     public void start(OnStartCallback callback) {
-        HostMediaRecorder.Settings settings = getRecorder().getSettings();
-
         VideoEncoder videoEncoder = createVideoEncoder();
-        setVideoQuality(videoEncoder.getVideoQuality());
+        if (videoEncoder != null) {
+            setVideoQuality(videoEncoder.getVideoQuality());
+        }
 
-        AudioEncoder audioEncoder = null;
-        if (settings.isAudioEnabled()) {
-            audioEncoder = new MicAACLATMEncoder();
+        AudioEncoder audioEncoder = createAudioEncoder();
+        if (audioEncoder != null) {
             setAudioQuality(audioEncoder.getAudioQuality());
         }
 
@@ -128,5 +144,27 @@ public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
         if (mSrtClient != null) {
             mSrtClient.restartVideoEncoder();
         }
+    }
+
+    @Override
+    protected VideoQuality getVideoQuality() {
+        if (mSrtClient != null) {
+            VideoEncoder videoEncoder = mSrtClient.getVideoEncoder();
+            if (videoEncoder != null) {
+                return videoEncoder.getVideoQuality();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    protected AudioQuality getAudioQuality() {
+        if (mSrtClient != null) {
+            AudioEncoder audioEncoder = mSrtClient.getAudioEncoder();
+            if (audioEncoder != null) {
+                return audioEncoder.getAudioQuality();
+            }
+        }
+        return null;
     }
 }

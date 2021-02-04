@@ -1,50 +1,30 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.audio;
 
-import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
+import android.graphics.Canvas;
+import android.graphics.Color;
 
-public class AudioRTMPBroadcaster implements Broadcaster {
-    @Override
-    public String getMimeType() {
-        return null;
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractRTMPBroadcaster;
+import org.deviceconnect.android.libmedia.streaming.video.CanvasVideoEncoder;
+import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
+
+public class AudioRTMPBroadcaster extends AbstractRTMPBroadcaster {
+    private final HostAudioRecorder mRecorder;
+    public AudioRTMPBroadcaster(HostAudioRecorder recorder, String broadcastURI) {
+        super(recorder, broadcastURI);
+        mRecorder = recorder;
     }
 
     @Override
-    public String getBroadcastURI() {
-        return null;
-    }
+    protected VideoEncoder createVideoEncoder() {
+        if (!mRecorder.hasVideo()) {
+            return null;
+        }
 
-    @Override
-    public void setOnEventListener(OnEventListener listener) {
-
-    }
-
-    @Override
-    public boolean isRunning() {
-        return false;
-    }
-
-    @Override
-    public void start(OnStartCallback callabck) {
-
-    }
-
-    @Override
-    public void stop() {
-
-    }
-
-    @Override
-    public void setMute(boolean mute) {
-
-    }
-
-    @Override
-    public boolean isMute() {
-        return false;
-    }
-
-    @Override
-    public void onConfigChange() {
-
+        return new CanvasVideoEncoder(mRecorder.getSurfaceDrawingThread()) {
+            @Override
+            public void draw(Canvas canvas, int width, int height) {
+                canvas.drawColor(Color.BLACK);
+            }
+        };
     }
 }

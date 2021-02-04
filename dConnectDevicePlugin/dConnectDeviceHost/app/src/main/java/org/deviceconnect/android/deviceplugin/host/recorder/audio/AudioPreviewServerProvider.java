@@ -14,5 +14,10 @@ public class AudioPreviewServerProvider extends AbstractPreviewServerProvider {
      */
     public AudioPreviewServerProvider(Context context, HostMediaRecorder recorder) {
         super(context, recorder);
+
+        HostMediaRecorder.Settings settings = recorder.getSettings();
+
+        addServer(new AudioRTSPPreviewServer(context, recorder, settings.getRtspPort()));
+        addServer(new AudioSRTPreviewServer(context, recorder, settings.getSrtPort()));
     }
 }

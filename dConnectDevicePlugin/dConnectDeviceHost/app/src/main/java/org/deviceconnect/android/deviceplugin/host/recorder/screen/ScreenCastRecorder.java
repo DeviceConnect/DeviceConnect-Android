@@ -124,7 +124,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         supportFps.add(new Range<>(30, 30));
         mSettings.mSupportedFps = supportFps;
 
-        if (!mSettings.load()) {
+        if (!mSettings.isInitialized()) {
             mSettings.setPreviewSize(mSettings.getSupportedPreviewSizes().get(0));
             mSettings.setPictureSize(mSettings.getSupportedPictureSizes().get(0));
             mSettings.setPreviewBitRate(2 * 1024 * 1024);
@@ -142,7 +142,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
             mSettings.setRtspPort(22000);
             mSettings.setSrtPort(23000);
 
-            mSettings.save();
+            mSettings.finishInitialization();
         }
     }
 

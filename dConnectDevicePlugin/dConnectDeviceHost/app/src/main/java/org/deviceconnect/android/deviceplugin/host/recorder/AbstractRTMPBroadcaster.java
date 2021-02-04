@@ -2,9 +2,11 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.rtmp.RtmpClient;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
+import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
 
@@ -27,7 +29,22 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
      *
      * @return RTMP で配信するための映像用エンコーダ
      */
-    protected abstract VideoEncoder createVideoEncoder();
+    protected VideoEncoder createVideoEncoder() {
+        return null;
+    }
+
+    /**
+     * RTMP で配信するための音声用エンコーダを取得します.
+     *
+     * @return RTMP で配信するための音声用エンコーダ
+     */
+    protected AudioEncoder createAudioEncoder() {
+        HostMediaRecorder.Settings settings = getRecorder().getSettings();
+        if (settings.isAudioEnabled()) {
+            return new MicAACLATMEncoder();
+        }
+        return null;
+    }
 
     @Override
     public void setOnEventListener(OnEventListener listener) {
@@ -41,14 +58,13 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
 
     @Override
     public void start(OnStartCallback callback) {
-        HostMediaRecorder.Settings settings = getRecorder().getSettings();
-
         VideoEncoder videoEncoder = createVideoEncoder();
-        setVideoQuality(videoEncoder.getVideoQuality());
+        if (videoEncoder != null) {
+            setVideoQuality(videoEncoder.getVideoQuality());
+        }
 
-        AudioEncoder audioEncoder = null;
-        if (settings.isAudioEnabled()) {
-            audioEncoder = new MicAACLATMEncoder();
+        AudioEncoder audioEncoder = createAudioEncoder();
+        if (audioEncoder != null) {
             setAudioQuality(audioEncoder.getAudioQuality());
         }
 
@@ -128,5 +144,27 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
         if (mRtmpClient != null) {
             mRtmpClient.restartVideoEncoder();
         }
+    }
+
+    @Override
+    protected VideoQuality getVideoQuality() {
+        if (mRtmpClient != null) {
+            VideoEncoder videoEncoder = mRtmpClient.getVideoEncoder();
+            if (videoEncoder != null) {
+                return videoEncoder.getVideoQuality();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    protected AudioQuality getAudioQuality() {
+        if (mRtmpClient != null) {
+            AudioEncoder audioEncoder = mRtmpClient.getAudioEncoder();
+            if (audioEncoder != null) {
+                return audioEncoder.getAudioQuality();
+            }
+        }
+        return null;
     }
 }

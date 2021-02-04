@@ -161,7 +161,24 @@ public abstract class AbstractRTSPPreviewServer extends AbstractPreviewServer {
      *
      * @return VideoStream のインスタンス
      */
-    protected abstract VideoStream createVideoStream();
+    protected VideoStream createVideoStream() {
+        return null;
+    }
+
+    /**
+     * 音声用の AudioStream を作成します.
+     *
+     * @return AudioStream のインスタンス
+     */
+    protected AudioStream createAudioStream() {
+        HostMediaRecorder recorder = getRecorder();
+        HostMediaRecorder.Settings settings = recorder.getSettings();
+
+        if (settings.isAudioEnabled()) {
+            return new MicAACLATMStream(5004);
+        }
+        return null;
+    }
 
     /**
      * RtspServer からのイベントを受け取るためのコールバック.
@@ -177,15 +194,14 @@ public abstract class AbstractRTSPPreviewServer extends AbstractPreviewServer {
                 Log.d(TAG, "RtspServer.Callback#createSession()");
             }
 
-            HostMediaRecorder recorder = getRecorder();
-            HostMediaRecorder.Settings settings = recorder.getSettings();
-
             VideoStream videoStream = createVideoStream();
-            setVideoQuality(videoStream.getVideoEncoder().getVideoQuality());
-            session.setVideoMediaStream(videoStream);
+            if (videoStream != null) {
+                setVideoQuality(videoStream.getVideoEncoder().getVideoQuality());
+                session.setVideoMediaStream(videoStream);
+            }
 
-            if (settings.isAudioEnabled()) {
-                AudioStream audioStream = new MicAACLATMStream(5004);
+            AudioStream audioStream = createAudioStream();
+            if (audioStream != null) {
                 AudioEncoder audioEncoder = audioStream.getAudioEncoder();
                 audioEncoder.setMute(isMuted());
                 setAudioQuality(audioEncoder.getAudioQuality());

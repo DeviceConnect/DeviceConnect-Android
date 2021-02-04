@@ -9,12 +9,10 @@ package org.deviceconnect.android.deviceplugin.host.recorder.audio;
 import android.Manifest;
 import android.content.Context;
 import android.os.Handler;
-import android.os.Looper;
+import android.util.Size;
 
 import androidx.annotation.NonNull;
 
-import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
@@ -28,6 +26,7 @@ import org.deviceconnect.android.provider.FileManager;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -38,8 +37,6 @@ import java.util.Locale;
  * @author NTT DOCOMO, INC.
  */
 public class HostAudioRecorder extends AbstractMediaRecorder {
-    private static final boolean DEBUG = BuildConfig.DEBUG;
-    private static final String TAG = "host.dplugin";
     private static final String ID = "audio";
     private static final String NAME = "AndroidHost Audio Recorder";
     private static final String MIME_TYPE = "audio/aac";
@@ -54,23 +51,43 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     };
 
     private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
-    private final Context mContext;
     private final AudioSettings mSettings;
+    private final AudioPreviewServerProvider mAudioPreviewServerProvider;
+    private final AudioBroadcasterProvider mAudioBroadcasterProvider;
 
-    private AudioPreviewServerProvider mAudioPreviewServerProvider;
-    private AudioBroadcasterProvider mAudioBroadcasterProvider;
+    private final TempEGLSurfaceDrawingThread mTempEGLSurfaceDrawingThread;
 
     public HostAudioRecorder(final Context context, FileManager fileManager, MediaProjectionProvider provider) {
         super(context, fileManager, provider);
-        mContext = context;
         mSettings = new AudioSettings(context, this);
 
         initSettings();
+
+        mAudioPreviewServerProvider = new AudioPreviewServerProvider(context, this);
+        mAudioBroadcasterProvider = new AudioBroadcasterProvider(context, this);
+
+        // RTMP 配信の時に映像がないと正常に動作しないことを考慮
+        mTempEGLSurfaceDrawingThread = new TempEGLSurfaceDrawingThread();
+        mTempEGLSurfaceDrawingThread.setSize(320, 240);
     }
 
     private void initSettings() {
-        if (!mSettings.load()) {
-            // TODO 初期化処理
+        if (!mSettings.isInitialized()) {
+            mSettings.setPreviewSize(new Size(320, 240));
+            mSettings.setPreviewBitRate(512 * 1024);
+            mSettings.setPreviewMaxFrameRate(30);
+            mSettings.setPreviewKeyFrameInterval(1);
+
+            mSettings.setPreviewAudioSource(AudioSource.DEFAULT);
+            mSettings.setPreviewAudioBitRate(64 * 1024);
+            mSettings.setPreviewSampleRate(16000);
+            mSettings.setPreviewChannel(1);
+            mSettings.setUseAEC(true);
+
+            mSettings.setRtspPort(32000);
+            mSettings.setSrtPort(33000);
+
+            mSettings.finishInitialization();
         }
     }
 
@@ -105,6 +122,8 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
 
     @Override
     public void onConfigChange() {
+        mAudioPreviewServerProvider.onConfigChange();
+        mAudioBroadcasterProvider.onConfigChange();
     }
 
     @Override
@@ -119,25 +138,29 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
 
     @Override
     public EGLSurfaceDrawingThread getSurfaceDrawingThread() {
-        return null;
+        return mTempEGLSurfaceDrawingThread;
     }
 
     @Override
     public void requestPermission(PermissionCallback callback) {
-        PermissionUtility.requestPermissions(mContext, new Handler(Looper.getMainLooper()), new String[]{
-                        Manifest.permission.RECORD_AUDIO,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                new PermissionUtility.PermissionRequestCallback() {
-                    @Override
-                    public void onSuccess() {
-                        callback.onAllowed();
-                    }
+        requestPermission(new String[]{
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+        }, new PermissionCallback() {
+            @Override
+            public void onAllowed() {
+                if (mSettings.getPreviewAudioSource() == AudioSource.APP) {
+                    requestMediaProjection(callback);
+                } else {
+                    callback.onAllowed();
+                }
+            }
 
-                    @Override
-                    public void onFail(@NonNull String deniedPermission) {
-                        callback.onDisallowed();
-                    }
-                });
+            @Override
+            public void onDisallowed() {
+                callback.onDisallowed();
+            }
+        });
     }
 
     // HostDevicePhotoRecorder
@@ -165,6 +188,11 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     }
 
     // HostDeviceStreamRecorder
+
+    @Override
+    public String getStreamMimeType() {
+        return MIME_TYPE;
+    }
 
 //    @Override
 //    public boolean canPauseRecording() {
@@ -203,9 +231,8 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
 //        }
 //    }
 
-    @Override
-    public String getStreamMimeType() {
-        return MIME_TYPE;
+    public boolean hasVideo() {
+        return false;
     }
 
     // private method.
@@ -219,10 +246,18 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
         return new AudioMP4Recorder(filePath, mSettings);
     }
 
-    private class AudioSettings extends Settings {
-
+    private static class AudioSettings extends Settings {
         AudioSettings(Context context, HostMediaRecorder recorder) {
             super(context, recorder);
         }
+
+        @Override
+        public List<Size> getSupportedPreviewSizes() {
+            return Collections.singletonList(new Size(320, 240));
+        }
+    }
+
+    private static class TempEGLSurfaceDrawingThread extends EGLSurfaceDrawingThread {
+
     }
 }

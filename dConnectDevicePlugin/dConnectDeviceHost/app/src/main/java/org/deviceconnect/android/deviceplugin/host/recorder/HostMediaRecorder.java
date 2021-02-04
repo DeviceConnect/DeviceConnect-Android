@@ -562,11 +562,19 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             mPref = new PropertyUtil(context, recorder.getId());
         }
 
-        public boolean load() {
+        /**
+         * 初期化されているか確認します.
+         *
+         * @return 初期化されている場合はtrue、それ以外はfalse
+         */
+        public boolean isInitialized() {
             return mPref.getString("test", null) != null;
         }
 
-        public void save() {
+        /**
+         * 初期化完了を書き込みます.
+         */
+        public void finishInitialization() {
             mPref.put("test", "test");
         }
 

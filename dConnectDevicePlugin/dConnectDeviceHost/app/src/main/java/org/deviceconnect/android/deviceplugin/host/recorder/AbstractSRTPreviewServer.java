@@ -168,7 +168,18 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
      *
      * @return SRT 用の映像エンコーダ
      */
-    protected abstract VideoEncoder createVideoEncoder();
+    protected VideoEncoder createVideoEncoder() {
+        return null;
+    }
+
+    protected AudioEncoder createAudioEncoder() {
+        HostMediaRecorder recorder = getRecorder();
+        HostMediaRecorder.Settings settings = recorder.getSettings();
+        if (settings.isAudioEnabled()) {
+            return new MicAACLATMEncoder();
+        }
+        return null;
+    }
 
     /**
      * SRTServer からのイベントを受け取るためのコールバック.
@@ -180,15 +191,14 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
                 Log.d(TAG, "SRTServer.Callback#createSession()");
             }
 
-            HostMediaRecorder recorder = getRecorder();
-            HostMediaRecorder.Settings settings = recorder.getSettings();
+            VideoEncoder videoEncoder = createVideoEncoder();
+            if (videoEncoder != null) {
+                setVideoQuality(videoEncoder.getVideoQuality());
+                session.setVideoEncoder(videoEncoder);
+            }
 
-            VideoEncoder encoder = createVideoEncoder();
-            setVideoQuality(encoder.getVideoQuality());
-            session.setVideoEncoder(encoder);
-
-            if (settings.isAudioEnabled()) {
-                AudioEncoder audioEncoder = new MicAACLATMEncoder();
+            AudioEncoder audioEncoder = createAudioEncoder();
+            if (audioEncoder != null) {
                 audioEncoder.setMute(isMuted());
                 setAudioQuality(audioEncoder.getAudioQuality());
                 session.setAudioEncoder(audioEncoder);

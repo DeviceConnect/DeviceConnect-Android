@@ -59,6 +59,8 @@
     <string name="host_settings_main_app_screencast">スクリーンキャスト</string>
     <string name="host_settings_main_plugin">プラグイン設定</string>
     <string name="host_settings_main_plugin_gps">GPS</string>
+    <string name="host_settings_main_plugin_recorder">レコーダ設定</string>
+    <string name="host_settings_main_plugin_recorder_list">レコーダ一覧</string>
     <string name="host_settings_main_plugin_demo">デモ設定</string>
     <string name="host_settings_main_plugin_demo_page">デモページ</string>
 

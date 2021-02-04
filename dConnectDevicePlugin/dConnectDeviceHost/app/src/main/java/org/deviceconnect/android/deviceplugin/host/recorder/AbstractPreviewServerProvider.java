@@ -34,7 +34,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     /**
      * コンテキスト.
      */
-    private Context mContext;
+    private final Context mContext;
 
     /**
      * プレビュー配信サーバーのリスト.
@@ -44,7 +44,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     /**
      * プレビュー配信を行うレコーダ.
      */
-    private HostMediaRecorder mRecorder;
+    private final HostMediaRecorder mRecorder;
 
     /**
      * Notification 表示フラグ.

@@ -86,7 +86,7 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
 
     @Override
     public Settings getSettings() {
-        return null;
+        return mSettings;
     }
 
     @Override

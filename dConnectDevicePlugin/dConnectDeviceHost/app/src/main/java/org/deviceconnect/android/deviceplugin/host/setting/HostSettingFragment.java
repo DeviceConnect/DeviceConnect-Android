@@ -12,11 +12,18 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.preference.Preference;
-import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceCategory;
+import androidx.preference.PreferenceScreen;
 
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.activity.fragment.HostDevicePluginBindPreferenceFragment;
 import org.deviceconnect.android.deviceplugin.host.activity.recorder.camera.CameraActivity;
 import org.deviceconnect.android.deviceplugin.host.activity.recorder.screencast.ScreencastActivity;
+import org.deviceconnect.android.deviceplugin.host.activity.recorder.settings.SettingsActivity;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static androidx.navigation.fragment.NavHostFragment.findNavController;
 
@@ -25,7 +32,8 @@ import static androidx.navigation.fragment.NavHostFragment.findNavController;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostSettingFragment extends PreferenceFragmentCompat {
+public class HostSettingFragment extends HostDevicePluginBindPreferenceFragment {
+
     @Override
     public void onCreatePreferences(final Bundle savedInstanceState, final String rootKey) {
         addPreferencesFromResource(R.xml.settings_host_plugin);
@@ -58,5 +66,41 @@ public class HostSettingFragment extends PreferenceFragmentCompat {
         }
 
         return result;
+    }
+
+    @Override
+    public void onBindService() {
+        PreferenceCategory pref = findPreference("host_recorder_list");
+        if (pref != null && pref.getPreferenceCount() == 0) {
+            List<HostMediaRecorder> recorderList = getRecorderList();
+            for (HostMediaRecorder recorder : recorderList) {
+                PreferenceScreen screen = getPreferenceManager().createPreferenceScreen(getContext());
+                screen.setTitle(recorder.getName());
+                screen.setIconSpaceReserved(false);
+                screen.setOnPreferenceClickListener(preference -> {
+                    Context context = getContext();
+                    if (context != null) {
+                        SettingsActivity.startActivity(context, recorder.getId(), null);
+                    }
+                    return false;
+                });
+                pref.addPreference(screen);
+            }
+        }
+    }
+
+    /**
+     * サポートしているレコーダのリストを取得します。
+     *
+     * プラグインに接続されていない場合は空のリストを返却します。
+     *
+     * @return HostMediaRecorder のリスト
+     */
+    private List<HostMediaRecorder> getRecorderList() {
+        Activity activity = getActivity();
+        if (activity instanceof HostSettingActivity) {
+            return ((HostSettingActivity) activity).getRecorderList();
+        }
+        return new ArrayList<>();
     }
 }

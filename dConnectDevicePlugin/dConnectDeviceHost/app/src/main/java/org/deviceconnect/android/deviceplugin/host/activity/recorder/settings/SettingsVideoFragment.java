@@ -67,22 +67,27 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
     private void setPictureSizePreference(HostMediaRecorder.Settings settings) {
         ListPreference pref = findPreference("camera_picture_size");
         if (pref != null) {
-            String value = pref.getValue();
-            if (value == null) {
-                Size preview = settings.getPreviewSize();
-                pref.setValue(getValueFromSize(preview));
-            }
-            pref.setVisible(true);
+            List<Size> pictureSizes = getSupportedPictureSizes(settings);
+            if (!pictureSizes.isEmpty()) {
+                List<String> entryValues = new ArrayList<>();
+                for (Size preview : pictureSizes) {
+                    entryValues.add(getValueFromSize(preview));
+                }
+                pref.setEntries(entryValues.toArray(new String[0]));
+                pref.setEntryValues(entryValues.toArray(new String[0]));
+                pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
 
-            List<Size> previewSizes = getSupportedPictureSizes(settings);
-            List<String> entryValues = new ArrayList<>();
-            for (Size preview : previewSizes) {
-                entryValues.add(getValueFromSize(preview));
+                String value = pref.getValue();
+                if (value == null) {
+                    Size pictureSize = settings.getPictureSize();
+                    if (pictureSize != null) {
+                        pref.setValue(getValueFromSize(pictureSize));
+                    }
+                }
+                pref.setVisible(true);
+            } else {
+                pref.setEnabled(false);
             }
-
-            pref.setEntries(entryValues.toArray(new String[0]));
-            pref.setEntryValues(entryValues.toArray(new String[0]));
-            pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
         }
     }
 
@@ -94,22 +99,28 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
     private void setPreviewSizePreference(HostMediaRecorder.Settings settings) {
         ListPreference pref = findPreference("camera_preview_size");
         if (pref != null) {
-            String value = pref.getValue();
-            if (value == null) {
-                Size preview = settings.getPreviewSize();
-                pref.setValue(getValueFromSize(preview));
-            }
-            pref.setVisible(true);
-
             List<Size> previewSizes = getSupportedPreviewSizes(settings);
-            List<String> entryValues = new ArrayList<>();
-            for (Size preview : previewSizes) {
-                entryValues.add(getValueFromSize(preview));
-            }
+            if (!previewSizes.isEmpty()) {
+                List<String> entryValues = new ArrayList<>();
+                for (Size preview : previewSizes) {
+                    entryValues.add(getValueFromSize(preview));
+                }
 
-            pref.setEntries(entryValues.toArray(new String[0]));
-            pref.setEntryValues(entryValues.toArray(new String[0]));
-            pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
+                pref.setEntries(entryValues.toArray(new String[0]));
+                pref.setEntryValues(entryValues.toArray(new String[0]));
+                pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
+
+                String value = pref.getValue();
+                if (value == null) {
+                    Size previewSize = settings.getPreviewSize();
+                    if (previewSize != null) {
+                        pref.setValue(getValueFromSize(previewSize));
+                    }
+                }
+                pref.setVisible(true);
+            } else {
+                pref.setEnabled(false);
+            }
         }
     }
 

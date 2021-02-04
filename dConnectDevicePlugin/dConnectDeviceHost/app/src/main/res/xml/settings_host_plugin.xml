@@ -3,22 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
-        android:title="@string/host_settings_main_app_list"
-        app:iconSpaceReserved="false">
-
-        <PreferenceScreen
-            android:key="@string/pref_key_settings_app_camera"
-            android:title="@string/host_settings_main_app_camera"
-            app:iconSpaceReserved="false" />
-
-        <PreferenceScreen
-            android:key="@string/pref_key_settings_app_screen_capture"
-            android:title="@string/host_settings_main_app_screencast"
-            app:iconSpaceReserved="false" />
-
-    </PreferenceCategory>
-
-    <PreferenceCategory
         android:title="@string/host_settings_main_plugin"
         app:iconSpaceReserved="false">
 
@@ -37,6 +21,13 @@
             android:key="@string/pref_key_settings_demo_page"
             android:title="@string/host_settings_main_plugin_demo_page"
             app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="host_recorder_list"
+        android:title="@string/host_settings_main_plugin_recorder"
+        app:iconSpaceReserved="false">
 
     </PreferenceCategory>
 

@@ -8,7 +8,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -58,7 +57,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     private EGLSurfaceDrawingThread mEGLSurfaceDrawingThread;
     private Surface mSurface;
     private String mRecorderId;
-    private int mIndex;
+    private int mIndex = -1;
     private boolean mDrawFlag = false;
     private boolean mAdjustViewFlag = true;
     private boolean mMuted = false;
@@ -307,12 +306,14 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             mHostConnectionManager.addTrafficEventListener(mTrafficEventListener);
 
             HostMediaRecorder[] recorders = mMediaRecorderManager.getRecorders();
-            mIndex = getUsedCamera(recorders);
             if (mIndex == -1) {
-                return;
-            } else {
-                setRecorder(recorders[mIndex].getId());
+                // カメラが選択されていない場合には、使用されているカメラを選択
+                mIndex = getUsedCamera(recorders);
+                if (mIndex == -1) {
+                    return;
+                }
             }
+            setRecorder(recorders[mIndex].getId());
         }
 
         if (mHostConnectionManager != null) {

@@ -25,7 +25,6 @@ import org.deviceconnect.message.DConnectMessage;
 import java.util.List;
 
 public class HostLiveStreamingProfile extends DConnectProfile {
-
     private static final String TAG = "LiveStreamingProfile";
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String PROFILE_NAME = "liveStreaming";
@@ -211,6 +210,15 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                 if (mHostMediaRecorder != null) {
                     mHostMediaRecorder.stopBroadcaster();
                     mHostMediaRecorder = null;
+                } else {
+                    // LiveStream プロファイル以外で開始された場合には、
+                    // mHostMediaRecorder は null なので、全てのレコーダの配信を停止する。
+                    HostMediaRecorder[] recorders = mHostMediaRecorderManager.getRecorders();
+                    if (recorders != null) {
+                        for (HostMediaRecorder recorder : recorders) {
+                            recorder.stopBroadcaster();
+                        }
+                    }
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;

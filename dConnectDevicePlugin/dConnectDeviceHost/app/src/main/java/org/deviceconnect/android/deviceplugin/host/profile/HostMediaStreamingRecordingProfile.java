@@ -18,6 +18,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamReco
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -105,6 +106,19 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                 info.putInt("previewBitRate", settings.getPreviewBitRate() / 1024);
                                 info.putInt("previewKeyFrameInterval", settings.getPreviewKeyFrameInterval());
                                 info.putString("previewEncoder", settings.getPreviewEncoder());
+                                HostMediaRecorder.ProfileLevel pl = settings.getProfileLevel();
+                                if (pl != null) {
+                                    switch (HostMediaRecorder.VideoEncoderName.nameOf(settings.getPreviewEncoder())) {
+                                        case H264:
+                                            info.putString("previewProfile", HostMediaRecorder.H264Profile.valueOf(pl.getProfile()).getName());
+                                            info.putString("previewLevel", HostMediaRecorder.H264Level.valueOf(pl.getLevel()).getName());
+                                            break;
+                                        case H265:
+                                            info.putString("previewProfile", HostMediaRecorder.H265Profile.valueOf(pl.getProfile()).getName());
+                                            info.putString("previewLevel", HostMediaRecorder.H265Level.valueOf(pl.getLevel()).getName());
+                                            break;
+                                    }
+                                }
                                 info.putFloat("previewJpegQuality", settings.getPreviewQuality() / 100.0f);
                             }
 
@@ -165,6 +179,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         // 映像系の設定
                         setSupportedImageSizes(response, settings.getSupportedPictureSizes());
                         setSupportedPreviewSizes(response, settings.getSupportedPreviewSizes());
+                        setSupportedVideoEncoders(response, settings.getSupportedVideoEncoders());
                     } else if (recorder.getMimeType().startsWith("audio/")) {
                         // 音声系の設定
                     }
@@ -199,7 +214,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             Integer previewBitRate = parseInteger(request, "previewBitRate");
             Integer previewKeyFrameInterval = parseInteger(request, "previewKeyFrameInterval");
             String previewEncoder = request.getStringExtra("previewEncoder");
-            Double jpegQuality = parseDouble(request, "previewJpegQuality");
+            String previewProfile = request.getStringExtra("previewProfile");
+            String previewLevel = request.getStringExtra("previewLevel");
+            Integer previewIntraRefresh = parseInteger("previewIntraRefresh");
+            Double previewJpegQuality = parseDouble(request, "previewJpegQuality");
             Integer previewClipLeft = parseInteger(request, "previewClipLeft");
             Integer previewClipTop = parseInteger(request, "previewClipTop");
             Integer previewClipRight = parseInteger(request, "previewClipRight");
@@ -265,15 +283,58 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     return;
                 }
                 settings.setPreviewEncoder(previewEncoder);
+                // エンコーダが切り替えられた場合は、プロファイル・レベルは設定無しにする
+                settings.setProfileLevel(null);
             }
 
-            if (jpegQuality != null) {
-                if (jpegQuality < 0.0 || jpegQuality > 1.0) {
+            if (previewProfile != null || previewLevel != null) {
+                if (previewProfile == null) {
                     MessageUtils.setInvalidRequestParameterError(response,
-                            "previewJpegQuality is invalid. value=" + jpegQuality);
+                            "previewProfile is not set.");
                     return;
                 }
-                settings.setPreviewQuality((int) (jpegQuality * 100));
+
+                if (previewLevel == null) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "previewLevel is not set.");
+                    return;
+                }
+
+                switch (settings.getPreviewEncoderName()) {
+                    case H264: {
+                        HostMediaRecorder.H264Profile p = HostMediaRecorder.H264Profile.nameOf(previewProfile);
+                        HostMediaRecorder.H264Level l = HostMediaRecorder.H264Level.nameOf(previewLevel);
+                        if (!settings.isSupportedProfileLevel(p.getValue(), l.getValue())) {
+                            MessageUtils.setInvalidRequestParameterError(response,
+                                    "Unsupported preview profile and level: " + previewProfile + " - " + previewLevel);
+                            return;
+                        }
+                        settings.setProfileLevel(new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue()));
+                    }   break;
+                    case H265: {
+                        HostMediaRecorder.H265Profile p = HostMediaRecorder.H265Profile.nameOf(previewProfile);
+                        HostMediaRecorder.H265Level l = HostMediaRecorder.H265Level.nameOf(previewLevel);
+                        if (!settings.isSupportedProfileLevel(p.getValue(), l.getValue())) {
+                            MessageUtils.setInvalidRequestParameterError(response,
+                                    "Unsupported preview profile and level: " + previewProfile + " - " + previewLevel);
+                            return;
+                        }
+                        settings.setProfileLevel(new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue()));
+                    }   break;
+                }
+            }
+
+            if (previewIntraRefresh != null) {
+                settings.setIntraRefresh(previewIntraRefresh);
+            }
+
+            if (previewJpegQuality != null) {
+                if (previewJpegQuality < 0.0 || previewJpegQuality > 1.0) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "previewJpegQuality is invalid. value=" + previewJpegQuality);
+                    return;
+                }
+                settings.setPreviewQuality((int) (previewJpegQuality * 100));
             }
 
             if (previewClipReset != null && previewClipReset) {
@@ -1102,6 +1163,59 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             array[i++] = info;
         }
         setPreviewSizes(response, array);
+    }
+
+    /**
+     * サポートしているエンコーダをレスポンスに格納します.
+     *
+     * @param response レスポンス
+     * @param encoderNames エンコーダのリスト
+     */
+    private static void setSupportedVideoEncoders(Intent response, List<String> encoderNames) {
+       List<Bundle> encoders = new ArrayList<>();
+        for (String name : encoderNames) {
+            HostMediaRecorder.VideoEncoderName encoderName = HostMediaRecorder.VideoEncoderName.nameOf(name);
+            Bundle encoder = new Bundle();
+            encoder.putString("name", name);
+            encoder.putParcelableArray("profileLevel", getProfileLevels(encoderName));
+            encoders.add(encoder);
+        }
+        response.putExtra("encoder", encoders.toArray(new Bundle[0]));
+    }
+
+    /**
+     * エンコーダがサポートしているプロファイルとレベルを格納した Bundle の配列を取得します.
+     *
+     * @param encoderName エンコーダ
+     * @return プロファイルとレベルを格納した Bundle の配列
+     */
+    private static Bundle[] getProfileLevels(HostMediaRecorder.VideoEncoderName encoderName) {
+        List<Bundle> list = new ArrayList<>();
+        for (HostMediaRecorder.ProfileLevel pl : CapabilityUtil.getSupportedProfileLevel(encoderName.getMimeType())) {
+            switch (encoderName) {
+                case H264: {
+                    HostMediaRecorder.H264Profile p = HostMediaRecorder.H264Profile.valueOf(pl.getProfile());
+                    HostMediaRecorder.H264Level l = HostMediaRecorder.H264Level.valueOf(pl.getLevel());
+                    if (p != null && l != null) {
+                        Bundle encoder = new Bundle();
+                        encoder.putString("profile", p.getName());
+                        encoder.putString("level", l.getName());
+                        list.add(encoder);
+                    }
+                }   break;
+                case H265: {
+                    HostMediaRecorder.H265Profile p = HostMediaRecorder.H265Profile.valueOf(pl.getProfile());
+                    HostMediaRecorder.H265Level l = HostMediaRecorder.H265Level.valueOf(pl.getLevel());
+                    if (p != null && l != null) {
+                        Bundle encoder = new Bundle();
+                        encoder.putString("profile", p.getName());
+                        encoder.putString("level", l.getName());
+                        list.add(encoder);
+                    }
+                }   break;
+            }
+        }
+        return list.toArray(new Bundle[0]);
     }
 
     /**

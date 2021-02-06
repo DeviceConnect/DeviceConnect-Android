@@ -641,6 +641,27 @@
             "type": "string"
           },
           {
+            "name": "previewProfile",
+            "description": "エンコーダーのプロファイル名。",
+            "in": "formData",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "previewLevel",
+            "description": "エンコーダーのレベル名。",
+            "in": "formData",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "previewIntraRefresh",
+            "description": "イントラリフレッシュの値。<br>0 が指定された場合にはイントラリフレッシュを使用しない。",
+            "in": "formData",
+            "required": false,
+            "type": "integer"
+          },
+          {
             "name": "previewJpegQuality",
             "description": "Motion JPEG を配信する時のクオリティ。<br>0.0 から 1.0 の範囲で設定できる。",
             "in": "formData",

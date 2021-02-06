@@ -11,6 +11,8 @@ import android.media.MediaCodecList;
 import android.os.Build;
 import android.util.Size;
 
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +32,26 @@ public final class CapabilityUtil {
             }
         }
         return infoList;
+    }
+
+    public static List<HostMediaRecorder.ProfileLevel> getSupportedProfileLevel(String mimeType) {
+        List<HostMediaRecorder.ProfileLevel> list = new ArrayList<>();
+
+        for (MediaCodecInfo codecInfo : getMediaCodecInfoList()) {
+            if (codecInfo.isEncoder()) {
+                String[] types = codecInfo.getSupportedTypes();
+                if (Arrays.asList(types).contains(mimeType)) {
+                    MediaCodecInfo.CodecCapabilities codecCapabilities = codecInfo.getCapabilitiesForType(mimeType);
+                    if (codecCapabilities.profileLevels != null) {
+                        for (MediaCodecInfo.CodecProfileLevel c : codecCapabilities.profileLevels) {
+                            list.add(new HostMediaRecorder.ProfileLevel(c.profile, c.level));
+                        }
+                    }
+                }
+            }
+        }
+
+        return list;
     }
 
     private static List<String> getSupportedEncoders(String mimeType) {

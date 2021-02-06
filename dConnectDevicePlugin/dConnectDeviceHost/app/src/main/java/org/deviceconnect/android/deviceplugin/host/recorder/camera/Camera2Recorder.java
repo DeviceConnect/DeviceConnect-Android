@@ -538,11 +538,6 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         }
 
         @Override
-        public List<String> getSupportedVideoEncoders() {
-            return CapabilityUtil.getSupportedVideoEncoders();
-        }
-
-        @Override
         public List<Integer> getSupportedStabilizationList() {
             return mCameraWrapper.getOptions().getSupportedStabilizationList();
         }

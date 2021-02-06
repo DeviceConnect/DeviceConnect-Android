@@ -379,10 +379,5 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         public List<Range<Integer>> getSupportedFps() {
             return mSupportedFps;
         }
-
-        @Override
-        public List<String> getSupportedVideoEncoders() {
-            return CapabilityUtil.getSupportedVideoEncoders();
-        }
     }
 }

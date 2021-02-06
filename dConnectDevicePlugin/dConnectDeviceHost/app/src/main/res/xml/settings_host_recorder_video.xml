@@ -45,22 +45,14 @@
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
-            app:entries="@array/video_encoder_names"
-            app:entryValues="@array/video_encoder_values"
             app:iconSpaceReserved="false"
             app:key="preview_encoder"
             app:title="@string/host_recorder_settings_video_encode"
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
-            app:key="preview_profile"
-            app:title="@string/host_recorder_settings_video_profile"
-            app:iconSpaceReserved="false"
-            app:useSimpleSummaryProvider="true" />
-
-        <ListPreference
-            app:key="preview_level"
-            app:title="@string/host_recorder_settings_video_level"
+            app:key="preview_profile_level"
+            app:title="@string/host_recorder_settings_video_profile_level"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 

@@ -1,251 +1,331 @@
+
 {
   "swagger": "2.0",
-  "basePath": "/gotapi/camera",
   "info": {
-    "title": "Camera Profile",
+    "description": "スマートデバイスのカメラ操作機能を提供する API。",
     "version": "2.0.0",
-    "description": "スマートデバイス(Cameraデバイスなど）のズーム操作機能を提供するAPI。"
+    "title": "Camera Profile"
   },
-  "consumes": [
-    "application/x-www-form-urlencoded",
-    "multipart/form-data"
-  ],
+  "basePath": "/gotapi/camera",
+  "consumes": ["application/x-www-form-urlencoded", "multipart/form-data"],
   "paths": {
     "/options": {
-      "put": {
-        "x-type": "one-shot",
-        "summary": "カメラの静止画・動画の撮影設定を行います。",
-        "description": "",
+      "get": {
+        "summary": "カメラの静止画・動画の撮影設定を取得します。",
+        "description": "カメラの静止画・動画の撮影設定を取得します。",
+        "operationId": "cameraOptionsGet",
         "parameters": [
           {
             "name": "serviceId",
+            "in": "query",
             "description": "サービスID。取得対象スマートデバイス",
-            "in": "formData",
             "required": true,
             "type": "string"
           },
           {
             "name": "target",
-            "description": "撮影するカメラを識別するID。<br>省略された場合にはデフォルトに設定されているカメラに設定を行います。",
-            "in": "formData",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "whiteBalance",
-            "description": "ホワイトバランスのモードを設定します。",
-            "in": "formData",
-            "required": false,
-            "type": "string",
-            "enum":[
-              "auto",
-              "incandescent",
-              "fluorescent",
-              "warm-fluorescent",
-              "daylight",
-              "cloudy-daylight",
-              "twilight",
-              "shade"
-            ]
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/PutOptionResponse"
-            },
-            "examples": {
-              "application/json": {
-                "result": "0",
-                "product": "Example System",
-                "version": "1.0.0"
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "x-type": "one-shot",
-        "summary": "カメラの静止画・動画の撮影設定を取得します.",
-        "description": "",
-        "parameters":[
-          {
-            "name": "serviceId",
-            "in": "formData",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "target",
-            "description": "撮影するカメラを識別するID。<br>省略された場合にはデフォルトに設定されているカメラの設定を取得します。",
-            "in": "formData",
+            "in": "query",
+            "description": "カメラを識別するID。<br> 省略された場合にはデフォルトに設定されているカメラに設定を行います。<br> MediaStreamRecording と共通の ID になります。",
             "required": false,
             "type": "string"
           }
         ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "カメラの静止画・動画の撮影設定を返す。<br> 設定の取得に失敗した場合はエラーを返す。",
             "schema": {
               "$ref": "#/definitions/GetOptionResponse"
             },
             "examples": {
               "application/json": {
-                "result": "0",
+                "result": 0,
                 "product": "Example System",
-                "version": "1.0.0",
-                "exposureMode": "RicAutoExposureP",
-                "shutterSpeed": "1/8",
-                "whiteBalance": "RicWbManualGain",
-                "whiteBalanceTemperature": 2500
+                "version": "1.0.0"
               }
             }
           }
-        }
+        },
+        "x-type": "one-shot"
+      },
+      "put": {
+        "summary": "カメラの静止画・動画の撮影設定を行います。",
+        "description": "カメラの静止画・動画の撮影設定を行います。",
+        "operationId": "cameraOptionsPut",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "formData",
+            "description": "サービスID。取得対象スマートデバイス",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "target",
+            "in": "formData",
+            "description": "カメラを識別するID。<br> 省略された場合にはデフォルトに設定されているカメラに設定を行います。",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "autoFocus",
+            "in": "formData",
+            "description": "オートフォーカスのモードを設定します。",
+            "required": false,
+            "type": "string",
+            "enum": ["none", "off", "auto", "macro", "continuous_video", "continuous_picture", "edof"]
+          },
+          {
+            "name": "whiteBalance",
+            "in": "formData",
+            "description": "ホワイトバランスのモードを設定します。",
+            "required": false,
+            "type": "string",
+            "enum": ["none", "off", "auto", "incandescent", "fluorescent", "warm-fluorescent", "daylight", "cloudy-daylight", "twilight", "shade"]
+          },
+          {
+            "name": "whiteBalanceTemperature",
+            "in": "formData",
+            "description": "ホワイトバランスの色温度を設定します。",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "autoExposure",
+            "in": "formData",
+            "description": "露出モードを設定します。",
+            "required": false,
+            "type": "string",
+            "enum": ["none", "off", "on", "on_auto_flash", "on_always_flash", "on_auto_flash_redeye", "on_external_flash"]
+          },
+          {
+            "name": "sensorExposureTime",
+            "in": "formData",
+            "description": "露出時間を設定します。",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sensorSensitivity",
+            "in": "formData",
+            "description": "ISO感度を設定します。",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sensorFrameDuration",
+            "in": "formData",
+            "description": "フレーム期間を設定します。",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "stabilization",
+            "in": "formData",
+            "description": "手ぶれ補正を設定します。",
+            "required": false,
+            "type": "string",
+            "enum": ["none", "off", "on"]
+          },
+          {
+            "name": "opticalStabilization",
+            "in": "formData",
+            "description": "光学手ぶれ補正を設定します。",
+            "required": false,
+            "type": "string",
+            "enum": ["none", "off", "on"]
+          },
+          {
+            "name": "noiseReduction",
+            "in": "formData",
+            "description": "ノイズ低減モードを設定します。",
+            "required": false,
+            "type": "string",
+            "enum": ["none", "off", "fast", "high_quality", "minimal", "zero_shutter_lag"]
+          },
+          {
+            "name": "focalLength",
+            "in": "formData",
+            "description": "焦点距離を設定します。",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "カメラの静止画・動画の撮影設定結果を返す。<br> 設定に失敗した場合はエラーを返す。",
+            "schema": {
+              "$ref": "#/definitions/PutOptionResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": 0,
+                "product": "Example System",
+                "version": "1.0.0"
+              }
+            }
+          }
+        },
+        "x-type": "one-shot"
+      }
+    },
+    "/zoom": {
+      "get": {
+        "summary": "Cameraデバイスの現在の倍率を取得する。",
+        "description": "倍率の値は0.0〜1.0で表現する。",
+        "operationId": "cameraZoomGet",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "query",
+            "description": "サービスID。取得対象スマートデバイス",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cameraの現在の倍率を返す。 取得に失敗した場合はエラーを返す。",
+            "schema": {
+              "$ref": "#/definitions/CameraGetZoomResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": 0,
+                "product": "Example System",
+                "version": "1.0.0",
+                "zoomPosition": 0
+              }
+            }
+          }
+        },
+        "x-type": "one-shot"
+      },
+      "put": {
+        "summary": "Cameraデバイスに対してレンズのズームイン・アウトリクエストを送る。",
+        "description": "ズームイン・アウトの倍率は、なるべく標準化し、どのデバイスでも同じように動くようにすること。",
+        "operationId": "cameraZoomPut",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "formData",
+            "description": "サービスID。取得対象スマートデバイス",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "direction",
+            "in": "formData",
+            "description": "方向。ズームの方向<br> in<br> out",
+            "required": true,
+            "type": "string",
+            "enum": ["in", "out"]
+          },
+          {
+            "name": "movement",
+            "in": "formData",
+            "description": "動作。ズームの動作<br>in-startで開始してin-stopで終了。<br> 1shotは開始してから所定位置まで動作する。<br> maxはin-startと同じ動作を行う。",
+            "required": true,
+            "type": "string",
+            "enum": ["in-start", "in-stop", "1shot", "max"]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ズームイン・アウトのリクエスト結果を返す。<br> 失敗した場合はエラーを返す。",
+            "schema": {
+              "$ref": "#/definitions/CameraSetZoomResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": 0,
+                "product": "Example System",
+                "version": "1.0.0"
+              }
+            }
+          }
+        },
+        "x-type": "one-shot"
       }
     }
   },
   "definitions": {
-    "CameraGetZoomResponse": {
-      "type": "object",
+    "GetOptionResponse": {
       "allOf": [
         {
           "$ref": "#/definitions/CommonResponse"
         },
         {
           "type": "object",
-          "required": [
-            "zoomPosition"
-          ],
+          "properties": {
+            "exposureMode": {
+              "type": "string",
+              "description": "現在設定されている露出プログラムを取得します。",
+              "title": "露出プログラム"
+            },
+            "shutterSpeed": {
+              "type": "string",
+              "description": "現在設定されているシャッター速度を取得します。",
+              "title": "シャッター速度"
+            }
+          }
+        }
+      ]
+    },
+    "PutOptionResponse": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/CommonResponse"
+        }
+      ]
+    },
+    "CameraGetZoomResponse": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/CommonResponse"
+        },
+        {
+          "type": "object",
+          "required": ["zoomPosition"],
           "properties": {
             "zoomPosition": {
               "type": "number",
-              "title": "カメラの倍率",
-              "description": "カメラの倍率(%)<br>例)<br>QX-10の場合<br>0(%):拡大なし<br>50(%):倍率5倍での拡大"
+              "description": "カメラの倍率(%)<br> 例)<br> QX-10の場合<br> 0(%):拡大なし<br> 50(%):倍率5倍での拡大",
+              "title": "カメラの倍率"
             }
           }
         }
       ]
     },
     "CameraSetZoomResponse": {
-      "type": "object",
       "allOf": [
         {
           "$ref": "#/definitions/CommonResponse"
         }
       ]
-    },
-    "PutOptionResponse": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/definitions/CommonResponse"
-        }
-      ]
-    },
-    "GetOptionResponse": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/definitions/CommonResponse"
-        },
-        {
-          "type": "object",
-          "required": [
-          ],
-          "properties": {
-            "photo": {
-              "$ref": "#/definitions/GetPhotoResponse"
-            },
-            "movie": {
-              "$ref": "#/definitions/GetMovieResponse"
-            }
-          }
-        }
-      ]
-    },
-    "GetPhotoResponse": {
-      "type": "object",
-      "required": [
-      ],
-      "properties": {
-        "exposureMode": {
-          "type": "string",
-          "title": "露出プログラム",
-          "description": "現在設定されている露出プログラムを取得します。"
-        },
-        "shutterSpeed": {
-          "type": "string",
-          "title": "シャッター速度",
-          "description": "現在設定されているシャッター速度を取得します。"
-        },
-        "iosSensitivity": {
-          "type": "string",
-          "title": "ISO感度",
-          "description": "現在設定されているISO感度を取得します。"
-        },
-        "whiteBalance": {
-          "type": "string",
-          "title": "ホワイトバランス",
-          "description": "現在設定されているホワイトバランスを取得します。"
-        },
-        "whiteBalanceTemperature": {
-          "type": "string",
-          "title": "ホワイトバランスの色温度",
-          "description": "現在設定されているホワイトバランスの色温度を取得します。"
-        },
-        "exposureCompensation": {
-          "type": "string",
-          "title": "露出補正",
-          "description": "現在設定されている露出補正を取得します。"
-        }
-      }
-    },
-    "GetMovieResponse": {
-      "type": "object",
-      "required": [
-      ],
-      "properties": {
-        "whiteBalance": {
-          "type": "string",
-          "title": "ホワイトバランス",
-          "description": "現在設定されているホワイトバランスを取得します。"
-        },
-        "whiteBalanceTemperature": {
-          "type": "string",
-          "title": "ホワイトバランスの色温度",
-          "description": "現在設定されているホワイトバランスの色温度を取得します。"
-        }
-      }
     },
     "CommonResponse": {
       "type": "object",
-      "required": [
-        "result",
-        "product",
-        "version"
-      ],
+      "required": ["product", "result", "version"],
       "properties": {
         "result": {
           "type": "integer",
-          "title": "処理結果",
-          "description": "0: 正常応答<br>0以外: 異常応答"
+          "description": "0: 正常応答<br> 0以外: 異常応答",
+          "title": "処理結果"
         },
         "product": {
           "type": "string",
-          "title": "システム名",
-          "description": "DeviceConnectシステムの名前。"
+          "description": "DeviceConnectシステムの名前。",
+          "title": "システム名"
         },
         "version": {
           "type": "string",
-          "title": "システムバージョン",
-          "description": "DeviceConnectシステムのバージョン名。"
+          "description": "DeviceConnectシステムのバージョン名。",
+          "title": "システムバージョン"
         },
         "hmac": {
           "type": "string",
-          "title": "署名",
-          "description": "レスポンスに対する署名。<br>アプリケーション側から事前にHMACキーを共有されていた場合は必須。"
+          "description": "レスポンスに対する署名。 アプリケーション側から事前にHMACキーを共有されていた場合は必須。",
+          "title": "署名"
         }
       }
     }

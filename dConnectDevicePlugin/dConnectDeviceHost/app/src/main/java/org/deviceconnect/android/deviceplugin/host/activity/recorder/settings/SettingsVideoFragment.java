@@ -1,6 +1,5 @@
 package org.deviceconnect.android.deviceplugin.host.activity.recorder.settings;
 
-import android.content.res.Resources;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.os.Bundle;
@@ -14,6 +13,7 @@ import androidx.preference.Preference;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,12 +38,11 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         setPictureSizePreference(settings);
         setPreviewSizePreference(settings);
         setPreviewVideoEncoderPreference(settings);
+        setPreviewProfileLevelPreference(settings, settings.getPreviewEncoderName(), false);
         setPreviewAutoFocusPreference(settings);
         setPreviewWhiteBalancePreference(settings);
         setPreviewWhiteBalanceTemperaturePreference(settings);
         setPreviewAutoExposurePreference(settings);
-        setPreviewProfilePreference(settings.getPreviewEncoderName(), false);
-        setPreviewLevelPreference(settings.getPreviewEncoderName(), false);
         setPreviewSensorExposureTime(settings);
         setPreviewSensorSensitivity(settings);
         setPreviewSensorFrameDuration(settings);
@@ -132,46 +131,50 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
     private void setPreviewVideoEncoderPreference(HostMediaRecorder.Settings settings) {
         ListPreference pref = findPreference("preview_encoder");
         if (pref != null) {
-            pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
-        }
-    }
-
-    private void setPreviewProfilePreference(HostMediaRecorder.VideoEncoderName encoderName, boolean reset) {
-        ListPreference pref = findPreference("preview_profile");
-        if (pref != null) {
-            Resources res = getContext().getResources();
-            switch (encoderName) {
-                case H264:
-                    pref.setEntries(res.getStringArray(R.array.h264_profile_names));
-                    pref.setEntryValues(res.getStringArray(R.array.h264_profile_values));
-                    break;
-                case H265:
-                    pref.setEntries(res.getStringArray(R.array.h265_profile_names));
-                    pref.setEntryValues(res.getStringArray(R.array.h265_profile_values));
-                    break;
-            }
-            if (reset) {
-                pref.setValue("none");
+            List<String> list = settings.getSupportedVideoEncoders();
+            if (!list.isEmpty()) {
+                List<String> entryValues = new ArrayList<>(list);
+                pref.setEntries(entryValues.toArray(new String[0]));
+                pref.setEntryValues(entryValues.toArray(new String[0]));
+                pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
+                pref.setVisible(true);
+            } else {
+                pref.setEnabled(false);
             }
         }
     }
 
-    private void setPreviewLevelPreference(HostMediaRecorder.VideoEncoderName encoderName, boolean reset) {
-        ListPreference pref = findPreference("preview_level");
+    private void setPreviewProfileLevelPreference(HostMediaRecorder.Settings settings, HostMediaRecorder.VideoEncoderName encoderName, boolean reset) {
+        ListPreference pref = findPreference("preview_profile_level");
         if (pref != null) {
-            Resources res = getContext().getResources();
-            switch (encoderName) {
-                case H264:
-                    pref.setEntries(res.getStringArray(R.array.h264_level_names));
-                    pref.setEntryValues(res.getStringArray(R.array.h264_level_values));
-                    break;
-                case H265:
-                    pref.setEntries(res.getStringArray(R.array.h265_level_names));
-                    pref.setEntryValues(res.getStringArray(R.array.h265_level_values));
-                    break;
-            }
-            if (reset) {
-                pref.setValue("none");
+            List<HostMediaRecorder.ProfileLevel> list = CapabilityUtil.getSupportedProfileLevel(encoderName.getMimeType());
+            if (!list.isEmpty()) {
+                List<String> entryValues = new ArrayList<>();
+                entryValues.add("none");
+
+                for (HostMediaRecorder.ProfileLevel pl : list) {
+                    String value = getProfileLevel(encoderName, pl);
+                    if (value != null) {
+                        entryValues.add(value);
+                    }
+                }
+
+                pref.setEntries(entryValues.toArray(new String[0]));
+                pref.setEntryValues(entryValues.toArray(new String[0]));
+                pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
+
+                if (reset) {
+                    pref.setValue("none");
+                } else {
+                    HostMediaRecorder.ProfileLevel pl = settings.getProfileLevel();
+                    if (pl != null) {
+                        pref.setValue(getProfileLevel(encoderName, pl));
+                    }
+                }
+
+                pref.setVisible(true);
+            } else {
+                pref.setEnabled(false);
             }
         }
     }
@@ -553,6 +556,51 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         return null;
     }
 
+    private String getProfileLevel(HostMediaRecorder.VideoEncoderName encoderName, HostMediaRecorder.ProfileLevel pl) {
+        switch (encoderName) {
+            case H264: {
+                HostMediaRecorder.H264Profile p = HostMediaRecorder.H264Profile.valueOf(pl.getProfile());
+                HostMediaRecorder.H264Level l = HostMediaRecorder.H264Level.valueOf(pl.getLevel());
+                if (p != null && l != null) {
+                    return p.getName() + " - " + l.getName();
+                }
+            }
+            case H265: {
+                HostMediaRecorder.H265Profile p = HostMediaRecorder.H265Profile.valueOf(pl.getProfile());
+                HostMediaRecorder.H265Level l = HostMediaRecorder.H265Level.valueOf(pl.getLevel());
+                if (p != null && l != null) {
+                    return p.getName() + " - " + l.getName();
+                }
+            }
+        }
+        return null;
+    }
+
+    private HostMediaRecorder.ProfileLevel getProfileLevel(HostMediaRecorder.VideoEncoderName encoderName, String value) {
+        String[] t = value.split("-");
+        if (t.length == 2) {
+            try {
+                String profile = t[0].trim();
+                String level = t[1].trim();
+                switch (encoderName) {
+                    case H264: {
+                        HostMediaRecorder.H264Profile p = HostMediaRecorder.H264Profile.nameOf(profile);
+                        HostMediaRecorder.H264Level l = HostMediaRecorder.H264Level.nameOf(level);
+                        return new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue());
+                    }
+                    case H265: {
+                        HostMediaRecorder.H265Profile p = HostMediaRecorder.H265Profile.nameOf(profile);
+                        HostMediaRecorder.H265Level l = HostMediaRecorder.H265Level.nameOf(level);
+                        return new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue());
+                    }
+                }
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
     private final Preference.OnPreferenceChangeListener mOnPreferenceChangeListener = (preference, newValue) -> {
         String key = preference.getKey();
         if ("camera_picture_size".equals(key)) {
@@ -567,10 +615,15 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             }
         } else if ("preview_encoder".equals(key)) {
             if (mMediaRecorder != null) {
+                mMediaRecorder.getSettings().setProfileLevel(null);
                 HostMediaRecorder.VideoEncoderName encoderName =
                         HostMediaRecorder.VideoEncoderName.nameOf((String) newValue);
-                setPreviewProfilePreference(encoderName, true);
-                setPreviewLevelPreference(encoderName, true);
+                setPreviewProfileLevelPreference(mMediaRecorder.getSettings(), encoderName, true);
+            }
+        } else if ("preview_profile_level".equalsIgnoreCase(key)) {
+            if (mMediaRecorder != null) {
+                HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
+                settings.setProfileLevel(getProfileLevel(settings.getPreviewEncoderName(), (String) newValue));
             }
         }
         return true;

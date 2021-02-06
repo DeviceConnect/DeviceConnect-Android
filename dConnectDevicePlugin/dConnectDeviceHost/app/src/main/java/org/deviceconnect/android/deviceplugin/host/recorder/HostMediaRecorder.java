@@ -13,6 +13,7 @@ import android.os.Build;
 import android.util.Range;
 import android.util.Size;
 
+import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.PropertyUtil;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
@@ -266,17 +267,23 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
     }
 
     enum VideoEncoderName {
-        H264("h264"),
-        H265("h265");
+        H264("h264", "video/avc"),
+        H265("h265", "video/hevc");
 
         private final String mName;
+        private final String mMimeType;
 
-        VideoEncoderName(String name) {
+        VideoEncoderName(String name, String mimeType) {
             mName = name;
+            mMimeType = mimeType;
         }
 
         public String getName() {
             return mName;
+        }
+
+        public String getMimeType() {
+            return mMimeType;
         }
 
         public static VideoEncoderName nameOf(String name) {
@@ -308,6 +315,10 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             mValue = value;
         }
 
+        public String getName() {
+            return mName;
+        }
+
         public int getValue() {
             return mValue;
         }
@@ -316,6 +327,15 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             for (H264Profile p : values()) {
                 if (p.mName.equalsIgnoreCase(name)) {
                     return p;
+                }
+            }
+            return null;
+        }
+
+        public static H264Profile valueOf(int value) {
+            for (H264Profile l : values()) {
+                if (l.mValue == value) {
+                    return l;
                 }
             }
             return null;
@@ -352,6 +372,10 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             mValue = value;
         }
 
+        public String getName() {
+            return mName;
+        }
+
         public int getValue() {
             return mValue;
         }
@@ -359,6 +383,15 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         public static H264Level nameOf(String name) {
             for (H264Level l : values()) {
                 if (l.mName.equalsIgnoreCase(name)) {
+                    return l;
+                }
+            }
+            return null;
+        }
+
+        public static H264Level valueOf(int value) {
+            for (H264Level l : values()) {
+                if (l.mValue == value) {
                     return l;
                 }
             }
@@ -381,6 +414,10 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             mValue = value;
         }
 
+        public String getName() {
+            return mName;
+        }
+
         public int getValue() {
             return mValue;
         }
@@ -389,6 +426,15 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             for (H265Profile p : values()) {
                 if (p.mName.equalsIgnoreCase(name)) {
                     return p;
+                }
+            }
+            return null;
+        }
+
+        public static H265Profile valueOf(int value) {
+            for (H265Profile l : values()) {
+                if (l.mValue == value) {
+                    return l;
                 }
             }
             return null;
@@ -431,6 +477,10 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             mValue = value;
         }
 
+        public String getName() {
+            return mName;
+        }
+
         public int getValue() {
             return mValue;
         }
@@ -438,6 +488,15 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         public static H265Level nameOf(String name) {
             for (H265Level l : values()) {
                 if (l.mName.equalsIgnoreCase(name)) {
+                    return l;
+                }
+            }
+            return null;
+        }
+
+        public static H265Level valueOf(int value) {
+            for (H265Level l : values()) {
+                if (l.mValue == value) {
                     return l;
                 }
             }
@@ -466,6 +525,24 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
                 }
             }
             return null;
+        }
+    }
+
+    class ProfileLevel {
+        private final int mProfile;
+        private final int mLevel;
+
+        public ProfileLevel(int profile, int level) {
+            mProfile = profile;
+            mLevel = level;
+        }
+
+        public int getProfile() {
+            return mProfile;
+        }
+
+        public int getLevel() {
+            return mLevel;
         }
     }
 
@@ -615,7 +692,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return プレビューの配信エンコードの名前
          */
         public String getPreviewEncoder() {
-            return mPref.getString("preview_encoder", "video/avc");
+            return mPref.getString("preview_encoder", "h264");
         }
 
         /**
@@ -624,10 +701,44 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param encoder プレビューの配信エンコードの名前
          */
         public void setPreviewEncoder(String encoder) {
-            if (!isSupportedVideoEncoder(encoder)) {
-                throw new IllegalArgumentException("encoder is not supported.");
+            if (encoder == null) {
+                mPref.remove("preview_encoder");
+            } else {
+                if (!isSupportedVideoEncoder(encoder)) {
+                    throw new IllegalArgumentException("encoder is not supported.");
+                }
+                mPref.put("preview_encoder", encoder);
             }
-            mPref.put("preview_encoder", encoder);
+        }
+
+        public ProfileLevel getProfileLevel() {
+            Integer profile = mPref.getInteger("preview_profile", null);
+            Integer level = mPref.getInteger("preview_level", null);
+            if (profile != null && level != null) {
+                return new ProfileLevel(profile, level);
+            }
+            return null;
+        }
+
+        public void setProfileLevel(ProfileLevel pl) {
+            if (pl == null) {
+                mPref.remove("preview_profile");
+                mPref.remove("preview_level");
+            } else {
+                if (!isSupportedProfileLevel(pl.getProfile(), pl.getLevel())) {
+                    throw new IllegalArgumentException("profile and level are not supported.");
+                }
+                mPref.put("preview_profile", pl.getProfile());
+                mPref.put("preview_level", pl.getLevel());
+            }
+        }
+
+        public Integer getProfile() {
+            return mPref.getInteger("preview_profile", 0);
+        }
+
+        public Integer getLevel() {
+            return mPref.getInteger("preview_level", 0);
         }
 
         /**
@@ -954,30 +1065,6 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             }
         }
 
-        public Integer getProfile() {
-            return mPref.getInteger("preview_profile", 0);
-        }
-
-        public void setProfile(Integer profile) {
-            if (profile == null) {
-                mPref.remove("preview_profile");
-            } else {
-                mPref.put("preview_profile", profile);
-            }
-        }
-
-        public Integer getLevel() {
-            return mPref.getInteger("preview_level", 0);
-        }
-
-        public void setLevel(Integer level) {
-            if (level == null) {
-                mPref.remove("preview_level");
-            } else {
-                mPref.put("preview_level", level);
-            }
-        }
-
         public BitRateMode getPreviewBitRateMode() {
             return BitRateMode.nameOf(mPref.getString("preview_bitrate_mode", null));
         }
@@ -1222,7 +1309,19 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return サポートしているエンコーダのリスト
          */
         public List<String> getSupportedVideoEncoders() {
-            return new ArrayList<>();
+            List<String> list = new ArrayList<>();
+            List<String> supported = CapabilityUtil.getSupportedVideoEncoders();
+            for (VideoEncoderName encoderName : VideoEncoderName.values()) {
+                if (supported.contains(encoderName.getMimeType())) {
+                    list.add(encoderName.getName());
+                }
+            }
+            return list;
+        }
+
+        public List<ProfileLevel> getSupportedProfileLevel() {
+            VideoEncoderName encoderName = getPreviewEncoderName();
+            return CapabilityUtil.getSupportedProfileLevel(encoderName.getMimeType());
         }
 
         public List<Integer> getSupportedStabilizationList() {
@@ -1407,6 +1506,25 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             if (encoderList != null) {
                 for (String e : encoderList) {
                     if (e.equalsIgnoreCase(encoder)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        /**
+         * 指定されたプロファイルとレベルがサポートされているか確認します.
+         *
+         * @param profile プロファイル
+         * @param level レベル
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
+        public boolean isSupportedProfileLevel(int profile, int level) {
+            List<ProfileLevel> list = getSupportedProfileLevel();
+            if (list != null) {
+                for (ProfileLevel pl : list) {
+                    if (profile == pl.getProfile() && level == pl.getLevel()) {
                         return true;
                     }
                 }

@@ -29,6 +29,10 @@ public final class PropertyUtil {
         mPref.edit().putString(key, String.valueOf(value)).apply();
     }
 
+    public void put(String key, long value) {
+        mPref.edit().putString(key, String.valueOf(value)).apply();
+    }
+
     public void put(String key, float value) {
         mPref.edit().putString(key, String.valueOf(value)).apply();
     }

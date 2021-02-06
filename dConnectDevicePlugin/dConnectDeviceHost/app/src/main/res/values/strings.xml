@@ -95,6 +95,12 @@
     <string name="host_recorder_settings_focal_length">Focal Length</string>
     <string name="host_recorder_settings_motion_jpeg">MotionJPEG Settings</string>
     <string name="host_recorder_settings_jpeg_quality">Quality (%)</string>
+    <string name="host_recorder_settings_range_to_cut_out">Range to cut out</string>
+    <string name="host_recorder_settings_cut_out_left">Left</string>
+    <string name="host_recorder_settings_cut_out_top">Top</string>
+    <string name="host_recorder_settings_cut_out_right">Right</string>
+    <string name="host_recorder_settings_cut_out_bottom">Bottom</string>
+    <string name="host_recorder_settings_cut_out_reset">Reset</string>
 
     <string name="host_recorder_settings_audio_enable">Enable</string>
     <string name="host_recorder_settings_audio_enable_summary">Set whether to enable preview audio.</string>

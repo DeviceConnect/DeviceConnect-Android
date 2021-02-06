@@ -97,6 +97,12 @@
     <string name="host_recorder_settings_focal_length">焦点距離</string>
     <string name="host_recorder_settings_motion_jpeg">MotionJPEG 設定</string>
     <string name="host_recorder_settings_jpeg_quality">クオリティ (%)</string>
+    <string name="host_recorder_settings_range_to_cut_out">切り抜き範囲</string>
+    <string name="host_recorder_settings_cut_out_left">Left</string>
+    <string name="host_recorder_settings_cut_out_top">Top</string>
+    <string name="host_recorder_settings_cut_out_right">Right</string>
+    <string name="host_recorder_settings_cut_out_bottom">Bottom</string>
+    <string name="host_recorder_settings_cut_out_reset">リセット</string>
 
     <!-- 音声設定 -->
     <string name="host_recorder_settings_audio_enable">音声有効</string>

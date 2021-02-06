@@ -694,7 +694,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return プレビューの品質
          */
         public int getPreviewQuality() {
-            return mPref.getInteger("preview_quality", 80);
+            return mPref.getInteger("preview_jpeg_quality", 80);
         }
 
         /**
@@ -712,7 +712,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             if (quality > 100) {
                 throw new IllegalArgumentException("quality is over 100.");
             }
-            mPref.put("preview_quality", quality);
+            mPref.put("preview_jpeg_quality", quality);
         }
 
         /**

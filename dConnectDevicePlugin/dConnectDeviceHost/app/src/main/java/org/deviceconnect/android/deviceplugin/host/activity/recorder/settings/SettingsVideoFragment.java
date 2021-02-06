@@ -5,8 +5,10 @@ import android.util.Range;
 import android.util.Size;
 
 import androidx.annotation.NonNull;
+import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
+import androidx.preference.PreferenceScreen;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference;
@@ -58,12 +60,37 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         setPreviewOpticalStabilization(settings);
         setPreviewNoiseReduction(settings);
         setPreviewFocalLength(settings);
+        setPreviewJpegQuality(settings);
+        setPreviewCutOutReset();
 
         setInputTypeNumber("preview_framerate");
         setInputTypeNumber("preview_bitrate");
         setInputTypeNumber("preview_i_frame_interval");
         setInputTypeNumber("preview_intra_refresh");
-        setInputTypeNumber("preview_quality");
+        setInputTypeNumber("preview_clip_left");
+        setInputTypeNumber("preview_clip_top");
+        setInputTypeNumber("preview_clip_right");
+        setInputTypeNumber("preview_clip_bottom");
+    }
+
+    private void setPreviewCutOutReset() {
+        PreferenceScreen pref = findPreference("preview_clip_reset");
+        if (pref != null) {
+            pref.setOnPreferenceClickListener(preference -> {
+                EditTextPreference left = findPreference("preview_clip_left");
+                left.setText(null);
+                EditTextPreference top = findPreference("preview_clip_top");
+                top.setText(null);
+                EditTextPreference right = findPreference("preview_clip_right");
+                right.setText(null);
+                EditTextPreference bottom = findPreference("preview_clip_bottom");
+                bottom.setText(null);
+
+                mMediaRecorder.getSettings().setDrawingRange(null);
+
+                return false;
+            });
+        }
     }
 
     /**
@@ -446,6 +473,15 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             } else {
                 pref.setEnabled(false);
             }
+        }
+    }
+
+    private void setPreviewJpegQuality(HostMediaRecorder.Settings settings) {
+        SeekBarDialogPreference pref = findPreference("preview_jpeg_quality");
+        if (pref != null) {
+            pref.setMinValue(0);
+            pref.setMaxValue(100);
+            pref.setEnabled(true);
         }
     }
 

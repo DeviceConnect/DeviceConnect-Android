@@ -7,11 +7,15 @@
 package org.deviceconnect.android.deviceplugin.host.profile;
 
 import android.content.Intent;
-import android.hardware.camera2.CameraMetadata;
-import android.hardware.camera2.CaptureRequest;
 import android.os.Bundle;
 import android.util.Range;
 
+import org.deviceconnect.android.deviceplugin.host.profile.utils.AutoExposure;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.AutoFocus;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.NoiseReduction;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.OpticalStabilization;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.Stabilization;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.WhiteBalance;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
@@ -268,7 +272,7 @@ public class HostCameraProfile extends DConnectProfile {
                 String stabilization = request.getStringExtra("stabilization");
                 String opticalStabilization = request.getStringExtra("opticalStabilization");
                 String noiseReduction = request.getStringExtra("noiseReduction");
-                String focalLength = request.getStringExtra("focalLength");
+                Float focalLength = parseFloat(request, "focalLength");
 
                 Camera2Recorder recorder = getCameraRecorder(target);
                 if (recorder == null) {
@@ -388,6 +392,18 @@ public class HostCameraProfile extends DConnectProfile {
                     }
                 }
 
+                if (focalLength != null) {
+                    if (focalLength == 0) {
+                        settings.setFocalLength(null);
+                    } else {
+                        if (!settings.isSupportedFocalLength(focalLength)) {
+                            MessageUtils.setInvalidRequestParameterError(response, "focalLength is invalid.");
+                            return true;
+                        }
+                        settings.setFocalLength(focalLength);
+                    }
+                }
+
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             }
@@ -403,267 +419,5 @@ public class HostCameraProfile extends DConnectProfile {
             return (Camera2Recorder) recorder;
         }
         return null;
-    }
-
-    public enum NoiseReduction {
-        NONE("none", null),
-        FAST("fast", CameraMetadata.NOISE_REDUCTION_MODE_FAST),
-        HIGH_QUALITY("high_quality", CameraMetadata.NOISE_REDUCTION_MODE_HIGH_QUALITY),
-        MINIMAL("minimal", CameraMetadata.NOISE_REDUCTION_MODE_MINIMAL),
-        OFF("off", CameraMetadata.NOISE_REDUCTION_MODE_OFF),
-        ZERO_SHUTTER_LAG("zero_shutter_lag", CameraMetadata.NOISE_REDUCTION_MODE_ZERO_SHUTTER_LAG);
-
-        private final String mName;
-        private final Integer mValue;
-
-        NoiseReduction(String name, Integer value) {
-            mName = name;
-            mValue = value;
-        }
-
-        public String getName() {
-            return mName;
-        }
-
-        public Integer getValue() {
-            return mValue;
-        }
-
-        public static NoiseReduction nameOf(String name) {
-            for (NoiseReduction s : values()) {
-                if (s.mName.equalsIgnoreCase(name)) {
-                    return s;
-                }
-            }
-            return null;
-        }
-
-        public static NoiseReduction valueOf(Integer value) {
-            for (NoiseReduction s : values()) {
-                if (s.mValue == value) {
-                    return s;
-                }
-            }
-            return null;
-        }
-    }
-
-    public enum OpticalStabilization {
-        NONE("none", null),
-        OFF("off", CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF),
-        On("on", CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON);
-
-        private final String mName;
-        private final Integer mValue;
-
-        OpticalStabilization(String name, Integer value) {
-            mName = name;
-            mValue = value;
-        }
-
-        public String getName() {
-            return mName;
-        }
-
-        public Integer getValue() {
-            return mValue;
-        }
-
-        public static OpticalStabilization nameOf(String name) {
-            for (OpticalStabilization s : values()) {
-                if (s.mName.equalsIgnoreCase(name)) {
-                    return s;
-                }
-            }
-            return null;
-        }
-
-        public static OpticalStabilization valueOf(Integer value) {
-            for (OpticalStabilization s : values()) {
-                if (s.mValue == value) {
-                    return s;
-                }
-            }
-            return null;
-        }
-    }
-
-    public enum Stabilization {
-        NONE("none", null),
-        OFF("off", CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_OFF),
-        On("on", CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON);
-
-        private final String mName;
-        private final Integer mValue;
-
-        Stabilization(String name, Integer value) {
-            mName = name;
-            mValue = value;
-        }
-
-        public String getName() {
-            return mName;
-        }
-
-        public Integer getValue() {
-            return mValue;
-        }
-
-        public static Stabilization nameOf(String name) {
-            for (Stabilization s : values()) {
-                if (s.mName.equalsIgnoreCase(name)) {
-                    return s;
-                }
-            }
-            return null;
-        }
-
-        public static Stabilization valueOf(Integer value) {
-            for (Stabilization s : values()) {
-                if (s.mValue == value) {
-                    return s;
-                }
-            }
-            return null;
-        }
-    }
-
-    public enum AutoExposure {
-        NONE("none", null),
-        OFF("off", CameraMetadata.CONTROL_AE_MODE_OFF),
-        ON("on", CameraMetadata.CONTROL_AE_MODE_ON),
-        AUTO_FLASH("on_auto_flash", CameraMetadata.CONTROL_AE_MODE_ON_AUTO_FLASH),
-        ALWAYS_FLASH("on_always_flash", CameraMetadata.CONTROL_AE_MODE_ON_ALWAYS_FLASH),
-        AUTO_FLASH_REDEYE("on_auto_flash_redeye", CameraMetadata.CONTROL_AE_MODE_ON_AUTO_FLASH_REDEYE),
-        EXTERNAL_FLASH("on_external_flash", CameraMetadata.CONTROL_AE_MODE_ON_EXTERNAL_FLASH);
-
-        private final String mName;
-        private final Integer mValue;
-
-        AutoExposure(String name, Integer value) {
-            mName = name;
-            mValue = value;
-        }
-
-        public String getName() {
-            return mName;
-        }
-
-        public Integer getValue() {
-            return mValue;
-        }
-
-        public static AutoExposure nameOf(String name) {
-            for (AutoExposure m : values()) {
-                if (m.mName.equalsIgnoreCase(name)) {
-                    return m;
-                }
-            }
-            return null;
-        }
-
-        public static AutoExposure valueOf(Integer value) {
-            for (AutoExposure m : values()) {
-                if (m.mValue == value) {
-                    return m;
-                }
-            }
-            return null;
-        }
-    }
-
-    public enum WhiteBalance {
-        NONE("none", null),
-        AUTO("auto", CameraMetadata.CONTROL_AWB_MODE_AUTO),
-        INCANDESCENT("incandescent", CameraMetadata.CONTROL_AWB_MODE_INCANDESCENT),
-        FLUORESCENT("fluorescent", CameraMetadata.CONTROL_AWB_MODE_FLUORESCENT),
-        WARM_FLUORESCENT("warm-fluorescent", CameraMetadata.CONTROL_AWB_MODE_WARM_FLUORESCENT),
-        DAYLIGHT("daylight", CameraMetadata.CONTROL_AWB_MODE_DAYLIGHT),
-        CLOUDY_DAYLIGHT("cloudy-daylight", CameraMetadata.CONTROL_AWB_MODE_CLOUDY_DAYLIGHT),
-        TWILIGHT("twilight", CameraMetadata.CONTROL_AWB_MODE_TWILIGHT),
-        SHADE("shade", CameraMetadata.CONTROL_AWB_MODE_SHADE);
-
-        /** カメラの位置を表現する名前. */
-        private final String mName;
-
-        /**
-         * カメラの番号.
-         */
-        private final Integer mValue;
-
-        WhiteBalance(String name, Integer value) {
-            mName = name;
-            mValue = value;
-        }
-
-        public String getName() {
-            return mName;
-        }
-
-        public Integer getValue() {
-            return mValue;
-        }
-
-        public static WhiteBalance nameOf(String name) {
-            for (WhiteBalance wb : values()) {
-                if (wb.mName.equals(name)) {
-                    return wb;
-                }
-            }
-            return null;
-        }
-
-        public static WhiteBalance valueOf(Integer value) {
-            for (WhiteBalance wb : values()) {
-                if (wb.mValue == value) {
-                    return wb;
-                }
-            }
-            return null;
-        }
-    }
-
-    public enum AutoFocus {
-        NONE("none", null),
-        OFF("off", CameraMetadata.CONTROL_AF_MODE_OFF),
-        AUTO("auto", CameraMetadata.CONTROL_AF_MODE_AUTO),
-        MACRO("macro", CameraMetadata.CONTROL_AF_MODE_MACRO),
-        CONTINUOUS_VIDEO("continuous_video", CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_VIDEO),
-        CONTINUOUS_PICTURE("continuous_picture", CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_PICTURE),
-        EDOF("edof", CameraMetadata.CONTROL_AF_MODE_EDOF);
-
-        private final String mName;
-        private final Integer mValue;
-
-        AutoFocus(String name, Integer value) {
-            mName = name;
-            mValue = value;
-        }
-
-        public String getName() {
-            return mName;
-        }
-
-        public Integer getValue() {
-            return mValue;
-        }
-
-        public static AutoFocus nameOf(String name) {
-            for (AutoFocus af : values()) {
-                if (af.mName.equals(name)) {
-                    return af;
-                }
-            }
-            return null;
-        }
-
-        public static AutoFocus valueOf(Integer value) {
-            for (AutoFocus af : values()) {
-                if (af.mValue == value) {
-                    return af;
-                }
-            }
-            return null;
-        }
     }
 }

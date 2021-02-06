@@ -12,6 +12,10 @@ import android.os.Bundle;
 import android.util.Size;
 
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.H264Level;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.H264Profile;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.H265Level;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.H265Profile;
 import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
@@ -110,12 +114,12 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                 if (pl != null) {
                                     switch (HostMediaRecorder.VideoEncoderName.nameOf(settings.getPreviewEncoder())) {
                                         case H264:
-                                            info.putString("previewProfile", HostMediaRecorder.H264Profile.valueOf(pl.getProfile()).getName());
-                                            info.putString("previewLevel", HostMediaRecorder.H264Level.valueOf(pl.getLevel()).getName());
+                                            info.putString("previewProfile", H264Profile.valueOf(pl.getProfile()).getName());
+                                            info.putString("previewLevel", H264Level.valueOf(pl.getLevel()).getName());
                                             break;
                                         case H265:
-                                            info.putString("previewProfile", HostMediaRecorder.H265Profile.valueOf(pl.getProfile()).getName());
-                                            info.putString("previewLevel", HostMediaRecorder.H265Level.valueOf(pl.getLevel()).getName());
+                                            info.putString("previewProfile", H265Profile.valueOf(pl.getProfile()).getName());
+                                            info.putString("previewLevel", H265Level.valueOf(pl.getLevel()).getName());
                                             break;
                                     }
                                 }
@@ -302,8 +306,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
                 switch (settings.getPreviewEncoderName()) {
                     case H264: {
-                        HostMediaRecorder.H264Profile p = HostMediaRecorder.H264Profile.nameOf(previewProfile);
-                        HostMediaRecorder.H264Level l = HostMediaRecorder.H264Level.nameOf(previewLevel);
+                        H264Profile p = H264Profile.nameOf(previewProfile);
+                        H264Level l = H264Level.nameOf(previewLevel);
                         if (!settings.isSupportedProfileLevel(p.getValue(), l.getValue())) {
                             MessageUtils.setInvalidRequestParameterError(response,
                                     "Unsupported preview profile and level: " + previewProfile + " - " + previewLevel);
@@ -312,8 +316,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         settings.setProfileLevel(new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue()));
                     }   break;
                     case H265: {
-                        HostMediaRecorder.H265Profile p = HostMediaRecorder.H265Profile.nameOf(previewProfile);
-                        HostMediaRecorder.H265Level l = HostMediaRecorder.H265Level.nameOf(previewLevel);
+                        H265Profile p = H265Profile.nameOf(previewProfile);
+                        H265Level l = H265Level.nameOf(previewLevel);
                         if (!settings.isSupportedProfileLevel(p.getValue(), l.getValue())) {
                             MessageUtils.setInvalidRequestParameterError(response,
                                     "Unsupported preview profile and level: " + previewProfile + " - " + previewLevel);
@@ -1194,8 +1198,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         for (HostMediaRecorder.ProfileLevel pl : CapabilityUtil.getSupportedProfileLevel(encoderName.getMimeType())) {
             switch (encoderName) {
                 case H264: {
-                    HostMediaRecorder.H264Profile p = HostMediaRecorder.H264Profile.valueOf(pl.getProfile());
-                    HostMediaRecorder.H264Level l = HostMediaRecorder.H264Level.valueOf(pl.getLevel());
+                    H264Profile p = H264Profile.valueOf(pl.getProfile());
+                    H264Level l = H264Level.valueOf(pl.getLevel());
                     if (p != null && l != null) {
                         Bundle encoder = new Bundle();
                         encoder.putString("profile", p.getName());
@@ -1204,8 +1208,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     }
                 }   break;
                 case H265: {
-                    HostMediaRecorder.H265Profile p = HostMediaRecorder.H265Profile.valueOf(pl.getProfile());
-                    HostMediaRecorder.H265Level l = HostMediaRecorder.H265Level.valueOf(pl.getLevel());
+                    H265Profile p = H265Profile.valueOf(pl.getProfile());
+                    H265Level l = H265Level.valueOf(pl.getLevel());
                     if (p != null && l != null) {
                         Bundle encoder = new Bundle();
                         encoder.putString("profile", p.getName());

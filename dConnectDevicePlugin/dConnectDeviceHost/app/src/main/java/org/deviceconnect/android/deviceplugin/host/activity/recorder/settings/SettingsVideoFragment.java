@@ -1,7 +1,5 @@
 package org.deviceconnect.android.deviceplugin.host.activity.recorder.settings;
 
-import android.hardware.camera2.CameraMetadata;
-import android.hardware.camera2.CaptureRequest;
 import android.os.Bundle;
 import android.util.Range;
 import android.util.Size;
@@ -12,6 +10,16 @@ import androidx.preference.Preference;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.AutoExposure;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.AutoFocus;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.H264Level;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.H264Profile;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.H265Level;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.H265Profile;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.NoiseReduction;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.OpticalStabilization;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.Stabilization;
+import org.deviceconnect.android.deviceplugin.host.profile.utils.WhiteBalance;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 
@@ -144,6 +152,13 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         }
     }
 
+    /**
+     * エンコーダのプロファイルとレベルを設定します.
+     *
+     * @param settings レコーダ設定
+     * @param encoderName エンコーダ
+     * @param reset リセットフラグ
+     */
     private void setPreviewProfileLevelPreference(HostMediaRecorder.Settings settings, HostMediaRecorder.VideoEncoderName encoderName, boolean reset) {
         ListPreference pref = findPreference("preview_profile_level");
         if (pref != null) {
@@ -179,6 +194,11 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         }
     }
 
+    /**
+     * 自動フォーカスモードの設定を行います.
+     *
+     * @param settings レコーダ設定
+     */
     private void setPreviewAutoFocusPreference(HostMediaRecorder.Settings settings) {
         ListPreference pref = findPreference("preview_auto_focus");
         if (pref != null) {
@@ -186,34 +206,19 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             if (modeList != null && !modeList.isEmpty()) {
                 List<String> entryNames = new ArrayList<>();
                 List<String> entryValues = new ArrayList<>();
-                entryNames.add("None");
+                entryNames.add("none");
                 entryValues.add("none");
                 for (Integer mode : modeList) {
-                    switch (mode) {
-                        case CameraMetadata.CONTROL_AF_MODE_OFF:
-                            entryNames.add("OFF");
-                            break;
-                        case CameraMetadata.CONTROL_AF_MODE_AUTO:
-                            entryNames.add("AUTO");
-                            break;
-                        case CameraMetadata.CONTROL_AF_MODE_MACRO:
-                            entryNames.add("MACRO");
-                            break;
-                        case CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_VIDEO:
-                            entryNames.add("CONTINUOUS_VIDEO");
-                            break;
-                        case CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_PICTURE:
-                            entryNames.add("CONTINUOUS_PICTURE");
-                            break;
-                        case CameraMetadata.CONTROL_AF_MODE_EDOF:
-                            entryNames.add("EDOF");
-                            break;
+                    AutoFocus af = AutoFocus.valueOf(mode);
+                    if (af != null) {
+                        entryNames.add(af.getName());
+                        entryValues.add(String.valueOf(mode));
                     }
-                    entryValues.add(String.valueOf(mode));
                 }
                 pref.setEntries(entryNames.toArray(new String[0]));
                 pref.setEntryValues(entryValues.toArray(new String[0]));
                 pref.setValue(String.valueOf(settings.getPreviewAutoFocusMode()));
+                pref.setEnabled(true);
             } else {
                 pref.setEnabled(false);
             }
@@ -232,49 +237,30 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             if (modeList != null && !modeList.isEmpty()) {
                 List<String> entryNames = new ArrayList<>();
                 List<String> entryValues = new ArrayList<>();
-                entryNames.add("None");
+                entryNames.add("none");
                 entryValues.add("none");
                 for (Integer mode : modeList) {
-                    switch (mode) {
-                        case CameraMetadata.CONTROL_AWB_MODE_OFF:
-                            entryNames.add("OFF");
-                            break;
-                        case CameraMetadata.CONTROL_AWB_MODE_AUTO:
-                            entryNames.add("AUTO");
-                            break;
-                        case CameraMetadata.CONTROL_AWB_MODE_INCANDESCENT:
-                            entryNames.add("INCANDESCENT");
-                            break;
-                        case CameraMetadata.CONTROL_AWB_MODE_FLUORESCENT:
-                            entryNames.add("FLUORESCENT");
-                            break;
-                        case CameraMetadata.CONTROL_AWB_MODE_WARM_FLUORESCENT:
-                            entryNames.add("WARM_FLUORESCENT");
-                            break;
-                        case CameraMetadata.CONTROL_AWB_MODE_DAYLIGHT:
-                            entryNames.add("DAYLIGHT");
-                            break;
-                        case CameraMetadata.CONTROL_AWB_MODE_CLOUDY_DAYLIGHT:
-                            entryNames.add("CLOUDY_DAYLIGHT");
-                            break;
-                        case CameraMetadata.CONTROL_AWB_MODE_TWILIGHT:
-                            entryNames.add("TWILIGHT");
-                            break;
-                        case CameraMetadata.CONTROL_AWB_MODE_SHADE:
-                            entryNames.add("SHADE");
-                            break;
+                    WhiteBalance wb = WhiteBalance.valueOf(mode);
+                    if (wb != null) {
+                        entryNames.add(wb.getName());
+                        entryValues.add(String.valueOf(mode));
                     }
-                    entryValues.add(String.valueOf(mode));
                 }
                 pref.setEntries(entryNames.toArray(new String[0]));
                 pref.setEntryValues(entryValues.toArray(new String[0]));
                 pref.setValue(String.valueOf(settings.getPreviewWhiteBalance()));
+                pref.setEnabled(true);
             } else {
                 pref.setEnabled(false);
             }
         }
     }
 
+    /**
+     * ホワイトバランスの色温度を設定します.
+     *
+     * @param settings レコーダ設定
+     */
     private void setPreviewWhiteBalanceTemperaturePreference(HostMediaRecorder.Settings settings) {
         SeekBarDialogPreference pref = findPreference("preview_sensor_white_balance_temperature");
         if (pref != null) {
@@ -282,6 +268,7 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             if (range != null) {
                 pref.setMinValue(range.getLower());
                 pref.setMaxValue(range.getUpper());
+                pref.setEnabled(true);
             } else {
                 pref.setEnabled(false);
             }
@@ -300,34 +287,19 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             if (modeList != null && !modeList.isEmpty()) {
                 List<String> entryNames = new ArrayList<>();
                 List<String> entryValues = new ArrayList<>();
-                entryNames.add("None");
+                entryNames.add("none");
                 entryValues.add("none");
                 for (Integer mode : modeList) {
-                    switch (mode) {
-                        case CameraMetadata.CONTROL_AE_MODE_OFF:
-                            entryNames.add("OFF");
-                            break;
-                        case CameraMetadata.CONTROL_AE_MODE_ON:
-                            entryNames.add("ON");
-                            break;
-                        case CameraMetadata.CONTROL_AE_MODE_ON_AUTO_FLASH:
-                            entryNames.add("ON_AUTO_FLASH");
-                            break;
-                        case CameraMetadata.CONTROL_AE_MODE_ON_ALWAYS_FLASH:
-                            entryNames.add("ON_ALWAYS_FLASH");
-                            break;
-                        case CameraMetadata.CONTROL_AE_MODE_ON_AUTO_FLASH_REDEYE:
-                            entryNames.add("ON_AUTO_FLASH_REDEYE");
-                            break;
-                        case CameraMetadata.CONTROL_AE_MODE_ON_EXTERNAL_FLASH:
-                            entryNames.add("ON_EXTERNAL_FLASH");
-                            break;
+                    AutoExposure ae = AutoExposure.valueOf(mode);
+                    if (ae != null) {
+                        entryNames.add(ae.getName());
+                        entryValues.add(String.valueOf(mode));
                     }
-                    entryValues.add(String.valueOf(mode));
                 }
                 pref.setEntries(entryNames.toArray(new String[0]));
                 pref.setEntryValues(entryValues.toArray(new String[0]));
                 pref.setValue(String.valueOf(settings.getPreviewAutoExposureMode()));
+                pref.setEnabled(true);
             } else {
                 pref.setEnabled(false);
             }
@@ -341,6 +313,7 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             if (range != null) {
                 pref.setMinValue(range.getLower().intValue());
                 pref.setMaxValue(range.getUpper().intValue());
+                pref.setEnabled(true);
             } else {
                 pref.setEnabled(false);
             }
@@ -354,6 +327,7 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             if (range != null) {
                 pref.setMinValue(range.getLower());
                 pref.setMaxValue(range.getUpper());
+                pref.setEnabled(true);
             } else {
                 pref.setEnabled(false);
             }
@@ -367,6 +341,7 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             if (max != null) {
                 pref.setMinValue(0);
                 pref.setMaxValue(max.intValue());
+                pref.setEnabled(true);
             } else {
                 pref.setEnabled(false);
             }
@@ -380,22 +355,19 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             if (modeList != null && !modeList.isEmpty()) {
                 List<String> entryNames = new ArrayList<>();
                 List<String> entryValues = new ArrayList<>();
-                entryNames.add("None");
+                entryNames.add("none");
                 entryValues.add("none");
                 for (Integer mode : modeList) {
-                    switch (mode) {
-                        case CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON:
-                            entryNames.add("ON");
-                            break;
-                        case CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_OFF:
-                            entryNames.add("OFF");
-                            break;
+                    Stabilization s = Stabilization.valueOf(mode);
+                    if (s != null) {
+                        entryNames.add(s.getName());
+                        entryValues.add(String.valueOf(mode));
                     }
-                    entryValues.add(String.valueOf(mode));
                 }
                 pref.setEntries(entryNames.toArray(new String[0]));
                 pref.setEntryValues(entryValues.toArray(new String[0]));
                 pref.setValue(String.valueOf(settings.getStabilizationMode()));
+                pref.setEnabled(true);
             } else {
                 pref.setEnabled(false);
             }
@@ -409,22 +381,19 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             if (modeList != null && !modeList.isEmpty()) {
                 List<String> entryNames = new ArrayList<>();
                 List<String> entryValues = new ArrayList<>();
-                entryNames.add("None");
+                entryNames.add("none");
                 entryValues.add("none");
                 for (Integer mode : modeList) {
-                    switch (mode) {
-                        case CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON:
-                            entryNames.add("ON");
-                            break;
-                        case CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF:
-                            entryNames.add("OFF");
-                            break;
+                    OpticalStabilization ost = OpticalStabilization.valueOf(mode);
+                    if (ost != null) {
+                        entryNames.add(ost.getName());
+                        entryValues.add(String.valueOf(mode));
                     }
-                    entryValues.add(String.valueOf(mode));
                 }
                 pref.setEntries(entryNames.toArray(new String[0]));
                 pref.setEntryValues(entryValues.toArray(new String[0]));
                 pref.setValue(String.valueOf(settings.getOpticalStabilizationMode()));
+                pref.setEnabled(true);
             } else {
                 pref.setEnabled(false);
             }
@@ -438,31 +407,19 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             if (modeList != null && !modeList.isEmpty()) {
                 List<String> entryNames = new ArrayList<>();
                 List<String> entryValues = new ArrayList<>();
-                entryNames.add("None");
+                entryNames.add("none");
                 entryValues.add("none");
                 for (Integer mode : modeList) {
-                    switch (mode) {
-                        case CameraMetadata.NOISE_REDUCTION_MODE_FAST:
-                            entryNames.add("MODE_FAST");
-                            break;
-                        case CameraMetadata.NOISE_REDUCTION_MODE_HIGH_QUALITY:
-                            entryNames.add("HIGH_QUALITY");
-                            break;
-                        case CameraMetadata.NOISE_REDUCTION_MODE_MINIMAL:
-                            entryNames.add("MODE_MINIMAL");
-                            break;
-                        case CameraMetadata.NOISE_REDUCTION_MODE_OFF:
-                            entryNames.add("OFF");
-                            break;
-                        case CameraMetadata.NOISE_REDUCTION_MODE_ZERO_SHUTTER_LAG:
-                            entryNames.add("ZERO_SHUTTER_LAG");
-                            break;
+                    NoiseReduction nr = NoiseReduction.valueOf(mode);
+                    if (nr != null) {
+                        entryNames.add(nr.getName());
+                        entryValues.add(String.valueOf(mode));
                     }
-                    entryValues.add(String.valueOf(mode));
                 }
                 pref.setEntries(entryNames.toArray(new String[0]));
                 pref.setEntryValues(entryValues.toArray(new String[0]));
                 pref.setValue(String.valueOf(settings.getNoiseReduction()));
+                pref.setEnabled(true);
             } else {
                 pref.setEnabled(false);
             }
@@ -476,7 +433,7 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             if (modeList != null && !modeList.isEmpty()) {
                 List<String> entryNames = new ArrayList<>();
                 List<String> entryValues = new ArrayList<>();
-                entryNames.add("None");
+                entryNames.add("none");
                 entryValues.add("none");
                 for (Float mode : modeList) {
                     entryNames.add(String.valueOf(mode));
@@ -485,6 +442,7 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
                 pref.setEntries(entryNames.toArray(new String[0]));
                 pref.setEntryValues(entryValues.toArray(new String[0]));
                 pref.setValue(String.valueOf(settings.getFocalLength()));
+                pref.setEnabled(true);
             } else {
                 pref.setEnabled(false);
             }
@@ -542,6 +500,14 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         return previewSize.getWidth() + " x " + previewSize.getHeight();
     }
 
+    /**
+     * 文字列を Size に変換します.
+     *
+     * Size に変換できなかった場合には null を返却します。
+     *
+     * @param value 文字列のサイズ
+     * @return サイズ
+     */
     private Size getSizeFromValue(String value) {
         String[] t = value.split("x");
         if (t.length == 2) {
@@ -549,25 +515,32 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
                 int w = Integer.parseInt(t[0].trim());
                 int h = Integer.parseInt(t[1].trim());
                 return new Size(w, h);
-            } catch (NumberFormatException e) {
+            } catch (Exception e) {
                 return null;
             }
         }
         return null;
     }
 
+    /**
+     * プロファイルとレベルを文字列に変換します.
+     *
+     * @param encoderName エンコーダ
+     * @param pl プロファイルとレベル
+     * @return 文字列
+     */
     private String getProfileLevel(HostMediaRecorder.VideoEncoderName encoderName, HostMediaRecorder.ProfileLevel pl) {
         switch (encoderName) {
             case H264: {
-                HostMediaRecorder.H264Profile p = HostMediaRecorder.H264Profile.valueOf(pl.getProfile());
-                HostMediaRecorder.H264Level l = HostMediaRecorder.H264Level.valueOf(pl.getLevel());
+                H264Profile p = H264Profile.valueOf(pl.getProfile());
+                H264Level l = H264Level.valueOf(pl.getLevel());
                 if (p != null && l != null) {
                     return p.getName() + " - " + l.getName();
                 }
             }
             case H265: {
-                HostMediaRecorder.H265Profile p = HostMediaRecorder.H265Profile.valueOf(pl.getProfile());
-                HostMediaRecorder.H265Level l = HostMediaRecorder.H265Level.valueOf(pl.getLevel());
+                H265Profile p = H265Profile.valueOf(pl.getProfile());
+                H265Level l = H265Level.valueOf(pl.getLevel());
                 if (p != null && l != null) {
                     return p.getName() + " - " + l.getName();
                 }
@@ -576,6 +549,15 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         return null;
     }
 
+    /**
+     * 文字列をプロファイルとレベルに変換します.
+     *
+     * プロファイルとレベルに変換できなかった場合には、null を返却します。
+     *
+     * @param encoderName エンコーダ
+     * @param value 変換する文字列
+     * @return プロファイルとレベル
+     */
     private HostMediaRecorder.ProfileLevel getProfileLevel(HostMediaRecorder.VideoEncoderName encoderName, String value) {
         String[] t = value.split("-");
         if (t.length == 2) {
@@ -584,13 +566,13 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
                 String level = t[1].trim();
                 switch (encoderName) {
                     case H264: {
-                        HostMediaRecorder.H264Profile p = HostMediaRecorder.H264Profile.nameOf(profile);
-                        HostMediaRecorder.H264Level l = HostMediaRecorder.H264Level.nameOf(level);
+                        H264Profile p = H264Profile.nameOf(profile);
+                        H264Level l = H264Level.nameOf(level);
                         return new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue());
                     }
                     case H265: {
-                        HostMediaRecorder.H265Profile p = HostMediaRecorder.H265Profile.nameOf(profile);
-                        HostMediaRecorder.H265Level l = HostMediaRecorder.H265Level.nameOf(level);
+                        H265Profile p = H265Profile.nameOf(profile);
+                        H265Level l = H265Level.nameOf(level);
                         return new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue());
                     }
                 }
@@ -601,6 +583,9 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         return null;
     }
 
+    /**
+     * 設定が変更された時に呼び出されるリスナー.
+     */
     private final Preference.OnPreferenceChangeListener mOnPreferenceChangeListener = (preference, newValue) -> {
         String key = preference.getKey();
         if ("camera_picture_size".equals(key)) {

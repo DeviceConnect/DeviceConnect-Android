@@ -271,6 +271,7 @@ public class HostMediaRecorderManager {
         for (HostMediaRecorder recorder : getRecorders()) {
             recorder.clean();
         }
+        mMediaProjectionProvider.stop();
     }
 
     /**

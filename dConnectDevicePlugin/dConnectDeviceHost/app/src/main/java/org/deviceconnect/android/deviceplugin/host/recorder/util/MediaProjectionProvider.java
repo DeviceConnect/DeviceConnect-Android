@@ -15,6 +15,9 @@ import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.util.NotificationUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MediaProjectionProvider {
     /**
      * Notification Id
@@ -38,6 +41,11 @@ public class MediaProjectionProvider {
      */
     private final Handler mCallbackHandler = new Handler(Looper.getMainLooper());
 
+    /**
+     * パーミッションの確認している間に追加されたコールバックを格納するリスト.
+     */
+    private final List<Callback> mCallbackList = new ArrayList<>();
+
     public MediaProjectionProvider(Context context) {
         mContext = context;
         mMediaProjectionMgr = (MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
@@ -57,6 +65,10 @@ public class MediaProjectionProvider {
      */
     public void stop() {
         stopMediaProjection();
+
+        synchronized (mCallbackList) {
+            mCallbackList.clear();
+        }
     }
 
     /**
@@ -70,12 +82,22 @@ public class MediaProjectionProvider {
             return;
         }
 
+        synchronized (mCallbackList) {
+            if (!mCallbackList.isEmpty()) {
+                mCallbackList.add(callback);
+                return;
+            }
+            mCallbackList.add(callback);
+        }
+
         Intent intent = new Intent();
         intent.setClass(mContext, PermissionReceiverActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra(PermissionReceiverActivity.EXTRA_CALLBACK, new ResultReceiver(mCallbackHandler) {
             @Override
             protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                mCallbackHandler.removeCallbacks(mTimeoutRunnable);
+
                 if (resultCode == Activity.RESULT_OK) {
                     Intent data = resultData.getParcelable(PermissionReceiverActivity.RESULT_DATA);
                     if (data != null) {
@@ -84,10 +106,15 @@ public class MediaProjectionProvider {
                     }
                 }
 
-                if (mMediaProjection != null) {
-                    callback.onAllowed(mMediaProjection);
-                } else {
-                    callback.onDisallowed();
+                synchronized (mCallbackList) {
+                    for (Callback cb : mCallbackList) {
+                        if (mMediaProjection != null) {
+                            cb.onAllowed(mMediaProjection);
+                        } else{
+                            cb.onDisallowed();
+                        }
+                    }
+                    mCallbackList.clear();
                 }
             }
         });
@@ -102,8 +129,21 @@ public class MediaProjectionProvider {
             NotificationUtils.createNotificationChannel(mContext);
             NotificationUtils.notify(mContext, NOTIFICATION_ID, 0, intent,
                     mContext.getString(R.string.host_notification_projection_warnning));
+
+            // Notification が無視された場合のためにタイムアウトを設定しておく
+            mCallbackHandler.postDelayed(mTimeoutRunnable, 30 * 1000);
         }
     }
+
+    // タイムアウト処理
+    private final Runnable mTimeoutRunnable = () -> {
+        synchronized (mCallbackList) {
+            for (Callback cb : mCallbackList) {
+                cb.onDisallowed();
+            }
+            mCallbackList.clear();
+        }
+    };
 
     private synchronized void stopMediaProjection() {
         if (mMediaProjection != null) {

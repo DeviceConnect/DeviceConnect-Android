@@ -238,26 +238,30 @@ public class HostConnectionManager {
                 }
             }
         } else {
-            if (mMobileNetworkType == null || mMobileNetworkType == NetworkType.TYPE_NONE) {
-                Network n = mConnectivityManager.getActiveNetwork();
-                NetworkCapabilities capabilities = mConnectivityManager.getNetworkCapabilities(n);
-                if (capabilities != null) {
-                    boolean isWifi = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI);
-                    boolean isMobile = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR);
-                    boolean isBluetooth = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH);
-                    boolean isEthernet = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET);
-                    if (isWifi) {
-                        networkType = NetworkType.TYPE_WIFI;
-                    } else if (isEthernet) {
-                        networkType = NetworkType.TYPE_ETHERNET;
-                    } else if (isBluetooth) {
-                        networkType = NetworkType.TYPE_BLUETOOTH;
-                    } else if (isMobile) {
-                        networkType = NetworkType.TYPE_MOBILE;
+            Network n = mConnectivityManager.getActiveNetwork();
+            NetworkCapabilities capabilities = mConnectivityManager.getNetworkCapabilities(n);
+            if (capabilities != null) {
+                boolean isWifi = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI);
+                boolean isMobile = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR);
+                boolean isBluetooth = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH);
+                boolean isEthernet = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET);
+                if (isWifi) {
+                    networkType = NetworkType.TYPE_WIFI;
+                } else if (isEthernet) {
+                    networkType = NetworkType.TYPE_ETHERNET;
+                } else if (isBluetooth) {
+                    networkType = NetworkType.TYPE_BLUETOOTH;
+                } else if (isMobile) {
+                    networkType = NetworkType.TYPE_MOBILE;
+                    if (mMobileNetworkType != null && mMobileNetworkType != NetworkType.TYPE_NONE) {
+                        networkType = mMobileNetworkType;
+                    }
+                } else {
+                    networkType = NetworkType.TYPE_NONE;
+                    if (mMobileNetworkType != null && mMobileNetworkType != NetworkType.TYPE_NONE) {
+                        networkType = mMobileNetworkType;
                     }
                 }
-            } else {
-                return mMobileNetworkType;
             }
         }
 

@@ -133,7 +133,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
             mSettings.setPreviewQuality(80);
 
             mSettings.setPreviewAudioBitRate(64 * 1024);
-            mSettings.setPreviewSampleRate(8000);
+            mSettings.setPreviewSampleRate(16000);
             mSettings.setPreviewChannel(1);
             mSettings.setUseAEC(true);
 

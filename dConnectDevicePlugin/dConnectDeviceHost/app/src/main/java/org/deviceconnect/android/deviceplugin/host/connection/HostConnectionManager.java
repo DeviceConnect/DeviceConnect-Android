@@ -85,7 +85,6 @@ public class HostConnectionManager {
 
         @Override
         public void onLost(Network network) {
-            mMobileNetworkType = NetworkType.TYPE_NONE;
             postOnChangeNetwork();
         }
     };
@@ -554,12 +553,24 @@ public class HostConnectionManager {
      * @param context コンテキスト
      */
     public static void openUsageAccessSettings(Context context) {
-        Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS,
-                Uri.parse("package:" + context.getPackageName()));
         HostDeviceApplication app = (HostDeviceApplication) context.getApplicationContext();
         if (app.isDeviceConnectClassOfTopActivity() || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            context.startActivity(intent);
+            Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS,
+                    Uri.parse("package:" + context.getPackageName()));
+            try {
+                context.startActivity(intent);
+            } catch (Exception e) {
+                // アプリのパッケージを指定して、使用履歴許可が開けない場合には
+                // 使用履歴許可のアプリ一覧画面へ遷移させる。
+                intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+                try {
+                    context.startActivity(intent);
+                } catch (Exception exception) {
+                    // ignore.
+                }
+            }
         } else {
+            Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
             NotificationUtils.createNotificationChannel(context);
             NotificationUtils.notify(context, NOTIFICATION_ID, 0, intent,
                     context.getString(R.string.host_notification_connection_warnning));

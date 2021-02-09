@@ -288,12 +288,24 @@ public class ScreencastMainFragment extends HostDevicePluginBindPreferenceFragme
             Handler h = new Handler(Looper.getMainLooper());
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:" + context.getPackageName()));
-            IntentHandlerActivity.startActivityForResult(context, intent, new ResultReceiver(h) {
-                @Override
-                protected void onReceiveResult(int resultCode, Bundle resultData) {
-                    setOverlaySwitch();
-                }
-            });
+            try {
+                IntentHandlerActivity.startActivityForResult(context, intent, new ResultReceiver(h) {
+                    @Override
+                    protected void onReceiveResult(int resultCode, Bundle resultData) {
+                        setOverlaySwitch();
+                    }
+                });
+            } catch (Exception e) {
+                // パッケージを指定して、フローティング表示画面が表示できなかった場合には、
+                // フローティング表示画面のアプリ一覧画面を開く。
+                intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                IntentHandlerActivity.startActivityForResult(context, intent, new ResultReceiver(h) {
+                    @Override
+                    protected void onReceiveResult(int resultCode, Bundle resultData) {
+                        setOverlaySwitch();
+                    }
+                });
+            }
         }
     }
 }

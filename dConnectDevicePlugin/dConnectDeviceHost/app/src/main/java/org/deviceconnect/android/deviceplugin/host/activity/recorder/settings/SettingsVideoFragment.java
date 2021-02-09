@@ -60,19 +60,37 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         setPreviewOpticalStabilization(settings);
         setPreviewNoiseReduction(settings);
         setPreviewFocalLength(settings);
-        setPreviewJpegQuality(settings);
+
+        setPreviewJpegQuality();
         setPreviewCutOutReset();
 
         setInputTypeNumber("preview_framerate");
         setInputTypeNumber("preview_bitrate");
         setInputTypeNumber("preview_i_frame_interval");
         setInputTypeNumber("preview_intra_refresh");
-        setInputTypeNumber("preview_clip_left");
-        setInputTypeNumber("preview_clip_top");
-        setInputTypeNumber("preview_clip_right");
-        setInputTypeNumber("preview_clip_bottom");
+
+        setPreviewClipPreference("preview_clip_left");
+        setPreviewClipPreference("preview_clip_top");
+        setPreviewClipPreference("preview_clip_right");
+        setPreviewClipPreference("preview_clip_bottom");
     }
 
+    /**
+     * 切り抜き範囲の設定にリスナーを設定します.
+     *
+     * @param key キー
+     */
+    public void setPreviewClipPreference(String key) {
+        EditTextPreference pref = findPreference(key);
+        if (pref != null) {
+            pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
+            setInputTypeNumber(key);
+        }
+    }
+
+    /**
+     * 切り抜き範囲のリセットボタンのリスナーを設定します.
+     */
     private void setPreviewCutOutReset() {
         PreferenceScreen pref = findPreference("preview_clip_reset");
         if (pref != null) {
@@ -85,9 +103,7 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
                 right.setText(null);
                 EditTextPreference bottom = findPreference("preview_clip_bottom");
                 bottom.setText(null);
-
                 mMediaRecorder.getSettings().setDrawingRange(null);
-
                 return false;
             });
         }
@@ -333,6 +349,11 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         }
     }
 
+    /**
+     * レコーダでサポートしている露出時間の範囲を設定します.
+     *
+     * @param settings レコーダ設定
+     */
     private void setPreviewSensorExposureTime(HostMediaRecorder.Settings settings) {
         SeekBarDialogPreference pref = findPreference("preview_sensor_exposure_time");
         if (pref != null) {
@@ -347,6 +368,11 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         }
     }
 
+    /**
+     * レコーダでサポートしている ISO 感度の範囲を設定します.
+     *
+     * @param settings レコーダ設定
+     */
     private void setPreviewSensorSensitivity(HostMediaRecorder.Settings settings) {
         SeekBarDialogPreference pref = findPreference("preview_sensor_sensitivity");
         if (pref != null) {
@@ -361,6 +387,11 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         }
     }
 
+    /**
+     * レコーダでサポートしているフレーム期間の範囲を設定します.
+     *
+     * @param settings レコーダ設定
+     */
     private void setPreviewSensorFrameDuration(HostMediaRecorder.Settings settings) {
         SeekBarDialogPreference pref = findPreference("preview_sensor_frame_duration");
         if (pref != null) {
@@ -375,6 +406,11 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         }
     }
 
+    /**
+     * レコーダでサポートしている手ぶれ補正を設定します.
+     *
+     * @param settings レコーダ設定
+     */
     private void setPreviewStabilization(HostMediaRecorder.Settings settings) {
         ListPreference pref = findPreference("preview_stabilization_mode");
         if (pref != null) {
@@ -401,6 +437,11 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         }
     }
 
+    /**
+     * レコーダでサポートしている光学手ぶれ補正を設定します.
+     *
+     * @param settings レコーダ設定
+     */
     private void setPreviewOpticalStabilization(HostMediaRecorder.Settings settings) {
         ListPreference pref = findPreference("preview_optical_stabilization_mode");
         if (pref != null) {
@@ -427,6 +468,11 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         }
     }
 
+    /**
+     * レコーダでサポートしているノイズ低減モードを設定します.
+     *
+     * @param settings レコーダ設定
+     */
     private void setPreviewNoiseReduction(HostMediaRecorder.Settings settings) {
         ListPreference pref = findPreference("preview_reduction_noise");
         if (pref != null) {
@@ -453,6 +499,11 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         }
     }
 
+    /**
+     * レコーダでサポートしている焦点距離を設定します.
+     *
+     * @param settings レコーダ設定
+     */
     private void setPreviewFocalLength(HostMediaRecorder.Settings settings) {
         ListPreference pref = findPreference("preview_focal_length");
         if (pref != null) {
@@ -476,7 +527,10 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         }
     }
 
-    private void setPreviewJpegQuality(HostMediaRecorder.Settings settings) {
+    /**
+     * JPEG クオリティを設定します.
+     */
+    private void setPreviewJpegQuality() {
         SeekBarDialogPreference pref = findPreference("preview_jpeg_quality");
         if (pref != null) {
             pref.setMinValue(0);
@@ -620,31 +674,93 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
     }
 
     /**
+     * 切り抜き範囲の値を取得します.
+     *
+     * 未設定の場合には null を返却します。
+     *
+     * @param key キー
+     * @return 切り抜き範囲
+     */
+    private Integer getDrawingRange(String key) {
+        EditTextPreference pref = findPreference(key);
+        if (pref != null) {
+            try {
+                return Integer.parseInt(pref.getText());
+            } catch (NumberFormatException e) {
+                // ignore.
+            }
+        }
+        return null;
+    }
+
+    /**
      * 設定が変更された時に呼び出されるリスナー.
      */
     private final Preference.OnPreferenceChangeListener mOnPreferenceChangeListener = (preference, newValue) -> {
+        if (mMediaRecorder == null) {
+            return false;
+        }
+
+        HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
+
         String key = preference.getKey();
         if ("camera_picture_size".equals(key)) {
             Size size = getSizeFromValue((String) newValue);
             if (size != null) {
-                mMediaRecorder.getSettings().setPictureSize(size);
+                settings.setPictureSize(size);
             }
         } else if ("camera_preview_size".equals(key)) {
             Size size = getSizeFromValue((String) newValue);
             if (size != null) {
-                mMediaRecorder.getSettings().setPreviewSize(size);
+                settings.setPreviewSize(size);
             }
         } else if ("preview_encoder".equals(key)) {
-            if (mMediaRecorder != null) {
-                mMediaRecorder.getSettings().setProfileLevel(null);
-                HostMediaRecorder.VideoEncoderName encoderName =
-                        HostMediaRecorder.VideoEncoderName.nameOf((String) newValue);
-                setPreviewProfileLevelPreference(mMediaRecorder.getSettings(), encoderName, true);
-            }
+            // エンコーダが切り替えられたので、プロファイル・レベルは一旦削除しておく
+            settings.setProfileLevel(null);
+            HostMediaRecorder.VideoEncoderName encoderName =
+                    HostMediaRecorder.VideoEncoderName.nameOf((String) newValue);
+            setPreviewProfileLevelPreference(settings, encoderName, true);
         } else if ("preview_profile_level".equalsIgnoreCase(key)) {
-            if (mMediaRecorder != null) {
-                HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
-                settings.setProfileLevel(getProfileLevel(settings.getPreviewEncoderName(), (String) newValue));
+            settings.setProfileLevel(getProfileLevel(settings.getPreviewEncoderName(), (String) newValue));
+        } else if ("preview_clip_left".equalsIgnoreCase(key)) {
+            try {
+                int clipLeft = Integer.parseInt((String) newValue);
+                Integer clipRight = getDrawingRange("preview_clip_right");
+                if (clipRight != null && clipRight <= clipLeft) {
+                    return false;
+                }
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        } else if ("preview_clip_top".equalsIgnoreCase(key)) {
+            try {
+                int clipTop = Integer.parseInt((String) newValue);
+                Integer clipBottom = getDrawingRange("preview_clip_bottom");
+                if (clipBottom != null && clipBottom <= clipTop) {
+                    return false;
+                }
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        } else if ("preview_clip_right".equalsIgnoreCase(key)) {
+            try {
+                int clipRight = Integer.parseInt((String) newValue);
+                Integer clipLeft = getDrawingRange("preview_clip_left");
+                if (clipLeft != null && clipRight <= clipLeft) {
+                    return false;
+                }
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        } else if ("preview_clip_bottom".equalsIgnoreCase(key)) {
+            try {
+                int clipBottom = Integer.parseInt((String) newValue);
+                Integer clipTop = getDrawingRange("preview_clip_top");
+                if (clipTop != null && clipBottom <= clipTop) {
+                    return false;
+                }
+            } catch (NumberFormatException e) {
+                return false;
             }
         }
         return true;

@@ -123,7 +123,13 @@ public final class PropertyUtil {
         String b = mPref.getString(bottomKey, null);
         if (l != null && t != null && r != null && b != null) {
             try {
-                return new Rect(Integer.parseInt(l), Integer.parseInt(t), Integer.parseInt(r), Integer.parseInt(b));
+                int left = Integer.parseInt(l);
+                int top = Integer.parseInt(t);
+                int right = Integer.parseInt(r);
+                int bottom = Integer.parseInt(b);
+                if (left > 0 && top > 0 && right > 0 && bottom > 0) {
+                    return new Rect(left, top, right, bottom);
+                }
             } catch (Exception e) {
                 // ignore.
             }

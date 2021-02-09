@@ -277,11 +277,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         super.onResume();
         refreshUI();
 
-        Context context = getContext();
-        if (context != null && !HostConnectionManager.checkUsageAccessSettings(context)) {
-            HostConnectionManager.openUsageAccessSettings(context);
-        }
-
         CameraActivity a = (CameraActivity) getActivity();
         if (a != null) {
             a.hideSystemUI();

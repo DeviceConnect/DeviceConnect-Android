@@ -9,10 +9,8 @@ import org.deviceconnect.android.deviceplugin.host.BR;
 import org.deviceconnect.android.deviceplugin.host.R;
 
 public class CameraMainViewModel extends BaseObservable {
-    private String mNetworkType = "";
     private String mBitRate = "";
     private String mTemperature = "";
-    private String mBatteryLevel = "";
 
     private int mTogglePreviewResId = R.drawable.ic_baseline_tap_and_play_48;
     private int mToggleBroadcastResId = R.drawable.ic_baseline_cloud_upload_48;

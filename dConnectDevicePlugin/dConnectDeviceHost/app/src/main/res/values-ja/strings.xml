@@ -25,8 +25,15 @@
     <string name="host_error_positive">はい</string>
     <string name="host_error_negative">いいえ</string>
     <string name="host_error_cancel">キャンセル</string>
+    <string name="host_error_usage_stats_title">使用履歴許可エラー</string>
+    <string name="host_error_usage_stats_message">使用履歴許可が取得できませんでした。\n通信量を計測することができませんがアプリを続けますか？</string>
 
     <string name="host_manager_starting_confirm">Device Connect Manager に接続中</string>
+    <string name="host_manager_permission_confirm">このアプリで使用する以下のパーミッションを取得する必要があります。\n\n    - 写真と動画の撮影\n    - 音声の録音\n    - デバイス内の写真やメディアへのアクセス\n\nモバイルネットワークの通信量を取得するために以下のパーミッションを取得する必要があります。\n\n    - 電話の発信と管理</string>
+    <string name="host_manager_permission_button">パーミッション取得</string>
+    <string name="host_manager_usage_stats_confirm">このアプリでは、ネットワークの通信量を取得するために使用履歴へのアクセス許可を取得する必要があります。</string>
+    <string name="host_manager_usage_stats_button">使用履歴画面を開く</string>
+    <string name="host_manager_main_button">　　アプリ起動　　</string>
 
     <string name="host_recorder_failed_to_broadcast">ブロードキャストに失敗しました</string>
     <string name="host_recorder_failed_to_start_preview">プレビュー配信に失敗しました</string>

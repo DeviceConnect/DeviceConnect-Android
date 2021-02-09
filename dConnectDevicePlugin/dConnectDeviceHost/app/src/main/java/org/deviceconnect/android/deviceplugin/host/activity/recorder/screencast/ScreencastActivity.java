@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.host.activity.recorder.screencast;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 
 import androidx.appcompat.app.ActionBar;
@@ -23,6 +24,7 @@ public class ScreencastActivity extends HostDevicePluginBindActivity {
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
+            Log.e("ABC", "AAAAAAAAA");
             onBackPressed();
             return true;
         }

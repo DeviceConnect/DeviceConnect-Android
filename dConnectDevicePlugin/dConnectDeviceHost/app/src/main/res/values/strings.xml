@@ -24,8 +24,15 @@
     <string name="host_error_positive">OK</string>
     <string name="host_error_negative">NG</string>
     <string name="host_error_cancel">Cancel</string>
+    <string name="host_error_usage_stats_title">Usage Stats</string>
+    <string name="host_error_usage_stats_message">Couldn\'t get usage stats permission. </string>
 
     <string name="host_manager_starting_confirm">Connecting to Device Connect Manager</string>
+    <string name="host_manager_permission_confirm">Need to get the following permissions to use with this app.\n    -Taking photos and videos\n    - Audio recording\n    - Access to external storage\n\nNeed to get the following permissions to get mobile network traffic.\n    - Read phone state</string>
+    <string name="host_manager_permission_button">Permission</string>
+    <string name="host_manager_usage_stats_confirm">Need to get permission for usage stats to get network traffic.</string>
+    <string name="host_manager_usage_stats_button">Open usage stats</string>
+    <string name="host_manager_main_button">Launch to app</string>
 
     <string name="host_recorder_failed_to_broadcast">Failed to start a broadcast.</string>
     <string name="host_recorder_failed_to_start_preview">Failed to start a preview server.</string>

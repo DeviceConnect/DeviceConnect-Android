@@ -285,9 +285,21 @@ public class HostConnectionProfile extends ConnectionProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            setResult(response, DConnectMessage.RESULT_OK);
-            response.putExtra("network", mHostConnectionManager.getActivityNetworkString());
-            return true;
+            mHostConnectionManager.requestPermission(new HostConnectionManager.PermissionCallback() {
+                @Override
+                public void onAllowed() {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    response.putExtra("network", mHostConnectionManager.getActivityNetworkString());
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onDisallowed() {
+                    MessageUtils.setIllegalServerStateError(response, "Permission denied.");
+                    sendResponse(response);
+                }
+            });
+            return false;
         }
     };
 
@@ -305,13 +317,25 @@ public class HostConnectionProfile extends ConnectionProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            EventError error = EventManager.INSTANCE.addEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else {
-                setResult(response, DConnectMessage.RESULT_ERROR);
-            }
-            return true;
+            mHostConnectionManager.requestPermission(new HostConnectionManager.PermissionCallback() {
+                @Override
+                public void onAllowed() {
+                    EventError error = EventManager.INSTANCE.addEvent(request);
+                    if (error == EventError.NONE) {
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    } else {
+                        setResult(response, DConnectMessage.RESULT_ERROR);
+                    }
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onDisallowed() {
+                    MessageUtils.setIllegalServerStateError(response, "Permission denied.");
+                    sendResponse(response);
+                }
+            });
+            return false;
         }
     };
 
@@ -329,13 +353,25 @@ public class HostConnectionProfile extends ConnectionProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else {
-                MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
-            }
-            return true;
+            mHostConnectionManager.requestPermission(new HostConnectionManager.PermissionCallback() {
+                @Override
+                public void onAllowed() {
+                    EventError error = EventManager.INSTANCE.removeEvent(request);
+                    if (error == EventError.NONE) {
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    } else {
+                        MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
+                    }
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onDisallowed() {
+                    MessageUtils.setIllegalServerStateError(response, "Permission denied.");
+                    sendResponse(response);
+                }
+            });
+            return false;
         }
     };
 

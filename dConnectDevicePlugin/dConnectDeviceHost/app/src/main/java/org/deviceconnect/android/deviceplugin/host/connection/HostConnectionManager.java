@@ -79,12 +79,12 @@ public class HostConnectionManager {
 
     private final ConnectivityManager.NetworkCallback mNetworkCallback = new ConnectivityManager.NetworkCallback() {
         @Override
-        public void onAvailable(Network network) {
+        public void onAvailable(@NonNull Network network) {
             postOnChangeNetwork();
         }
 
         @Override
-        public void onLost(Network network) {
+        public void onLost(@NonNull Network network) {
             postOnChangeNetwork();
         }
     };
@@ -279,8 +279,14 @@ public class HostConnectionManager {
         TYPE_NR_NSA_MMWAV
     }
 
-    private void registerTelephony() {
+    private boolean mRegisterTelephonyManager;
+
+    private synchronized void registerTelephony() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (mRegisterTelephonyManager) {
+                return;
+            }
+
             try {
                 mTelephonyManager = (TelephonyManager) mPluginContext.getContext()
                         .getSystemService(Context.TELEPHONY_SERVICE);
@@ -288,6 +294,7 @@ public class HostConnectionManager {
                     int events = PhoneStateListener.LISTEN_SIGNAL_STRENGTHS;
                     events |= PhoneStateListener.LISTEN_DISPLAY_INFO_CHANGED;
                     mTelephonyManager.listen(mPhoneStateListener, events);
+                    mRegisterTelephonyManager = true;
                 }
             } catch (Exception e) {
                 // ignore.
@@ -295,13 +302,14 @@ public class HostConnectionManager {
         }
     }
 
-    private void unregisterTelephony() {
+    private synchronized void unregisterTelephony() {
         if (mTelephonyManager != null) {
             try {
                 mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
             } catch (Exception e) {
                 // ignore.
             }
+            mRegisterTelephonyManager = false;
         }
     }
 
@@ -603,6 +611,7 @@ public class HostConnectionManager {
                 new PermissionUtility.PermissionRequestCallback() {
                     @Override
                     public void onSuccess() {
+                        registerTelephony();
                         callback.onAllowed();
                     }
 

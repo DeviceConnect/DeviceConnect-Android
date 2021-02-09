@@ -48,8 +48,8 @@ public class HostConnectionManager {
     private final DevicePluginContext mPluginContext;
     private final WifiManager mWifiManager;
     private final BluetoothAdapter mBluetoothAdapter;
-    private final TelephonyManager mTelephonyManager;
     private final ConnectivityManager mConnectivityManager;
+    private  TelephonyManager mTelephonyManager;
     private NetworkType mMobileNetworkType = NetworkType.TYPE_NONE;
     private HostTrafficMonitor mTrafficMonitor;
     private final Handler mCallbackHandler = new Handler(Looper.getMainLooper());
@@ -138,9 +138,6 @@ public class HostConnectionManager {
         mWifiManager = (WifiManager) mPluginContext.getContext()
                 .getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
-        mTelephonyManager = (TelephonyManager) mPluginContext.getContext()
-                .getSystemService(Context.TELEPHONY_SERVICE);
-
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         mConnectivityManager = (ConnectivityManager) mPluginContext.getContext()
@@ -207,6 +204,7 @@ public class HostConnectionManager {
                 return context.getString(R.string.host_connection_network_type_nsa);
             case TYPE_NR_NSA_MMWAV:
                 return context.getString(R.string.host_connection_network_type_nsa_mmwav);
+            case TYPE_NONE:
             default:
                 return context.getString(R.string.host_connection_network_type_no_connect);
         }
@@ -239,21 +237,23 @@ public class HostConnectionManager {
                 }
             }
         } else {
-            Network n = mConnectivityManager.getActiveNetwork();
-            NetworkCapabilities capabilities = mConnectivityManager.getNetworkCapabilities(n);
-            if (capabilities != null) {
-                boolean isWifi = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI);
-                boolean isMobile = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR);
-                boolean isBluetooth = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH);
-                boolean isEthernet = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET);
-                if (isWifi) {
-                    networkType = NetworkType.TYPE_WIFI;
-                } else if (isEthernet) {
-                    networkType = NetworkType.TYPE_ETHERNET;
-                } else if (isBluetooth) {
-                    networkType = NetworkType.TYPE_BLUETOOTH;
-                } else if (isMobile) {
-                    networkType = NetworkType.TYPE_MOBILE;
+            if (mMobileNetworkType == null || mMobileNetworkType == NetworkType.TYPE_NONE) {
+                Network n = mConnectivityManager.getActiveNetwork();
+                NetworkCapabilities capabilities = mConnectivityManager.getNetworkCapabilities(n);
+                if (capabilities != null) {
+                    boolean isWifi = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI);
+                    boolean isMobile = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR);
+                    boolean isBluetooth = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH);
+                    boolean isEthernet = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET);
+                    if (isWifi) {
+                        networkType = NetworkType.TYPE_WIFI;
+                    } else if (isEthernet) {
+                        networkType = NetworkType.TYPE_ETHERNET;
+                    } else if (isBluetooth) {
+                        networkType = NetworkType.TYPE_BLUETOOTH;
+                    } else if (isMobile) {
+                        networkType = NetworkType.TYPE_MOBILE;
+                    }
                 }
             } else {
                 return mMobileNetworkType;
@@ -276,13 +276,15 @@ public class HostConnectionManager {
     }
 
     private void registerTelephony() {
-        if (mTelephonyManager != null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             try {
-                int events = PhoneStateListener.LISTEN_SIGNAL_STRENGTHS;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                mTelephonyManager = (TelephonyManager) mPluginContext.getContext()
+                        .getSystemService(Context.TELEPHONY_SERVICE);
+                if (mTelephonyManager != null) {
+                    int events = PhoneStateListener.LISTEN_SIGNAL_STRENGTHS;
                     events |= PhoneStateListener.LISTEN_DISPLAY_INFO_CHANGED;
+                    mTelephonyManager.listen(mPhoneStateListener, events);
                 }
-                mTelephonyManager.listen(mPhoneStateListener, events);
             } catch (Exception e) {
                 // ignore.
             }

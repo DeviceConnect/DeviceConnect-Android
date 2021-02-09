@@ -389,13 +389,42 @@ public class HostConnectionProfile extends ConnectionProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            List<HostTraffic> trafficList = mHostConnectionManager.getTrafficList();
-            for (HostTraffic traffic : trafficList) {
-                response.putExtra(convertNetworkTypeToString(
-                        traffic.getNetworkType()), createNetworkBitrate(traffic));
+            if (HostConnectionManager.checkUsageAccessSettings(getContext())) {
+                List<HostTraffic> trafficList = mHostConnectionManager.getTrafficList();
+                for (HostTraffic traffic : trafficList) {
+                    response.putExtra(convertNetworkTypeToString(
+                            traffic.getNetworkType()), createNetworkBitrate(traffic));
+                }
+                setResult(response, DConnectMessage.RESULT_OK);
+                return true;
+            } else {
+                HostConnectionManager.openUsageAccessSettings(getContext());
+
+                // 使用履歴が有効になるのをポーリングしながら待機
+                for (int i = 0; i < 10; i++) {
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e) {
+                        break;
+                    }
+                    if (HostConnectionManager.checkUsageAccessSettings(getContext())) {
+                        break;
+                    }
+                }
+
+                if (HostConnectionManager.checkUsageAccessSettings(getContext())) {
+                    List<HostTraffic> trafficList = mHostConnectionManager.getTrafficList();
+                    for (HostTraffic traffic : trafficList) {
+                        response.putExtra(convertNetworkTypeToString(
+                                traffic.getNetworkType()), createNetworkBitrate(traffic));
+                    }
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else {
+                    MessageUtils.setIllegalServerStateError(response, "Failed to start collecting a traffic.");
+                }
+
+                return true;
             }
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
         }
     };
 

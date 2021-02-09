@@ -417,6 +417,7 @@ public class OverlayManager {
         } else {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:" + context.getPackageName()));
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             IntentHandlerActivity.startActivityForResult(context, intent, new ResultReceiver(handler) {
                 @Override
                 protected void onReceiveResult(int resultCode, Bundle resultData) {

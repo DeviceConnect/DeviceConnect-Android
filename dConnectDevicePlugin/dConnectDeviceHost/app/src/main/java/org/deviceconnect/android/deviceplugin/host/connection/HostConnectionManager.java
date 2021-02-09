@@ -566,19 +566,22 @@ public class HostConnectionManager {
             Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS,
                     Uri.parse("package:" + context.getPackageName()));
             try {
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intent);
             } catch (Exception e) {
                 // アプリのパッケージを指定して、使用履歴許可が開けない場合には
                 // 使用履歴許可のアプリ一覧画面へ遷移させる。
                 intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 try {
                     context.startActivity(intent);
-                } catch (Exception exception) {
+                } catch (Exception ignore) {
                     // ignore.
                 }
             }
         } else {
             Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             NotificationUtils.createNotificationChannel(context);
             NotificationUtils.notify(context, NOTIFICATION_ID, 0, intent,
                     context.getString(R.string.host_notification_connection_warnning));

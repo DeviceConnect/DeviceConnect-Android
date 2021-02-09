@@ -167,8 +167,10 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         Size maxSize = CapabilityUtil.getSupportedMaxSize("video/avc");
         List<Size> supportPreviewSizes = new ArrayList<>();
         for (Size size : options.getSupportedPreviewSizeList()) {
-            if (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight()) {
-                supportPreviewSizes.add(size);
+            if (maxSize != null) {
+                if (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight()) {
+                    supportPreviewSizes.add(size);
+                }
             }
         }
 

@@ -70,9 +70,11 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
     public void start() {
         HostMediaRecorder.Settings settings = mRecorder.getSettings();
         Size previewSize = settings.getPreviewSize();
-        setSize(previewSize.getWidth(), previewSize.getHeight());
-        setDrawingRange(settings.getDrawingRange());
-        super.start();
+        if (previewSize != null) {
+            setSize(previewSize.getWidth(), previewSize.getHeight());
+            setDrawingRange(settings.getDrawingRange());
+            super.start();
+        }
     }
 
     private void startCamera(SurfaceTexture surfaceTexture) {

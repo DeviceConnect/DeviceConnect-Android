@@ -133,16 +133,28 @@ public class HostMediaRecorderManager {
      */
     private void initRecorders() {
         if (checkCameraHardware(getContext())) {
-            mCameraWrapperManager = new CameraWrapperManager(getContext());
-            createCameraRecorders(mCameraWrapperManager, mFileManager);
+            try {
+                mCameraWrapperManager = new CameraWrapperManager(getContext());
+                createCameraRecorders(mCameraWrapperManager, mFileManager);
+            } catch (Exception e) {
+                // ignore.
+            }
         }
 
         if (checkMicrophone(getContext())) {
-            createAudioRecorders(mFileManager);
+            try {
+                createAudioRecorders(mFileManager);
+            } catch (Exception e) {
+                // ignore.
+            }
         }
 
         if (checkMediaProjection()) {
-            createScreenCastRecorder(mFileManager);
+            try {
+                createScreenCastRecorder(mFileManager);
+            } catch (Exception e) {
+                // ignore.
+            }
         }
 
         for (HostMediaRecorder recorder : mRecorders) {

@@ -113,8 +113,10 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
             Size size = new Size(width, height);
             supportPictureSizes.add(size);
-            if (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight()) {
-                supportPreviewSizes.add(size);
+            if (maxSize != null) {
+                if (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight()) {
+                    supportPreviewSizes.add(size);
+                }
             }
         }
         mSettings.mSupportedPreviewSize = supportPreviewSizes;

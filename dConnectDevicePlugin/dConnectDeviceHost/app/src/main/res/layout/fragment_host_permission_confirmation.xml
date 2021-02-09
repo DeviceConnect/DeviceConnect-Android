@@ -36,6 +36,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_margin="16dp"
+                android:minWidth="200dp"
                 android:background="@drawable/button_blue"
                 android:onClick="@{() -> presenter.onClickRequestPermissionsButton()}"
                 android:paddingStart="16dp"

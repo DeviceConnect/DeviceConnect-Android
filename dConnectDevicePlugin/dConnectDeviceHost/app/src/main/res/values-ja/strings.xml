@@ -33,7 +33,7 @@
     <string name="host_manager_permission_button">パーミッション取得</string>
     <string name="host_manager_usage_stats_confirm">このアプリでは、ネットワークの通信量を取得するために使用履歴へのアクセス許可を取得する必要があります。</string>
     <string name="host_manager_usage_stats_button">使用履歴画面を開く</string>
-    <string name="host_manager_main_button">　　アプリ起動　　</string>
+    <string name="host_manager_main_button">アプリ起動</string>
 
     <string name="host_recorder_failed_to_broadcast">ブロードキャストに失敗しました</string>
     <string name="host_recorder_failed_to_start_preview">プレビュー配信に失敗しました</string>
@@ -166,8 +166,8 @@
     <string name="host_app_screencast_recording_summary">画面の録画を行います。</string>
     <string name="host_app_screencast_settings">設定</string>
     <string name="host_app_screencast_settings_change">設定変更</string>
-    <string name="host_app_screencast_settings_overlay">オーバーレイ</string>
-    <string name="host_app_screencast_settings_overlay_summary">スクリーンキャスト中に画面が更新されない場合に強制的に画面を更新するためにオーバーレイを使用します。</string>
+    <string name="host_app_screencast_settings_overlay">フローティング表示</string>
+    <string name="host_app_screencast_settings_overlay_summary">スクリーンキャスト中に画面が更新されない場合に強制的に画面を更新するためにフローティング表示を使用します。</string>
 
     <!-- Canvas プロファイル画面 -->
     <string name="host_canvas_download_title">ダウンロード</string>

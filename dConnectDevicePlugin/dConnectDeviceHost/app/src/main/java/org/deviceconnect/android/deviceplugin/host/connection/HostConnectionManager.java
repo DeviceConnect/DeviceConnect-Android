@@ -15,6 +15,7 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.NetworkRequest;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -549,7 +550,8 @@ public class HostConnectionManager {
      * @param context コンテキスト
      */
     public static void openUsageAccessSettings(Context context) {
-        Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+        Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS,
+                Uri.parse("package:" + context.getPackageName()));
         HostDeviceApplication app = (HostDeviceApplication) context.getApplicationContext();
         if (app.isDeviceConnectClassOfTopActivity() || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             context.startActivity(intent);

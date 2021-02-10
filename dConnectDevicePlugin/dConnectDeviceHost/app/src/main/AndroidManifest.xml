@@ -132,6 +132,10 @@
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin.name"
                 android:value="@string/app_name_host" />
+
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin.icon"
+                android:resource="@drawable/dconnect_icon" />
         </service>
 
         <!-- Device Connect API リクエストのレシーバー -->

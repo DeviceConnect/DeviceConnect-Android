@@ -30,7 +30,8 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
-        tools:ignore="ProtectedPermissions"/>
+        tools:ignore="ProtectedPermissions" />
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -127,6 +128,10 @@
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/org_deviceconnect_android_deviceplugin_host" />
+
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin.name"
+                android:value="@string/app_name_host" />
         </service>
 
         <!-- Device Connect API リクエストのレシーバー -->

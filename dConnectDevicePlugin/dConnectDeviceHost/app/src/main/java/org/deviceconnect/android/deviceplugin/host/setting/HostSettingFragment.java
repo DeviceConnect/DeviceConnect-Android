@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.host.setting;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.preference.Preference;
@@ -17,8 +16,6 @@ import androidx.preference.PreferenceScreen;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.fragment.HostDevicePluginBindPreferenceFragment;
-import org.deviceconnect.android.deviceplugin.host.activity.recorder.camera.CameraActivity;
-import org.deviceconnect.android.deviceplugin.host.activity.recorder.screencast.ScreencastActivity;
 import org.deviceconnect.android.deviceplugin.host.activity.recorder.settings.SettingsActivity;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 
@@ -43,26 +40,13 @@ public class HostSettingFragment extends HostDevicePluginBindPreferenceFragment 
     public boolean onPreferenceTreeClick(final Preference preference) {
         boolean result = super.onPreferenceTreeClick(preference);
 
-        Activity activity = getActivity();
-        if (activity == null) {
-            return result;
-        }
-        Context context = activity.getApplicationContext();
-
         // 各説明をダイアログで表示
-        Intent intent = null;
         if (getString(R.string.pref_key_settings_gps).equals(preference.getKey())) {
             findNavController(this).navigate(R.id.action_settings_to_gps);
-        } else if (getString(R.string.pref_key_settings_app_camera).equals(preference.getKey())) {
-            intent = new Intent(context, CameraActivity.class);
-        } else if (getString(R.string.pref_key_settings_app_screen_capture).equals(preference.getKey())) {
-            intent = new Intent(context, ScreencastActivity.class);
+        } else if (getString(R.string.pref_key_settings_usage_stats).equals(preference.getKey())) {
+            findNavController(this).navigate(R.id.action_settings_to_usage_stats);
         } else if (getString(R.string.pref_key_settings_demo_page).equals(preference.getKey())) {
             findNavController(this).navigate(R.id.action_settings_to_demo);
-        }
-        if (intent != null) {
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            activity.startActivity(intent);
         }
 
         return result;

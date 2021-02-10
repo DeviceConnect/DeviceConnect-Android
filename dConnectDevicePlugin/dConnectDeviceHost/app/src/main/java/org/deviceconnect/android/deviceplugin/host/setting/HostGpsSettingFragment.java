@@ -20,7 +20,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.deviceconnect.android.activity.PermissionUtility;
@@ -98,7 +97,6 @@ public class HostGpsSettingFragment extends BaseHostSettingPageFragment {
     }
 
     private void requestPermissions() {
-
         PermissionUtility.requestPermissions(getActivity(), mHandler,
                 GPS_PERMISSIONS,
                 new PermissionUtility.PermissionRequestCallback() {
@@ -106,9 +104,8 @@ public class HostGpsSettingFragment extends BaseHostSettingPageFragment {
                     public void onSuccess() {
                     }
 
-                    @NonNull
                     @Override
-                    public void onFail(final String deniedPermission) {
+                    public void onFail(@androidx.annotation.NonNull String deniedPermission) {
                     }
                 });
     }

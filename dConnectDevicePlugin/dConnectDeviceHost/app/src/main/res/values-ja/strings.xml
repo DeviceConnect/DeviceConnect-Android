@@ -66,6 +66,7 @@
     <string name="host_settings_main_app_screencast">スクリーンキャスト</string>
     <string name="host_settings_main_plugin">プラグイン設定</string>
     <string name="host_settings_main_plugin_gps">GPS</string>
+    <string name="host_settings_main_plugin_usage_stats">使用履歴</string>
     <string name="host_settings_main_plugin_recorder">レコーダ設定</string>
     <string name="host_settings_main_plugin_recorder_list">レコーダ一覧</string>
     <string name="host_settings_main_plugin_demo">デモ設定</string>
@@ -151,6 +152,8 @@
     <string name="host_setting_dialog_error_permission">GPSを使用するためのパーミッションが許可されていないために検索できません。\nGPS設定画面から位置情報の許可を取得してください。</string>
     <string name="host_setting_dialog_disable_gps">GPSが無効になっているために検索できません。\nGPS設定画面からGPSを有効に設定してください。</string>
     <string name="host_setting_gps_dialog_cancel">キャンセル</string>
+
+    <string name="usage_stats_settings_title">使用履歴設定</string>
 
     <!-- デモページ -->
     <string name="demo_page_description">Host プラグインはカメラ機能等のデモページを提供します。\n\n外部ストレージにインストールすると Web ブラウザからデモページにアクセスできるようになります。</string>

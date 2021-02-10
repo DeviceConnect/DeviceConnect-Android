@@ -11,6 +11,12 @@
             android:title="@string/host_settings_main_plugin_gps"
             app:iconSpaceReserved="false" />
 
+
+        <PreferenceScreen
+            android:key="@string/pref_key_settings_usage_stats"
+            android:title="@string/host_settings_main_plugin_usage_stats"
+            app:iconSpaceReserved="false" />
+
     </PreferenceCategory>
 
     <PreferenceCategory

@@ -1,6 +1,8 @@
 package org.deviceconnect.android.libmedia.streaming.gles;
 
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
+import android.opengl.GLES20;
 import android.util.Log;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
@@ -10,31 +12,42 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
     private static final boolean DEBUG = BuildConfig.DEBUG;
 
     private SurfaceTexture mSurfaceTexture;
-    private SurfaceTextureRender mTextureRender;
+    private SurfaceTextureRenderer mTextureRenderer;
 
     private final Object mFrameSyncObject = new Object();
     private boolean mFrameAvailable;
+    private int mTimeoutWaitRefresh = 10000;
 
     /**
-     * Creates instances of TextureRender and SurfaceTexture.
+     * Creates instances of SurfaceTextureRenderer and SurfaceTexture.
      */
     public SurfaceTextureManager() {
         this(false);
     }
 
     /**
-     * Creates instances of TextureRender and SurfaceTexture.
+     * Creates instances of SurfaceTextureRenderer and SurfaceTexture.
+     *
      * @param inverse テクスチャの反転フラグ
      */
     public SurfaceTextureManager(boolean inverse) {
-        mTextureRender = new SurfaceTextureRender(inverse);
-        mTextureRender.surfaceCreated();
+        this(new SurfaceTextureRenderer(inverse));
+    }
+
+    /**
+     * Creates instances of SurfaceTexture.
+     *
+     * @param renderer SurfaceTextureRenderer
+     */
+    public SurfaceTextureManager(SurfaceTextureRenderer renderer) {
+        mTextureRenderer = renderer;
+        mTextureRenderer.surfaceCreated();
 
         if (DEBUG) {
-            Log.d(TAG, "textureID=" + mTextureRender.getTextureId());
+            Log.d(TAG, "textureID=" + mTextureRenderer.getTextureId());
         }
 
-        mSurfaceTexture = new SurfaceTexture(mTextureRender.getTextureId());
+        mSurfaceTexture = new SurfaceTexture(mTextureRenderer.getTextureId());
 
         // This doesn't work if this object is created on the thread that CTS started for
         // these test cases.
@@ -50,6 +63,13 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
         mSurfaceTexture.setOnFrameAvailableListener(this);
     }
 
+    public void setTimeout(int timeout) {
+        if (timeout < 0) {
+            throw new IllegalArgumentException("timeout cannot set negative value.");
+        }
+        mTimeoutWaitRefresh = timeout;
+    }
+
     /**
      * Release the TextureRender and SurfaceTexture.
      */
@@ -58,10 +78,10 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
         //  W BufferQueue: [unnamed-3997-2] cancelBuffer: BufferQueue has been abandoned!
         //mSurfaceTexture.release();
 
-        if (mTextureRender != null) {
-            mTextureRender.surfaceDestroy();
+        if (mTextureRenderer != null) {
+            mTextureRenderer.surfaceDestroy();
         }
-        mTextureRender = null;
+        mTextureRenderer = null;
 
         if (mSurfaceTexture != null) {
             mSurfaceTexture.setOnFrameAvailableListener(null);
@@ -81,14 +101,12 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
      * the OutputSurface object.
      */
     public void awaitNewImage() {
-        final int TIMEOUT_MS = 10000;
-
         synchronized (mFrameSyncObject) {
             while (!mFrameAvailable) {
                 try {
                     // Wait for onFrameAvailable() to signal us.  Use a timeout to avoid
                     // stalling the test if it doesn't arrive.
-                    mFrameSyncObject.wait(TIMEOUT_MS);
+                    mFrameSyncObject.wait(mTimeoutWaitRefresh);
                     if (!mFrameAvailable) {
                         // TODO: if "spurious wakeup", continue while loop
                         throw new RuntimeException("Camera frame wait timed out");
@@ -106,10 +124,47 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
     }
 
     /**
+     * Viewport の設定を行います.
+     *
+     * @param x x座標
+     * @param y y座標
+     * @param width 横幅
+     * @param height 縦幅
+     */
+    public void setViewport(int x, int y, int width, int height) {
+        GLES20.glViewport(x, y, width, height);
+    }
+
+    /**
+     * 描画する範囲を設定します.
+     *
+     * @param l 左座標
+     * @param t 上座標
+     * @param r 右座標
+     * @param b 下座標
+     * @param width 映像の横幅
+     * @param height 映像の縦幅
+     */
+    public void setDrawingRange(int l, int t, int r, int b, int width, int height) {
+        mTextureRenderer.setDrawingRange(l, t, r, b, width, height);
+    }
+
+    /**
+     * 描画する範囲を設定します.
+     *
+     * @param rect 描画する範囲
+     * @param width 映像の横幅
+     * @param height 映像の縦幅
+     */
+    public void setDrawingRange(Rect rect, int width, int height) {
+        mTextureRenderer.setDrawingRange(rect, width, height);
+    }
+
+    /**
      * Draws the data from SurfaceTexture onto the current EGL surface.
      */
     public void drawImage(int displayRotation) {
-        mTextureRender.drawFrame(mSurfaceTexture, displayRotation);
+        mTextureRenderer.drawFrame(mSurfaceTexture, displayRotation);
     }
 
     @Override

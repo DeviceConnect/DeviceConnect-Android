@@ -9,7 +9,7 @@ if (githubPropertiesFile.exists()) {
 }
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
 
     def getVersionName = { ->
         def version
@@ -31,7 +31,6 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "URL_HELP_HTML", "\"file:///android_asset/html/help/index.html\""
         buildConfigField "String", "URL_DEMO_HTML", "\"file:///android_asset/html/demo/index.html\""
-
     }
 
     packagingOptions {
@@ -41,6 +40,10 @@ android {
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/DEPENDENCIES.txt'
+    }
+
+    dataBinding {
+        enabled true
     }
 
     compileOptions {
@@ -56,6 +59,7 @@ android {
             keyPassword=project.properties.keyPassword
         }
     }
+
     lintOptions {
         checkReleaseBuilds false
         // Or, if you prefer, you can continue to check for errors in release builds,
@@ -74,6 +78,7 @@ android {
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
+
     repositories {
         maven {
             name = "DeviceConnect-Android"
@@ -89,21 +94,21 @@ android {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
-    implementation 'com.google.android.material:material:1.1.0'
+    implementation 'com.google.android.material:material:1.2.1'
 
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.6'
     implementation project(':dconnect-manager-core')
     implementation project(':dconnect-server-nano-httpd')
     implementation project(':dconnect-device-plugin-host')
 
-    androidTestImplementation('androidx.test.ext:junit:1.1.1') {
+    androidTestImplementation('androidx.test.ext:junit:1.1.2') {
         exclude module: 'animated-vector-drawable'
         exclude module: 'support-media-compat'
     }
-    androidTestImplementation('androidx.test:rules:1.2.0') {
+    androidTestImplementation('androidx.test:rules:1.3.0') {
         exclude module: 'animated-vector-drawable'
         exclude module: 'support-media-compat'
     }

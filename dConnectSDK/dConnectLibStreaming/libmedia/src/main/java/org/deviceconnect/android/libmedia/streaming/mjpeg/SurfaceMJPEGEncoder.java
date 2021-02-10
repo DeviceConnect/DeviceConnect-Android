@@ -1,32 +1,25 @@
 package org.deviceconnect.android.libmedia.streaming.mjpeg;
 
 import android.graphics.Bitmap;
-import android.graphics.SurfaceTexture;
-import android.view.Surface;
 
-import org.deviceconnect.android.libmedia.streaming.gles.OffscreenSurface;
-import org.deviceconnect.android.libmedia.streaming.gles.SurfaceTextureManager;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
+import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     /**
-     * 描画を行う Surface クラス.
+     * EGLSurfaceBase を識別するためのタグ.
      */
-    private OffscreenSurface mOffscreenSurface;
-
-    /**
-     * SurfaceTextureを管理するクラス.
-     */
-    private SurfaceTextureManager mStManager;
+    private static final Integer TAG_SURFACE = 12345;
 
     /**
      * ピクセル情報を格納するバッファ.
      */
-    private Buffer mBuffer;
+    private ByteBuffer mBuffer;
 
     /**
      * JPEGに変換するために使用するBitmap.
@@ -34,61 +27,100 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     private Bitmap mBitmap;
 
     /**
-     * MJPEG のエンコードを行うスレッド.
-     */
-    private WorkThread mWorkThread;
-
-    /**
      * JPEG のデータを格納するためのストリーム.
      */
     private final ByteArrayOutputStream mJPEGOutputStream = new ByteArrayOutputStream();
 
     /**
+     * このフラグが true の場合には、外部から EGLSurfaceDrawingThread が設定されたことを意味します。
+     */
+    private final boolean mInternalCreateSurfaceDrawingThread;
+
+    /**
+     * Surface の描画を行うスレッド.
+     */
+    private EGLSurfaceDrawingThread mSurfaceDrawingThread;
+
+    /**
+     * バッファを反転させるために一時的に値を格納するバッファ.
+     */
+    private byte[] mTmp1;
+
+    /**
+     * バッファを反転させるために一時的に値を格納するバッファ.
+     */
+    private byte[] mTmp2;
+
+    /**
+     * true の場合は JPEG に変換中。
+     */
+    private boolean mEncodeFlag;
+
+    /**
+     * JPEG にエンコードするためのスレッド.
+     */
+    private EncoderThread mEncoderThread;
+
+    /**
+     * EGLSurfaceDrawingThread のイベントを受け取るリスナー.
+     */
+    private final EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
+        @Override
+        public void onStarted() {
+            MJPEGQuality quality = getMJPEGQuality();
+            mSurfaceDrawingThread.addEGLSurfaceBase(quality.getWidth(), quality.getHeight(), TAG_SURFACE);
+            try {
+                prepare();
+                startRecording();
+            } catch (IOException e) {
+                postOnError(new MJPEGEncoderException(e));
+            }
+        }
+
+        @Override
+        public void onStopped() {
+            stopRecording();
+            release();
+        }
+
+        @Override
+        public void onError(Exception e) {
+            postOnError(new MJPEGEncoderException(e));
+        }
+
+        @Override
+        public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
+            if (TAG_SURFACE.equals(eglSurfaceBase.getTag())) {
+                try {
+                    drainEncoder(eglSurfaceBase, eglSurfaceBase.getWidth(), eglSurfaceBase.getHeight());
+                } catch (Throwable t) {
+                    // ignore.
+                }
+            }
+        }
+    };
+
+    public SurfaceMJPEGEncoder() {
+        mInternalCreateSurfaceDrawingThread = true;
+    }
+
+    public SurfaceMJPEGEncoder(EGLSurfaceDrawingThread thread) {
+        mSurfaceDrawingThread = thread;
+        mInternalCreateSurfaceDrawingThread = false;
+    }
+
+    /**
      * エンコードを開始します.
      */
     public synchronized void start() {
-        if (mWorkThread != null) {
-            return;
-        }
-
-        mWorkThread = new WorkThread();
-        mWorkThread.setName("MJPEG-ENCODER");
-        mWorkThread.setPriority(Thread.MIN_PRIORITY);
-        mWorkThread.start();
+        startDrawingThreadInternal();
     }
 
     /**
      * エンコードを停止します.
      */
     public synchronized void stop() {
-        if (mWorkThread != null) {
-            mWorkThread.terminate();
-            mWorkThread = null;
-        }
-    }
-
-    /**
-     * 解像度の縦横のサイズをスワップするか判断します.
-     *
-     * @return スワップする場合は true、それ以外は false
-     */
-    public boolean isSwappedDimensions() {
-        switch (getDisplayRotation()) {
-            case Surface.ROTATION_0:
-            case Surface.ROTATION_180:
-                return false;
-            default:
-                return true;
-        }
-    }
-
-    /**
-     * 画面の回転を取得します.
-     *
-     * @return 画面の回転
-     */
-    protected int getDisplayRotation() {
-        return Surface.ROTATION_0;
+        stopDrawingThreadInternal();
     }
 
     /**
@@ -116,75 +148,133 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     protected abstract void release();
 
     /**
-     * 描画を行う SurfaceTexture を取得します.
+     * SurfaceDrawingThread が動作している確認します.
      *
-     * <p>
-     * この SurfaceTexture に描画された内容を JPEG にエンコードします。
-     * </p>
-     *
-     * @return SurfaceTexture
+     * @return SurfaceDrawingThread が動作している場合はtrue、それ以外はfalse
      */
-    public SurfaceTexture getSurfaceTexture() {
-        return mStManager != null ? mStManager.getSurfaceTexture() : null;
+    private synchronized boolean isRunningSurfaceDrawingThread() {
+        return mSurfaceDrawingThread != null && mSurfaceDrawingThread.isRunning();
+    }
+
+    /**
+     * 内部で EGLSurfaceDrawingThread を作成します.
+     *
+     * 別の EGLSurfaceDrawingThread を使用した場合には、このメソッドをオーバーライドしてください。
+     *
+     * @return EGLSurfaceDrawingThread のインスタンス
+     */
+    protected EGLSurfaceDrawingThread createEGLSurfaceDrawingThread() {
+        return new EGLSurfaceDrawingThread();
+    }
+
+    /**
+     * Surface への描画スレッドを開始します。
+     */
+    private void startDrawingThreadInternal() {
+        MJPEGQuality quality = getMJPEGQuality();
+        int w = quality.getWidth();
+        int h = quality.getHeight();
+
+        if (mEncoderThread != null) {
+            mEncoderThread.terminate();
+        }
+        mEncoderThread = new EncoderThread();
+        mEncoderThread.setName("JPEG-ENCODE");
+        mEncoderThread.start();
+        mEncodeFlag = false;
+
+        if (mInternalCreateSurfaceDrawingThread) {
+            mSurfaceDrawingThread = createEGLSurfaceDrawingThread();
+        }
+        mSurfaceDrawingThread.setSize(w, h);
+        mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
+        if (!isRunningSurfaceDrawingThread()) {
+            mSurfaceDrawingThread.start();
+        }
+    }
+
+    /**
+     * Surface への描画スレッドを停止します。
+     */
+    private void stopDrawingThreadInternal() {
+        if (mSurfaceDrawingThread != null) {
+            mSurfaceDrawingThread.removeEGLSurfaceBase(TAG_SURFACE);
+            mSurfaceDrawingThread.stop(false);
+            mSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
+            if (mInternalCreateSurfaceDrawingThread) {
+                mSurfaceDrawingThread = null;
+            }
+        }
+
+        if (mEncoderThread != null) {
+            mEncoderThread.terminate();
+            mEncoderThread = null;
+        }
+
+        mBuffer = null;
+        mTmp1 = null;
+        mTmp2 = null;
+        System.gc();
     }
 
     /**
      * 映像を JPEG に変換します.
      *
-     * @param w 映像の横幅
-     * @param h 映像の縦幅
+     * @param width 映像の横幅
+     * @param height 映像の縦幅
      */
-    private void drainEncoder(int w, int h) {
-        mStManager.awaitNewImage();
-        mStManager.drawImage(getDisplayRotation());
+    private void drainEncoder(EGLSurfaceBase surface, int width, int height) {
+        if (mEncodeFlag || mEncoderThread == null) {
+            return;
+        }
+        mEncodeFlag = true;
 
         // OpenGLES からピクセルデータを取得するバッファを作成
-        if (mBuffer == null || w != mBitmap.getWidth() || h != mBitmap.getHeight()) {
-            mBuffer = ByteBuffer.allocateDirect(w * h * 4);
-            mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        if (mBuffer == null || width != mBitmap.getWidth() || height != mBitmap.getHeight()) {
+            mBuffer = ByteBuffer.allocateDirect(width * height * 4);
+            mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            mTmp1 = new byte[width * 4];
+            mTmp2 = new byte[width * 4];
         }
         mBuffer.rewind();
 
-        mOffscreenSurface.readPixelBuffer(mBuffer, w, h);
+        surface.readPixelBuffer(mBuffer, width, height);
 
-        mJPEGOutputStream.reset();
-        mBitmap.copyPixelsFromBuffer(mBuffer);
-        mBitmap.compress(Bitmap.CompressFormat.JPEG, getMJPEGQuality().getQuality(), mJPEGOutputStream);
+        // JPEG へのエンコードは処理が重いので、別スレッドで行うようにしています。
+        mEncoderThread.add(() -> {
+            // 上下逆なので、上下反転
+            int h = height / 2;
+            for (int y = 0; y < h; y++) {
+                mBuffer.position(y * width * 4);
+                mBuffer.get(mTmp1, 0, mTmp1.length);
+                mBuffer.position((height - 1 - y) * width * 4);
+                mBuffer.get(mTmp2, 0, mTmp2.length);
+                mBuffer.position((height - 1 - y) * width * 4);
+                mBuffer.put(mTmp1);
+                mBuffer.position(y * width * 4);
+                mBuffer.put(mTmp2);
+            }
+            mBuffer.position(0);
 
-        postJPEG(mJPEGOutputStream.toByteArray());
+            mJPEGOutputStream.reset();
+            mBitmap.copyPixelsFromBuffer(mBuffer);
+            mBitmap.compress(Bitmap.CompressFormat.JPEG, getMJPEGQuality().getQuality(), mJPEGOutputStream);
 
-        mOffscreenSurface.swapBuffers();
-    }
+            postJPEG(mJPEGOutputStream.toByteArray());
 
-    protected OffscreenSurface createOffscreenSurface() {
-        int w = getMJPEGQuality().getWidth();
-        int h = getMJPEGQuality().getHeight();
-        if (isSwappedDimensions()) {
-            w = getMJPEGQuality().getHeight();
-            h = getMJPEGQuality().getWidth();
-        }
-        return new OffscreenSurface(w, h);
+            mEncodeFlag = false;
+        });
     }
 
     /**
-     * MJPEG 変換処理を行うスレッド.
+     * JPEG にエンコードするためのスレッド.
      */
-    private class WorkThread extends Thread {
-        /**
-         * 停止フラグ.
-         */
-        private boolean mStopFlag;
-
-        /**
-         * 停止処理を行います.
-         */
-        void terminate() {
-            mStopFlag = true;
-
+    private static class EncoderThread extends QueueThread<Runnable> {
+        private void terminate() {
             interrupt();
 
             try {
-                join(500);
+                join(300);
             } catch (InterruptedException e) {
                 // ignore.
             }
@@ -193,51 +283,11 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
         @Override
         public void run() {
             try {
-                prepare();
-
-                int interval = 1000 / getMJPEGQuality().getFrameRate();
-
-                mOffscreenSurface = createOffscreenSurface();
-                mOffscreenSurface.makeCurrent();
-
-                mStManager = new SurfaceTextureManager(true);
-
-                MJPEGQuality quality = getMJPEGQuality();
-                SurfaceTexture st = mStManager.getSurfaceTexture();
-                st.setDefaultBufferSize(quality.getWidth(), quality.getHeight());
-
-                startRecording();
-
-                while (!mStopFlag) {
-                    long startTime = System.currentTimeMillis();
-
-                    drainEncoder(mOffscreenSurface.getWidth(), mOffscreenSurface.getHeight());
-
-                    long t = interval - (System.currentTimeMillis() - startTime);
-                    if (t > 0) {
-                        try {
-                            Thread.sleep(t);
-                        } catch (InterruptedException e) {
-                            // ignore
-                        }
-                    }
+                while (!isInterrupted()) {
+                    get().run();
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 // ignore.
-            } finally {
-                stopRecording();
-
-                release();
-
-                if (mOffscreenSurface != null) {
-                    mOffscreenSurface.release();
-                    mOffscreenSurface = null;
-                }
-
-                if (mStManager != null) {
-                    mStManager.release();
-                    mStManager = null;
-                }
             }
         }
     }

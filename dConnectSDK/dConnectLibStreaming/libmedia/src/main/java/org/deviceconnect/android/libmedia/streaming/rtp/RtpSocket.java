@@ -37,17 +37,17 @@ public class RtpSocket implements RtpPacketize.Callback {
     /**
      * マルチキャスト用のソケット.
      */
-    private MulticastSocket mSocket;
+    private final MulticastSocket mSocket;
 
     /**
      * 送信用の UDP パケット.
      */
-    private DatagramPacket mDatagramPacket;
+    private final DatagramPacket mDatagramPacket;
 
     /**
      * RTCP 送信用のソケット.
      */
-    private RtcpSocket mRtcpSocket;
+    private final RtcpSocket mRtcpSocket;
 
     /**
      * RTP データ送信用のスレッド.
@@ -58,6 +58,16 @@ public class RtpSocket implements RtpPacketize.Callback {
      * スレッドのプライオリティを High にするフラグ.
      */
     private boolean mThreadHighPriority;
+
+    /**
+     * 送信サイズ.
+     */
+    private long mSentSize;
+
+    /**
+     * BPS (bits per second).
+     */
+    private long mBPS;
 
     /**
      * コンストラクタ.
@@ -140,6 +150,34 @@ public class RtpSocket implements RtpPacketize.Callback {
         if (mRtcpSocket != null) {
             mRtcpSocket.close();
         }
+
+        mBPS = 0;
+        mSentSize = 0;
+    }
+
+    /**
+     * 送信したデータサイズを取得します.
+     *
+     * @return 送信したデータサイズ
+     */
+    public long getSentSize() {
+        return mSentSize;
+    }
+
+    /**
+     * 送信したデータサイズをリセットします.
+     */
+    public void resetSentSize() {
+        mSentSize = 0;
+    }
+
+    /**
+     * 送信したデータの BPS (bits per second) を取得します.
+     *
+     * @return BPS (bits per second)
+     */
+    public long getBPS() {
+        return mBPS;
     }
 
     /**
@@ -155,6 +193,15 @@ public class RtpSocket implements RtpPacketize.Callback {
         mRemoteAddress = dest;
         mRemotePort = rtpPort;
         mRtcpSocket.setDestination(dest, rtcpPort);
+    }
+
+    /**
+     * 接続先のアドレスを取得します.
+     *
+     * @return アドレス
+     */
+    public InetAddress getRemoteAddress() {
+        return mRemoteAddress;
     }
 
     /**
@@ -234,23 +281,6 @@ public class RtpSocket implements RtpPacketize.Callback {
             }
         }
 
-        /**
-         * RTP パケットを送信します.
-         */
-        private void send() throws InterruptedException {
-            RtpPacket packet = get();
-            try {
-                mDatagramPacket.setData(packet.getBuffer());
-                mDatagramPacket.setLength(packet.getLength());
-                mSocket.send(mDatagramPacket);
-                mRtcpSocket.update(packet.getLength(), packet.getTimeStamp());
-            } catch (IOException e) {
-                // ignore
-            } finally {
-                packet.release();
-            }
-        }
-
         @Override
         public void run() {
             try {
@@ -265,9 +295,30 @@ public class RtpSocket implements RtpPacketize.Callback {
                 // ignore.
             }
 
+            long sentSize = 0;
+            long startTime = System.currentTimeMillis();
             try {
                 while (!isInterrupted()) {
-                    send();
+                    RtpPacket packet = get();
+                    try {
+                        mDatagramPacket.setData(packet.getBuffer());
+                        mDatagramPacket.setLength(packet.getLength());
+                        mSocket.send(mDatagramPacket);
+                        mRtcpSocket.update(packet.getLength(), packet.getTimeStamp());
+
+                        // 送信量と BPS を計算
+                        mSentSize += packet.getLength();
+                        sentSize += packet.getLength();
+                        if (System.currentTimeMillis() - startTime >= 1000) {
+                            mBPS = sentSize * 8;
+                            sentSize = 0;
+                            startTime = System.currentTimeMillis();
+                        }
+                    } catch (IOException e) {
+                        // ignore
+                    } finally {
+                        packet.release();
+                    }
                 }
             } catch (Exception e) {
                 // ignore.

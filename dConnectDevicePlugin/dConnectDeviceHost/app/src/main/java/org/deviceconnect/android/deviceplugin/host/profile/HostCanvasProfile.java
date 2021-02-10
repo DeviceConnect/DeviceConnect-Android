@@ -14,7 +14,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity;
+import org.deviceconnect.android.deviceplugin.host.activity.profile.CanvasProfileActivity;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawImageObject;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
@@ -42,15 +42,13 @@ public class HostCanvasProfile extends CanvasProfile {
     /** Canvasプロファイルのファイル名プレフィックス。 */
     private static final String CANVAS_PREFIX = "host_canvas";
 
-    /** ファイルが生存できる有効時間. */
-    private long mExpire = DEFAULT_EXPIRE;
+    /** Notification Id */
+    private static final int NOTIFICATION_ID = 3517;
 
     /** Edit Image Thread. */
-    private ExecutorService mImageService = Executors.newSingleThreadExecutor();
+    private final ExecutorService mImageService = Executors.newSingleThreadExecutor();
 
-    /** Notification Id */
-    private final int NOTIFICATION_ID = 3517;
-
+    // POST /gotapi/canvas/drawImage
     private final DConnectApi mDrawImageApi = new PostApi() {
 
         @Override
@@ -62,7 +60,8 @@ public class HostCanvasProfile extends CanvasProfile {
         public boolean onRequest(final Intent request, final Intent response) {
             String mode = getMode(request);
             String mimeType = getMIMEType(request);
-            final CanvasDrawImageObject.Mode enumMode = CanvasDrawImageObject.convertMode(mode);
+
+            CanvasDrawImageObject.Mode enumMode = CanvasDrawImageObject.convertMode(mode);
             if (enumMode == null) {
                 MessageUtils.setInvalidRequestParameterError(response);
                 return true;
@@ -74,10 +73,10 @@ public class HostCanvasProfile extends CanvasProfile {
                 return true;
             }
 
-            final byte[] data = getData(request);
-            final String uri = getURI(request);
-            final double x = getX(request);
-            final double y = getY(request);
+            byte[] data = getData(request);
+            String uri = getURI(request);
+            double x = getX(request);
+            double y = getY(request);
             if (data == null) {
                 if (uri != null) {
                     if (uri.startsWith("http")) {
@@ -90,17 +89,13 @@ public class HostCanvasProfile extends CanvasProfile {
                 }
                 return true;
             } else {
-                mImageService.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        sendImage(data, response, enumMode, x, y);
-                    }
-                });
+                mImageService.execute(() -> sendImage(data, response, enumMode, x, y));
                 return false;
             }
         }
     };
 
+    // DELETE /gotapi/canvas/drawImage
     private final DConnectApi mDeleteImageApi = new DeleteApi() {
 
         @Override
@@ -110,10 +105,8 @@ public class HostCanvasProfile extends CanvasProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String className = getApp().getClassnameOfTopActivity();
-            if (CanvasProfileActivity.class.getName().equals(className)) {
-                Intent intent = new Intent(CanvasDrawImageObject.ACTION_DELETE_CANVAS);
-                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+            if (isCanvasProfileActivity()) {
+                sendDeleteCanvasProfileActivity();
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setIllegalDeviceStateError(response, "canvas not display");
@@ -132,7 +125,8 @@ public class HostCanvasProfile extends CanvasProfile {
     }
 
     /**
-     * Send Image.
+     * Send a image for CanvasProfileActivity.
+     *
      * @param data binary
      * @param response response message
      * @param enumMode image mode
@@ -142,16 +136,15 @@ public class HostCanvasProfile extends CanvasProfile {
     private void sendImage(byte[] data, Intent response, CanvasDrawImageObject.Mode enumMode, double x, double y) {
         try {
             drawImage(response, writeForImage(data), enumMode, x, y);
-        } catch (OutOfMemoryError e) {
-            MessageUtils.setIllegalDeviceStateError(response, e.getMessage());
-        } catch (IOException e) {
+        } catch (Throwable e) {
             MessageUtils.setIllegalDeviceStateError(response, e.getMessage());
         }
         sendResponse(response);
     }
 
     /**
-     * Start Canvas Activity.
+     * Start a CanvasProfileActivity.
+     *
      * @param response response message
      * @param uri image url
      * @param enumMode image mode
@@ -160,27 +153,37 @@ public class HostCanvasProfile extends CanvasProfile {
      */
     private void drawImage(Intent response, String uri, CanvasDrawImageObject.Mode enumMode, double x, double y) {
         CanvasDrawImageObject drawObj = new CanvasDrawImageObject(uri, enumMode, x, y);
-
-        String className = getApp().getClassnameOfTopActivity();
-        if (CanvasProfileActivity.class.getName().equals(className)) {
-            Intent intent = new Intent(CanvasDrawImageObject.ACTION_DRAW_CANVAS);
-            drawObj.setValueToIntent(intent);
-            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+        if (isCanvasProfileActivity()) {
+            sendDrawCanvas(drawObj);
         } else {
             Intent intent = new Intent();
             intent.setClass(getContext(), CanvasProfileActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             drawObj.setValueToIntent(intent);
-            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            if (getApp().isDeviceConnectClassOfTopActivity() || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                 getContext().startActivity(intent);
             } else {
                 NotificationUtils.createNotificationChannel(getContext());
-                NotificationUtils.notify(getContext(),  NOTIFICATION_ID, 0, intent,
+                NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, intent,
                         getContext().getString(R.string.host_notification_canvas_warnning));
             }
         }
-
         setResult(response, DConnectMessage.RESULT_OK);
+    }
+
+    private void sendDrawCanvas(CanvasDrawImageObject drawObj) {
+        Intent intent = new Intent(CanvasDrawImageObject.ACTION_DRAW_CANVAS);
+        drawObj.setValueToIntent(intent);
+        LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+    }
+
+    private void sendDeleteCanvasProfileActivity() {
+        Intent intent = new Intent(CanvasDrawImageObject.ACTION_DELETE_CANVAS);
+        LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+    }
+
+    private boolean isCanvasProfileActivity() {
+        return getApp().isClassnameOfTopActivity(CanvasProfileActivity.class);
     }
 
     private HostDeviceApplication getApp() {
@@ -188,11 +191,12 @@ public class HostCanvasProfile extends CanvasProfile {
     }
 
     /**
-     * 画像の保存
+     * CanvasProfileActivity に渡せるように画像をフォルダに一時的に保存します.
+     *
      * @param data binary
      * @return URI
-     * @throws IOException
-     * @throws OutOfMemoryError
+     * @throws IOException 画像の読み込みに失敗した場合
+     * @throws OutOfMemoryError メモリ不足が発生した場合
      */
     private String writeForImage(final byte[] data) throws IOException, OutOfMemoryError {
         File file = getContext().getCacheDir();
@@ -227,7 +231,7 @@ public class HostCanvasProfile extends CanvasProfile {
             }
         } else if (file.isFile() && file.getName().startsWith(CANVAS_PREFIX)) {
             long modified = file.lastModified();
-            if (System.currentTimeMillis() - modified > mExpire) {
+            if (System.currentTimeMillis() - modified > DEFAULT_EXPIRE) {
                 file.delete();
             }
         }

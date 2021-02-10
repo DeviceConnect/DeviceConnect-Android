@@ -18,17 +18,18 @@ import android.media.ImageReader;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.util.Range;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
 
+import androidx.annotation.NonNull;
+
 import org.deviceconnect.android.libmedia.BuildConfig;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import androidx.annotation.NonNull;
 
 /**
  * Camera2 API でカメラデバイスを制御するためのクラス.
@@ -185,16 +186,16 @@ public class Camera2Wrapper {
      */
     private CameraEventListener mCameraEventListener;
 
-    private final State mInitSurfaceState = new InitSurfaceState();
-    private final State mOpenCameraState = new OpenCameraState();
+    private final InitSurfaceState mInitSurfaceState = new InitSurfaceState();
+    private final OpenCameraState mOpenCameraState = new OpenCameraState();
     private final CreateSessionState mCreateSessionState = new CreateSessionState();
-    private final State mDestroySessionState = new DestroySessionState();
-    private final State mPreviewState = new PreviewState();
-    private final State mRecordingState = new RecordingState();
-    private final State mAutoFocusState = new AutoFocusState();
-    private final State mAutoExposureState = new AutoExposureState();
+    private final DestroySessionState mDestroySessionState = new DestroySessionState();
+    private final PreviewState mPreviewState = new PreviewState();
+    private final RecordingState mRecordingState = new RecordingState();
+    private final AutoFocusState mAutoFocusState = new AutoFocusState();
+    private final AutoExposureState mAutoExposureState = new AutoExposureState();
     private final TakePictureState mTakePictureState = new TakePictureState();
-    private final State mAbortState = new AbortState();
+    private final AbortState mAbortState = new AbortState();
 
     /**
      * コンストラクタ.
@@ -221,18 +222,14 @@ public class Camera2Wrapper {
 
     /**
      * カメラデバイスを開きます.
-     *
-     * @param surfaces カメラの映像を描画するSurfaceのリスト
+     * <p>
+     * TextView を指定して接続する場合には、{@link #STATE_INIT_SURFACE} → {@link #STATE_OPEN_CAMERA} と遷移します。
+     * </p>
+     * @param textureView カメラデバイスの映像を描画するView
      * @IllegalStateException 既にカメラデバイスがオープンされていた場合に発生
      */
-    public void open(List<Surface> surfaces) {
-        if (mState != null) {
-            throw new IllegalStateException("Camera2 has already started. state=" + mState);
-        }
-
-        mSurfaces.clear();
-        mSurfaces.addAll(surfaces);
-        nextState(mOpenCameraState);
+    public void open(@NonNull AutoFitTextureView textureView) {
+       open(textureView, null, null);
     }
 
     /**
@@ -243,13 +240,8 @@ public class Camera2Wrapper {
      * @param textureView カメラデバイスの映像を描画するView
      * @IllegalStateException 既にカメラデバイスがオープンされていた場合に発生
      */
-    public void open(@NonNull AutoFitTextureView textureView) {
-        if (mState != null) {
-            throw new IllegalStateException("Camera2 has already started. state=" + mState);
-        }
-
-        mTextureView = textureView;
-        nextState(mInitSurfaceState);
+    public void open(@NonNull AutoFitTextureView textureView, OnOpenEventListener listener) {
+        open(textureView, null, listener);
     }
 
     /**
@@ -262,14 +254,54 @@ public class Camera2Wrapper {
      * @IllegalStateException 既にカメラデバイスがオープンされていた場合に発生
      */
     public void open(@NonNull AutoFitTextureView textureView, List<Surface> surfaces) {
+        open(textureView, surfaces, null);
+    }
+
+    /**
+     * カメラデバイスを開きます.
+     * <p>
+     * TextView を指定して接続する場合には、{@link #STATE_INIT_SURFACE} → {@link #STATE_OPEN_CAMERA} と遷移します。
+     * </p>
+     * @param textureView カメラデバイスの映像を描画するView
+     * @param surfaces カメラの映像を描画するSurfaceのリスト
+     * @param listener カメラデバイスを開く処理を行った結果を通知するリスナー
+     * @IllegalStateException 既にカメラデバイスがオープンされていた場合に発生
+     */
+    public void open(@NonNull AutoFitTextureView textureView, List<Surface> surfaces, OnOpenEventListener listener) {
         if (mState != null) {
             throw new IllegalStateException("Camera2 has already started. state=" + mState);
         }
 
+        mInitSurfaceState.mOnOpenEventListener = listener;
+
         mTextureView = textureView;
         mSurfaces.clear();
-        mSurfaces.addAll(surfaces);
+        if (surfaces != null) {
+            mSurfaces.addAll(surfaces);
+        }
         nextState(mInitSurfaceState);
+    }
+
+    /**
+     * カメラデバイスを開きます.
+     *
+     * @param surfaces カメラの映像を描画するSurfaceのリスト
+     * @IllegalStateException 既にカメラデバイスがオープンされていた場合に発生
+     */
+    public void open(List<Surface> surfaces) {
+        open(surfaces, null);
+    }
+
+    /**
+     * カメラデバイスを開きます.
+     *
+     * @param surfaces カメラの映像を描画するSurfaceのリスト
+     * @param listener カメラデバイスを開く処理を行った結果を通知するリスナー
+     *
+     * @IllegalStateException 既にカメラデバイスがオープンされていた場合に発生
+     */
+    public void open(List<Surface> surfaces, OnOpenEventListener listener) {
+        open((SurfaceTexture) null, surfaces, listener);
     }
 
     /**
@@ -279,12 +311,18 @@ public class Camera2Wrapper {
      * @IllegalStateException 既にカメラデバイスがオープンされていた場合に発生
      */
     public void open(@NonNull SurfaceTexture surfaceTexture) {
-        if (mState != null) {
-            throw new IllegalStateException("Camera2 has already started. state=" + mState);
-        }
+        open(surfaceTexture, null, null);
+    }
 
-        mSurfaceTexture = surfaceTexture;
-        nextState(mOpenCameraState);
+    /**
+     * カメラデバイスを開きます.
+     *
+     * @param surfaceTexture カメラデバイスの映像を描画するSurfaceTexture
+     * @param listener カメラデバイスを開く処理結果を通知するリスナー
+     * @IllegalStateException 既にカメラデバイスがオープンされていた場合に発生
+     */
+    public void open(@NonNull SurfaceTexture surfaceTexture, OnOpenEventListener listener) {
+        open(surfaceTexture, null, listener);
     }
 
     /**
@@ -295,13 +333,29 @@ public class Camera2Wrapper {
      * @IllegalStateException 既にカメラデバイスがオープンされていた場合に発生
      */
     public void open(@NonNull SurfaceTexture surfaceTexture, List<Surface> surfaces) {
+        open(surfaceTexture, surfaces, null);
+    }
+
+    /**
+     * カメラデバイスを開きます.
+     *
+     * @param surfaceTexture カメラデバイスの映像を描画するSurfaceTexture
+     * @param surfaces カメラの映像を描画するSurfaceのリスト
+     * @param listener カメラデバイスを開く処理結果を通知するリスナー
+     * @IllegalStateException 既にカメラデバイスがオープンされていた場合に発生
+     */
+    public void open(SurfaceTexture surfaceTexture, List<Surface> surfaces, OnOpenEventListener listener) {
         if (mState != null) {
             throw new IllegalStateException("Camera2 has already started. state=" + mState);
         }
 
+        mOpenCameraState.mOnOpenEventListener = listener;
+
         mSurfaceTexture = surfaceTexture;
         mSurfaces.clear();
-        mSurfaces.addAll(surfaces);
+        if (surfaces != null) {
+            mSurfaces.addAll(surfaces);
+        }
         nextState(mOpenCameraState);
     }
 
@@ -347,6 +401,15 @@ public class Camera2Wrapper {
      * @return プレビューの開始に成功した場合はtrue、それ以外はfalse
      */
     public boolean startPreview() {
+        return startPreview(null);
+    }
+
+    /**
+     * カメラデバイスのプレビューを開始します.
+     *
+     * @return プレビューの開始に成功した場合はtrue、それ以外はfalse
+     */
+    public boolean startPreview(OnPreviewEventListener listener) {
         if (mState != mOpenCameraState) {
             if (DEBUG) {
                 Log.w(TAG, "It is invalid state to start a preview. state=" + mState);
@@ -354,11 +417,13 @@ public class Camera2Wrapper {
             return false;
         }
 
+        mCreateSessionState.mOnErrorEventListener = listener;
+        mPreviewState.mOnPreviewEventListener = listener;
+
         mCreateSessionState.setNextState(mPreviewState);
         nextState(mCreateSessionState);
         return true;
     }
-
     /**
      * カメラデバイスのプレビューを停止します.
      *
@@ -382,12 +447,24 @@ public class Camera2Wrapper {
      * @return レコーディングの開始に成功した場合はtrue、それ以外はfalse
      */
     public boolean startRecording() {
+        return startRecording(null);
+    }
+
+    /**
+     * カメラデバイスのレコーディングを開始します.
+     *
+     * @return レコーディングの開始に成功した場合はtrue、それ以外はfalse
+     */
+    public boolean startRecording(OnRecordingEventListener listener) {
         if (mState != mOpenCameraState) {
             if (DEBUG) {
                 Log.w(TAG, "It is invalid state to start a recording. state=" + mState);
             }
             return false;
         }
+
+        mCreateSessionState.mOnErrorEventListener = listener;
+        mRecordingState.mOnRecordingEventListener = listener;
 
         mCreateSessionState.setNextState(mRecordingState);
         nextState(mCreateSessionState);
@@ -729,6 +806,8 @@ public class Camera2Wrapper {
      * Surface の初期化を行うクラス.
      */
     private class InitSurfaceState extends State {
+        private OnOpenEventListener mOnOpenEventListener;
+
         /**
          * コンストラクタ.
          */
@@ -752,6 +831,11 @@ public class Camera2Wrapper {
             }
         }
 
+        @Override
+        public void exit() throws Camera2WrapperException {
+            mOnOpenEventListener = null;
+        }
+
         /**
          * TextureView の SurfaceTexture の状態が更新通知を受け取るリスナー.
          */
@@ -759,6 +843,7 @@ public class Camera2Wrapper {
             @Override
             public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
                 mSurfaceTexture = mTextureView.getSurfaceTexture();
+                mOpenCameraState.mOnOpenEventListener = mOnOpenEventListener;
                 nextState(mOpenCameraState);
             }
 
@@ -783,6 +868,11 @@ public class Camera2Wrapper {
      */
     private class OpenCameraState extends State {
         /**
+         * イベントを通知するリスナー.
+         */
+        private OnOpenEventListener mOnOpenEventListener;
+
+        /**
          * コンストラクタ.
          */
         OpenCameraState() {
@@ -800,9 +890,17 @@ public class Camera2Wrapper {
                 if (Camera2WrapperManager.checkCameraPermission(mContext)) {
                     mCameraManager.openCamera(mSettings.getCameraId(), mStateCallback, mBackgroundHandler);
                 } else {
+                    if (mOnOpenEventListener != null) {
+                        mOnOpenEventListener.onError(new Camera2WrapperException(Camera2WrapperException.ERROR_CODE_NO_PERMISSION));
+                    }
                     postOnError(new Camera2WrapperException(Camera2WrapperException.ERROR_CODE_NO_PERMISSION));
                 }
             }
+        }
+
+        @Override
+        public void exit() throws Camera2WrapperException {
+            mOnOpenEventListener = null;
         }
 
         /**
@@ -812,6 +910,9 @@ public class Camera2Wrapper {
             @Override
             public void onOpened(@NonNull CameraDevice cameraDevice) {
                 mCameraDevice = cameraDevice;
+                if (mOnOpenEventListener != null) {
+                    mOnOpenEventListener.onOpen();
+                }
                 postOnOpen();
             }
 
@@ -844,6 +945,9 @@ public class Camera2Wrapper {
                             break;
                     }
                 }
+                if (mOnOpenEventListener != null) {
+                    mOnOpenEventListener.onError(new Camera2WrapperException(error));
+                }
                 postOnError(new Camera2WrapperException(error));
             }
         };
@@ -853,6 +957,14 @@ public class Camera2Wrapper {
      * キャプチャーセッションを作成するクラス.
      */
     private class CreateSessionState extends State {
+        /**
+         * エラーを通知するためのリスナー.
+         */
+        private OnErrorEventListener mOnErrorEventListener;
+
+        /**
+         * 次に遷移するステート.
+         */
         private State mNextState;
 
         CreateSessionState() {
@@ -924,6 +1036,11 @@ public class Camera2Wrapper {
             mCameraDevice.createCaptureSession(outputs, mSessionCallback, mBackgroundHandler);
         }
 
+        @Override
+        public void exit() throws Camera2WrapperException {
+            mOnErrorEventListener = null;
+        }
+
         /**
          * キャプチャーセッションの設定取得用コールバック.
          */
@@ -936,7 +1053,11 @@ public class Camera2Wrapper {
 
             @Override
             public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
+                OnErrorEventListener l = mOnErrorEventListener;
                 nextState(mAbortState);
+                if (l != null) {
+                    l.onError(new Camera2WrapperException(Camera2WrapperException.ERROR_CODE_FAILED_CREATE_SESSION));
+                }
                 postOnError(new Camera2WrapperException(Camera2WrapperException.ERROR_CODE_FAILED_CREATE_SESSION));
             }
         };
@@ -977,6 +1098,11 @@ public class Camera2Wrapper {
      */
     private class PreviewState extends State {
         /**
+         * プレビュー開始イベントを通知するリスナー.
+         */
+        private OnPreviewEventListener mOnPreviewEventListener;
+
+        /**
          * プレビュー開始フラグ.
          */
         private boolean mStartFlag;
@@ -998,8 +1124,12 @@ public class Camera2Wrapper {
                 mPreviewRequestBuilder.addTarget(surface);
             }
             chooseStabilizationMode(mPreviewRequestBuilder);
+            setWhiteBalanceMode(mPreviewRequestBuilder);
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+            if (mSettings.getFps() != null) {
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mSettings.getFps());
+            }
             mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
         }
 
@@ -1008,12 +1138,18 @@ public class Camera2Wrapper {
             // プレビューでは、onCaptureResult が何度も呼び出されるので、ここで弾いています。
             if (mStartFlag) {
                 mStartFlag = false;
+                if (mOnPreviewEventListener != null) {
+                    mOnPreviewEventListener.onStartPreview();
+                }
                 postOnStartPreview();
             }
         }
     }
 
     private class RecordingState extends State {
+
+        private OnRecordingEventListener mOnRecordingEventListener;
+
         private boolean mStartFlag;
 
         RecordingState() {
@@ -1033,9 +1169,18 @@ public class Camera2Wrapper {
                 mPreviewRequestBuilder.addTarget(surface);
             }
             chooseStabilizationMode(mPreviewRequestBuilder);
+            setWhiteBalanceMode(mPreviewRequestBuilder);
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+            if (mSettings.getFps() != null) {
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mSettings.getFps());
+            }
             mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
+        }
+
+        @Override
+        public void exit() throws Camera2WrapperException {
+            mOnRecordingEventListener = null;
         }
 
         @Override
@@ -1043,6 +1188,9 @@ public class Camera2Wrapper {
             // プレビューでは、onCaptureResult が何度も呼び出されるので、ここで弾いています。
             if (mStartFlag) {
                 mStartFlag = false;
+                if (mOnRecordingEventListener != null) {
+                    mOnRecordingEventListener.onStartRecording();
+                }
                 postOnStartPreview();
             }
         }
@@ -1168,8 +1316,9 @@ public class Camera2Wrapper {
             captureBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getDisplayOrientation());
-            setAutoFlash(captureBuilder);
             chooseStabilizationMode(captureBuilder);
+            setAutoFlash(captureBuilder);
+            setWhiteBalanceMode(captureBuilder);
             mImageReader.setOnImageAvailableListener(mTakePictureListener, mBackgroundHandler);
 
             mCaptureSession.stopRepeating();
@@ -1285,6 +1434,48 @@ public class Camera2Wrapper {
         }
     }
 
+    /**
+     * ホワイトバランスを設定します.
+     *
+     * @param builder ホワイトバランスを適用する CaptureRequest.Builder
+     */
+    private void setWhiteBalanceMode(CaptureRequest.Builder builder) {
+        Integer whiteBalance = getSettings().getWhiteBalance();
+        if (whiteBalance != null) {
+            builder.set(CaptureRequest.CONTROL_AWB_MODE, whiteBalance);
+        }
+    }
+
+    public interface OnErrorEventListener {
+        /**
+         * エラーを通知します.
+         *
+         * @param e エラー原因の例外
+         */
+        void onError(Camera2WrapperException e);
+    }
+
+    public interface OnOpenEventListener extends OnErrorEventListener {
+        /**
+         * カメラデバイスに接続されたことを通知します.
+         */
+        void onOpen();
+    }
+
+    public interface OnPreviewEventListener extends OnErrorEventListener {
+        /**
+         * プレビュー開始を通知します.
+         */
+        void onStartPreview();
+    }
+
+    public interface OnRecordingEventListener extends OnErrorEventListener {
+        /**
+         * レコーディング開始を通知します.
+         */
+        void onStartRecording();
+    }
+
     public interface CameraEventListener {
         /**
          * カメラデバイスに接続されたことを通知します.
@@ -1334,6 +1525,21 @@ public class Camera2Wrapper {
          * 自動フラッシュ設定.
          */
         private boolean mAutoFlash;
+
+        /**
+         * FPS.
+         */
+        private Range<Integer> mFps;
+
+        /**
+         * ホワイトバランスモード.
+         */
+        private Integer mWhiteBalance;
+
+        /**
+         * 自動露出モード.
+         */
+        private Integer mAutoExposure;
 
         /**
          * コンストラクタ.
@@ -1438,6 +1644,76 @@ public class Camera2Wrapper {
         }
 
         /**
+         * ホワイトバランスを取得します.
+         *
+         * @return ホワイトバランス
+         */
+        public Integer getWhiteBalance() {
+            return mWhiteBalance;
+        }
+
+        /**
+         * ホワイトバランスを設定します.
+         *
+         * @param whiteBalance ホワイトバランス
+         */
+        public void setWhiteBalance(Integer whiteBalance) {
+            List<Integer> modes = getSupportedWhiteBalances();
+            for (Integer mode : modes) {
+                if (mode.equals(whiteBalance)) {
+                    mWhiteBalance = whiteBalance;
+                    return;
+                }
+            }
+            throw new RuntimeException("Not found a match white balance.");
+        }
+
+        /**
+         * カメラがサポートしているホワイトバランスのリストを取得します。
+         *
+         * @return カメラがサポートしているホワイトバランスのリスト
+         */
+        @NonNull
+        public List<Integer> getSupportedWhiteBalances() {
+            return Camera2Helper.getSupportedAWB(mCameraManager, mCameraId);
+        }
+
+        /**
+         * 自動露出モードを取得します.
+         *
+         * @return 自動露出モード
+         */
+        public Integer getAutoExposure() {
+            return mAutoExposure;
+        }
+
+        /**
+         * 自動露出モードを設定します.
+         *
+         * @param autoExposure 自動露出モード
+         */
+        public void setAutoExposure(int autoExposure) {
+            List<Integer> modes = getSupportedAutoExposure();
+            for (Integer mode : modes) {
+                if (mode.equals(autoExposure)) {
+                    mAutoExposure = autoExposure;
+                    return;
+                }
+            }
+            throw new RuntimeException("Not found a match auto exposure.");
+        }
+
+        /**
+         * カメラがサポートしている自動露出モードのリストを取得します.
+         *
+         * @return カメラがサポートしている自動露出モードのリスト
+         */
+        @NonNull
+        public List<Integer> getSupportedAutoExposure() {
+            return Camera2Helper.getSupportedAutoExposure(mCameraManager, mCameraId);
+        }
+
+        /**
          * 自動フラッシュ設定を確認します.
          *
          * @return 自動フラッシュが有効な場合はtrue、それ以外はfalse
@@ -1453,6 +1729,32 @@ public class Camera2Wrapper {
          */
         public void setAutoFlash(boolean autoFlash) {
             mAutoFlash = autoFlash;
+        }
+
+        public List<Range<Integer>> getSupportedFps() {
+            return Camera2Helper.getSupportedFps(mCameraManager, mCameraId);
+        }
+
+        public void setFps(int fps) {
+            setFps(new Range<>(fps, fps));
+        }
+
+        public void setFps(Range<Integer> fps) {
+            if (fps == null) {
+                mFps = null;
+            } else {
+                for (Range<Integer> f : getSupportedFps()) {
+                    if (f.equals(fps)) {
+                        mFps = fps;
+                        return;
+                    }
+                }
+                throw new RuntimeException("Not found a supported fps.");
+            }
+        }
+
+        public Range<Integer> getFps() {
+            return mFps;
         }
 
         @NonNull

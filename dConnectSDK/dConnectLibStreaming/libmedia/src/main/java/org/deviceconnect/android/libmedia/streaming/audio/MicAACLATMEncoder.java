@@ -1,9 +1,12 @@
 package org.deviceconnect.android.libmedia.streaming.audio;
 
+import android.media.AudioFormat;
+import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.media.audiofx.AcousticEchoCanceler;
 import android.media.audiofx.AudioEffect;
+import android.os.Build;
 import android.os.Process;
 import android.util.Log;
 
@@ -21,36 +24,9 @@ public class MicAACLATMEncoder extends AudioEncoder {
     private static final String TAG = "MIC-AAC-ENCODER";
 
     /**
-     * AAC で使用できるサンプリングレートを定義します.
-     */
-    private static final int[] SUPPORT_AUDIO_SAMPLING_RATES = {
-            96000, // 0
-            88200, // 1
-            64000, // 2
-            48000, // 3
-            44100, // 4
-            32000, // 5
-            24000, // 6
-            22050, // 7
-            16000, // 8
-            12000, // 9
-            11025, // 10
-            8000,  // 11
-            7350,  // 12
-            -1,   // 13
-            -1,   // 14
-            -1,   // 15
-    };
-
-    /**
      * 音声のエンコード設定.
      */
-    private final AudioQuality mAudioQuality = new AudioQuality("audio/mp4a-latm") {
-        @Override
-        public int[] getSupportSamplingRates() {
-            return SUPPORT_AUDIO_SAMPLING_RATES;
-        }
-    };
+    private final MicAudioQuality mAudioQuality = new MicAudioQuality("audio/mp4a-latm");
 
     /**
      * マイクから音声をレコードするクラス.
@@ -131,7 +107,7 @@ public class MicAACLATMEncoder extends AudioEncoder {
     /**
      * 音声を録音するためのスレッド.
      */
-    private class AudioRecordThread extends QueueThread<Runnable> {
+    private static class AudioRecordThread extends QueueThread<Runnable> {
         /**
          * スレッドを終了します.
          */
@@ -164,25 +140,75 @@ public class MicAACLATMEncoder extends AudioEncoder {
     }
 
     /**
+     * 音声ソースを取得します.
+     *
+     * @return 音声ソース
+     */
+    private int getAudioSource() {
+        switch (mAudioQuality.getSource()) {
+            case DEFAULT:
+                return MediaRecorder.AudioSource.DEFAULT;
+            case MIC:
+                return MediaRecorder.AudioSource.MIC;
+            case APP:
+            default:
+                throw new RuntimeException("Audio source is not supported.");
+        }
+    }
+
+    public static final int SAMPLES_PER_FRAME = 1024;
+    public static final int FRAMES_PER_BUFFER = 25;
+
+    /**
      * AudioRecord を開始します.
      */
     private void startAudioRecord() {
-        AudioQuality audioQuality = getAudioQuality();
+        int minBufferSize = AudioRecord.getMinBufferSize(mAudioQuality.getSamplingRate(),
+                mAudioQuality.getChannel(), mAudioQuality.getFormat()) * 2;
 
-        mBufferSize = AudioRecord.getMinBufferSize(audioQuality.getSamplingRate(),
-                audioQuality.getChannel(), audioQuality.getFormat()) * 2;
+        mBufferSize = SAMPLES_PER_FRAME * FRAMES_PER_BUFFER;
+        if (mBufferSize < minBufferSize) {
+            mBufferSize = ((minBufferSize / SAMPLES_PER_FRAME) + 1) * SAMPLES_PER_FRAME * 2;
+        }
 
         if (DEBUG) {
-            Log.d(TAG, "AudioQuality: " + audioQuality);
+            Log.d(TAG, "AudioQuality: " + mAudioQuality);
+            Log.d(TAG, "  bufferSize: " + mBufferSize);
         }
 
         mMuteBuffer = new byte[mBufferSize];
 
-        mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.DEFAULT,
-                audioQuality.getSamplingRate(),
-                audioQuality.getChannel(),
-                audioQuality.getFormat(),
-                mBufferSize);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            AudioRecord.Builder builder = new AudioRecord.Builder()
+                    .setAudioFormat(new AudioFormat.Builder()
+                            .setEncoding(mAudioQuality.getFormat())
+                            .setSampleRate(mAudioQuality.getSamplingRate())
+                            .setChannelMask(mAudioQuality.getChannel())
+                            .build())
+                    .setBufferSizeInBytes(mBufferSize);
+
+            switch (mAudioQuality.getSource()) {
+                case DEFAULT:
+                case MIC:
+                    builder.setAudioSource(getAudioSource());
+                    break;
+                case APP:
+                    AudioPlaybackCaptureConfiguration config = mAudioQuality.getCaptureConfig();
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && config != null) {
+                        builder.setAudioPlaybackCaptureConfig(config);
+                    } else {
+                        throw new RuntimeException("Audio capture settings is invalid.");
+                    }
+                    break;
+            }
+            mAudioRecord = builder.build();
+        } else {
+            mAudioRecord = new AudioRecord(getAudioSource(),
+                    mAudioQuality.getSamplingRate(),
+                    mAudioQuality.getChannel(),
+                    mAudioQuality.getFormat(),
+                    mBufferSize);
+        }
 
         if (mAudioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
             postOnError(new MediaEncoderException("AudioRecord is already initialized."));

@@ -3,6 +3,8 @@
     <string name="host_ok">OK</string>
     <string name="host_confirm">Confirm</string>
     <string name="app_name_host">Host (Device Connect Device Plug-in)</string>
+    <string name="app_name_camera">Host Camera</string>
+    <string name="app_name_screencast">Host Screencast</string>
 
     <string name="shuttered">Shuttered</string>
     <string name="started_video_recording">Started recording</string>
@@ -16,6 +18,27 @@
 
     <string name="canvas_profile_view_close_guidance">tap to close.</string>
     <string name="keyevent_activity">Key Event Activity</string>
+
+    <string name="host_error_permission_title">Permission Error</string>
+    <string name="host_error_permission_message">The permission to run the app was not granted, so quit the application.</string>
+    <string name="host_error_positive">OK</string>
+    <string name="host_error_negative">NG</string>
+    <string name="host_error_cancel">Cancel</string>
+    <string name="host_error_usage_stats_title">Usage Stats</string>
+    <string name="host_error_usage_stats_message">Couldn\'t get usage stats permission. </string>
+
+    <string name="host_manager_starting_confirm">Connecting to Device Connect Manager</string>
+    <string name="host_manager_permission_confirm">Need to get the following permissions to use with this app.\n    -Taking photos and videos\n    - Audio recording\n    - Access to external storage\n\nNeed to get the following permissions to get mobile network traffic.\n    - Read phone state</string>
+    <string name="host_manager_permission_button">Permission</string>
+    <string name="host_manager_usage_stats_confirm">Need to get permission for usage stats to get network traffic.</string>
+    <string name="host_manager_usage_stats_button">Open usage stats</string>
+    <string name="host_manager_main_button">Launch to app</string>
+
+    <string name="host_recorder_failed_to_broadcast">Failed to start a broadcast.</string>
+    <string name="host_recorder_failed_to_start_preview">Failed to start a preview server.</string>
+    <string name="host_recorder_failed_to_start_recording">Failed to start a recording.</string>
+    <string name="host_recorder_failed_to_take_photo">Failed to take a photo.</string>
+    <string name="host_recorder_deny_permission">Screencast permissions are denied.</string>
 
     <string name="overlay_preview">PREVIEW</string>
     <string name="overlay_preview_ticker">Start the camera</string>
@@ -38,18 +61,76 @@
     <string name="overlay_preview_stop">Stop preview</string>
 
     <string name="host_settings_title">Host Settings</string>
-    <string name="host_settings_item_gps">GPS</string>
-    <string name="host_settings_item_jpeg_quality_preview">JPEG Quality</string>
-    <string name="host_settings_item_audio_preview">Audio</string>
-    <string name="host_settings_item_srt_preview">SRT</string>
-    <string name="host_settings_item_demo_page">Demo Page</string>
-    <string name="host_settings_item_audio_enabled">Audio</string>
-    <string name="host_settings_item_audio_enabled_summary">Set whether to enable preview audio.</string>
-    <string name="host_settings_item_audio_bit_rate">BitRate</string>
-    <string name="host_settings_item_audio_sample_rate">SampleRate</string>
-    <string name="host_settings_item_audio_channel">Channel</string>
-    <string name="host_settings_item_audio_use_aec">Echo Canceller</string>
-    <string name="host_settings_item_audio_use_aec_summary">Set whether to enable the echo canceller.</string>
+    <string name="host_settings_main_app_list">App List</string>
+    <string name="host_settings_main_app_camera">Camera</string>
+    <string name="host_settings_main_app_screencast">Screencast</string>
+    <string name="host_settings_main_plugin">Plugin Settings</string>
+    <string name="host_settings_main_plugin_gps">GPS</string>
+    <string name="host_settings_main_plugin_usage_stats">Usage Stats</string>
+    <string name="host_settings_main_plugin_recorder">Recorder Settings</string>
+    <string name="host_settings_main_plugin_recorder_list">Recorder List</string>
+    <string name="host_settings_main_plugin_demo">Demo Settings</string>
+    <string name="host_settings_main_plugin_demo_page">Demo Page</string>
+
+    <string name="host_recorder_settings_title">Recorder Settings</string>
+    <string name="host_recorder_settings_video">Video Settings</string>
+    <string name="host_recorder_settings_audio">Audio Settings</string>
+    <string name="host_recorder_settings_broadcast">Broadcast Settings</string>
+    <string name="host_recorder_settings_srt">SRT Settings</string>
+    <string name="host_recorder_settings_port">Port Settings</string>
+
+    <string name="host_recorder_settings_still_image_resolution">Still Image Resolution</string>
+    <string name="host_recorder_settings_preview_resolution">Preview Resolution</string>
+    <string name="host_recorder_settings_framerate">Frame rate (fps)</string>
+    <string name="host_recorder_settings_bitrate">Bitrate (bps)</string>
+    <string name="host_recorder_settings_bitrate_mode">Bitrate Mode</string>
+    <string name="host_recorder_settings_i_frame_interval">Key frame interval (sec)</string>
+    <string name="host_recorder_settings_video_encode">Encoder</string>
+    <string name="host_recorder_settings_video_profile_level">Profile - Level</string>
+    <string name="host_recorder_settings_use_software_encode">Software encoder</string>
+    <string name="host_recorder_settings_use_software_encode_summary">MediaCodec prefers to use the software encoder.</string>
+    <string name="host_recorder_settings_auto_focus_mode">Auto Focus</string>
+    <string name="host_recorder_settings_white_balance">Auto White Balance</string>
+    <string name="host_recorder_settings_white_balance_temperature">Color Temperature</string>
+    <string name="host_recorder_settings_auto_exposure">Auto Exposure</string>
+    <string name="host_recorder_settings_sensor_exposure_time">Exposure Time</string>
+    <string name="host_recorder_settings_sensor_sensitivity">ISO Sensitivity</string>
+    <string name="host_recorder_settings_sensor_frame_duration">Frame Duration</string>
+    <string name="host_recorder_settings_intra_refresh">Intra Refresh</string>
+    <string name="host_recorder_settings_video_stabilization">Stabilization</string>
+    <string name="host_recorder_settings_optical_stabilization">Optical Stabilization</string>
+    <string name="host_recorder_settings_noise_reduction">Noise Reduction</string>
+    <string name="host_recorder_settings_focal_length">Focal Length</string>
+    <string name="host_recorder_settings_motion_jpeg">MotionJPEG Settings</string>
+    <string name="host_recorder_settings_jpeg_quality">Quality (%)</string>
+    <string name="host_recorder_settings_range_to_cut_out">Range to cut out</string>
+    <string name="host_recorder_settings_cut_out_left">Left</string>
+    <string name="host_recorder_settings_cut_out_top">Top</string>
+    <string name="host_recorder_settings_cut_out_right">Right</string>
+    <string name="host_recorder_settings_cut_out_bottom">Bottom</string>
+    <string name="host_recorder_settings_cut_out_reset">Reset</string>
+
+    <string name="host_recorder_settings_audio_enable">Enable</string>
+    <string name="host_recorder_settings_audio_enable_summary">Set whether to enable preview audio.</string>
+    <string name="host_recorder_settings_audio_bitrate">Bitrate (bps)</string>
+    <string name="host_recorder_settings_audio_sampling_rate">Sampling Rate</string>
+    <string name="host_recorder_settings_audio_source">Audio Source</string>
+    <string name="host_recorder_settings_audio_channel">Channel</string>
+    <string name="host_recorder_settings_audio_mute">Mute</string>
+    <string name="host_recorder_settings_audio_mute_summary">Set the mute.</string>
+    <string name="host_recorder_settings_audio_echo_canceler">Echo canceler</string>
+    <string name="host_recorder_settings_audio_echo_canceler_summary">Set whether to enable the echo canceller.</string>
+    <string name="host_recorder_settings_audio_source_default">System Default</string>
+    <string name="host_recorder_settings_audio_source_mic">Mic</string>
+    <string name="host_recorder_settings_audio_source_app">App Audio</string>
+
+    <string name="host_recorder_settings_broadcast_uri">URL</string>
+
+    <string name="host_recorder_settings_port_motion_jpeg">MotionJPEG Settings</string>
+    <string name="host_recorder_settings_port_rtsp">RTSP Settings</string>
+    <string name="host_recorder_settings_port_srt">SRT Settings</string>
+    <string name="host_recorder_settings_port_number">Port</string>
+
     <string name="host_settings_item_srt_peerlatency" translatable="false">SRTO_PEERLATENCY</string>
     <string name="host_settings_item_srt_lossmaxttl" translatable="false">SRTO_LOSSMAXTTL</string>
     <string name="host_settings_item_srt_oheadbw" translatable="false">SRTO_OHEADBW</string>
@@ -57,16 +138,12 @@
     <string name="host_settings_item_srt_conntimeo" translatable="false">SRTO_CONNTIMEO</string>
     <string name="host_settings_item_srt_peeridletimeo" translatable="false">SRTO_PEERIDLETIMEO</string>
     <string name="host_settings_item_srt_packetfilter" translatable="false">SRTO_PACKETFILTER</string>
-    <string name="pref_key_settings_gps">pref_key_settings_gps</string>
-    <string name="pref_key_settings_jpeg_quality_preview">pref_key_settings_jpeg_quality_preview</string>
-    <string name="pref_key_settings_audio_preview">pref_key_settings_audio_preview</string>
-    <string name="pref_key_settings_srt_preview">pref_key_settings_srt_preview</string>
-    <string name="pref_key_settings_demo_page">pref_key_settings_demo_page</string>
-    <string name="pref_key_settings_audio_enabled">pref_key_settings_audio_enabled</string>
-    <string name="pref_key_settings_audio_bit_rate">pref_key_settings_audio_bit_rate</string>
-    <string name="pref_key_settings_audio_sample_rate">pref_key_settings_audio_sample_rate</string>
-    <string name="pref_key_settings_audio_channel">pref_key_settings_audio_channel</string>
-    <string name="pref_key_settings_audio_use_aec">pref_key_settings_audio_use_aec</string>
+    <string name="pref_key_settings_gps" translatable="false">pref_key_settings_gps</string>
+    <string name="pref_key_settings_usage_stats" translatable="false">pref_key_settings_usage_stats</string>
+    <string name="pref_key_settings_recorder" translatable="false">pref_key_settings_recorder</string>
+    <string name="pref_key_settings_app_camera" translatable="false">pref_key_settings_app_camera</string>
+    <string name="pref_key_settings_app_screen_capture" translatable="false">pref_key_settings_app_screen_capture</string>
+    <string name="pref_key_settings_demo_page" translatable="false">pref_key_settings_demo_page</string>
     <string name="pref_key_settings_srt_peerlatency" translatable="false">pref_key_settings_srt_peerlatency</string>
     <string name="pref_key_settings_srt_lossmaxttl" translatable="false">pref_key_settings_srt_lossmaxttl</string>
     <string name="pref_key_settings_srt_oheadbw" translatable="false">pref_key_settings_srt_oheadbw</string>
@@ -74,25 +151,7 @@
     <string name="pref_key_settings_srt_conntimeo" translatable="false">pref_key_settings_srt_conntimeo</string>
     <string name="pref_key_settings_srt_peeridletimeo" translatable="false">pref_key_settings_srt_peeridletimeo</string>
     <string name="pref_key_settings_srt_packetfilter" translatable="false">pref_key_settings_srt_packetfilter</string>
-    <string-array name="host_settings_item_audio_sample_rate_list">
-        <item>96000</item>
-        <item>88200</item>
-        <item>64000</item>
-        <item>48000</item>
-        <item>44100</item>
-        <item>32000</item>
-        <item>24000</item>
-        <item>22050</item>
-        <item>16000</item>
-        <item>12000</item>
-        <item>11025</item>
-        <item>8000</item>
-        <item>7350</item>
-    </string-array>
-    <string-array name="host_settings_item_audio_channel_list">
-        <item>1</item>
-        <item>2</item>
-    </string-array>
+    <string name="host_setting_srt_option_auto">Auto</string>
 
     <string name="gps_settings_title">GPS setting</string>
     <string name="gps_settings_body">Since this device plug-in uses the GPS function, please turn on the setting from the GPS setting screen of the terminal.</string>
@@ -102,16 +161,26 @@
     <string name="gps_settings_gps_permission_on">Acquired</string>
     <string name="gps_settings_gps_permission_off">Acquisition</string>
 
-    <string name="recorder_settings_preview_jpeg_title">JPEG Quality - Preview</string>
-
-    <string name="demo_page_description">Host Plugin provide the demo page for camera feature and so on.\n\nPlease install the demo page on the external storage of this device if you want to access the demo page from web browsers.</string>
-    <string name="demo_page_shortcut_label">Camera</string>
-
     <string name="host_setting_dialog_error_permission">It can not be searched because permission to use GPS is not permitted.\nPlease obtain permission of position information from GPS setting screen.</string>
     <string name="host_setting_dialog_disable_gps">Can not search because the GPS is disabled.\nPlease enable GPS by GPS setting screen.</string>
     <string name="host_setting_gps_dialog_cancel">Cancel</string>
 
-    <string name="host_setting_srt_option_auto">Auto</string>
+    <string name="usage_stats_settings_title">Usage Stats Setting</string>
+
+    <string name="demo_page_description">Host Plugin provide the demo page for camera feature and so on.\n\nPlease install the demo page on the external storage of this device if you want to access the demo page from web browsers.</string>
+    <string name="demo_page_shortcut_label">Camera</string>
+
+    <string name="host_app_screencast">Screencast</string>
+    <string name="host_app_screencast_preview">Preview</string>
+    <string name="host_app_screencast_preview_summary">Preview the screen.</string>
+    <string name="host_app_screencast_broadcast">Broadcast</string>
+    <string name="host_app_screencast_broadcast_summary">Broadcast the screen.</string>
+    <string name="host_app_screencast_recording">Recording</string>
+    <string name="host_app_screencast_recording_summary">Record the screen.</string>
+    <string name="host_app_screencast_settings">Settings</string>
+    <string name="host_app_screencast_settings_change">Settings change</string>
+    <string name="host_app_screencast_settings_overlay">Overlay</string>
+    <string name="host_app_screencast_settings_overlay_summary">Use overlays to force refresh if the screen is not refreshed during the screencast.</string>
 
     <string name="host_canvas_download_title">Download</string>
     <string name="host_canvas_download_message">Downloading...</string>
@@ -132,5 +201,26 @@
     <string name="host_notification_projection_warnning">Start request from Host Media Streaming Recording Profile</string>
     <string name="host_notification_phone_warnning">Start request from Host Phone Profile</string>
     <string name="host_notification_setting_warnning">Start request from Host Setting Profile</string>
+
+    <string name="host_notification_recorder_preview_ticker">Start the preview server</string>
+    <string name="host_notification_recorder_preview">Running a preview server [ %1$s ]</string>
+    <string name="host_notification_recorder_preview_content">You can stop the capture by click.</string>
+    <string name="host_notification_recorder_broadcast_ticker">Start the broadcaster</string>
+    <string name="host_notification_recorder_broadcast">Running a broadcaster [ %1$s ]</string>
+    <string name="host_notification_recorder_broadcast_content">You can stop the capture by click.</string>
+    <string name="host_notification_recorder_recording_ticker">Start the recording</string>
+    <string name="host_notification_recorder_recording">Recording [ %1$s ]</string>
+    <string name="host_notification_recorder_recording_content">You can stop the recording by click.</string>
+
+    <!-- ネットワーク -->
+    <string name="host_connection_network_type_no_connect">No Connect</string>
+    <string name="host_connection_network_type_mobile">MOBILE</string>
+    <string name="host_connection_network_type_wifi">Wi-Fi</string>
+    <string name="host_connection_network_type_ethernet">Ethernet</string>
+    <string name="host_connection_network_type_bluetooth">Bluetooth</string>
+    <string name="host_connection_network_type_lte">LTE CA</string>
+    <string name="host_connection_network_type_lte_advanced">LTE Advanced Pro（5Ge)</string>
+    <string name="host_connection_network_type_nsa">5G Sub-6</string>
+    <string name="host_connection_network_type_nsa_mmwav">5G MMWAV</string>
 </resources>
 

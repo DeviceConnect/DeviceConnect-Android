@@ -7,7 +7,6 @@ import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoder;
@@ -19,26 +18,6 @@ import java.util.List;
 public abstract class VideoEncoder extends MediaEncoder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "VIDEO-ENCODER";
-
-    /**
-     * H.264 のマイムタイプを定義.
-     */
-    private static final String MIME_TYPE_H264 = "video/avc";
-
-    /**
-     * H.265 のマイムタイプを定義.
-     */
-    private static final String MIME_TYPE_H265 = "video/hevc";
-
-    /**
-     * VP8 のマイムタイプを定義.
-     */
-    private static final String MIME_TYPE_VP8 = "video/x-vnd.on2.vp8";
-
-    /**
-     * VP9 のマイムタイプを定義.
-     */
-    private static final String MIME_TYPE_VP9 = "video/x-vnd.on2.vp9";
 
     /**
      * キーフレームの同期フラグ.
@@ -55,11 +34,8 @@ public abstract class VideoEncoder extends MediaEncoder {
     @Override
     protected void prepare() throws IOException {
         VideoQuality videoQuality = getVideoQuality();
-        int videoWidth = videoQuality.getVideoWidth();
-        int videoHeight = videoQuality.getVideoHeight();
-        boolean isSwapped = isSwappedDimensions();
-        int w = isSwapped ? videoHeight : videoWidth;
-        int h = isSwapped ? videoWidth : videoHeight;
+        int w = videoQuality.getVideoWidth();
+        int h = videoQuality.getVideoHeight();
         mMediaCodec = createMediaCodec(getColorFormat(), w, h);
     }
 
@@ -94,38 +70,6 @@ public abstract class VideoEncoder extends MediaEncoder {
      * @return 映像のエンコード設定
      */
     public abstract VideoQuality getVideoQuality();
-
-    /**
-     * 映像の回転を取得します.
-     *
-     * <p>
-     * 端末の向きに合わせて、映像を回転する場合などに使用します。
-     * </p>
-     *
-     * @return 映像の回転
-     */
-    protected int getDisplayRotation() {
-        return Surface.ROTATION_0;
-    }
-
-    /**
-     * MediaCodec に渡す解像度の縦横のサイズをスワップするか判断します.
-     *
-     * <p>
-     * 端末の回転に合わせて、解像度を変更する時に使用します。
-     * </p>
-     *
-     * @return スワップする場合は true、それ以外は false
-     */
-    public boolean isSwappedDimensions() {
-        switch (getDisplayRotation()) {
-            case Surface.ROTATION_0:
-            case Surface.ROTATION_180:
-                return false;
-            default:
-                return true;
-        }
-    }
 
     /**
      * キーフレームを要求します.
@@ -211,7 +155,6 @@ public abstract class VideoEncoder extends MediaEncoder {
         String mimeType = videoQuality.getMimeType();
         MediaCodecInfo codecInfo = null;
 
-        boolean configureH264HighProfile = false;
         boolean useSoftware = videoQuality.isUseSoftwareEncoder();
 
         List<MediaCodecInfo> infoList = getMediaCodecInfo(mimeType, colorFormat);
@@ -222,15 +165,6 @@ public abstract class VideoEncoder extends MediaEncoder {
         for (MediaCodecInfo info : infoList) {
             if (codecInfo == null || (useSoftware == !isHardware(info))) {
                 codecInfo = info;
-            }
-        }
-
-        if (MIME_TYPE_H264.equalsIgnoreCase(mimeType)) {
-            for (MediaCodecInfo info : infoList) {
-                if (info.getName().startsWith("OMX.Exynos.") && (useSoftware == !isHardware(info))) {
-                    configureH264HighProfile = true;
-                    codecInfo = info;
-                }
             }
         }
 
@@ -268,7 +202,7 @@ public abstract class VideoEncoder extends MediaEncoder {
         }
 
         // 一定期間 Surface に更新がなかった場合に前の映像をエンコードします.(単位: microseconds)
-        format.setLong(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, 200 * 1000);
+        format.setLong(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, 1000000 / videoQuality.getFrameRate());
 
         // ビットレートモードに設定します。
         // 機種ごとにサポートできるパラメータが異なるので、設定できない場合はデフォルトで動作します。
@@ -291,15 +225,20 @@ public abstract class VideoEncoder extends MediaEncoder {
                     break;
             }
         }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // 0: realtime priority
             // 1: non-realtime priority (best effort).
             format.setInteger(MediaFormat.KEY_PRIORITY, 0x00);
 
-            // H264 で High Profile をサポートしている場合は使用するようにします。
-            if (configureH264HighProfile) {
-                format.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileHigh);
-                format.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel3);
+            // エンコーダのプロファイルとレベルを設定
+            int profile = videoQuality.getProfile();
+            int level = videoQuality.getLevel();
+            if (profile != 0 && level != 0) {
+                if (isProfileSupported(codecCapabilities, profile, level)) {
+                    format.setInteger(MediaFormat.KEY_PROFILE, profile);
+                    format.setInteger(MediaFormat.KEY_LEVEL, level);
+                }
             }
         }
 
@@ -309,9 +248,35 @@ public abstract class VideoEncoder extends MediaEncoder {
             format.setInteger(MediaFormat.KEY_LATENCY, 0);
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            int intraRefresh = videoQuality.getIntraRefresh();
+            if (intraRefresh != 0) {
+                format.setInteger(MediaFormat.KEY_INTRA_REFRESH_PERIOD, intraRefresh);
+            }
+        }
+
         MediaCodec mediaCodec = MediaCodec.createByCodecName(codecInfo.getName());
         mediaCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         return mediaCodec;
+    }
+
+    /**
+     * コーデックが指定されたプロファイルとレベルをサポートしているか確認します.
+     *
+     * @param codecCapabilities コーデックの機能
+     * @param profile プロファイル
+     * @param level レベル
+     * @return サポートしている場合はtrue、それ以外はfalse
+     */
+    private boolean isProfileSupported(MediaCodecInfo.CodecCapabilities codecCapabilities, int profile, int level) {
+        if (codecCapabilities.profileLevels != null) {
+            for (MediaCodecInfo.CodecProfileLevel c : codecCapabilities.profileLevels) {
+                if (c.profile == profile && c.level >= level) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**

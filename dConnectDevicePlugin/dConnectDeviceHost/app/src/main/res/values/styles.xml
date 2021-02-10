@@ -17,6 +17,7 @@
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
 
+    <!-- 透明な背景 -->
     <style name="AppTheme.Translucent" parent="AppTheme">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:colorBackgroundCacheHint">@null</item>
@@ -41,5 +42,10 @@
         <item name="android:windowActionBar">false</item>
         <item name="android:windowContentOverlay">@null</item>
     </style>
-    
+
+    <style name="AppCompatTheme.NoActionBar" parent="AppCompatTheme">
+        <item name="windowNoTitle">true</item>
+<!--        <item name="android:windowTranslucentNavigation">true</item>-->
+    </style>
+
 </resources>

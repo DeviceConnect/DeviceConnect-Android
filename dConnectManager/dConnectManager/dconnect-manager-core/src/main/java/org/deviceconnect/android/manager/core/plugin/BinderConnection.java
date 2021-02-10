@@ -185,7 +185,7 @@ public class BinderConnection extends AbstractConnection {
             }
 
             synchronized (lockObj) {
-                lockObj.wait(2000);
+                lockObj.wait(5000);
             }
 
             if (!result.mIsComplete) {
@@ -195,7 +195,7 @@ public class BinderConnection extends AbstractConnection {
         }
     }
 
-    private class ConnectingResult {
+    private static class ConnectingResult {
         boolean mIsComplete;
         IDConnectPlugin mPlugin;
         ServiceConnection mServiceConnection;

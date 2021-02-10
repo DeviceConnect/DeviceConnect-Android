@@ -4,20 +4,22 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
 import org.deviceconnect.android.libmedia.streaming.IMediaMuxer;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
-public class Mpeg4Muxer implements IMediaMuxer {
-    private static final boolean DEBUG = false;
-    private static final String TAG = "MPEG4-MUXER";
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
+public class Mpeg4Muxer implements IMediaMuxer {
     private MediaMuxer mMuxer;
-    private int mTrackIndex;
+    private int mVideoTrackIndex;
+    private int mAudioTrackIndex;
     private boolean mMuxerStarted = false;
+    private boolean mVideoEnabled = false;
+    private boolean mAudioEnabled = false;
+
+    private final Object mLockObject = new Object();
 
     public Mpeg4Muxer(String outputPath) {
         try {
@@ -25,20 +27,32 @@ public class Mpeg4Muxer implements IMediaMuxer {
         } catch (IOException ioe) {
             throw new RuntimeException("MediaMuxer creation failed", ioe);
         }
-        mTrackIndex = -1;
+        mVideoTrackIndex = -1;
+        mAudioTrackIndex = -1;
     }
 
     @Override
-    public boolean onPrepare(VideoQuality quality, AudioQuality audioQuality) {
+    public boolean onPrepare(VideoQuality videoQuality, AudioQuality audioQuality) {
         mMuxerStarted = false;
+        mVideoEnabled = videoQuality != null;
+        mAudioEnabled = audioQuality != null;
         return true;
     }
 
     @Override
     public void onVideoFormatChanged(MediaFormat newFormat) {
-        mTrackIndex = mMuxer.addTrack(newFormat);
-        mMuxer.start();
-        mMuxerStarted = true;
+        mVideoTrackIndex = mMuxer.addTrack(newFormat);
+        startMixer();
+
+        synchronized (mLockObject) {
+            if (!mMuxerStarted && mMuxer != null) {
+                try {
+                    mLockObject.wait(5000);
+                } catch (Exception e) {
+                    return;
+                }
+            }
+        }
     }
 
     @Override
@@ -48,29 +62,83 @@ public class Mpeg4Muxer implements IMediaMuxer {
         }
 
         if (bufferInfo.size != 0) {
-            if (!mMuxerStarted) {
-                throw new RuntimeException("muxer hasn't started");
+            if (!mMuxerStarted || mVideoTrackIndex == -1) {
+                return;
             }
             encodedData.position(bufferInfo.offset);
             encodedData.limit(bufferInfo.offset + bufferInfo.size);
-            mMuxer.writeSampleData(mTrackIndex, encodedData, bufferInfo);
+            mMuxer.writeSampleData(mVideoTrackIndex, encodedData, bufferInfo);
         }
     }
 
     @Override
     public void onAudioFormatChanged(MediaFormat newFormat) {
+        mAudioTrackIndex = mMuxer.addTrack(newFormat);
+        startMixer();
+
+        synchronized (mLockObject) {
+            if (!mMuxerStarted && mMuxer != null) {
+                try {
+                    mLockObject.wait(5000);
+                } catch (Exception e) {
+                    return;
+                }
+            }
+        }
     }
 
     @Override
     public void onWriteAudioData(ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
+        if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+            bufferInfo.size = 0;
+        }
+
+        if (bufferInfo.size != 0) {
+            if (!mMuxerStarted || mAudioTrackIndex == -1) {
+                return;
+            }
+            encodedData.position(bufferInfo.offset);
+            encodedData.limit(bufferInfo.offset + bufferInfo.size);
+            mMuxer.writeSampleData(mAudioTrackIndex, encodedData, bufferInfo);
+        }
     }
 
     @Override
     public void onReleased() {
         if (mMuxer != null) {
-            mMuxer.stop();
-            mMuxer.release();
+            try {
+                mMuxer.stop();
+            } catch (Exception e) {
+                // ignore.
+            }
+
+            try {
+                mMuxer.release();
+            } catch (Exception e) {
+                // ignore.
+            }
             mMuxer = null;
+        }
+    }
+
+    private synchronized void startMixer() {
+        if (mMuxerStarted) {
+            return;
+        }
+
+        if (mAudioEnabled && mAudioTrackIndex == -1) {
+            return;
+        }
+
+        if (mVideoEnabled && mVideoTrackIndex == -1) {
+            return;
+        }
+
+        mMuxer.start();
+        mMuxerStarted = true;
+
+        synchronized (mLockObject) {
+            mLockObject.notifyAll();
         }
     }
 }

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="@string/host_recorder_settings_title"
+        app:iconSpaceReserved="false">
+
+        <PreferenceScreen
+            app:iconSpaceReserved="false"
+            app:key="recorder_settings_video"
+            app:title="@string/host_recorder_settings_video" />
+
+        <PreferenceScreen
+            app:iconSpaceReserved="false"
+            app:key="recorder_settings_audio"
+            app:title="@string/host_recorder_settings_audio" />
+
+        <PreferenceScreen
+            app:iconSpaceReserved="false"
+            app:key="recorder_settings_broadcast"
+            app:title="@string/host_recorder_settings_broadcast" />
+
+        <PreferenceScreen
+            app:iconSpaceReserved="false"
+            app:key="recorder_settings_srt"
+            app:title="@string/host_recorder_settings_srt" />
+
+        <PreferenceScreen
+            app:iconSpaceReserved="false"
+            app:key="recorder_settings_port"
+            app:title="@string/host_recorder_settings_port" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

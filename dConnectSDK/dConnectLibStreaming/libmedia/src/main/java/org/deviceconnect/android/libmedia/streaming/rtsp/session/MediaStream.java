@@ -27,7 +27,7 @@ public abstract class MediaStream {
     /**
      * セッション名.
      */
-    private String mSession = createSession();
+    private final String mSession = createSession();
 
     /**
      * セッション名を作成します.
@@ -152,6 +152,36 @@ public abstract class MediaStream {
      */
     public boolean isHighPriority() {
         return false;
+    }
+
+    /**
+     * データ送信量を取得します.
+     *
+     * @return データ送信量
+     */
+    public long getSentSize() {
+        int sentSize = 0;
+        synchronized (mRtpPacketizes) {
+            for (RtpSocket socket : mRtpPacketizes.keySet()) {
+                sentSize += socket.getSentSize();
+            }
+        }
+        return sentSize;
+    }
+
+    /**
+     * データ送信 BPS を取得します.
+     *
+     * @return データ送信 BPS
+     */
+    public long getBPS() {
+        int bps = 0;
+        synchronized (mRtpPacketizes) {
+            for (RtpSocket socket : mRtpPacketizes.keySet()) {
+                bps += socket.getBPS();
+            }
+        }
+        return bps;
     }
 
     /**

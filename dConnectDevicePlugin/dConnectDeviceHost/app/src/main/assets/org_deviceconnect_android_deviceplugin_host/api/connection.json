@@ -1,0 +1,1580 @@
+
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "スマートデバイスとのネットワーク接続情報を提供するAPI。",
+        "version": "2.0.0",
+        "title": "Connection Profile"
+    },
+    "basePath": "/gotapi/connection",
+    "consumes": ["application/x-www-form-urlencoded", "multipart/form-data"],
+    "paths": {
+        "/ble": {
+            "get": {
+                "summary": "スマートデバイスのBLE機能有効状態(ON/OFF)を取得する。",
+                "description": "BLE機能有効状態取得をサポートしていない場合はエラーを返す。",
+                "operationId": "connectionBleGet",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BLE機能有効状態を返す。 返せない場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/GetBleResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "enable": true
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "put": {
+                "summary": "スマートデバイスのBLE機能有効状態を有効に設定する。",
+                "description": "BLE機能有効状態の設定をサポートしていない場合はエラーを返す。",
+                "operationId": "connectionBlePut",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BLE機能有効状態の設定結果を返す。 設定に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/BleOnResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "delete": {
+                "summary": "スマートデバイスのBLE機能有効状態を無効に設定する。",
+                "description": "BLE機能有効の無効化をサポートしていない場合はエラーを返す。",
+                "operationId": "connectionBleDelete",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BLE機能有効の無効に設定した結果を返す。 設定に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/BleOffResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
+        },
+        "/bluetooth": {
+            "get": {
+                "summary": "スマートデバイスのBluetooth機能有効状態(ON/OFF)を取得する。",
+                "description": "スマートデバイスでBluetooth機能有効状態がサポートされていない場合はエラーを返す。",
+                "operationId": "connectionBluetoothGet",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "スマートデバイスのBluetooth機能有効状態を返す。 状態取得に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/GetBluetoothResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "enable": true
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "put": {
+                "summary": "スマートデバイスのBluetooth機能有効状態を有効に設定する。",
+                "description": "スマートデバイスでBluetooth機能を有効にする機能がサポートされていない場合はエラーを返す。",
+                "operationId": "connectionBluetoothPut",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bluetooth機能有効状態を有効に設定結果を返す。 設定に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/BluetoothOnResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "delete": {
+                "summary": "スマートデバイスのBluetooth機能有効状態を無効に設定する。",
+                "description": "スマートデバイスでBluetooth機能有効状態を無効に設定する機能が サポートされていない場合はエラーを返す。",
+                "operationId": "connectionBluetoothDelete",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bluetooth有効機能を無効に設定した結果を返す。 設定に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/BluetoothOffResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
+        },
+        "/bluetooth/discoverable": {
+            "put": {
+                "summary": "スマートデバイスのBluetooth検索可能状態を有効に設定する。",
+                "description": "Bluetooth検索可能状態の有効がサポートされていない場合はエラーを返す。",
+                "operationId": "connectionBluetoothDiscoverablePut",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bluetooth検索可能状態を有効に設定した結果を返す。 失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/BluetoothDiscoverableStartResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "delete": {
+                "summary": "スマートデバイスのBluetooth検索可能状態を無効に設定する。",
+                "description": "Bluetooth検索可能状態の無効がサポートされていない場合はエラーを返す。",
+                "operationId": "connectionBluetoothDiscoverableDelete",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bluetooth検索可能状態を無効に設定した結果を返す。 失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/BluetoothDiscoverableStopResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
+        },
+        "/network": {
+            "get": {
+                "summary": "スマートデバイスの接続ネットワークタイプを取得する。",
+                "description": "接続しているネットワークタイプを取得する。",
+                "operationId": "connectionNetworkGet",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "接続しているネットワークの種別を取得する",
+                        "schema": {
+                            "$ref": "#/definitions/GetNetworkResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "network": "WiFi"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
+        },
+        "/network/bitrate": {
+            "get": {
+                "summary": "スマートデバイスの接続ネットワークのビットレートを取得する。",
+                "description": "接続しているネットワークのビットレートを取得する。",
+                "operationId": "connectionNetworkBitrateGet",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "接続しているネットワークの種別を取得する",
+                        "schema": {
+                            "$ref": "#/definitions/GetNetworkBitrateResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "bitrate": 1024
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
+        },
+        "/network/onChange": {
+            "put": {
+                "summary": "スマートデバイスの接続ネットワークタイプの変化を通知するイベントを登録する。",
+                "description": "接続しているネットワークが切り替わった時にイベントを通知する。",
+                "operationId": "connectionNetworkPut",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }, 
+                    {
+                        "name": "interval",
+                        "in": "formData",
+                        "description": "デバイスプラグインがイベントを送信する間隔。",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BLE機能有効状態の変化を通知するイベントの開始結果を返す。 開始に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/EventRegistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "event",
+                "x-event": {
+                    "schema": {
+                        "$ref": "#/definitions/NetworkEvent"
+                    },
+                    "examples": {
+                        "application/json": {
+                            "serviceId": "Host.exampleId.localhost.deviceconnect.org",
+                            "profile": "connect",
+                            "interface": "network",
+                            "attribute": "onchange",
+                            "network": "Wi-Fi"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "スマートデバイスの接続ネットワークタイプの変化を通知するイベントを解除する。",
+                "description": "接続しているネットワークが切り替わった時にイベントを通知する。",
+                "operationId": "connectionNetworkDelete",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BLE機能有効状態通知イベントの停止結果を返す。 停止に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/EventUnregistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "event"
+            }
+        },
+        "/nfc": {
+            "get": {
+                "summary": "スマートデバイスのNFC機能有効状態(ON/OFF)を取得する。",
+                "description": "NFC機能有効状態が取得をサポートしていない場合はエラーを返す。",
+                "operationId": "connectionNfcGet",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "NFC機能有効状態を返す。 返せない場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/GetNfcResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "enable": true
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "put": {
+                "summary": "スマートデバイスのNFC機能有効状態を有効に設定する。",
+                "description": "NFC有効状態の有効設定をサポートしていない場合はエラーを返す。",
+                "operationId": "connectionNfcPut",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "NFC有効状態の設定結果を返す。 設定に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/NfcOnResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "delete": {
+                "summary": "スマートデバイスのNFC機能有効状態を無効に設定する。",
+                "description": "NFC有効状態の無効をサポートしていない場合はエラーを返す。",
+                "operationId": "connectionNfcDelete",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "NFC有効状態を無効に設定した結果を返す。 設定に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/NfcOffResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
+        },
+        "/onBleChange": {
+            "get": {
+                "summary": "スマートデバイスのBLE機能有効状態(ON/OFF)の変化を通知するイベントを取得する。",
+                "description": "BLE機能有効状態がONからOFFまたはOFFからONに変化したときに通知される。",
+                "operationId": "connectionOnBleChangeGet",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BLE機能の有効状態を返す。 失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/BleChangeResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "connectStatus": {
+                                    "enable": true
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "put": {
+                "summary": "スマートデバイスのBLE機能有効状態(ON/OFF)の変化を通知するイベントを開始する。",
+                "description": "BLE機能有効状態がONからOFFまたはOFFからONに変化したときに通知される。",
+                "operationId": "connectionOnBleChangePut",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }, 
+                    {
+                        "name": "interval",
+                        "in": "formData",
+                        "description": "デバイスプラグインがイベントを送信する間隔。",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BLE機能有効状態の変化を通知するイベントの開始結果を返す。 開始に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/EventRegistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "event",
+                "x-event": {
+                    "schema": {
+                        "$ref": "#/definitions/BleChangeEvent"
+                    },
+                    "examples": {
+                        "application/json": {
+                            "serviceId": "Host.exampleId.localhost.deviceconnect.org",
+                            "profile": "connect",
+                            "attribute": "onblechange",
+                            "connectStatus": {
+                                "enable": true
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "スマートデバイスのBLE機能有効状態(ON/OFF)の変化を通知するイベントを停止する。",
+                "description": "BLE機能有効状態がONからOFFまたはOFFからONに変化したときに通知される。",
+                "operationId": "connectionOnBleChangeDelete",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BLE機能有効状態通知イベントの停止結果を返す。 停止に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/EventUnregistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "event"
+            }
+        },
+        "/onBluetoothChange": {
+            "get": {
+                "summary": "スマートデバイスのBluetooth機能有効状態(ON/OFF)の変化を通知するイベントを取得する。",
+                "description": "Bluetooth機能有効状態がONからOFFまたはOFFからONに変化したときに通知される。",
+                "operationId": "connectionOnBluetoothChangeGet",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bluetooth機能有効状態(ON/OFF)を返す。 状態が変化していない時に実行された場合は、現在の状態を返す。",
+                        "schema": {
+                            "$ref": "#/definitions/BluetoothChangeResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "connectStatus": {
+                                    "enable": true
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "put": {
+                "summary": "スマートデバイスのBluetooth機能有効状態(ON/OFF)の変化を通知するイベントを開始する。",
+                "description": "Bluetooth機能有効状態がONからOFFまたはOFFからONに変化したときに通知される。",
+                "operationId": "connectionOnBluetoothChangePut",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }, 
+                    {
+                        "name": "interval",
+                        "in": "formData",
+                        "description": "デバイスプラグインがイベントを送信する間隔。",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bluetooth機能有効状態(ON/OFF)の変化を通知するイベントの開始結果を返す。 イベントの開始に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/EventRegistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "event",
+                "x-event": {
+                    "schema": {
+                        "$ref": "#/definitions/BluetoothChangeEvent"
+                    },
+                    "examples": {
+                        "application/json": {
+                            "serviceId": "Host.exampleId.localhost.deviceconnect.org",
+                            "profile": "connect",
+                            "attribute": "onbluetoothchange",
+                            "connectStatus": {
+                                "enable": true
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "スマートデバイスのBluetooth機能有効状態(ON/OFF)の変化を通知するイベントを停止する。",
+                "description": "Bluetooth機能有効状態がONからOFFまたはOFFからONに変化したときに通知される。",
+                "operationId": "connectionOnBluetoothChangeDelete",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bluetooth機能有効状態(ON/OFF)の変化を通知するイベントの停止結果を返す。 イベントの停止に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/EventUnregistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "event"
+            }
+        },
+        "/onNfcChange": {
+            "get": {
+                "summary": "スマートデバイスのNFC機能有効状態(ON/OFF)の変化を通知するイベントを取得する。",
+                "description": "NFC機能有効状態がONからOFFまたはOFFからONに変化したときに通知される。",
+                "operationId": "connectionOnNfcChangeGet",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "NFC機能有効状態を返す。 変化していない場合は、現在の状態を返す。",
+                        "schema": {
+                            "$ref": "#/definitions/NfcChangeResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "connectStatus": {
+                                    "enable": true
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "put": {
+                "summary": "スマートデバイスのNFC機能有効状態(ON/OFF)の変化を通知するイベントを開始する。",
+                "description": "NFC機能有効状態がONからOFFまたはOFFからONに変化したときに通知される。",
+                "operationId": "connectionOnNfcChangePut",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }, 
+                    {
+                        "name": "interval",
+                        "in": "formData",
+                        "description": "デバイスプラグインがイベントを送信する間隔。",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "NFC機能有効状態の通知イベントの開始結果を返す。 開始に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/EventRegistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "event",
+                "x-event": {
+                    "schema": {
+                        "$ref": "#/definitions/NfcChangeEvent"
+                    },
+                    "examples": {
+                        "application/json": {
+                            "serviceId": "Host.exampleId.localhost.deviceconnect.org",
+                            "profile": "connect",
+                            "attribute": "onnfcchange",
+                            "connectStatus": {
+                                "enable": true
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "スマートデバイスのNFC機能有効状態(ON/OFF)の変化を通知するイベントを停止する。",
+                "description": "NFC機能有効状態がONからOFFまたはOFFからONに変化したときに通知される。",
+                "operationId": "connectionOnNfcChangeDelete",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "NFC機能有効状態通知イベントの停止結果を返す。 停止に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/EventUnregistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "event"
+            }
+        },
+        "/onWifiChange": {
+            "get": {
+                "summary": "スマートデバイスのWIFI機能有効状態(ON/OFF)の変化を通知するイベントを取得する。",
+                "description": "WIFI機能有効状態がONからOFFまたはOFFからONに変化したときに通知される。",
+                "operationId": "connectionOnWifiChangeGet",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "WIFI機能有効状態(ON/OFF)の変化を返す。 切り替わっていない場合は、切り替わる前にWIFI機能の有効状態を返す。 状態の取得に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/WifiChangeResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "connectStatus": {
+                                    "enable": true
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "put": {
+                "summary": "スマートデバイスのWIFI機能有効状態(ON/OFF)の変化を通知するイベントを開始する。",
+                "description": "WIFI機能有効状態がONからOFFまたはOFFからONに変化したときに通知される。",
+                "operationId": "connectionOnWifiChangePut",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }, 
+                    {
+                        "name": "interval",
+                        "in": "formData",
+                        "description": "デバイスプラグインがイベントを送信する間隔。",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "WIFI機能有効状態(ON/OFF)の変化を通知するイベントの開始結果を返す。 登録に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/EventRegistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "event",
+                "x-event": {
+                    "schema": {
+                        "$ref": "#/definitions/WifiChangeEvent"
+                    },
+                    "examples": {
+                        "application/json": {
+                            "serviceId": "Host.exampleId.localhost.deviceconnect.org",
+                            "profile": "connect",
+                            "attribute": "onwifichange",
+                            "connectStatus": {
+                                "enable": true
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "スマートデバイスのWIFI機能有効状態(ON/OFF)の変化を通知するイベントを停止する。",
+                "description": "WIFI機能有効状態がONからOFFまたはOFFからONに変化したときに通知される。",
+                "operationId": "connectionOnWifiChangeDelete",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "WIFI機能有効状態の変化を通知するイベントの停止結果を返す。 停止に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/EventUnregistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "event"
+            }
+        },
+        "/wifi": {
+            "get": {
+                "summary": "スマートデバイスのWIFI機能有効状態(ON/OFF)を取得する。",
+                "description": "スマートデバイスのWIFI機能有効状態が取得できない場合はエラーを返す。",
+                "operationId": "connectionWifiGet",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "スマートデバイスのWIFI機能有効状態(ON/OFF)を返す。 取得に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/GetWifiResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "enable": true
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "put": {
+                "summary": "スマートデバイスのWIFI機能有効状態を有効に設定する。",
+                "description": "スマートデバイスのWIFI機能有効状態が変更できない場合はエラーを返す。",
+                "operationId": "connectionWifiPut",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "WIFI機能を有効化に設定した結果を返す。 失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/WifiOnResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "delete": {
+                "summary": "スマートデバイスのWIFI機能有効状態を無効に設定する。",
+                "description": "スマートデバイスのWIFI機能無効状態が変更できない場合はエラーを返す。",
+                "operationId": "connectionWifiDelete",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "WIFI機能有効状態を無効に設定した結果を返す。 失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/WifiOffResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
+        }
+    },
+    "definitions": {
+        "GetNetworkResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }, 
+                {
+                    "type": "object",
+                    "required": ["network"],
+                    "properties": {
+                        "network": {
+                            "type": "string",
+                            "description": "ネットワークの種別",
+                            "title": "ネットワーク接続種別"
+                        }
+                    }
+                }
+            ]
+        },
+        "NetworkEvent": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonEvent"
+                }, 
+                {
+                    "required": ["network"],
+                    "properties": {
+                        "network": {
+                            "type": "string",
+                            "description": "接続ネットワークの種別",
+                            "title": "接続ネットワーク"
+                        }
+                    }
+                }
+            ]
+        },
+        "GetNetworkBitrateResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }, 
+                {
+                    "required": ["mobile", "wifi"],
+                    "properties": {
+                        "wifi": {
+                            "type": "object",
+                            "title": "Wi-Fi の通信量を格納する。",
+                            "properties": {
+                                "send": {
+                                    "type": "object",
+                                    "title": "送信量を格納する",
+                                    "properties": {
+                                        "bitrate": {
+                                            "type": "boolean",
+                                            "description": "ビットレート。(KBPS)",
+                                            "title": "ビットレート"
+                                        }
+                                    },
+                                    "required": ["bitrate"]
+                                },
+                                "receive": {
+                                    "type": "object",
+                                    "title": "受信量を格納する",
+                                    "properties": {
+                                        "bitrate": {
+                                            "type": "boolean",
+                                            "description": "ビットレート。(KBPS)",
+                                            "title": "ビットレート"
+                                        }
+                                    },
+                                    "required": ["bitrate"]
+                                }
+                            },
+                            "required": ["receive", "send"]
+                        },
+                        "mobile": {
+                            "type": "object",
+                            "title": "モバイルの通信量を格納する。",
+                            "properties": {
+                                "send": {
+                                    "type": "object",
+                                    "title": "送信量を格納する",
+                                    "properties": {
+                                        "bitrate": {
+                                            "type": "boolean",
+                                            "description": "ビットレート。(KBPS)",
+                                            "title": "ビットレート"
+                                        }
+                                    },
+                                    "required": ["bitrate"]
+                                },
+                                "receive": {
+                                    "type": "object",
+                                    "title": "受信量を格納する",
+                                    "properties": {
+                                        "bitrate": {
+                                            "type": "boolean",
+                                            "description": "ビットレート。(KBPS)",
+                                            "title": "ビットレート"
+                                        }
+                                    },
+                                    "required": ["bitrate"]
+                                }
+                            },
+                            "required": ["receive", "send"]
+                        }
+                    }
+                }
+            ]
+        },
+        "GetWifiResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }, 
+                {
+                    "type": "object",
+                    "required": ["enable"],
+                    "properties": {
+                        "enable": {
+                            "type": "boolean",
+                            "description": "WIFI機能有効状態。<br> ON : true<br> OFF : false",
+                            "title": "WIFI機能有効状態"
+                        }
+                    }
+                }
+            ]
+        },
+        "WifiOnResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "WifiOffResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "WifiChangeResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }, 
+                {
+                    "required": ["connectStatus"],
+                    "properties": {
+                        "connectStatus": {
+                            "type": "object",
+                            "title": "接続情報",
+                            "properties": {
+                                "enable": {
+                                    "type": "boolean",
+                                    "description": "WIFI機能有効状態<br> ON: true<br> OFF: false",
+                                    "title": "WIFI機能有効状態"
+                                }
+                            },
+                            "required": ["enable"]
+                        }
+                    }
+                }
+            ]
+        },
+        "WifiChangeEvent": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonEvent"
+                }, 
+                {
+                    "required": ["connectStatus"],
+                    "properties": {
+                        "connectStatus": {
+                            "type": "object",
+                            "title": "接続情報",
+                            "properties": {
+                                "enable": {
+                                    "type": "boolean",
+                                    "description": "WIFI機能有効状態<br> ON: true<br> OFF: false",
+                                    "title": "WIFI機能有効状態"
+                                }
+                            },
+                            "required": ["enable"]
+                        }
+                    }
+                }
+            ]
+        },
+        "GetBluetoothResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }, 
+                {
+                    "type": "object",
+                    "required": ["enable"],
+                    "properties": {
+                        "enable": {
+                            "type": "boolean",
+                            "description": "Bluetooth機能有効状態。<br> ON : true<br> OFF : false",
+                            "title": "Bluetooth機能有効状態"
+                        }
+                    }
+                }
+            ]
+        },
+        "BluetoothOnResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "BluetoothOffResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "BluetoothChangeResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }, 
+                {
+                    "required": ["connectStatus"],
+                    "properties": {
+                        "connectStatus": {
+                            "type": "object",
+                            "title": "接続情報",
+                            "properties": {
+                                "enable": {
+                                    "type": "boolean",
+                                    "description": "Bluetooth機能有効状態<br> ON: true<br> OFF: false",
+                                    "title": "Bluetooth機能有効状態"
+                                }
+                            },
+                            "required": ["enable"]
+                        }
+                    }
+                }
+            ]
+        },
+        "BluetoothChangeEvent": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonEvent"
+                }, 
+                {
+                    "required": ["connectStatus"],
+                    "properties": {
+                        "connectStatus": {
+                            "type": "object",
+                            "title": "接続情報",
+                            "properties": {
+                                "enable": {
+                                    "type": "boolean",
+                                    "description": "Bluetooth機能有効状態<br> ON: true<br> OFF: false",
+                                    "title": "Bluetooth機能有効状態"
+                                }
+                            },
+                            "required": ["enable"]
+                        }
+                    }
+                }
+            ]
+        },
+        "BluetoothDiscoverableStartResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "BluetoothDiscoverableStopResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "GetNfcResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }, 
+                {
+                    "type": "object",
+                    "required": ["enable"],
+                    "properties": {
+                        "enable": {
+                            "type": "boolean",
+                            "description": "NFC機能有効状態。<br> ON : true<br> OFF : false",
+                            "title": "NFC機能有効状態"
+                        }
+                    }
+                }
+            ]
+        },
+        "NfcOnResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "NfcOffResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "NfcChangeResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }, 
+                {
+                    "required": ["connectStatus"],
+                    "properties": {
+                        "connectStatus": {
+                            "type": "object",
+                            "title": "接続情報",
+                            "properties": {
+                                "enable": {
+                                    "type": "boolean",
+                                    "description": "NFC機能有効状態<br> ON: true<br> OFF: false",
+                                    "title": "NFC機能有効状態"
+                                }
+                            },
+                            "required": ["enable"]
+                        }
+                    }
+                }
+            ]
+        },
+        "NfcChangeEvent": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonEvent"
+                }, 
+                {
+                    "required": ["connectStatus"],
+                    "properties": {
+                        "connectStatus": {
+                            "type": "object",
+                            "title": "接続情報",
+                            "properties": {
+                                "enable": {
+                                    "type": "boolean",
+                                    "description": "NFC機能有効状態<br> ON: true<br> OFF: false",
+                                    "title": "NFC機能有効状態"
+                                }
+                            },
+                            "required": ["enable"]
+                        }
+                    }
+                }
+            ]
+        },
+        "GetBleResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }, 
+                {
+                    "type": "object",
+                    "required": ["enable"],
+                    "properties": {
+                        "enable": {
+                            "type": "boolean",
+                            "description": "BLE機能有効状態。<br> ON : true<br> OFF : false",
+                            "title": "BLE有効状態"
+                        }
+                    }
+                }
+            ]
+        },
+        "BleOnResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "BleOffResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "BleChangeResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }, 
+                {
+                    "required": ["connectStatus"],
+                    "properties": {
+                        "connectStatus": {
+                            "type": "object",
+                            "title": "接続情報",
+                            "properties": {
+                                "enable": {
+                                    "type": "boolean",
+                                    "description": "BLE機能有効状態<br> ON: true<br> OFF: false",
+                                    "title": "BLE機能有効状態"
+                                }
+                            },
+                            "required": ["enable"]
+                        }
+                    }
+                }
+            ]
+        },
+        "BleChangeEvent": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonEvent"
+                }, 
+                {
+                    "required": ["connectStatus"],
+                    "properties": {
+                        "connectStatus": {
+                            "type": "object",
+                            "title": "接続情報",
+                            "properties": {
+                                "enable": {
+                                    "type": "boolean",
+                                    "description": "BLE機能有効状態<br> ON: true<br> OFF: false",
+                                    "title": "BLE機能有効状態"
+                                }
+                            },
+                            "required": ["enable"]
+                        }
+                    }
+                }
+            ]
+        },
+        "EventRegistrationResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "EventUnregistrationResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "CommonResponse": {
+            "type": "object",
+            "required": ["product", "result", "version"],
+            "properties": {
+                "result": {
+                    "type": "integer",
+                    "description": "0: 正常応答<br> 0以外: 異常応答",
+                    "title": "処理結果"
+                },
+                "product": {
+                    "type": "string",
+                    "description": "DeviceConnectシステムの名前。",
+                    "title": "システム名"
+                },
+                "version": {
+                    "type": "string",
+                    "description": "DeviceConnectシステムのバージョン名。",
+                    "title": "システムバージョン"
+                },
+                "hmac": {
+                    "type": "string",
+                    "description": "レスポンスに対する署名。 アプリケーション側から事前にHMACキーを共有されていた場合は必須。",
+                    "title": "署名"
+                }
+            }
+        },
+        "CommonEvent": {
+            "type": "object",
+            "required": ["attribute", "interface", "profile", "serviceId"],
+            "properties": {
+                "serviceId": {
+                    "type": "string",
+                    "description": "イベントを送信したサービスのID",
+                    "title": "サービスID"
+                },
+                "profile": {
+                    "type": "string",
+                    "description": "プロファイル名。",
+                    "title": "プロファイル名"
+                },
+                "interface": {
+                    "type": "string",
+                    "description": "インターフェース名。",
+                    "title": "インターフェース名"
+                },
+                "attribute": {
+                    "type": "string",
+                    "description": "アトリビュート名。",
+                    "title": "アトリビュート名"
+                }
+            }
+        }
+    }
+}

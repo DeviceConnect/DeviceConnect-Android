@@ -334,6 +334,75 @@ final class Camera2Helper {
     }
 
     /**
+     * カメラがサポートしている FPS の一覧を取得します.
+     *
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @return サポートしている FPS のリスト
+     */
+    @NonNull
+    static List<Range<Integer>> getSupportedFps(final CameraManager cameraManager, final String cameraId) {
+        try {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            Range<Integer>[] fps = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);
+            if (fps != null) {
+                return Arrays.asList(fps);
+            }
+        } catch (CameraAccessException e) {
+            // ignore.
+        }
+        return new ArrayList<>();
+    }
+
+    /**
+     * カメラがサポートしている自動露出モードの一覧を取得します.
+     *
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @return サポートしている自動露出モードのリスト
+     */
+    @NonNull
+    static List<Integer> getSupportedAutoExposure(final CameraManager cameraManager, final String cameraId) {
+        List<Integer> awm = new ArrayList<>();
+        try {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            int[] modes = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES);
+            if (modes != null) {
+                for (int mode : modes) {
+                    awm.add(mode);
+                }
+            }
+        } catch (CameraAccessException e) {
+            // ignore.
+        }
+        return awm;
+    }
+
+    /**
+     * カメラがサポートしているホワイトバランスモードの一覧を取得します.
+     *
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @return サポートしているホワイトバランスモード のリスト
+     */
+    @NonNull
+    static List<Integer> getSupportedAWB(final CameraManager cameraManager, final String cameraId) {
+        List<Integer> awm = new ArrayList<>();
+        try {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            int[] modes = characteristics.get(CameraCharacteristics.CONTROL_AWB_AVAILABLE_MODES);
+            if (modes != null) {
+                for (int mode : modes) {
+                    awm.add(mode);
+                }
+            }
+        } catch (CameraAccessException e) {
+            // ignore.
+        }
+        return awm;
+    }
+
+    /**
      * ImageReader のインスタンスを作成します.
      *
      * @param width 横幅

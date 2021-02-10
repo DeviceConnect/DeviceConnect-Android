@@ -6,20 +6,9 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
-
 import java.util.List;
 
 public interface PreviewServerProvider {
-    /**
-     * オーバーレイ削除用アクションを定義.
-     */
-    String DELETE_PREVIEW_ACTION = "org.deviceconnect.android.deviceplugin.host.DELETE_PREVIEW";
-
-    /**
-     * カメラを識別するIDのキー名を定義.
-     */
-    String EXTRA_CAMERA_ID = "cameraId";
-
     /**
      * プレビューで配信するマイムタイプを取得します.
      *
@@ -42,23 +31,34 @@ public interface PreviewServerProvider {
 
     /**
      * 指定されたマイムタイプに対応するプレビュー配信サーバを取得します.
+     *
      * <p>
      * マイムタイプに対応したプレビュー配信サーバが存在しない場合は null を返却します。
      * </p>
+     *
      * @param mimeType マイムタイプ
      * @return プレビュー配信サーバ
      */
-    PreviewServer getServerForMimeType(String mimeType);
+    PreviewServer getServerByMimeType(String mimeType);
 
     /**
-     * 全てのサーバを開始します.
+     * プレビューサーバが動作している確認します.
      *
-     * @return 起動したプレビュー配信サーバのリスト
+     * @return 動作中の場合は true、それ以外は false
+     */
+    boolean isRunning();
+
+    /**
+     * 全てのプレビュー配信サーバを開始します.
+     *
+     * レスポンスのリストが空の場合には、全てのプレビュー配信サーバの起動に失敗しています。
+     *
+     * @return 起動に成功したプレビュー配信サーバのリスト
      */
     List<PreviewServer> startServers();
 
     /**
-     * 全てのサーバを停止します.
+     * 全てのプレビュー配信サーバを停止します.
      */
     void stopServers();
 
@@ -75,8 +75,39 @@ public interface PreviewServerProvider {
     void onConfigChange();
 
     /**
-     * Previewの状態を表すNotificationが表示されているかどうかのフラグを返します.
-     * return true:表示されている false:表示されていない
+     * Recorder をミュート状態にする.
      */
-    boolean isShownCameraNotification();
+    void setMute(boolean mute);
+
+    /**
+     * イベントを通知するリスナーを設定します.
+     *
+     * @param listener リスナー
+     */
+    void setOnEventListener(OnEventListener listener);
+
+    /**
+     * プレビュー配信サーバのイベントを通知するリスナー.
+     */
+    interface OnEventListener {
+        /**
+         * プレビュー配信サーバを開始したことを通知します.
+         *
+         * @param servers 開始したサーバのリスト
+         */
+        void onStarted(List<PreviewServer> servers);
+
+        /**
+         * プレビュー配信サーバを停止したことを通知します.
+         */
+        void onStopped();
+
+        /**
+         * プレビュー配信サーバでエラーが発生したことを通知します.
+         *
+         * @param server エラーが発生したサーバ
+         * @param e エラー原因の例外
+         */
+        void onError(PreviewServer server, Exception e);
+    }
 }

@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MissingTranslation">
+    <string-array name="camera_facing_names">
+        <item>フロント</item>
+        <item>バック</item>
+    </string-array>
+    <string-array name="camera_facing_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+
+    <string-array name="video_encoder_names">
+        <item>H264</item>
+        <item>H265</item>
+    </string-array>
+
+    <string-array name="video_encoder_values">
+        <item>h264</item>
+        <item>h265</item>
+    </string-array>
+
+    <string-array name="h264_profile_names">
+        <item>System Default</item>
+        <item>AVCProfileBaseline</item>
+        <item>AVCProfileConstrainedBaseline</item>
+        <item>AVCProfileConstrainedHigh</item>
+        <item>AVCProfileExtended</item>
+        <item>AVCProfileHigh</item>
+        <item>AVCProfileHigh10</item>
+        <item>AVCProfileHigh422</item>
+        <item>AVCProfileHigh444</item>
+        <item>AVCProfileMain</item>
+    </string-array>
+
+    <string-array name="h264_profile_values">
+        <item>default</item>
+        <item>1</item>
+        <item>65536</item>
+        <item>524288</item>
+        <item>4</item>
+        <item>8</item>
+        <item>16</item>
+        <item>32</item>
+        <item>64</item>
+        <item>2</item>
+    </string-array>
+
+
+    <string-array name="h264_level_names">
+        <item>System Default</item>
+        <item>AVCLevel1</item>
+        <item>AVCLevel11</item>
+        <item>AVCLevel12</item>
+        <item>AVCLevel13</item>
+        <item>AVCLevel1b</item>
+        <item>AVCLevel2</item>
+        <item>AVCLevel21</item>
+        <item>AVCLevel22</item>
+        <item>AVCLevel3</item>
+        <item>AVCLevel31</item>
+        <item>AVCLevel32</item>
+        <item>AVCLevel4</item>
+        <item>AVCLevel41</item>
+        <item>AVCLevel42</item>
+        <item>AVCLevel5</item>
+        <item>AVCLevel51</item>
+        <item>AVCLevel52</item>
+        <item>AVCLevel6</item>
+        <item>AVCLevel61</item>
+        <item>AVCLevel62</item>
+    </string-array>
+
+    <string-array name="h264_level_values">
+        <item>default</item>
+        <item>1</item>
+        <item>4</item>
+        <item>8</item>
+        <item>16</item>
+        <item>2</item>
+        <item>32</item>
+        <item>64</item>
+        <item>128</item>
+        <item>256</item>
+        <item>512</item>
+        <item>1024</item>
+        <item>2048</item>
+        <item>4096</item>
+        <item>8192</item>
+        <item>16384</item>
+        <item>32768</item>
+        <item>65536</item>
+        <item>131072</item>
+        <item>262144</item>
+        <item>524288</item>
+    </string-array>
+
+
+    <string-array name="h265_profile_names">
+        <item>System Default</item>
+        <item>HEVCProfileMain</item>
+        <item>HEVCProfileMain10</item>
+        <item>HEVCProfileMain10HDR10</item>
+        <item>HEVCProfileMain10HDR10Plus</item>
+        <item>HEVCProfileMainStill</item>
+    </string-array>
+
+    <string-array name="h265_profile_values">
+        <item>default</item>
+        <item>1</item>
+        <item>2</item>
+        <item>4096</item>
+        <item>8192</item>
+        <item>4</item>
+    </string-array>
+
+
+    <string-array name="h265_level_names">
+        <item>System Default</item>
+        <item>HEVCHighTierLevel1</item>
+        <item>HEVCHighTierLevel2</item>
+        <item>HEVCHighTierLevel21</item>
+        <item>HEVCHighTierLevel3</item>
+        <item>HEVCHighTierLevel31</item>
+        <item>HEVCHighTierLevel4</item>
+        <item>HEVCHighTierLevel41</item>
+        <item>HEVCHighTierLevel5</item>
+        <item>HEVCHighTierLevel51</item>
+        <item>HEVCHighTierLevel52</item>
+        <item>HEVCHighTierLevel6</item>
+        <item>HEVCHighTierLevel61</item>
+        <item>HEVCHighTierLevel62</item>
+        <item>HEVCMainTierLevel1</item>
+        <item>HEVCMainTierLevel2</item>
+        <item>HEVCMainTierLevel21</item>
+        <item>HEVCMainTierLevel3</item>
+        <item>HEVCMainTierLevel31</item>
+        <item>HEVCMainTierLevel4</item>
+        <item>HEVCMainTierLevel41</item>
+        <item>HEVCMainTierLevel5</item>
+        <item>HEVCMainTierLevel51</item>
+        <item>HEVCMainTierLevel52</item>
+        <item>HEVCMainTierLevel6</item>
+        <item>HEVCMainTierLevel61</item>
+        <item>HEVCMainTierLevel62</item>
+    </string-array>
+
+    <string-array name="h265_level_values">
+        <item>default</item>
+        <item>2</item>
+        <item>8</item>
+        <item>32</item>
+        <item>128</item>
+        <item>512</item>
+        <item>2048</item>
+        <item>8192</item>
+        <item>32768</item>
+        <item>131072</item>
+        <item>524288</item>
+        <item>2097152</item>
+        <item>8388608</item>
+        <item>33554432</item>
+        <item>1</item>
+        <item>4</item>
+        <item>16</item>
+        <item>64</item>
+        <item>256</item>
+        <item>1024</item>
+        <item>4096</item>
+        <item>16384</item>
+        <item>65536</item>
+        <item>262144</item>
+        <item>1048576</item>
+        <item>4194304</item>
+        <item>16777216</item>
+    </string-array>
+
+    <string-array name="bitrate_mode_names">
+        <item>System Default</item>
+        <item>VBR</item>
+        <item>CBR</item>
+        <item>CQ</item>
+    </string-array>
+
+    <string-array name="bitrate_mode_values">
+        <item>default</item>
+        <item>vbr</item>
+        <item>cbr</item>
+        <item>cq</item>
+    </string-array>
+
+    <string-array name="video_white_balance_names">
+    </string-array>
+
+    <string-array name="video_white_balance_values">
+    </string-array>
+
+    <string-array name="video_stabilization_names">
+        <item>System Default</item>
+        <item>OFF</item>
+        <item>ON</item>
+    </string-array>
+
+    <string-array name="video_stabilization_values">
+        <item>System Default</item>
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+
+    <string-array name="video_noise_reduction_names">
+        <item>System Default</item>
+        <item>NOISE_REDUCTION_MODE_OFF</item>
+        <item>NOISE_REDUCTION_MODE_FAST</item>
+        <item>NOISE_REDUCTION_MODE_HIGH_QUALITY</item>
+        <item>NOISE_REDUCTION_MODE_MINIMAL</item>
+        <item>NOISE_REDUCTION_MODE_ZERO_SHUTTER_LAG</item>
+    </string-array>
+
+    <string-array name="video_noise_reduction_values">
+        <item>System Default</item>
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+
+    <string-array name="audio_source_names">
+        <item>None</item>
+        <item>System Default</item>
+        <item>マイク</item>
+        <item>アプリ録音</item>
+    </string-array>
+
+    <string-array name="audio_source_values">
+        <item>none</item>
+        <item>default</item>
+        <item>mic</item>
+        <item>app</item>
+    </string-array>
+
+    <string name="settings_audio_bit_rate">64</string>
+    <string name="settings_audio_sampling_rate">8000</string>
+    <string-array name="settings_audio_sampling_rates">
+        <item>96000</item>
+        <item>88200</item>
+        <item>64000</item>
+        <item>48000</item>
+        <item>44100</item>
+        <item>32000</item>
+        <item>24000</item>
+        <item>22050</item>
+        <item>16000</item>
+        <item>12000</item>
+        <item>11025</item>
+        <item>8000</item>
+        <item>7350</item>
+    </string-array>
+
+</resources>

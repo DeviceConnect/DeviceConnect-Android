@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">mjpeg-server-app</string>
+    <string name="settings_name">設定</string>
+</resources>

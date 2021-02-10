@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="camera_facing_names">
+        <item>フロント</item>
+        <item>バック</item>
+    </string-array>
+    <string-array name="camera_facing_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+
+    <string-array name="video_encoder_names">
+        <item>H264</item>
+        <item>H265</item>
+    </string-array>
+
+    <string-array name="video_encoder_values">
+        <item>video/avc</item>
+        <item>video/hevc</item>
+    </string-array>
+
+    <string name="settings_audio_bit_rate">64</string>
+    <string name="settings_audio_sampling_rate">8000</string>
+    <string-array name="settings_audio_sampling_rates">
+        <item>96000</item>
+        <item>88200</item>
+        <item>64000</item>
+        <item>48000</item>
+        <item>44100</item>
+        <item>32000</item>
+        <item>24000</item>
+        <item>22050</item>
+        <item>16000</item>
+        <item>12000</item>
+        <item>11025</item>
+        <item>8000</item>
+        <item>7350</item>
+    </string-array>
+
+</resources>

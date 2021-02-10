@@ -57,9 +57,19 @@ public class MixedReplaceMediaServer {
      * Media Server Callback
      */
     public interface Callback {
-
+        /**
+         * Check accept the socket.
+         *
+         * @param socket socket
+         * @return True if accepted, false otherwise
+         */
         boolean onAccept(Socket socket);
 
+        /**
+         * socket closed.
+         *
+         * @param socket socket
+         */
         void onClosed(Socket socket);
     }
 
@@ -273,7 +283,48 @@ public class MixedReplaceMediaServer {
             }
         }
     }
-    
+
+    /**
+     * 送信したデータサイズを取得します.
+     *
+     * @return 送信したデータサイズ
+     */
+    public long getSentSize() {
+        long sentSize = 0;
+        synchronized (mRunnables) {
+            for (ClientThread run : mRunnables) {
+                sentSize += run.getSentSize();
+            }
+        }
+        return sentSize;
+    }
+
+    /**
+     * 送信したデータサイズをリセットします.
+     */
+    public void resetSentSize() {
+        synchronized (mRunnables) {
+            for (ClientThread run : mRunnables) {
+                run.resetSentSize();
+            }
+        }
+    }
+
+    /**
+     * 送信したデータの BPS (bits per second) を取得します.
+     *
+     * @return BPS (bits per second)
+     */
+    public long getBPS() {
+        long bps = 0;
+        synchronized (mRunnables) {
+            for (ClientThread run : mRunnables) {
+                bps += run.getBPS();
+            }
+        }
+        return bps;
+    }
+
     /**
      * Start a mixed replace media server.
      * <p>
@@ -398,6 +449,15 @@ public class MixedReplaceMediaServer {
     }
 
     /**
+     * Gets the number of connected sockets.
+     *
+     * @return number of connected sockets.
+     */
+    public synchronized int getConnectionCount() {
+        return mRunnables.size();
+    }
+
+    /**
      * Defined buffer size.
      */
     private static final int BUF_SIZE = 1024;
@@ -414,12 +474,25 @@ public class MixedReplaceMediaServer {
         /**
          * Socket.
          */
-        private Socket mSocket;
+        private final Socket mSocket;
 
         /**
          * Stream for writing.
          */
         private OutputStream mStream;
+
+        /**
+         * 送信サイズ.
+         */
+        private long mSentSize;
+
+        /**
+         * BPS (bits per second).
+         */
+        private long mBPS;
+
+        private long mStartTime;
+        private long mTempSentSize;
 
         /**
          * コンストラクタ.
@@ -459,6 +532,9 @@ public class MixedReplaceMediaServer {
             }
 
             mRunnables.add(this);
+
+            mStartTime = System.currentTimeMillis();
+            mTempSentSize = 0;
 
             boolean isAccept = false;
 
@@ -527,6 +603,31 @@ public class MixedReplaceMediaServer {
             }
         }
 
+        /**
+         * 送信したデータサイズを取得します.
+         *
+         * @return 送信したデータサイズ
+         */
+        public long getSentSize() {
+            return mSentSize;
+        }
+
+        /**
+         * 送信したデータサイズをリセットします.
+         */
+        public void resetSentSize() {
+            mSentSize = 0;
+        }
+
+        /**
+         * 送信したデータの BPS (bits per second) を取得します.
+         *
+         * @return BPS (bits per second)
+         */
+        public long getBPS() {
+            return mBPS;
+        }
+
         private void sendInternalServerError() {
             if (mStream == null) {
                 return;
@@ -570,6 +671,15 @@ public class MixedReplaceMediaServer {
             mStream.write(media);
             mStream.write("\r\n\r\n".getBytes());
             mStream.flush();
+
+            // 送信量と BPS を計算
+            mSentSize += media.length;
+            mTempSentSize += media.length;
+            if (System.currentTimeMillis() - mStartTime >= 1000) {
+                mBPS = mTempSentSize * 8;
+                mTempSentSize = 0;
+                mStartTime = System.currentTimeMillis();
+            }
         }
         
         /**

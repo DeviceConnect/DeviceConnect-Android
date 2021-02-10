@@ -73,6 +73,22 @@ public class HostBatteryProfile extends BatteryProfile {
         }
     };
 
+    private final DConnectApi mBatteryTemperatureApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return "temperature";
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            getBatteryManager().getBatteryInfo();
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+            response.putExtra("temperature", getBatteryManager().getTemperature());
+            return true;
+        }
+    };
+
     private final DConnectApi mBatteryAllApi = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
@@ -86,6 +102,7 @@ public class HostBatteryProfile extends BatteryProfile {
             } else {
                 setLevel(response, mLevel / (float) mScale);
                 setCharging(response, getBatteryManager().isChargingFlag());
+                response.putExtra("temperature", getBatteryManager().getTemperature());
                 setResult(response, IntentDConnectMessage.RESULT_OK);
             }
             return true;
@@ -172,7 +189,7 @@ public class HostBatteryProfile extends BatteryProfile {
         }
     };
 
-    private HostBatteryManager mHostBatteryManager;
+    private final HostBatteryManager mHostBatteryManager;
 
     public HostBatteryProfile(final HostBatteryManager manager) {
         mHostBatteryManager = manager;
@@ -181,6 +198,7 @@ public class HostBatteryProfile extends BatteryProfile {
 
         addApi(mBatteryLevelApi);
         addApi(mBatteryChargingApi);
+        addApi(mBatteryTemperatureApi);
         addApi(mBatteryAllApi);
         addApi(mPutOnChargingChangeApi);
         addApi(mDeleteOnChargingChangeApi);
@@ -196,37 +214,33 @@ public class HostBatteryProfile extends BatteryProfile {
         return ((double) (getBatteryManager().getBatteryLevel())) / ((double) getBatteryManager().getBatteryScale());
     }
 
-    private final HostBatteryManager.BatteryChargingEventListener mBatteryChargingEventListener = new HostBatteryManager.BatteryChargingEventListener() {
-        @Override
-        public void onChangeCharging() {
-            List<Event> events = EventManager.INSTANCE.getEventList(HostDevicePlugin.SERVICE_ID, HostBatteryProfile.PROFILE_NAME,
-                    null, HostBatteryProfile.ATTRIBUTE_ON_BATTERY_CHANGE);
+    private final HostBatteryManager.BatteryChargingEventListener mBatteryChargingEventListener = () -> {
+        List<Event> events = EventManager.INSTANCE.getEventList(HostDevicePlugin.SERVICE_ID, HostBatteryProfile.PROFILE_NAME,
+                null, HostBatteryProfile.ATTRIBUTE_ON_BATTERY_CHANGE);
 
-            for (int i = 0; i < events.size(); i++) {
-                Event event = events.get(i);
-                Intent intent = EventManager.createEventMessage(event);
-                Bundle battery = new Bundle();
-                HostBatteryProfile.setLevel(battery, getLevel());
-                HostBatteryProfile.setBattery(intent, battery);
-                sendEvent(intent, event.getAccessToken());
-            }
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
+            Intent intent = EventManager.createEventMessage(event);
+            Bundle battery = new Bundle();
+            HostBatteryProfile.setCharging(battery, getBatteryManager().isChargingFlag());
+            HostBatteryProfile.setLevel(battery, getLevel());
+            battery.putFloat("temperature", getBatteryManager().getTemperature());
+            HostBatteryProfile.setBattery(intent, battery);
+            sendEvent(intent, event.getAccessToken());
         }
     };
 
-    private final HostBatteryManager.BatteryStatusEventListener mBatteryStatusEventListener = new HostBatteryManager.BatteryStatusEventListener() {
-        @Override
-        public void onChangeStatus() {
-            List<Event> events = EventManager.INSTANCE.getEventList(HostDevicePlugin.SERVICE_ID, HostBatteryProfile.PROFILE_NAME,
-                    null, HostBatteryProfile.ATTRIBUTE_ON_CHARGING_CHANGE);
+    private final HostBatteryManager.BatteryStatusEventListener mBatteryStatusEventListener = () -> {
+        List<Event> events = EventManager.INSTANCE.getEventList(HostDevicePlugin.SERVICE_ID, HostBatteryProfile.PROFILE_NAME,
+                null, HostBatteryProfile.ATTRIBUTE_ON_CHARGING_CHANGE);
 
-            for (int i = 0; i < events.size(); i++) {
-                Event event = events.get(i);
-                Intent intent = EventManager.createEventMessage(event);
-                Bundle charging = new Bundle();
-                HostBatteryProfile.setCharging(charging, getBatteryManager().isChargingFlag());
-                HostBatteryProfile.setBattery(intent, charging);
-                sendEvent(intent, event.getAccessToken());
-            }
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
+            Intent intent = EventManager.createEventMessage(event);
+            Bundle charging = new Bundle();
+            HostBatteryProfile.setCharging(charging, getBatteryManager().isChargingFlag());
+            HostBatteryProfile.setBattery(intent, charging);
+            sendEvent(intent, event.getAccessToken());
         }
     };
 }

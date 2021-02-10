@@ -142,7 +142,7 @@ virtualbox の設定のコメントアウトを外します。<br>
   config.vm.provision "shell", inline: <<-SHELL
     apt-get update
     apt-get upgrade
-    apt-get install tclsh pkg-config cmake libssl-dev build-essential
+    apt-get install tclsh pkg-config cmake libssl-dev build-essential unzip
     # apt-get install -y apache2
   SHELL
 ```

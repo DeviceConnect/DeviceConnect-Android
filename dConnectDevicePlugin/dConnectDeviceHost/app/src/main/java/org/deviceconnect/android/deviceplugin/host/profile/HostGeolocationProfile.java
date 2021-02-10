@@ -208,7 +208,7 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
             Bundle bundle = new Bundle();
             bundle.putParcelable("response", response);
             intent.putExtra("Intent", bundle);
-            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                 getContext().startActivity(intent);
             } else {
                 NotificationUtils.createNotificationChannel(getContext());

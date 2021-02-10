@@ -58,6 +58,21 @@ public interface HostDevicePhotoRecorder {
     boolean isUseFlashLight();
 
     /**
+     * 写真撮影のイベントを通知するリスナー.
+     */
+    interface OnEventListener {
+
+        /**
+         * 写真撮影が完了したタイミングで実行される.
+         *
+         * @param uri 写真が保存されている URI.
+         * @param filePath 写真が保存されているファイルパス.
+         * @param mimeType 写真のマイムタイプ
+         */
+        void onTakePhoto(String uri, String filePath, String mimeType);
+    }
+
+    /**
      * 写真撮影の結果を受け取るためのリスナー.
      */
     interface OnPhotoEventListener {

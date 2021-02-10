@@ -6,27 +6,15 @@
  */
 package org.deviceconnect.android.deviceplugin.host;
 
-import android.bluetooth.BluetoothAdapter;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.wifi.WifiManager;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.telephony.TelephonyManager;
-import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.demo.DemoInstaller;
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
-import org.deviceconnect.android.deviceplugin.host.demo.HostDemoInstaller;
+import org.deviceconnect.android.deviceplugin.host.connection.HostConnectionManager;
+import org.deviceconnect.android.deviceplugin.host.demo.HostDemoManager;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.HostMediaPlayerManager;
+import org.deviceconnect.android.deviceplugin.host.phone.HostPhoneManager;
 import org.deviceconnect.android.deviceplugin.host.profile.HostBatteryProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostCameraProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostCanvasProfile;
@@ -35,8 +23,8 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostDeviceOrientation
 import org.deviceconnect.android.deviceplugin.host.profile.HostFileProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostGeolocationProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostKeyEventProfile;
-import org.deviceconnect.android.deviceplugin.host.profile.HostLiveStreamingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostLightProfile;
+import org.deviceconnect.android.deviceplugin.host.profile.HostLiveStreamingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaPlayerProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaStreamingRecordingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostNotificationProfile;
@@ -46,14 +34,13 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostSettingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
-import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
-import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.deviceplugin.host.sensor.HostEventManager;
+import org.deviceconnect.android.deviceplugin.host.util.NetworkUtil;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.libsrt.SRT;
-import org.deviceconnect.android.message.DevicePluginContext;
+import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.KeyEventProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.TouchProfile;
@@ -62,18 +49,9 @@ import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.ssl.KeyStoreCallback;
 import org.deviceconnect.android.ssl.KeyStoreError;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -84,7 +62,11 @@ import javax.net.ssl.SSLContext;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostDevicePlugin extends DevicePluginContext {
+public class HostDevicePlugin extends DConnectMessageService {
+    /**
+     * デフォルトのパスワードを定義します.
+     */
+    private static final String DEFAULT_PASSWORD = "0000";
 
     /** サービスID. */
     public static final String SERVICE_ID = "Host";
@@ -109,160 +91,79 @@ public class HostDevicePlugin extends DevicePluginContext {
 
     /** レコーダ管理クラス. */
     private HostMediaRecorderManager mRecorderMgr;
-    /**
-     * MediaStreamRecordingProfile の実装.
-     */
-    private HostMediaStreamingRecordingProfile mHostMediaStreamRecordingProfile;
 
     /**
-     * Phone プロファイルの実装.
+     * 接続管理クラス.
      */
-    private HostPhoneProfile mPhoneProfile;
-    /**
-     * デモページインストーラ.
-     */
-    private DemoInstaller mDemoInstaller;
+    private HostConnectionManager mHostConnectionManager;
 
     /**
-     * デモページアップデート通知.
+     * 電話管理クラス.
      */
-    private DemoInstaller.Notification mDemoNotification;
+    private HostPhoneManager mHostPhoneManager;
+
+    /**
+     * キーイベント、タッチイベント管理クラス.
+     */
+    private HostEventManager mHostEventManager;
+
+    /**
+     * デモ管理クラス.
+     */
+    private HostDemoManager mHostDemoManager;
+
+    /**
+     * SSL コンテキスト.
+     */
     private SSLContext mSSLContext;
-    /**
-     * ブロードキャストレシーバー.
-     */
-    private final BroadcastReceiver mHostConnectionReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(final Context context, final Intent intent) {
-            String action = intent.getAction();
-            mLogger.info("onReceived: action=" + action);
-            if (Intent.ACTION_NEW_OUTGOING_CALL.equals(action)) {
-                onReceivedOutGoingCall(intent);
-            } else if (TelephonyManager.ACTION_PHONE_STATE_CHANGED.equals(action)) {
-                onReceivedPhoneStateChanged(intent);
-            } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)
-                    || WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
-                onChangedWifiStatus();
-            } else if (BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED.equals(action)
-                    || BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
-                onChangedBluetoothStatus();
-            } else if (PreviewServerProvider.DELETE_PREVIEW_ACTION.equals(action)) {
-                stopWebServer(intent);
-            }
-        }
-    };
-    /**
-     * デモページ関連の通知を受信するレシーバー.
-     */
-    private final BroadcastReceiver mDemoNotificationReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(final Context context, final Intent intent) {
-            String action = intent.getAction();
-            mLogger.info("Demo Notification: " + action);
-            mDemoNotification.cancel(context);
-            if (DemoInstaller.Notification.ACTON_UPDATE_DEMO.equals(action)) {
-                updateDemoPage(context);
-            }
-        }
-    };
-
-    /**
-     * SSLContext を提供するインターフェース.
-     */
-    public interface SSLContextCallback {
-        void onGet(SSLContext context);
-        void onError();
-    }
-
-    public void getSSLContext(final SSLContextCallback callback) {
-        final SSLContext sslContext = mSSLContext;
-        if (sslContext != null) {
-            mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Already created SSL Context: " + sslContext);
-            callback.onGet(sslContext);
-        } else {
-            requestKeyStore(getIPAddress(getContext()), new KeyStoreCallback() {
-                public void onSuccess(final KeyStore keyStore, final Certificate certificate, final Certificate certificate1) {
-                    try {
-                        mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Creating SSL Context...");
-                        mSSLContext = createSSLContext(keyStore, "0000");
-                        mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Created SSL Context: " + mSSLContext);
-                        callback.onGet(mSSLContext);
-                    } catch (GeneralSecurityException e) {
-                        mLogger.log(Level.WARNING, "getSSLContext: requestKeyStore: onSuccess: Failed to create SSL Context", e);
-                        callback.onError();
-                    }
-                }
-
-                public void onError(final KeyStoreError keyStoreError) {
-                    mLogger.warning("getSSLContext: requestKeyStore: onError: error = " + keyStoreError);
-                    callback.onError();
-                }
-            });
-        }
-    }
 
     @Override
-    protected boolean usesAutoCertificateRequest() {
-        return true;
-    }
+    public void onCreate() {
+        super.onCreate();
 
-    @Override
-    protected void onKeyStoreUpdated(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
-        try {
-            if (keyStore == null) {
-                return;
-            }
-            mSSLContext = createSSLContext(keyStore, "0000");
-        } catch (GeneralSecurityException e) {
-            mLogger.log(Level.SEVERE, "Failed to update keystore", e);
-        }
-    }
-
-    /**
-     * コンストラクタ.
-     *
-     * @param context コンテキスト
-     */
-    public HostDevicePlugin(Context context) {
-        super(context);
-
-        // Manager同梱のため、LocalOAuthを無効化
+        // Manager 同梱のため、LocalOAuthを無効化に設定
         setUseLocalOAuth(false);
-
-        mFileMgr = new FileManager(context, HostFileProvider.class.getName());
-        mFileDataManager = new FileDataManager(mFileMgr);
-        mDemoInstaller = new HostDemoInstaller(getContext());
-        mDemoNotification = new DemoInstaller.Notification(
-                1,
-                getContext().getString(R.string.app_name_host),
-                R.drawable.dconnect_icon,
-                "org.deviceconnect.android.deviceconnect.host.channel.demo",
-                "Host Plugin Demo Page",
-                "Host Plugin Demo Page"
-        );
-        mHostBatteryManager = new HostBatteryManager(this);
-        mHostBatteryManager.getBatteryInfo();
 
         SRT.startup();
 
-        mRecorderMgr = new HostMediaRecorderManager(this, mFileMgr);
-        DConnectService hostService = new DConnectService(SERVICE_ID);
-        addMediaStreamRecording(hostService);
-        mHostMediaPlayerManager = new HostMediaPlayerManager(this);
+        mFileMgr = new FileManager(this, HostFileProvider.class.getName());
+        mFileDataManager = new FileDataManager(mFileMgr);
 
+        DConnectService hostService = new DConnectService(SERVICE_ID);
         hostService.setName(SERVICE_NAME);
         hostService.setOnline(true);
-        hostService.addProfile(new HostBatteryProfile(mHostBatteryManager));
-        hostService.addProfile(new HostCanvasProfile());
-        hostService.addProfile(new HostConnectionProfile(BluetoothAdapter.getDefaultAdapter()));
-        hostService.addProfile(new HostFileProfile(mFileMgr));
-        hostService.addProfile(new HostKeyEventProfile());
+
+        mHostEventManager = new HostEventManager();
+
+        mRecorderMgr = new HostMediaRecorderManager(getPluginContext(), mFileMgr);
+        mRecorderMgr.initialize();
+        //  MediaRecorder が存在する場合には、MediaStreamRecording と Camera プロファイルを追加
+        if (mRecorderMgr.getRecorders().length > 0) {
+            hostService.addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr, mFileMgr));
+            hostService.addProfile(new HostCameraProfile(mRecorderMgr));
+        }
+
+        mHostMediaPlayerManager = new HostMediaPlayerManager(getPluginContext());
         hostService.addProfile(new HostMediaPlayerProfile(mHostMediaPlayerManager));
+
+        mHostBatteryManager = new HostBatteryManager(getPluginContext());
+        mHostBatteryManager.getBatteryInfo();
+        hostService.addProfile(new HostBatteryProfile(mHostBatteryManager));
+
+        hostService.addProfile(new HostCanvasProfile());
+
+        mHostConnectionManager = new HostConnectionManager(getPluginContext());
+        hostService.addProfile(new HostConnectionProfile(mHostConnectionManager));
+
+        hostService.addProfile(new HostFileProfile(mFileMgr));
+        hostService.addProfile(new HostKeyEventProfile(mHostEventManager));
         hostService.addProfile(new HostNotificationProfile());
-        mPhoneProfile = new HostPhoneProfile((TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE));
-        hostService.addProfile(mPhoneProfile);
+
+        mHostPhoneManager = new HostPhoneManager(getPluginContext());
+        hostService.addProfile(new HostPhoneProfile(mHostPhoneManager));
+
         hostService.addProfile(new HostSettingProfile());
-        hostService.addProfile(new HostTouchProfile());
+        hostService.addProfile(new HostTouchProfile(mHostEventManager));
         hostService.addProfile(new HostVibrationProfile());
 
         if (checkSensorHardware()) {
@@ -276,8 +177,8 @@ public class HostDevicePlugin extends DevicePluginContext {
         // カメラが使用できる場合は、Light プロファイルを追加
         if (checkCameraHardware()) {
             HostMediaRecorder defaultRecorder = mRecorderMgr.getRecorder(null);
-            if (defaultRecorder instanceof HostDevicePhotoRecorder) {
-                hostService.addProfile(new HostLightProfile(context, mRecorderMgr));
+            if (defaultRecorder != null) {
+                hostService.addProfile(new HostLightProfile(this, mRecorderMgr));
             }
             hostService.addProfile(new HostLiveStreamingProfile(mRecorderMgr));
         }
@@ -288,129 +189,58 @@ public class HostDevicePlugin extends DevicePluginContext {
 
         getServiceProvider().addService(hostService);
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_NEW_OUTGOING_CALL);
-        filter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
-        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
-        filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
-        filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        filter.addAction(PreviewServerProvider.DELETE_PREVIEW_ACTION);
-        getContext().registerReceiver(mHostConnectionReceiver, filter);
-
-        registerDemoNotification();
-        updateDemoPageIfNeeded();
-    }
-    private void addMediaStreamRecording(final DConnectService hostService) {
-        mRecorderMgr.initRecorders();
-        mRecorderMgr.start();
-        //  MediaRecorder が存在する場合には、MediaStreamRecording と Camera プロファイルを追加
-        if (mRecorderMgr.getRecorders().length > 0) {
-            mHostMediaStreamRecordingProfile = new HostMediaStreamingRecordingProfile(mRecorderMgr, mFileMgr);
-            hostService.addProfile(mHostMediaStreamRecordingProfile);
-            hostService.addProfile(new HostCameraProfile(mRecorderMgr));
-        }
-    }
-    private void registerDemoNotification() {
-        IntentFilter filter  = new IntentFilter();
-        filter.addAction(DemoInstaller.Notification.ACTON_CONFIRM_NEW_DEMO);
-        filter.addAction(DemoInstaller.Notification.ACTON_UPDATE_DEMO);
-        getContext().registerReceiver(mDemoNotificationReceiver, filter);
-    }
-
-    private void updateDemoPageIfNeeded() {
-        final Context context = getContext();
-        if (mDemoInstaller.isUpdateNeeded()) {
-            mLogger.info("Demo page must be updated.");
-            updateDemoPage(context);
-        } else {
-            mLogger.info("Demo page update is not needed.");
-        }
-    }
-    /**
-     * Gets the ip address.
-     *
-     * @param context Context of application
-     * @return Returns ip address
-     */
-    public static String getIPAddress(final Context context) {
-        Context appContext = context.getApplicationContext();
-        WifiManager wifiManager = (WifiManager) appContext.getSystemService(Context.WIFI_SERVICE);
-        ConnectivityManager cManager = (ConnectivityManager) appContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo network = cManager.getActiveNetworkInfo();
-        String en0Ip = null;
-        if (network != null) {
-            switch (network.getType()) {
-                case ConnectivityManager.TYPE_ETHERNET:
-                    try {
-                        for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
-                            NetworkInterface intf = en.nextElement();
-                            for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
-                                InetAddress inetAddress = enumIpAddr.nextElement();
-                                if (inetAddress instanceof Inet4Address
-                                        && !inetAddress.getHostAddress().equals("127.0.0.1")) {
-                                    en0Ip = inetAddress.getHostAddress();
-                                    break;
-                                }
-                            }
-                        }
-                    } catch (SocketException e) {
-                        Log.e("Host", "Get Ethernet IP Error", e);
-                    }
-            }
-        }
-
-        if (en0Ip != null) {
-            return en0Ip;
-        } else {
-            int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
-            return String.format(Locale.getDefault(), "%d.%d.%d.%d",
-                    (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
-                    (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
-        }
-    }
-    private void updateDemoPage(final Context context) {
-        mDemoInstaller.update(new DemoInstaller.UpdateCallback() {
-            @Override
-            public void onBeforeUpdate(final File demoDir) {
-                mLogger.info("Updating demo page: " + demoDir.getAbsolutePath());
-            }
-
-            @Override
-            public void onAfterUpdate(final File demoDir) {
-                mLogger.info("Updated demo page: " + demoDir.getAbsolutePath());
-                mDemoNotification.showUpdateSuccess(context);
-            }
-
-            @Override
-            public void onFileError(final IOException e) {
-                mLogger.severe("Failed to update demo page for file error: " + e.getMessage());
-                mDemoNotification.showUpdateError(context);
-            }
-
-            @Override
-            public void onUnexpectedError(final Throwable e) {
-                mLogger.severe("Failed to update demo page for unexpected error: " + e.getMessage());
-                mDemoNotification.showUpdateError(context);
-            }
-        }, new Handler(Looper.getMainLooper()));
+        mHostDemoManager = new HostDemoManager(this);
     }
 
     @Override
-    public void release() {
-        mRecorderMgr.stop();
-        mRecorderMgr.clean();
-        mRecorderMgr.destroy();
+    public void onDestroy() {
+        if (mRecorderMgr != null) {
+            mRecorderMgr.destroy();
+            mRecorderMgr = null;
+        }
+
+        if (mHostBatteryManager != null) {
+            mHostBatteryManager.destroy();
+            mHostBatteryManager = null;
+        }
+
+        if (mHostConnectionManager != null) {
+            mHostConnectionManager.destroy();
+            mHostConnectionManager = null;
+        }
+
+        if (mHostPhoneManager != null) {
+            mHostPhoneManager.destroy();
+            mHostPhoneManager = null;
+        }
+
+        if (mHostEventManager != null) {
+            mHostEventManager.destroy();
+            mHostEventManager = null;
+        }
+
+        if (mHostDemoManager != null) {
+            mHostDemoManager.destroy();
+            mHostDemoManager = null;
+        }
+
+        if (mFileDataManager != null) {
+            mFileDataManager.stopTimer();
+        }
+
         SRT.cleanup();
 
-        mFileDataManager.stopTimer();
+        super.onDestroy();
+    }
 
-        if (mHostMediaStreamRecordingProfile != null) {
-            mHostMediaStreamRecordingProfile.destroy();
-        }
-        getContext().unregisterReceiver(mHostConnectionReceiver);
-        getContext().unregisterReceiver(mDemoNotificationReceiver);
-        super.release();
+    @Override
+    protected SystemProfile getSystemProfile() {
+        return new HostSystemProfile();
+    }
+
+    @Override
+    protected String getCertificateAlias() {
+        return "org.deviceconnect.android.deviceplugin.host";
     }
 
     // Managerアンインストール検知時の処理。
@@ -460,61 +290,88 @@ public class HostDevicePlugin extends DevicePluginContext {
     }
 
     @Override
-    protected SystemProfile getSystemProfile() {
-        return new HostSystemProfile();
+    protected void onDevicePluginEnabled() {
     }
 
     @Override
-    public int getPluginXmlResId() {
-        return R.xml.org_deviceconnect_android_deviceplugin_host;
+    protected void onDevicePluginDisabled() {
     }
 
-    private void stopWebServer(final Intent intent) {
-        mRecorderMgr.stopPreviewServer(intent.getStringExtra(PreviewServerProvider.EXTRA_CAMERA_ID));
+    @Override
+    protected boolean usesAutoCertificateRequest() {
+        // SSL の証明書を使用するので true を返却
+        return true;
     }
 
-    private void onChangedBluetoothStatus() {
-        List<Event> events = EventManager.INSTANCE.getEventList(SERVICE_ID, HostConnectionProfile.PROFILE_NAME, null,
-                HostConnectionProfile.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
-
-        for (int i = 0; i < events.size(); i++) {
-            Event event = events.get(i);
-            Intent mIntent = EventManager.createEventMessage(event);
-            HostConnectionProfile.setAttribute(mIntent, HostConnectionProfile.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
-            Bundle bluetoothConnecting = new Bundle();
-            BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-            HostConnectionProfile.setEnable(bluetoothConnecting, mBluetoothAdapter.isEnabled());
-            HostConnectionProfile.setConnectStatus(mIntent, bluetoothConnecting);
-            sendEvent(mIntent, event.getAccessToken());
+    @Override
+    protected void onKeyStoreUpdated(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
+        try {
+            if (keyStore == null) {
+                return;
+            }
+            mSSLContext = createSSLContext(keyStore, DEFAULT_PASSWORD);
+        } catch (Exception e) {
+            mLogger.log(Level.SEVERE, "Failed to update keystore", e);
         }
     }
 
-    private void onChangedWifiStatus() {
-        List<Event> events = EventManager.INSTANCE.getEventList(SERVICE_ID, HostConnectionProfile.PROFILE_NAME, null,
-                HostConnectionProfile.ATTRIBUTE_ON_WIFI_CHANGE);
+    /**
+     * HostMediaRecorderManager のインスタンスを取得します.
+     *
+     * @return HostMediaRecorderManager のインスタンス
+     */
+    public HostMediaRecorderManager getHostMediaRecorderManager() {
+        return mRecorderMgr;
+    }
 
-        for (int i = 0; i < events.size(); i++) {
-            Event event = events.get(i);
-            Intent mIntent = EventManager.createEventMessage(event);
-            HostConnectionProfile.setAttribute(mIntent, HostConnectionProfile.ATTRIBUTE_ON_WIFI_CHANGE);
-            Bundle wifiConnecting = new Bundle();
-            WifiManager wifiMgr = getWifiManager();
-            HostConnectionProfile.setEnable(wifiConnecting, wifiMgr.isWifiEnabled());
-            HostConnectionProfile.setConnectStatus(mIntent, wifiConnecting);
-            sendEvent(mIntent, event.getAccessToken());
+    public HostBatteryManager getHostBatteryManager() {
+        return mHostBatteryManager;
+    }
+
+    public HostConnectionManager getHostConnectionManager() {
+        return mHostConnectionManager;
+    }
+
+    public HostEventManager getHostEventManager() {
+        return mHostEventManager;
+    }
+
+    // SSL
+
+    /**
+     * SSLContext を提供するインターフェース.
+     */
+    public interface SSLContextCallback {
+        void onGet(SSLContext context);
+    }
+
+    public void getSSLContext(final SSLContextCallback callback) {
+        final SSLContext sslContext = mSSLContext;
+        if (sslContext != null) {
+            mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Already created SSL Context: " + sslContext);
+            callback.onGet(sslContext);
+        } else {
+            requestKeyStore(NetworkUtil.getIPAddress(this), new KeyStoreCallback() {
+                @Override
+                public void onSuccess(final KeyStore keyStore, final Certificate certificate, final Certificate certificate1) {
+                    try {
+                        mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Creating SSL Context...");
+                        mSSLContext = createSSLContext(keyStore, DEFAULT_PASSWORD);
+                        mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Created SSL Context: " + mSSLContext);
+                        callback.onGet(mSSLContext);
+                    } catch (GeneralSecurityException e) {
+                        mLogger.log(Level.WARNING, "getSSLContext: requestKeyStore: onSuccess: Failed to create SSL Context", e);
+                        callback.onGet(null);
+                    }
+                }
+
+                @Override
+                public void onError(final KeyStoreError keyStoreError) {
+                    mLogger.warning("getSSLContext: requestKeyStore: onError: error = " + keyStoreError);
+                    callback.onGet(null);
+                }
+            });
         }
-    }
-
-    private void onReceivedOutGoingCall(final Intent intent) {
-        mPhoneProfile.onNewOutGoingCall(intent);
-    }
-
-    private void onReceivedPhoneStateChanged(final Intent intent) {
-        mPhoneProfile.onPhoneStateChanged(intent);
-    }
-
-    private WifiManager getWifiManager() {
-        return (WifiManager) getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     /**
@@ -557,7 +414,7 @@ public class HostDevicePlugin extends DevicePluginContext {
      * @return カメラをサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkCameraHardware() {
-        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
     }
 
     /**
@@ -565,7 +422,7 @@ public class HostDevicePlugin extends DevicePluginContext {
      * @return 位置情報をサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkLocationHardware() {
-        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION);
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION);
     }
 
     /**
@@ -573,7 +430,7 @@ public class HostDevicePlugin extends DevicePluginContext {
      * @return 近接センサーをサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkProximityHardware() {
-        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_PROXIMITY);
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_PROXIMITY);
     }
 
     /**
@@ -581,28 +438,7 @@ public class HostDevicePlugin extends DevicePluginContext {
      * @return 加速度センサーをサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkSensorHardware() {
-        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER) ||
-                getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE);
-    }
-
-    /**
-     * マイク入力を端末がサポートしているかチェックします.
-     * @return マイク入力をサポートしている場合はtrue、それ以外はfalse
-     */
-    private boolean checkMicrophone() {
-        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_MICROPHONE);
-    }
-
-    /**
-     * MediaProjection APIを端末がサポートしているかチェックします.
-     * @return MediaProjection APIをサポートしている場合はtrue、それ以外はfalse
-     */
-    private boolean checkMediaProjection() {
-        return HostMediaRecorderManager.isSupportedMediaProjection();
-    }
-
-    @Override
-    protected String getCertificateAlias() {
-        return "org.deviceconnect.android.deviceplugin.host";
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER) ||
+                getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE);
     }
 }

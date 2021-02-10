@@ -1,13 +1,13 @@
 package org.deviceconnect.android.libsrt.server;
 
-import org.deviceconnect.android.libmedia.streaming.IMediaMuxer;
 import org.deviceconnect.android.libsrt.SRTSocket;
+import org.deviceconnect.android.libsrt.util.Mpeg2TsMuxer;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class SRTMuxer implements IMediaMuxer {
+public class SRTMuxer extends Mpeg2TsMuxer {
     /**
      * 送信先のソケットのリスト.
      */
@@ -35,20 +35,7 @@ public abstract class SRTMuxer implements IMediaMuxer {
         }
     }
 
-    /**
-     * 各ソケットにデータを送信します.
-     *
-     * @param data 送信するデータ
-     */
-    public void sendPacket(byte[] data) {
-        sendPacket(data, 0, data.length);
-    }
-
-    /**
-     * 各ソケットにデータを送信します.
-     *
-     * @param data 送信するデータ
-     */
+    @Override
     public void sendPacket(byte[] data, int offset, int length) {
         synchronized (mSRTSocketList) {
             for (SRTSocket socket : mSRTSocketList) {

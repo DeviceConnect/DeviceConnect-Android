@@ -53,19 +53,14 @@ public interface PreviewServer {
     void stopWebServer();
 
     /**
-     * 画面が回転されたことを通知します.
+     * 設定が変更されたことを通知します.
      */
     void onConfigChange();
 
     /**
      * Recorder をミュート状態にする.
      */
-    void mute();
-
-    /**
-     * Recorder のミュート状態を解除する.
-     */
-    void unMute();
+    void setMute(boolean mute);
 
     /**
      * Recorder のミュート状態を返す.
@@ -85,11 +80,28 @@ public interface PreviewServer {
      *
      * @return SSLContext を使用する場合は<code>true</code>, そうでない場合は<code>false</code>
      */
-    boolean usesSSLContext();
+    boolean useSSLContext();
 
+    /**
+     * SSL コンテキストの設定を行います.
+     *
+     * @param sslContext SSL コンテキスト
+     */
     void setSSLContext(SSLContext sslContext);
 
+    /**
+     * SSL コンテキストを取得します.
+     *
+     * @return SSL コンテキスト
+     */
     SSLContext getSSLContext();
+
+    /**
+     * プレビューサーバから配信したデータの BPS を取得します.
+     *
+     * @return プレビューサーバから配信したデータの BPS
+     */
+    long getBPS();
 
     /**
      * Callback interface used to receive the result of starting a web server.

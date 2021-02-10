@@ -3,45 +3,37 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
-        android:title="プラブイン設定"
+        android:title="@string/host_settings_main_plugin"
         app:iconSpaceReserved="false">
 
         <PreferenceScreen
             android:key="@string/pref_key_settings_gps"
-            android:title="@string/host_settings_item_gps"
+            android:title="@string/host_settings_main_plugin_gps"
+            app:iconSpaceReserved="false" />
+
+
+        <PreferenceScreen
+            android:key="@string/pref_key_settings_usage_stats"
+            android:title="@string/host_settings_main_plugin_usage_stats"
             app:iconSpaceReserved="false" />
 
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="プレビュー設定"
-        app:iconSpaceReserved="false">
-
-        <PreferenceScreen
-            android:key="@string/pref_key_settings_jpeg_quality_preview"
-            android:title="@string/host_settings_item_jpeg_quality_preview"
-            app:iconSpaceReserved="false" />
-
-        <PreferenceScreen
-            android:key="@string/pref_key_settings_audio_preview"
-            android:title="@string/host_settings_item_audio_preview"
-            app:iconSpaceReserved="false" />
-
-        <PreferenceScreen
-            android:key="@string/pref_key_settings_srt_preview"
-            android:title="@string/host_settings_item_srt_preview"
-            app:iconSpaceReserved="false" />
-
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:title="デモ設定"
+        android:title="@string/host_settings_main_plugin_demo"
         app:iconSpaceReserved="false">
 
         <PreferenceScreen
             android:key="@string/pref_key_settings_demo_page"
-            android:title="@string/host_settings_item_demo_page"
+            android:title="@string/host_settings_main_plugin_demo_page"
             app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="host_recorder_list"
+        android:title="@string/host_settings_main_plugin_recorder"
+        app:iconSpaceReserved="false">
 
     </PreferenceCategory>
 

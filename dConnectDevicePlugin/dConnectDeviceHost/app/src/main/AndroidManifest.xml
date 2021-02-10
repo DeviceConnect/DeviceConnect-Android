@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="org.deviceconnect.android.deviceplugin.host">
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
@@ -23,56 +24,27 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
     <uses-permission android:name="com.android.launcher.permission.UNINSTALL_SHORTCUT" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
 
-    <uses-feature android:name="android.hardware.camera" android:required="false"/>
-    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
-    <uses-feature android:name="android.hardware.camera.flash" android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.flash"
+        android:required="false" />
 
     <application android:allowBackup="false">
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostSettingActivity"
-            android:launchMode="singleTask"
-            android:theme="@style/AppCompatTheme" />
 
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostGpsSettingActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:theme="@style/AppCompatTheme" />
-
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostRecorderSettingActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:theme="@style/AppCompatTheme" />
-
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostRecorderAudioSettingActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:theme="@style/AppCompatTheme" />
-
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostRecorderSRTSettingActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:theme="@style/AppCompatTheme" />
-
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostDemoSettingActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:theme="@style/AppCompatTheme" />
-
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <!-- 各プロファイルで表示画面 -->
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoPlayer"
@@ -84,7 +56,7 @@
             android:theme="@style/AppCompatTheme" />
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.profile.CanvasProfileActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:excludeFromRecents="true"
             android:exported="false"
@@ -93,7 +65,7 @@
             android:theme="@style/AppCompatTheme" />
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.activity.TouchProfileActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.profile.TouchProfileActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleInstance"
@@ -101,38 +73,96 @@
             android:theme="@style/AppCompatTheme" />
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.activity.KeyEventProfileActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.profile.KeyEventProfileActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleInstance"
             android:taskAffinity=".keyevent"
             android:theme="@style/AppCompatTheme" />
 
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.recorder.screen.PermissionReceiverActivity"
-            android:configChanges="orientation|screenSize"
-            android:exported="false"
-            android:theme="@android:style/Theme.Translucent" />
+        <!-- パーミッション要求画面 -->
 
         <activity
             android:name=".recorder.util.OverlayPermissionActivity"
             android:configChanges="orientation|screenSize"
             android:exported="false"
-            android:theme="@style/AppTheme.Translucent" />
+            android:theme="@style/AppCompatTheme.Translucent" />
+
+        <activity
+            android:name=".recorder.util.PermissionReceiverActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:theme="@style/AppCompatTheme.Translucent" />
+
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:theme="@style/AppCompatTheme.Translucent" />
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.GeolocationAlertDialogActivity"
             android:excludeFromRecents="true"
-            android:launchMode="singleInstance"
-            android:theme="@style/AppTheme.Translucent" />
-
-        <!-- パーミッション要求画面 -->
-        <activity
-            android:name="org.deviceconnect.android.activity.PermissionRequestActivity"
             android:exported="false"
-            android:taskAffinity=".permission"
-            android:theme="@style/Theme.Dialog.Transparent" />
+            android:launchMode="singleInstance"
+            android:theme="@style/AppCompatTheme.Translucent" />
 
+        <!-- プラグイン設定画面用の Activity -->
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostSettingActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:theme="@style/AppCompatTheme" />
+
+        <!-- レコーダー設定画面用の Activity -->
+        <activity
+            android:name=".activity.recorder.settings.SettingsActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:exported="false"
+            android:theme="@style/AppCompatTheme" />
+
+        <!-- プラグイン本体サービス -->
+        <service
+            android:name=".HostDevicePlugin"
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_host" />
+
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin.name"
+                android:value="@string/app_name_host" />
+
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin.icon"
+                android:resource="@drawable/dconnect_icon" />
+        </service>
+
+        <!-- Device Connect API リクエストのレシーバー -->
+        <!--
+            NOTE:  下記のレシーバーは、旧仕様のDevice Connect Managerとの互換性、
+            およびDevice Connect Managerのアンインストール検知のために残しています.
+        -->
+        <receiver
+            android:name=".HostDevicePluginProvider"
+            android:enabled="true"
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_host" />
+            <intent-filter>
+                <action android:name="org.deviceconnect.action.GET" />
+                <action android:name="org.deviceconnect.action.PUT" />
+                <action android:name="org.deviceconnect.action.POST" />
+                <action android:name="org.deviceconnect.action.DELETE" />
+
+                <!-- uninstall notification -->
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED" />
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Device Connect ファイル管理用の Provider -->
         <provider
             android:name="org.deviceconnect.android.deviceplugin.host.file.HostFileProvider"
             android:authorities="org.deviceconnect.android.deviceplugin.host.provider.included"

@@ -223,13 +223,13 @@ public class DConnectService extends Service {
                 if (DEBUG) {
                     Log.i(TAG, "Finish search plugin.");
                 }
-                try {
-                    addDevicePlugin();
-                } catch (Exception e) {
-                    if (DEBUG) {
-                        Log.e(TAG, "search plugin error.", e);
-                    }
-                }
+//                try {
+//                    addDevicePlugin();
+//                } catch (Exception e) {
+//                    if (DEBUG) {
+//                        Log.e(TAG, "search plugin error.", e);
+//                    }
+//                }
             }
 
             @Override

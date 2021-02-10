@@ -1,8 +1,20 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.content.Context;
+import android.graphics.Rect;
+import android.media.AudioAttributes;
+import android.media.AudioFormat;
+import android.media.AudioPlaybackCaptureConfiguration;
+import android.media.projection.MediaProjection;
+import android.os.Build;
+import android.util.Size;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
+import org.deviceconnect.android.libmedia.streaming.audio.MicAudioQuality;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
+import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import javax.net.ssl.SSLContext;
 
@@ -16,12 +28,12 @@ public abstract class AbstractPreviewServer implements PreviewServer {
     /**
      * コンテキスト.
      */
-    private Context mContext;
+    private final Context mContext;
 
     /**
      * プレビュー再生を行うレコーダ.
      */
-    private HostMediaRecorder mHostMediaRecorder;
+    private final HostMediaRecorder mHostMediaRecorder;
 
     /**
      * プレビュー配信サーバのポート番号.
@@ -39,6 +51,26 @@ public abstract class AbstractPreviewServer implements PreviewServer {
     private SSLContext mSSLContext;
 
     /**
+     * SSL の使用フラグ.
+     */
+    private final boolean mUseSSL;
+
+    /**
+     * コンストラクタ.
+     *
+     * <p>
+     * デフォルトでは、mute は true に設定しています。
+     * デフォルトでは、mUseSSL は false に設定します。
+     * </p>
+     *
+     * @param context コンテキスト
+     * @param recorder プレビューで表示するレコーダ
+     */
+    public AbstractPreviewServer(Context context, HostMediaRecorder recorder) {
+        this(context, recorder, false);
+    }
+
+    /**
      * コンストラクタ.
      *
      * <p>
@@ -47,14 +79,16 @@ public abstract class AbstractPreviewServer implements PreviewServer {
      *
      * @param context コンテキスト
      * @param recorder プレビューで表示するレコーダ
+     * @param useSSL SSL使用フラグ
      */
-    public AbstractPreviewServer(Context context, HostMediaRecorder recorder) {
+    public AbstractPreviewServer(Context context, HostMediaRecorder recorder, boolean useSSL) {
         mContext = context;
         mHostMediaRecorder = recorder;
+        mUseSSL = useSSL;
         mMute = true;
     }
 
-    // PreviewServer
+    // Implements PreviewServer methods.
 
     @Override
     public int getPort() {
@@ -68,16 +102,23 @@ public abstract class AbstractPreviewServer implements PreviewServer {
 
     @Override
     public void onConfigChange() {
+        VideoQuality videoQuality = getVideoQuality();
+        if (videoQuality != null) {
+            setVideoQuality(videoQuality);
+        }
+
+        AudioQuality audioQuality = getAudioQuality();
+        if (audioQuality != null) {
+            setAudioQuality(audioQuality);
+
+            HostMediaRecorder.Settings settings = getRecorder().getSettings();
+            setMute(settings.isMute());
+        }
     }
 
     @Override
-    public void mute() {
-        mMute = true;
-    }
-
-    @Override
-    public void unMute() {
-        mMute = false;
+    public void setMute(boolean mute) {
+        mMute = mute;
     }
 
     @Override
@@ -86,8 +127,8 @@ public abstract class AbstractPreviewServer implements PreviewServer {
     }
 
     @Override
-    public boolean usesSSLContext() {
-        return false;
+    public boolean useSSLContext() {
+        return mUseSSL;
     }
 
     @Override
@@ -116,5 +157,109 @@ public abstract class AbstractPreviewServer implements PreviewServer {
      */
     public HostMediaRecorder getRecorder() {
         return mHostMediaRecorder;
+    }
+
+    /**
+     * 映像の設定を取得します.
+     *
+     * 映像が使用されていない場合は null を返却すること。
+     *
+     * @return 映像の設定
+     */
+    protected VideoQuality getVideoQuality() {
+        return null;
+    }
+
+    /**
+     * 音声の設定を取得します.
+     *
+     * 音声が使用されていない場合は null を返却すること。
+     *
+     * @return 音声の設定
+     */
+    protected AudioQuality getAudioQuality() {
+        return null;
+    }
+
+    /**
+     * VideoEncoder の設定に、HostMediaRecorder の設定を反映します.
+     *
+     * @param videoQuality 設定を行う VideoEncoder の VideoQuality
+     */
+    public void setVideoQuality(VideoQuality videoQuality) {
+        HostMediaRecorder recorder = getRecorder();
+        HostMediaRecorder.Settings settings = recorder.getSettings();
+
+        Rect rect = settings.getDrawingRange();
+        if (rect != null) {
+            videoQuality.setVideoWidth(rect.width());
+            videoQuality.setVideoHeight(rect.height());
+        } else {
+            EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
+            Size previewSize = settings.getPreviewSize();
+            int w = d.isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
+            int h = d.isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
+            videoQuality.setVideoWidth(w);
+            videoQuality.setVideoHeight(h);
+        }
+        videoQuality.setBitRate(settings.getPreviewBitRate());
+        videoQuality.setFrameRate(settings.getPreviewMaxFrameRate());
+        videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());
+        videoQuality.setUseSoftwareEncoder(settings.isUseSoftwareEncoder());
+        videoQuality.setIntraRefresh(settings.getIntraRefresh());
+        videoQuality.setProfile(settings.getProfile());
+        videoQuality.setLevel(settings.getLevel());
+        if (settings.getPreviewBitRateMode() != null) {
+            switch (settings.getPreviewBitRateMode()) {
+                default:
+                case VBR:
+                    videoQuality.setBitRateMode(VideoQuality.BitRateMode.VBR);
+                    break;
+                case CBR:
+                    videoQuality.setBitRateMode(VideoQuality.BitRateMode.CBR);
+                    break;
+                case CQ:
+                    videoQuality.setBitRateMode(VideoQuality.BitRateMode.CQ);
+                    break;
+            }
+        } else {
+            videoQuality.setBitRateMode(null);
+        }
+    }
+
+    /**
+     * AudioEncoder の設定に、HostMediaRecorder の設定を反映します.
+     *
+     * @param audioQuality 設定を行う AudioEncoder の AudioQuality
+     */
+    public void setAudioQuality(AudioQuality audioQuality) {
+        HostMediaRecorder recorder = getRecorder();
+        HostMediaRecorder.Settings settings = recorder.getSettings();
+
+        mMute = settings.isMute();
+        audioQuality.setChannel(settings.getPreviewChannel() == 1 ?
+                AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO);
+        audioQuality.setSamplingRate(settings.getPreviewSampleRate());
+        audioQuality.setBitRate(settings.getPreviewAudioBitRate());
+        audioQuality.setUseAEC(settings.isUseAEC());
+
+        MicAudioQuality quality = (MicAudioQuality) audioQuality;
+        if (settings.getPreviewAudioSource() == HostMediaRecorder.AudioSource.APP) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // アプリの録音機能
+                MediaProjectionProvider provider = recorder.getMediaProjectionProvider();
+                if (provider != null && provider.getMediaProjection() != null) {
+                    MediaProjection mediaProjection = provider.getMediaProjection();
+                    AudioPlaybackCaptureConfiguration configuration =
+                            new AudioPlaybackCaptureConfiguration.Builder(mediaProjection)
+                                    .addMatchingUsage(AudioAttributes.USAGE_GAME)
+                                    .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
+                                    .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
+                                    .build();
+                    quality.setCaptureConfig(configuration);
+                }
+            }
+            quality.setSource(MicAudioQuality.Source.APP);
+        }
     }
 }

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="@string/host_recorder_settings_video"
+        app:iconSpaceReserved="false">
+
+        <ListPreference
+            app:key="camera_picture_size"
+            app:title="@string/host_recorder_settings_still_image_resolution"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="camera_preview_size"
+            app:title="@string/host_recorder_settings_preview_resolution"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_framerate"
+            app:title="@string/host_recorder_settings_framerate"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_i_frame_interval"
+            app:title="@string/host_recorder_settings_i_frame_interval"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_bitrate"
+            app:title="@string/host_recorder_settings_bitrate"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:entries="@array/bitrate_mode_names"
+            app:entryValues="@array/bitrate_mode_values"
+            app:iconSpaceReserved="false"
+            app:key="preview_bitrate_mode"
+            app:title="@string/host_recorder_settings_bitrate_mode"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:iconSpaceReserved="false"
+            app:key="preview_encoder"
+            app:title="@string/host_recorder_settings_video_encode"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="preview_profile_level"
+            app:title="@string/host_recorder_settings_video_profile_level"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="preview_use_software_encoder"
+            android:title="@string/host_recorder_settings_use_software_encode"
+            app:summary="@string/host_recorder_settings_use_software_encode_summary"
+            app:iconSpaceReserved="false" />
+
+        <EditTextPreference
+            app:key="preview_intra_refresh"
+            app:title="@string/host_recorder_settings_intra_refresh"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="preview_auto_focus"
+            app:title="@string/host_recorder_settings_auto_focus_mode"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:entries="@array/video_white_balance_names"
+            app:entryValues="@array/video_white_balance_values"
+            app:key="preview_white_balance"
+            app:title="@string/host_recorder_settings_white_balance"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference
+            app:key="preview_sensor_white_balance_temperature"
+            app:title="@string/host_recorder_settings_white_balance_temperature"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:entries="@array/video_white_balance_names"
+            app:entryValues="@array/video_white_balance_values"
+            app:key="preview_auto_exposure_mode"
+            app:title="@string/host_recorder_settings_auto_exposure"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference
+            app:key="preview_sensor_exposure_time"
+            app:title="@string/host_recorder_settings_sensor_exposure_time"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference
+            app:key="preview_sensor_sensitivity"
+            app:title="@string/host_recorder_settings_sensor_sensitivity"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference
+            app:key="preview_sensor_frame_duration"
+            app:title="@string/host_recorder_settings_sensor_frame_duration"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:entries="@array/video_stabilization_names"
+            app:entryValues="@array/video_stabilization_values"
+            app:key="preview_stabilization_mode"
+            app:title="@string/host_recorder_settings_video_stabilization"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:entries="@array/video_stabilization_names"
+            app:entryValues="@array/video_stabilization_values"
+            app:key="preview_optical_stabilization_mode"
+            app:title="@string/host_recorder_settings_optical_stabilization"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:entries="@array/video_noise_reduction_names"
+            app:entryValues="@array/video_noise_reduction_values"
+            app:key="preview_reduction_noise"
+            app:title="@string/host_recorder_settings_noise_reduction"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="preview_focal_length"
+            app:title="@string/host_recorder_settings_focal_length"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/host_recorder_settings_motion_jpeg"
+        app:iconSpaceReserved="false">
+
+        <org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference
+            android:defaultValue="80"
+            android:key="preview_jpeg_quality"
+            android:singleLine="true"
+            android:title="@string/host_recorder_settings_jpeg_quality"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/host_recorder_settings_range_to_cut_out"
+        app:iconSpaceReserved="false">
+
+        <EditTextPreference
+            app:key="preview_clip_left"
+            app:title="@string/host_recorder_settings_cut_out_left"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_clip_top"
+            app:title="@string/host_recorder_settings_cut_out_top"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_clip_right"
+            app:title="@string/host_recorder_settings_cut_out_right"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_clip_bottom"
+            app:title="@string/host_recorder_settings_cut_out_bottom"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <PreferenceScreen
+            app:key="preview_clip_reset"
+            app:title="@string/host_recorder_settings_cut_out_reset"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+</PreferenceScreen>

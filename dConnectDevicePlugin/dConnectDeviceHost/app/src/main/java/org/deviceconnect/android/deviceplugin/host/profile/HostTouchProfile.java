@@ -6,20 +6,16 @@
  */
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import android.app.ActivityManager;
-import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
 import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.deviceplugin.host.activity.TouchProfileActivity;
+import org.deviceconnect.android.deviceplugin.host.activity.profile.TouchProfileActivity;
+import org.deviceconnect.android.deviceplugin.host.sensor.HostEventManager;
+import org.deviceconnect.android.deviceplugin.host.sensor.HostTouchEvent;
+import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -32,14 +28,15 @@ import org.deviceconnect.android.util.NotificationUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Touch Profile.
  * 
  * @author NTT DOCOMO, INC.
  */
 public class HostTouchProfile extends TouchProfile {
-
-
     /** Touch profile event management flag. */
     private static int sFlagTouchEventManage = 0;
     /** Touch profile event flag. (ontouch) */
@@ -56,34 +53,19 @@ public class HostTouchProfile extends TouchProfile {
     private static final int FLAG_ON_TOUCH_CANCEL = 0x0020;
     /** Touch profile event flag. (ontouchchange). */
     private static final int FLAG_ON_TOUCH_CHANGE = 0x0040;
-
     /** Finish touch profile activity action. */
     public static final String ACTION_FINISH_TOUCH_ACTIVITY =
             "org.deviceconnect.android.deviceplugin.host.touch.FINISH";
-    /** Finish touch event profile activity action. */
-    public static final String ACTION_TOUCH =
-            "org.deviceconnect.android.deviceplugin.host.touch.action.KEY_EVENT";
 
     /** Notification Id */
-    private final int NOTIFICATION_ID = 3527;
+    private static final int NOTIFICATION_ID = 3527;
 
-    /**
-     * KeyEventProfileActivityからのKeyEventを中継するBroadcast Receiver.
-     */
-    private BroadcastReceiver mTouchEventBR = new BroadcastReceiver() {
-        @Override
-        public void onReceive(final Context context, final Intent intent) {
-            if (intent.getAction().equals(ACTION_TOUCH)) {
-                // ManagerにEventを送信する
-                intent.setAction(IntentDConnectMessage.ACTION_EVENT);
-                sendEvent(intent, intent.getStringExtra("accessToken"));
-            }
-        }
-    };
     /**
      * Attribute: {@value} .
      */
     public static final String ATTRIBUTE_ON_TOUCH_CHANGE = "onTouchChange";
+
+    // GET /gotapi/touch/onTouchChange
     private final DConnectApi mGetOnTouchChangeApi = new GetApi() {
 
         @Override
@@ -93,16 +75,18 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle touches = getTouchCache(ATTRIBUTE_ON_TOUCH_CHANGE);
+            HostTouchEvent touches = mHostEventManager.getTouchCache(getStateName(ATTRIBUTE_ON_TOUCH_CHANGE));
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
             } else {
-                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+                response.putExtra(TouchProfile.PARAM_TOUCH, convertEventToBundle(touches, true));
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
             return true;
         }
     };
+
+    // GET /gotapi/touch/onTouch
     private final DConnectApi mGetOnTouchApi = new GetApi() {
 
         @Override
@@ -112,17 +96,18 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH);
+            HostTouchEvent touches = mHostEventManager.getTouchCache(getStateName(ATTRIBUTE_ON_TOUCH_START));
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
             } else {
-                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+                response.putExtra(TouchProfile.PARAM_TOUCH, convertEventToBundle(touches));
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
             return true;
         }
     };
 
+    // GET /gotapi/touch/onTouchStart
     private final DConnectApi mGetOnTouchStartApi = new GetApi() {
 
         @Override
@@ -132,17 +117,18 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_START);
+            HostTouchEvent touches = mHostEventManager.getTouchCache(getStateName(ATTRIBUTE_ON_TOUCH_START));
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
             } else {
-                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+                response.putExtra(TouchProfile.PARAM_TOUCH, convertEventToBundle(touches));
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
             return true;
         }
     };
 
+    // GET /gotapi/touch/onTouchEnd
     private final DConnectApi mGetOnTouchEndApi = new GetApi() {
 
         @Override
@@ -152,17 +138,18 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_END);
+            HostTouchEvent touches = mHostEventManager.getTouchCache(getStateName(ATTRIBUTE_ON_TOUCH_END));
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
             } else {
-                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+                response.putExtra(TouchProfile.PARAM_TOUCH, convertEventToBundle(touches));
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
             return true;
         }
     };
 
+    // GET /gotapi/touch/onDoubleTap
     private final DConnectApi mGetOnDoubleTapApi = new GetApi() {
 
         @Override
@@ -172,17 +159,18 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP);
+            HostTouchEvent touches = mHostEventManager.getTouchCache(getStateName(ATTRIBUTE_ON_DOUBLE_TAP));
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
             } else {
-                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+                response.putExtra(TouchProfile.PARAM_TOUCH, convertEventToBundle(touches));
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
             return true;
         }
     };
 
+    // GET /gotapi/touch/onTouchMove
     private final DConnectApi mGetOnTouchMoveApi = new GetApi() {
 
         @Override
@@ -192,17 +180,18 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE);
+            HostTouchEvent touches = mHostEventManager.getTouchCache(getStateName(ATTRIBUTE_ON_TOUCH_MOVE));
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
             } else {
-                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+                response.putExtra(TouchProfile.PARAM_TOUCH, convertEventToBundle(touches));
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
             return true;
         }
     };
 
+    // GET /gotapi/touch/onTouchCancel
     private final DConnectApi mGetOnTouchCancelApi = new GetApi() {
 
         @Override
@@ -212,16 +201,18 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL);
+            HostTouchEvent touches = mHostEventManager.getTouchCache(getStateName(ATTRIBUTE_ON_TOUCH_CANCEL));
             if (touches == null) {
                 response.putExtra(TouchProfile.PARAM_TOUCH, "");
             } else {
-                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+                response.putExtra(TouchProfile.PARAM_TOUCH, convertEventToBundle(touches));
             }
             setResult(response, IntentDConnectMessage.RESULT_OK);
             return true;
         }
     };
+
+    // PUT /gotapi/touch/onTouchChange
     private final DConnectApi mPutOnTouchChangeApi = new PutApi() {
 
         @Override
@@ -231,14 +222,9 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-            // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                execTouchProfileActivity(serviceId);
-                IntentFilter filter = new IntentFilter(ACTION_TOUCH);
-                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mTouchEventBR, filter);
-
+                launchTouchProfileActivity();
                 setTouchEventFlag(FLAG_ON_TOUCH_CHANGE);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -247,6 +233,8 @@ public class HostTouchProfile extends TouchProfile {
             return true;
         }
     };
+
+    // PUT /gotapi/touch/onTouch
     private final DConnectApi mPutOnTouchApi = new PutApi() {
 
         @Override
@@ -256,13 +244,9 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-            // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                execTouchProfileActivity(serviceId);
-                IntentFilter filter = new IntentFilter(ACTION_TOUCH);
-                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mTouchEventBR, filter);
+                launchTouchProfileActivity();
                 setTouchEventFlag(FLAG_ON_TOUCH);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -272,6 +256,7 @@ public class HostTouchProfile extends TouchProfile {
         }
     };
 
+    // PUT /gotapi/touch/onTouchStart
     private final DConnectApi mPutOnTouchStartApi = new PutApi() {
 
         @Override
@@ -281,13 +266,9 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-            // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                execTouchProfileActivity(serviceId);
-                IntentFilter filter = new IntentFilter(ACTION_TOUCH);
-                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mTouchEventBR, filter);
+                launchTouchProfileActivity();
                 setTouchEventFlag(FLAG_ON_TOUCH_START);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -297,6 +278,7 @@ public class HostTouchProfile extends TouchProfile {
         }
     };
 
+    // PUT /gotapi/touch/onTouchEnd
     private final DConnectApi mPutOnTouchEndApi = new PutApi() {
 
         @Override
@@ -306,13 +288,9 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-            // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                execTouchProfileActivity(serviceId);
-                IntentFilter filter = new IntentFilter(ACTION_TOUCH);
-                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mTouchEventBR, filter);
+                launchTouchProfileActivity();
                 setTouchEventFlag(FLAG_ON_TOUCH_END);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -322,6 +300,7 @@ public class HostTouchProfile extends TouchProfile {
         }
     };
 
+    // PUT /gotapi/touch/onDoubleTap
     private final DConnectApi mPutOnDoubleTapApi = new PutApi() {
 
         @Override
@@ -331,13 +310,9 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-            // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                execTouchProfileActivity(serviceId);
-                IntentFilter filter = new IntentFilter(ACTION_TOUCH);
-                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mTouchEventBR, filter);
+                launchTouchProfileActivity();
                 setTouchEventFlag(FLAG_ON_DOUBLE_TAP);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -347,6 +322,7 @@ public class HostTouchProfile extends TouchProfile {
         }
     };
 
+    // PUT /gotapi/touch/onTouchMove
     private final DConnectApi mPutOnTouchMoveApi = new PutApi() {
 
         @Override
@@ -356,13 +332,9 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-            // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                execTouchProfileActivity(serviceId);
-                IntentFilter filter = new IntentFilter(ACTION_TOUCH);
-                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mTouchEventBR, filter);
+                launchTouchProfileActivity();
                 setTouchEventFlag(FLAG_ON_TOUCH_MOVE);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -372,6 +344,7 @@ public class HostTouchProfile extends TouchProfile {
         }
     };
 
+    // PUT /gotapi/touch/onTouchCancel
     private final DConnectApi mPutOnTouchCancelApi = new PutApi() {
 
         @Override
@@ -381,13 +354,9 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-            // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                execTouchProfileActivity(serviceId);
-                IntentFilter filter = new IntentFilter(ACTION_TOUCH);
-                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mTouchEventBR, filter);
+                launchTouchProfileActivity();
                 setTouchEventFlag(FLAG_ON_TOUCH_CANCEL);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -396,6 +365,8 @@ public class HostTouchProfile extends TouchProfile {
             return true;
         }
     };
+
+    // Delete /gotapi/touch/onTouchChange
     private final DConnectApi mDeleteOnTouchChangeApi = new DeleteApi() {
 
         @Override
@@ -405,11 +376,9 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 resetTouchEventFlag(FLAG_ON_TOUCH_CHANGE);
-                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mTouchEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
@@ -417,6 +386,8 @@ public class HostTouchProfile extends TouchProfile {
             return true;
         }
     };
+
+    // Delete /gotapi/touch/onTouch
     private final DConnectApi mDeleteOnTouchApi = new DeleteApi() {
 
         @Override
@@ -426,11 +397,9 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 resetTouchEventFlag(FLAG_ON_TOUCH);
-                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mTouchEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
@@ -439,6 +408,7 @@ public class HostTouchProfile extends TouchProfile {
         }
     };
 
+    // Delete /gotapi/touch/onTouchStart
     private final DConnectApi mDeleteOnTouchStartApi = new DeleteApi() {
 
         @Override
@@ -448,11 +418,9 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 resetTouchEventFlag(FLAG_ON_TOUCH_START);
-                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mTouchEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
@@ -461,6 +429,7 @@ public class HostTouchProfile extends TouchProfile {
         }
     };
 
+    // Delete /gotapi/touch/onTouchEnd
     private final DConnectApi mDeleteOnTouchEndApi = new DeleteApi() {
 
         @Override
@@ -470,11 +439,9 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 resetTouchEventFlag(FLAG_ON_TOUCH_END);
-                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mTouchEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
@@ -483,6 +450,7 @@ public class HostTouchProfile extends TouchProfile {
         }
     };
 
+    // Delete /gotapi/touch/onDoubleTap
     private final DConnectApi mDeleteOnDoubleTap = new DeleteApi() {
 
         @Override
@@ -492,11 +460,9 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 resetTouchEventFlag(FLAG_ON_DOUBLE_TAP);
-                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mTouchEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
@@ -505,6 +471,7 @@ public class HostTouchProfile extends TouchProfile {
         }
     };
 
+    // Delete /gotapi/touch/onTouchMove
     private final DConnectApi mDeleteOnTouchMove = new DeleteApi() {
 
         @Override
@@ -514,11 +481,9 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 resetTouchEventFlag(FLAG_ON_TOUCH_MOVE);
-                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mTouchEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
@@ -527,6 +492,7 @@ public class HostTouchProfile extends TouchProfile {
         }
     };
 
+    // Delete /gotapi/touch/onTouchCancel
     private final DConnectApi mDeleteOnTouchCancel = new DeleteApi() {
 
         @Override
@@ -536,11 +502,9 @@ public class HostTouchProfile extends TouchProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 resetTouchEventFlag(FLAG_ON_TOUCH_CANCEL);
-                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mTouchEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
@@ -549,7 +513,17 @@ public class HostTouchProfile extends TouchProfile {
         }
     };
 
-    public HostTouchProfile() {
+    private final HostEventManager mHostEventManager;
+
+    private final HostEventManager.OnTouchEventListener mOnTouchEventListener = touchEvent -> {
+        sendTouchEvent(touchEvent);
+        sendTouchChangeEvent(touchEvent);
+    };
+
+    public HostTouchProfile(HostEventManager hostEventManager) {
+        mHostEventManager = hostEventManager;
+        mHostEventManager.addOnTouchEventListener(mOnTouchEventListener);
+
         addApi(mGetOnTouchChangeApi);
         addApi(mGetOnTouchApi);
         addApi(mGetOnTouchStartApi);
@@ -574,42 +548,158 @@ public class HostTouchProfile extends TouchProfile {
     }
 
     /**
-     * Execute Touch Profile Activity.
-     * 
-     * @param serviceId service ID.
-     * @return Always true.
+     * 各タッチイベントを配信します.
+     *
+     * @param touchEvent タッチイベント
      */
-    private boolean execTouchProfileActivity(final String serviceId) {
-        String mClassName = getApp().getClassnameOfTopActivity();
+    private void sendTouchEvent(HostTouchEvent touchEvent) {
+        // touch start のイベントの場合のみ、 onTouch にもイベントを配送します。
+        if (touchEvent.getState().equals(HostTouchEvent.STATE_TOUCH_START)) {
+            List<Event> touchEvents = EventManager.INSTANCE.getEventList(getService().getId(),
+                    TouchProfile.PROFILE_NAME, null, TouchProfile.ATTRIBUTE_ON_TOUCH);
+            Bundle touches = convertEventToBundle(touchEvent);
+            for (Event evt : touchEvents) {
+                Intent intent = EventManager.createEventMessage(evt);
+                intent.putExtra(TouchProfile.PARAM_TOUCH, touches);
+                getPluginContext().sendEvent(intent, evt.getAccessToken());
+            }
+        }
 
-        if (!(TouchProfileActivity.class.getName().equals(mClassName))) {
-            Intent mIntent = new Intent();
-            mIntent.setClass(getContext(), TouchProfileActivity.class);
-            mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            mIntent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
-            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                this.getContext().startActivity(mIntent);
+        List<Event> touchEvents = EventManager.INSTANCE.getEventList(getService().getId(),
+                TouchProfile.PROFILE_NAME, null, getAttributeName(touchEvent.getState()));
+        Bundle touches = convertEventToBundle(touchEvent);
+        for (Event evt : touchEvents) {
+            Intent intent = EventManager.createEventMessage(evt);
+            intent.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            getPluginContext().sendEvent(intent, evt.getAccessToken());
+        }
+    }
+
+    /**
+     * 各タッチイベントを onTouchChange に配信します.
+     *
+     * @param touchEvent タッチイベント
+     */
+    private void sendTouchChangeEvent(HostTouchEvent touchEvent) {
+        List<Event> touchEvents = EventManager.INSTANCE.getEventList(getService().getId(),
+                TouchProfile.PROFILE_NAME, null, ATTRIBUTE_ON_TOUCH_CHANGE);
+        Bundle touches = convertEventToBundle(touchEvent, true);
+
+        for (Event evt : touchEvents) {
+            Intent intent = EventManager.createEventMessage(evt);
+            intent.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            getPluginContext().sendEvent(intent, evt.getAccessToken());
+        }
+    }
+    /**
+     * タッチイベントを Bundle に変換します.
+     *
+     * @param event タッチイベント
+     * @return 変換された Bundle
+     */
+    private Bundle convertEventToBundle(HostTouchEvent event) {
+        return convertEventToBundle(event, false);
+    }
+
+    /**
+     * タッチイベントを Bundle に変換します.
+     *
+     * @param event タッチイベント
+     * @param hasState state の情報も含むかを指定
+     * @return 変換された Bundle
+     */
+    private Bundle convertEventToBundle(HostTouchEvent event, boolean hasState) {
+        List<Bundle> touchList = new ArrayList<>();
+        Bundle touches = new Bundle();
+        for (int n = 0; n < event.getCount(); n++) {
+            Bundle touchData = new Bundle();
+            touchData.putInt(TouchProfile.PARAM_ID, event.getId(n));
+            touchData.putFloat(TouchProfile.PARAM_X, event.getX(n));
+            touchData.putFloat(TouchProfile.PARAM_Y, event.getY(n));
+            touchList.add((Bundle) touchData);
+        }
+        touches.putParcelableArray(TouchProfile.PARAM_TOUCHES, touchList.toArray(new Bundle[0]));
+        if (hasState) {
+            touches.putString("state", event.getState());
+        }
+        return touches;
+    }
+
+    /**
+     * タッチイベントのステートに合わせた attribute 名を取得します.
+     *
+     * @param eventState イベントステート
+     * @return attribute 名
+     */
+    private String getAttributeName(String eventState) {
+        switch (eventState) {
+            case HostTouchEvent.STATE_TOUCH_START:
+                return ATTRIBUTE_ON_TOUCH_START;
+            case HostTouchEvent.STATE_TOUCH_MOVE:
+                return ATTRIBUTE_ON_TOUCH_MOVE;
+            case HostTouchEvent.STATE_TOUCH_END:
+                return ATTRIBUTE_ON_TOUCH_END;
+            case HostTouchEvent.STATE_TOUCH_CANCEL:
+                return ATTRIBUTE_ON_TOUCH_CANCEL;
+            case HostTouchEvent.STATE_TOUCH_DOUBLE_TAP:
+                return ATTRIBUTE_ON_DOUBLE_TAP;
+            default:
+                return "";
+        }
+    }
+
+    /**
+     * アトリビュート名からタッチイベントのステート名を取得します.
+     *
+     * @param attribute アトリビュート名
+     * @return ステート名
+     */
+    private String getStateName(String attribute) {
+        switch (attribute) {
+            case ATTRIBUTE_ON_TOUCH_START:
+                return HostTouchEvent.STATE_TOUCH_START;
+            case ATTRIBUTE_ON_TOUCH_MOVE:
+                return HostTouchEvent.STATE_TOUCH_MOVE;
+            case ATTRIBUTE_ON_TOUCH_END:
+                return HostTouchEvent.STATE_TOUCH_END;
+            case ATTRIBUTE_ON_TOUCH_CANCEL:
+                return HostTouchEvent.STATE_TOUCH_CANCEL;
+            case ATTRIBUTE_ON_DOUBLE_TAP:
+                return HostTouchEvent.STATE_TOUCH_DOUBLE_TAP;
+            case ATTRIBUTE_ON_TOUCH_CHANGE:
+                return HostTouchEvent.STATE_TOUCH_CHANGE;
+            default:
+                return "";
+        }
+    }
+
+    /**
+     * Execute Touch Profile Activity.
+     */
+    private void launchTouchProfileActivity() {
+        if (!getApp().isClassnameOfTopActivity(TouchProfileActivity.class)) {
+            Intent intent = new Intent();
+            intent.setClass(getContext(), TouchProfileActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if (getApp().isDeviceConnectClassOfTopActivity() || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                getContext().startActivity(intent);
             } else {
                 NotificationUtils.createNotificationChannel(getContext());
-                NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, mIntent,
+                NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, intent,
                         getContext().getString(R.string.host_notification_touch_warnning));
             }
         }
-        return true;
     }
 
     /**
      * Finish Touch Profile Activity.
-     * 
-     * @return Always true.
+     *
      */
-    private boolean finishTouchProfileActivity() {
-        String className = getApp().getClassnameOfTopActivity();
-        if (TouchProfileActivity.class.getName().equals(className)) {
+    private void finishTouchProfileActivity() {
+        if (getApp().isClassnameOfTopActivity(TouchProfileActivity.class)) {
             Intent intent = new Intent(HostTouchProfile.ACTION_FINISH_TOUCH_ACTIVITY);
-            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+            getContext().sendBroadcast(intent);
         }
-        return true;
     }
 
     /**
@@ -653,27 +743,7 @@ public class HostTouchProfile extends TouchProfile {
         }
     }
 
-    /**
-     * Get touch cache.
-     *
-     * @param attr Attribute.
-     * @return Touch cache data.
-     */
-    public Bundle getTouchCache(final String attr) {
-        return getApp().getTouchCache(attr);
-    }
-
-    /**
-     * Get keyevent cache.
-     *
-     * @param attr Attribute.
-     * @return KeyEvent cache data.
-     */
-    public Bundle getKeyEventCache(final String attr) {
-        return getApp().getKeyEventCache(attr);
-    }
-
-    public HostDeviceApplication getApp() {
+    private HostDeviceApplication getApp() {
         return (HostDeviceApplication) getContext().getApplicationContext();
     }
 }

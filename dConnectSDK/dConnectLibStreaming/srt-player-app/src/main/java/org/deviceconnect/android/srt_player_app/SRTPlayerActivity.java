@@ -10,17 +10,17 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
 import org.deviceconnect.android.libsrt.SRT;
 import org.deviceconnect.android.libsrt.SRTStats;
-import org.deviceconnect.android.libsrt.client.SRTPlayer;
+import org.deviceconnect.android.libsrt.player.SRTPlayer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 
 import static org.deviceconnect.android.srt_player_app.BuildConfig.DEBUG;
 

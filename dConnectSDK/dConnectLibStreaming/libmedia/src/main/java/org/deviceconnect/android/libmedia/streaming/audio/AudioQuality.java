@@ -8,7 +8,7 @@ public abstract class AudioQuality {
     private static final int DEFAULT_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
     private static final int DEFAULT_BIT_RATE = 64 * 1024;
 
-    private String mMimeType;
+    private final String mMimeType;
     private int mSamplingRate = DEFAULT_SAMPLING_RATE;
     private int mBitRate = DEFAULT_BIT_RATE;
     private int mChannel = DEFAULT_CHANNEL;

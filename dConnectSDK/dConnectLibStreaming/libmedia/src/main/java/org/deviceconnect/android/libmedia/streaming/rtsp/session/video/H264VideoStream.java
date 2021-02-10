@@ -18,7 +18,6 @@ import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribut
 import org.deviceconnect.android.libmedia.streaming.util.HexUtil;
 import org.deviceconnect.android.libmedia.streaming.video.CanvasVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
-import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
@@ -74,16 +73,9 @@ public abstract class H264VideoStream extends VideoStream {
             final AtomicBoolean result = new AtomicBoolean();
 
             VideoEncoder videoEncoder = getVideoEncoder();
-            VideoQuality quality = videoEncoder.getVideoQuality();
-
-            boolean isSwapped = videoEncoder.isSwappedDimensions();
-            int w = isSwapped ? quality.getVideoHeight() : quality.getVideoWidth();
-            int h = isSwapped ? quality.getVideoWidth() : quality.getVideoHeight();
 
             VideoEncoder encoder = new TempVideoEncoder();
-            encoder.getVideoQuality().set(getVideoEncoder().getVideoQuality());
-            encoder.getVideoQuality().setVideoWidth(w);
-            encoder.getVideoQuality().setVideoHeight(h);
+            encoder.getVideoQuality().set(videoEncoder.getVideoQuality());
             encoder.setCallback(new MediaEncoder.Callback() {
                 @Override
                 public void onStarted() {
@@ -186,7 +178,7 @@ public abstract class H264VideoStream extends VideoStream {
         return s.toString();
     }
 
-    private class TempVideoEncoder extends CanvasVideoEncoder {
+    private static class TempVideoEncoder extends CanvasVideoEncoder {
         @Override
         public void draw(Canvas canvas, int width, int height) {
         }

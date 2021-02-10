@@ -631,6 +631,83 @@
             "type": "integer"
           },
           {
+            "name": "previewEncoder",
+            "description": "プレビュー配信を行う時のエンコーダ。<br>h264 とサポートしている場合には、h265を指定できる。",
+            "in": "formData",
+            "required": false,
+            "enum": [
+              "h264", "h265"
+            ],
+            "type": "string"
+          },
+          {
+            "name": "previewProfile",
+            "description": "エンコーダーのプロファイル名。",
+            "in": "formData",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "previewLevel",
+            "description": "エンコーダーのレベル名。",
+            "in": "formData",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "previewIntraRefresh",
+            "description": "イントラリフレッシュの値。<br>0 が指定された場合にはイントラリフレッシュを使用しない。",
+            "in": "formData",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "previewJpegQuality",
+            "description": "Motion JPEG を配信する時のクオリティ。<br>0.0 から 1.0 の範囲で設定できる。",
+            "in": "formData",
+            "required": false,
+            "minimum": 0.0,
+            "exclusiveMinimum": false,
+            "maximum": 1.0,
+            "exclusiveMaximum": false,
+            "type": "number"
+          },
+          {
+            "name": "previewClipLeft",
+            "description": "プレビューの切り抜き範囲のx座標の開始位置。",
+            "in": "formData",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "previewClipTop",
+            "description": "プレビューの切り抜き範囲のy座標の開始位置。",
+            "in": "formData",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "previewClipRight",
+            "description": "プレビューの切り抜き範囲のx座標の終了位置。",
+            "in": "formData",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "previewClipBottom",
+            "description": "プレビューの切り抜き範囲のy座標の終了位置。",
+            "in": "formData",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "previewClipReset",
+            "description": "true が指定された時にプレビューの切り抜き範囲を解除する。<br>previewClipLeft などと同時に指定された場合には、previewClipReset を優先する。",
+            "in": "formData",
+            "required": false,
+            "type": "boolean"
+          },
+          {
             "name": "mimeType",
             "description": "MimeType。動画録画・音声録音するときのエンコードするタイプ。",
             "in": "formData",
@@ -1002,6 +1079,89 @@
             "description": "プレビューのキーフレーム送信リクエストの結果を返す。 失敗した場合はエラーを返す。",
             "schema": {
               "$ref": "#/definitions/RecorderControlResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": 0,
+                "product": "Example System",
+                "version": "1.0.0"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/broadcast": {
+      "put": {
+        "operationId": "mediaStreamRecordingBroadcastPut",
+        "x-type": "one-shot",
+        "summary": "スマートデバイスでの動画を指定された URI に配信を開始する。",
+        "description": "スマートデバイスでの動画を指定された URI に配信を開始する。",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "description": "サービスID。取得対象スマートデバイス",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "target",
+            "description": "ターゲット。レコーダーを識別するID。<br> 省略された場合にはデフォルトのレコーダーを使用する。<br> デバイスが音声・動画の両方のレコーダーをサポートする場合、 どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "broadcastURI",
+            "description": "配信先のサーバURI。<br>rtmp://、srt:// のプロトコルに対応",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "配信開始の結果を返す。",
+            "schema": {
+              "$ref": "#/definitions/BroadcastStartResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": 0,
+                "product": "Example System",
+                "version": "1.0.0"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "mediaStreamRecordingBroadcastDelete",
+        "x-type": "streaming",
+        "summary": "スマートデバイスでの撮影している映像の配信を停止する。",
+        "description": "スマートデバイスでの撮影している映像の配信を停止する。",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "description": "サービスID。取得対象スマートデバイス",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "target",
+            "description": "ターゲット。レコーダーを識別するID。<br> 省略された場合にはデフォルトのレコーダーを使用する。<br> デバイスが音声・動画の両方のレコーダーをサポートする場合、 どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "映像の配信停止の結果を返す。",
+            "schema": {
+              "$ref": "#/definitions/BroadcastStopResponse"
             },
             "examples": {
               "application/json": {
@@ -1532,6 +1692,22 @@
       ]
     },
     "PreviewStopResponse": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/CommonResponse"
+        }
+      ]
+    },
+    "BroadcastStartResponse": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/CommonResponse"
+        }
+      ]
+    },
+    "BroadcastStopResponse": {
       "type": "object",
       "allOf": [
         {

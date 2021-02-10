@@ -26,7 +26,7 @@ public class OverlayPermissionActivity extends Activity {
     /**
      * オーバーレイ許可用のリクエストコードを定義.
      */
-    private static final int REQUEST_CODE_OVERLAY = 1234;
+    private static final int REQUEST_CODE_OVERLAY = 4123;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {

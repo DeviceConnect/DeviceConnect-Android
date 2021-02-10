@@ -103,7 +103,7 @@ public class SRTServer {
     /**
      * SRTサーバに設定するポート番号.
      */
-    private int mPort;
+    private final int mPort;
 
     /**
      * クライアントのソケットに設定するオプション.
@@ -233,6 +233,17 @@ public class SRTServer {
      */
     public SRTSession getSRTSession() {
         return mSRTSession;
+    }
+
+    /**
+     * SRTServer への接続数を取得します.
+     *
+     * @return SRTServer への接続数
+     */
+    public int getConnectionCount() {
+        synchronized (mSocketThreads) {
+            return mSocketThreads.size();
+        }
     }
 
     /**
@@ -523,7 +534,7 @@ public class SRTServer {
     /**
      * SRTSession からのイベントを受信するリスナー.
      */
-    private SRTSession.OnEventListener mOnEventListener = new SRTSession.OnEventListener() {
+    private final SRTSession.OnEventListener mOnEventListener = new SRTSession.OnEventListener() {
         @Override
         public void onStarted() {
             if (DEBUG) {

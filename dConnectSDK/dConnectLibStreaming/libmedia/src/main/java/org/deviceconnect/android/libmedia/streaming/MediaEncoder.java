@@ -2,15 +2,18 @@ package org.deviceconnect.android.libmedia.streaming;
 
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import androidx.annotation.NonNull;
 
 public abstract class MediaEncoder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
@@ -30,6 +33,16 @@ public abstract class MediaEncoder {
      * エンコード処理を通知するコールバック.
      */
     private Callback mCallback;
+
+    /**
+     * MediaCodec の Callback を呼び出すためのスレッド.
+     */
+    private HandlerThread mCallbackHandlerThread;
+
+    /**
+     * MediaCodec の Callback を呼び出すためのハンドラ.
+     */
+    private Handler mCallbackHandler;
 
     /**
      * 停止フラグ.
@@ -238,7 +251,14 @@ public abstract class MediaEncoder {
         }
 
         if (mMediaCodec != null) {
-            mMediaCodec.setCallback(mMediaCodecCallback);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                mCallbackHandlerThread = new HandlerThread("libmedia-MediaCode");
+                mCallbackHandlerThread.start();
+                mCallbackHandler = new Handler(mCallbackHandlerThread.getLooper());
+                mMediaCodec.setCallback(mMediaCodecCallback, mCallbackHandler);
+            } else {
+                mMediaCodec.setCallback(mMediaCodecCallback);
+            }
             mMediaCodec.start();
         }
 
@@ -259,6 +279,16 @@ public abstract class MediaEncoder {
             release();
         } catch (Exception e) {
             // ignore.
+        }
+
+        if (mCallbackHandlerThread != null) {
+            mCallbackHandlerThread.quit();
+            mCallbackHandlerThread.interrupt();
+            mCallbackHandlerThread = null;
+        }
+
+        if (mCallbackHandler != null) {
+            mCallbackHandler = null;
         }
     }
 
@@ -303,7 +333,7 @@ public abstract class MediaEncoder {
     /**
      * エンコーダの開始・停止の処理を行うスレッド.
      */
-    private class WorkThread extends QueueThread<Runnable> {
+    private static class WorkThread extends QueueThread<Runnable> {
         @Override
         public void run() {
             try {

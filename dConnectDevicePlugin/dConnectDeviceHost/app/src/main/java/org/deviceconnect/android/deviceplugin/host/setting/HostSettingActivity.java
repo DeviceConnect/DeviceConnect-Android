@@ -8,18 +8,26 @@ package org.deviceconnect.android.deviceplugin.host.setting;
 
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.host.R;
-
 import androidx.appcompat.app.ActionBar;
+
+import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
+import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.activity.HostDevicePluginBindActivity;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Host プラグインの設定画面.
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostSettingActivity extends BaseHostSettingActivity {
+public class HostSettingActivity extends HostDevicePluginBindActivity {
     @Override
-    protected void onCreate(final Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_host_settings);
 
@@ -27,5 +35,14 @@ public class HostSettingActivity extends BaseHostSettingActivity {
         if (actionBar != null) {
             actionBar.setTitle(R.string.host_settings_title);
         }
+    }
+
+    public List<HostMediaRecorder> getRecorderList() {
+        HostDevicePlugin plugin = getHostDevicePlugin();
+        if (plugin == null) {
+            return new ArrayList<>();
+        }
+        HostMediaRecorderManager mgr = plugin.getHostMediaRecorderManager();
+        return Arrays.asList(mgr.getRecorders());
     }
 }

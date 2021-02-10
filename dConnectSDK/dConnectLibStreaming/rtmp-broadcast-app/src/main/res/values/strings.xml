@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">rtmp-broadcast-app</string>
+    <string name="settings_name">設定</string>
+</resources>

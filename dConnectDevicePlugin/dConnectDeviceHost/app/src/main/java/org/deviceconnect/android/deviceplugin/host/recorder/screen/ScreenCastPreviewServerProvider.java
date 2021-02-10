@@ -3,24 +3,20 @@ package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 import android.content.Context;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
-
-import javax.net.ssl.SSLContext;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 
 /**
  * スクリーンキャストのプレビューを配信するサーバを管理するクラス.
  */
 class ScreenCastPreviewServerProvider extends AbstractPreviewServerProvider {
-    /**
-     * Notification の識別子を定義.
-     */
-    private static final int NOTIFICATION_ID = 2001;
-
     ScreenCastPreviewServerProvider(Context context, ScreenCastRecorder recorder) {
-        super(context, recorder, NOTIFICATION_ID);
+        super(context, recorder);
 
-        addServer(new ScreenCastMJPEGPreviewServer(context, false, recorder, 21000));
-        addServer(new ScreenCastMJPEGPreviewServer(context, true, recorder, 21100));
-        addServer(new ScreenCastRTSPPreviewServer(context, recorder, 22000));
-        addServer(new ScreenCastSRTPreviewServer(context, recorder, 23000));
+        HostMediaRecorder.Settings settings = recorder.getSettings();
+
+        addServer(new ScreenCastMJPEGPreviewServer(context, recorder, settings.getMjpegPort(), false));
+        addServer(new ScreenCastMJPEGPreviewServer(context, recorder, settings.getMjpegSSLPort(), true));
+        addServer(new ScreenCastRTSPPreviewServer(context, recorder, settings.getRtspPort()));
+        addServer(new ScreenCastSRTPreviewServer(context, recorder, settings.getSrtPort()));
     }
 }

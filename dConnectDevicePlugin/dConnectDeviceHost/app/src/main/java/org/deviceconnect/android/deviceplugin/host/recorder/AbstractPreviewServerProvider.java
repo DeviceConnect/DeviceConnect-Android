@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
-
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -16,15 +15,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
+
 import org.deviceconnect.android.deviceplugin.host.R;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import androidx.annotation.NonNull;
-import androidx.core.app.NotificationCompat;
 
 /**
  * Host Device Preview Server.
@@ -35,12 +34,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     /**
      * コンテキスト.
      */
-    private Context mContext;
-
-    /**
-     * 通知ID.
-     */
-    private int mNotificationId;
+    private final Context mContext;
 
     /**
      * プレビュー配信サーバーのリスト.
@@ -50,18 +44,26 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     /**
      * プレビュー配信を行うレコーダ.
      */
-    private HostMediaRecorder mRecorder;
+    private final HostMediaRecorder mRecorder;
 
-    private boolean mIsShownNotification;
+    /**
+     * Notification 表示フラグ.
+     */
+    private boolean mIsRunning;
+
+    /**
+     * プレビュー配信サーバのイベントを通知するリスナー.
+     */
+    private OnEventListener mOnEventListener;
+
     /**
      * コンストラクタ.
      * @param context コンテキスト
      */
-    public AbstractPreviewServerProvider(final Context context, final HostMediaRecorder recorder, final int notificationId) {
+    public AbstractPreviewServerProvider(final Context context, final HostMediaRecorder recorder) {
         mContext = context;
         mRecorder = recorder;
-        mNotificationId = notificationId;
-        mIsShownNotification = false;
+        mIsRunning = false;
     }
 
     // PreviewServerProvider
@@ -86,13 +88,18 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     }
 
     @Override
-    public PreviewServer getServerForMimeType(String mimeType) {
+    public PreviewServer getServerByMimeType(String mimeType) {
         for (PreviewServer server : getServers()) {
             if (server.getMimeType().equalsIgnoreCase(mimeType)) {
                 return server;
             }
         }
         return null;
+    }
+
+    @Override
+    public boolean isRunning() {
+        return mIsRunning;
     }
 
     @Override
@@ -116,9 +123,12 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
         }
 
         try {
-            latch.await(10, TimeUnit.SECONDS);
-            sendNotification(mRecorder.getId(), mRecorder.getName());
-            mIsShownNotification = true;
+            latch.await(5, TimeUnit.SECONDS);
+            if (results.size() > 0) {
+                mIsRunning = true;
+                sendNotification(mRecorder.getId(), mRecorder.getName());
+                postPreviewStarted(results);
+            }
         } catch (InterruptedException e) {
             // ignore.
         }
@@ -131,6 +141,11 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
 
         for (PreviewServer server : getServers()) {
             server.stopWebServer();
+        }
+
+        if (mIsRunning) {
+            mIsRunning = false;
+            postPreviewStopped();
         }
     }
 
@@ -152,13 +167,43 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
         }
     }
 
+    @Override
+    public void setMute(boolean mute) {
+        for (PreviewServer server : getServers()) {
+            server.setMute(mute);
+        }
+    }
+
+    @Override
+    public void setOnEventListener(OnEventListener listener) {
+        mOnEventListener = listener;
+    }
+
+    protected void postPreviewStarted(List<PreviewServer> servers) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onStarted(servers);
+        }
+    }
+
+    protected void postPreviewStopped() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onStopped();
+        }
+    }
+
+    protected void postPreviewError(PreviewServer server, Exception e) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onError(server, e);
+        }
+    }
+
     /**
-     * NotificationIdを取得します.
+     * Notification の Id を取得します.
      *
-     * @return NotificationId
+     * @return Notification の Id
      */
     protected int getNotificationId() {
-        return mNotificationId;
+        return 100 + mRecorder.getId().hashCode();
     }
 
     /**
@@ -171,7 +216,6 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
                 .getSystemService(Service.NOTIFICATION_SERVICE);
         if (manager != null) {
             manager.cancel(id, getNotificationId());
-            mIsShownNotification = false;
         }
     }
 
@@ -191,9 +235,9 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
                 String channelId = mContext.getResources().getString(R.string.overlay_preview_channel_id);
                 NotificationChannel channel = new NotificationChannel(
                         channelId,
-                        mContext.getResources().getString(R.string.overlay_preview_content_title),
+                        mContext.getResources().getString(R.string.host_notification_recorder_preview),
                         NotificationManager.IMPORTANCE_LOW);
-                channel.setDescription(mContext.getResources().getString(R.string.overlay_preview_content_message));
+                channel.setDescription(mContext.getResources().getString(R.string.host_notification_recorder_preview_content));
                 manager.createNotificationChannel(channel);
                 notification = createNotification(contentIntent, channelId, name);
             }
@@ -213,10 +257,10 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext());
             builder.setContentIntent(pendingIntent);
-            builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
+            builder.setTicker(mContext.getString(R.string.host_notification_recorder_preview_ticker));
             builder.setSmallIcon(R.drawable.dconnect_icon);
-            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title, name));
-            builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
+            builder.setContentTitle(mContext.getString(R.string.host_notification_recorder_preview, name));
+            builder.setContentText(mContext.getString(R.string.host_notification_recorder_preview_content));
             builder.setWhen(System.currentTimeMillis());
             builder.setAutoCancel(true);
             builder.setOngoing(true);
@@ -228,8 +272,8 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
             int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
                     R.drawable.dconnect_icon : R.drawable.dconnect_icon_lollipop;
             builder.setSmallIcon(iconType);
-            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title, name));
-            builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
+            builder.setContentTitle(mContext.getString(R.string.host_notification_recorder_preview, name));
+            builder.setContentText(mContext.getString(R.string.host_notification_recorder_preview_content));
             builder.setWhen(System.currentTimeMillis());
             builder.setAutoCancel(true);
             builder.setOngoing(true);
@@ -243,19 +287,14 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     /**
      * PendingIntent を作成する.
      *
-     * @param id カメラ ID
+     * @param id レコーダ ID
      *
      * @return PendingIntent
      */
     private PendingIntent createPendingIntent(String id) {
         Intent intent = new Intent();
-        intent.setAction(DELETE_PREVIEW_ACTION);
-        intent.putExtra(EXTRA_CAMERA_ID, id);
+        intent.setAction(HostMediaRecorderManager.ACTION_STOP_PREVIEW);
+        intent.putExtra(HostMediaRecorderManager.KEY_RECORDER_ID, id);
         return PendingIntent.getBroadcast(mContext, getNotificationId(), intent, 0);
-    }
-
-    @Override
-    public boolean isShownCameraNotification() {
-        return mIsShownNotification;
     }
 }

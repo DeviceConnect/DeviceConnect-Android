@@ -14,38 +14,38 @@ import android.util.Log;
 import android.util.Size;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Surface;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
-import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperException;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.AudioStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.MicAACLATMStream;
-import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.CameraH265VideoStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.CameraH264VideoStream;
+import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.CameraH265VideoStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStream;
+import org.deviceconnect.android.libmedia.streaming.util.CameraSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
 import org.deviceconnect.android.libmedia.streaming.util.StreamingRecorder;
-import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
 public class MainActivity extends AppCompatActivity {
     /**
@@ -82,6 +82,13 @@ public class MainActivity extends AppCompatActivity {
      */
     private Camera2Wrapper mCamera2;
 
+    private CameraSurfaceDrawingThread mCameraSurfaceDrawingThread;
+
+    /**
+     * カメラのプレビューを表示する SurfaceView.
+     */
+    private SurfaceView mCameraView;
+
     /**
      * ハンドラ.
      */
@@ -95,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         mPreferences  = new RtspPreferences(getApplicationContext());
+        mCameraView = findViewById(R.id.surface_view);
 
         findViewById(R.id.power).setOnClickListener((v) -> toggleRtspServer());
     }
@@ -129,6 +137,22 @@ public class MainActivity extends AppCompatActivity {
         List<String> denies = PermissionUtil.checkPermissions(this, PERMISSIONS);
         if (!denies.isEmpty()) {
             PermissionUtil.requestPermissions(this, denies, PERMISSION_REQUEST_CODE);
+        } else {
+            mCameraView.getHolder().addCallback(new SurfaceHolder.Callback() {
+                @Override
+                public void surfaceCreated(SurfaceHolder surfaceHolder) {
+                    startCamera();
+                }
+
+                @Override
+                public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
+                }
+
+                @Override
+                public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+                    stopCamera();
+                }
+            });
         }
     }
 
@@ -151,19 +175,21 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if (mRtspServer == null || mRtspServer.getRtspSession() == null) {
-            mHandler.postDelayed(() -> {
-                if (mCamera2 != null) {
-                    adjustSurfaceView(mCamera2.isSwappedDimensions());
-                }
-            }, 500);
-        } else {
+
+        if (mRtspServer != null && mRtspServer.getRtspSession() != null) {
             RtspSession session = mRtspServer.getRtspSession();
-            session.restartVideoStream();
             CameraH264VideoStream videoStream = (CameraH264VideoStream) session.getVideoStream();
-            CameraSurfaceVideoEncoder videoEncoder = (CameraSurfaceVideoEncoder) videoStream.getVideoEncoder();
-            mHandler.postDelayed(() -> adjustSurfaceView(videoEncoder.isSwappedDimensions()), 500);
+            if (videoStream != null && videoStream.getVideoEncoder() != null) {
+                CameraVideoQuality videoQuality = (CameraVideoQuality) videoStream.getVideoEncoder().getVideoQuality();
+                boolean swap = mCameraSurfaceDrawingThread.isSwappedDimensions();
+                int videoWidth = swap ? mPreferences.getVideoHeight() : mPreferences.getVideoWidth();
+                int videoHeight = swap ? mPreferences.getVideoWidth() : mPreferences.getVideoHeight();
+                videoQuality.setVideoWidth(videoWidth);
+                videoQuality.setVideoHeight(videoHeight);
+            }
+            session.restartVideoStream();
         }
+        mHandler.postDelayed(() -> adjustSurfaceView(mCameraSurfaceDrawingThread.isSwappedDimensions()), 500);
     }
 
     private void gotoPreferences() {
@@ -202,11 +228,6 @@ public class MainActivity extends AppCompatActivity {
         mRtspServer.setCallback(new RtspServer.Callback() {
             @Override
             public void createSession(RtspSession session) {
-                stopCamera();
-
-                SurfaceView surfaceView = findViewById(R.id.surface_view);
-                Surface surface = surfaceView.getHolder().getSurface();
-
 //                ScreenCastVideoStream videoStream = new ScreenCastVideoStream(getApplicationContext());
 //                videoStream.setDestinationPort(5006);
 
@@ -216,26 +237,31 @@ public class MainActivity extends AppCompatActivity {
 
                 VideoStream videoStream;
                 if (mimeType.equalsIgnoreCase("video/hevc")) {
-                    videoStream = new CameraH265VideoStream(getApplicationContext());
+                    videoStream = new CameraH265VideoStream(mCameraSurfaceDrawingThread);
                     videoStream.setDestinationPort(5006);
-                    ((CameraH265VideoStream) videoStream).addSurface(surface);
                     if (mStreamingRecorder != null) {
-                        ((CameraH265VideoStream) videoStream).addSurface(mStreamingRecorder.getSurface());
+                        EGLSurfaceBase eglSurfaceBase = mCameraSurfaceDrawingThread.createEGLSurfaceBase(mStreamingRecorder.getSurface());
+                        eglSurfaceBase.setTag(mStreamingRecorder.getSurface());
+                        mCameraSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
                     }
                 } else {
-                    videoStream = new CameraH264VideoStream(getApplicationContext());
+                    videoStream = new CameraH264VideoStream(mCameraSurfaceDrawingThread);
                     videoStream.setDestinationPort(5006);
-                    ((CameraH264VideoStream) videoStream).addSurface(surface);
                     if (mStreamingRecorder != null) {
-                        ((CameraH264VideoStream) videoStream).addSurface(mStreamingRecorder.getSurface());
+                        EGLSurfaceBase eglSurfaceBase = mCameraSurfaceDrawingThread.createEGLSurfaceBase(mStreamingRecorder.getSurface());
+                        eglSurfaceBase.setTag(mStreamingRecorder.getSurface());
+                        mCameraSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
                     }
                 }
 
+                boolean swap = mCameraSurfaceDrawingThread.isSwappedDimensions();
+                int videoWidth = swap ? mPreferences.getVideoHeight() : mPreferences.getVideoWidth();
+                int videoHeight = swap ? mPreferences.getVideoWidth() : mPreferences.getVideoHeight();
                 VideoEncoder videoEncoder = videoStream.getVideoEncoder();
                 CameraVideoQuality videoQuality = (CameraVideoQuality) videoEncoder.getVideoQuality();
                 videoQuality.setFacing(mPreferences.getFacing());
-                videoQuality.setVideoWidth(mPreferences.getVideoWidth());
-                videoQuality.setVideoHeight(mPreferences.getVideoHeight());
+                videoQuality.setVideoWidth(videoWidth);
+                videoQuality.setVideoHeight(videoHeight);
                 videoQuality.setIFrameInterval(mPreferences.getIFrameInterval());
                 videoQuality.setFrameRate(mPreferences.getFrameRate());
                 videoQuality.setBitRate(mPreferences.getVideoBitRate() * 1024);
@@ -267,10 +293,6 @@ public class MainActivity extends AppCompatActivity {
             public void releaseSession(RtspSession session) {
                 runOnUiThread(() -> findViewById(R.id.text_view).setVisibility(View.INVISIBLE));
                 releaseStreamingRecorder();
-
-                if (mRtspServer != null) {
-                    mHandler.postDelayed(() -> startCamera(), 500);
-                }
             }
         });
 
@@ -279,11 +301,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             showFailToStartServer();
         }
-
-        runOnUiThread(() -> {
-            findViewById(R.id.surface_view).setVisibility(View.VISIBLE);
-            startCamera();
-        });
     }
 
     private void stopRtspServer() {
@@ -291,8 +308,6 @@ public class MainActivity extends AppCompatActivity {
             mRtspServer.stop();
             mRtspServer = null;
         }
-        stopCamera();
-        runOnUiThread(() -> findViewById(R.id.surface_view).setVisibility(View.GONE));
     }
 
     private void startStreamingRecorder() {
@@ -307,7 +322,7 @@ public class MainActivity extends AppCompatActivity {
         settings.setSensorOrientation(0);
 
         try {
-            File file = Environment.getExternalStorageDirectory();
+            File file = getExternalFilesDir(Environment.DIRECTORY_MOVIES);
             mStreamingRecorder.setUpMediaRecorder(new File(file, mPreferences.getFileName()));
             mStreamingRecorder.startRecording();
         } catch (IOException e) {
@@ -317,6 +332,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void releaseStreamingRecorder() {
         if (mStreamingRecorder != null) {
+            mCameraSurfaceDrawingThread.removeEGLSurfaceBase(mStreamingRecorder.getSurface());
             mStreamingRecorder.stopRecording();
             mStreamingRecorder.release();
             mStreamingRecorder = null;
@@ -330,11 +346,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private synchronized void startCamera() {
-        if (mCamera2 != null) {
-            return;
-        }
-
-        if (mRtspServer == null) {
+        if (mCameraSurfaceDrawingThread != null) {
             return;
         }
 
@@ -342,41 +354,41 @@ public class MainActivity extends AppCompatActivity {
         int cameraHeight = mPreferences.getVideoHeight();
         int facing = mPreferences.getFacing();
 
-        SurfaceView surfaceView = findViewById(R.id.surface_view);
-
         mCamera2 = Camera2WrapperManager.createCamera(getApplicationContext(), facing);
-        mCamera2.setCameraEventListener(new Camera2Wrapper.CameraEventListener() {
+        mCamera2.getSettings().setPreviewSize(new Size(cameraWidth, cameraHeight));
+
+        mCameraSurfaceDrawingThread = new CameraSurfaceDrawingThread(mCamera2);
+        mCameraSurfaceDrawingThread.addOnDrawingEventListener(new EGLSurfaceDrawingThread.OnDrawingEventListener() {
             @Override
-            public void onOpen() {
-                if (mCamera2 != null) {
-                    try {
-                        mCamera2.startPreview();
-                    } catch (Exception e) {
-                        // ignore.
-                    }
-                }
+            public void onStarted() {
+                EGLSurfaceBase surfaceBase = mCameraSurfaceDrawingThread.createEGLSurfaceBase(mCameraView.getHolder().getSurface());
+                mCameraSurfaceDrawingThread.addEGLSurfaceBase(surfaceBase);
             }
 
             @Override
-            public void onStartPreview() {
+            public void onStopped() {
             }
 
             @Override
-            public void onStopPreview() {
+            public void onError(Exception e) {
             }
 
             @Override
-            public void onError(Camera2WrapperException e) {
+            public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
             }
         });
-        mCamera2.getSettings().setPreviewSize(new Size(cameraWidth, cameraHeight));
-        mCamera2.open(Collections.singletonList(surfaceView.getHolder().getSurface()));
+        mCameraSurfaceDrawingThread.start();
 
         // SurfaceView のサイズを調整
         adjustSurfaceView(mCamera2.isSwappedDimensions());
     }
 
     private synchronized void stopCamera() {
+        if (mCameraSurfaceDrawingThread != null) {
+            mCameraSurfaceDrawingThread.stop();
+            mCameraSurfaceDrawingThread = null;
+        }
+
         if (mCamera2 != null) {
             mCamera2.close();
             mCamera2 = null;

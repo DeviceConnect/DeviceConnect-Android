@@ -103,10 +103,10 @@ dependencies {
     implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.9.1'
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.6'
     implementation 'org.deviceconnect:dconnect-demo-lib:1.0.1'
-//    implementation 'org.deviceconnect:libmedia:1.1.2'
-//    implementation 'org.deviceconnect:libsrt:1.1.2'
-    implementation project(':libmedia')
-    implementation project(':libsrt')
+    implementation 'org.deviceconnect:libmedia:1.2.0'
+    implementation 'org.deviceconnect:libsrt:1.2.0'
+//    implementation project(':libmedia')
+//    implementation project(':libsrt')
 }
 
 task zipDemo(type:Zip) {

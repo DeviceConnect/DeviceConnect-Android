@@ -86,6 +86,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:background="@drawable/button_round_black"
+            android:clickable="@{viewModel.cameraSwitchClickable}"
             android:onClick="@{() -> presenter.onClickSwitchCameraButton()}"
             android:padding="12dp"
             android:src="@drawable/ic_baseline_switch_camera_24"

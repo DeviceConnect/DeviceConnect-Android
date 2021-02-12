@@ -54,6 +54,7 @@
             android:background="@drawable/button_round_black"
             android:onClick="@{() -> presenter.onClickSwitchCameraButton()}"
             android:padding="12dp"
+            android:clickable="@{viewModel.cameraSwitchClickable}"
             android:src="@drawable/ic_baseline_switch_camera_24"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"

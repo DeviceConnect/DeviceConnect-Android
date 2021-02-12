@@ -21,6 +21,7 @@ import android.view.animation.AnimationUtils;
 import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 
 import com.google.android.material.tabs.TabLayout;
@@ -46,6 +47,7 @@ import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CameraMainFragment extends HostDevicePluginBindFragment {
@@ -57,9 +59,9 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     private EGLSurfaceDrawingThread mEGLSurfaceDrawingThread;
     private Surface mSurface;
     private String mRecorderId;
-    private int mIndex = -1;
+    private int mRecorderIndex = -1;
+    private int mRecorderSize = 0;
     private boolean mDrawFlag = false;
-    private boolean mAdjustViewFlag = true;
     private boolean mMuted = false;
     private int mSelectedMode = 0;
     private String mPhotoUri;
@@ -183,7 +185,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         FragmentHostCameraMainBinding binding = DataBindingUtil.inflate(inflater,
                 R.layout.fragment_host_camera_main, container, false);
         binding.setViewModel(mViewModel);
@@ -203,7 +205,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         });
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
-            public void surfaceCreated(SurfaceHolder holder) {
+            public void surfaceCreated(@NonNull SurfaceHolder holder) {
                 mSurface = holder.getSurface();
                 if (mEGLSurfaceDrawingThread != null && mEGLSurfaceDrawingThread.isInitCompleted()) {
                     addSurface(mSurface);
@@ -211,11 +213,11 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             }
 
             @Override
-            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+            public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
             }
 
             @Override
-            public void surfaceDestroyed(SurfaceHolder holder) {
+            public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
                 if (mSurface != null) {
                     if (mEGLSurfaceDrawingThread != null) {
                         mEGLSurfaceDrawingThread.removeEGLSurfaceBase(mSurface);
@@ -254,7 +256,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         });
 
         if (savedInstanceState != null) {
-            mIndex = savedInstanceState.getInt("recorder_index");
+            mRecorderIndex = savedInstanceState.getInt("recorder_index");
             mSelectedMode = savedInstanceState.getInt("selected_mode");
             TabLayout.Tab tab = tabLayout.getTabAt(mSelectedMode);
             if (tab != null) {
@@ -267,7 +269,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putInt("recorder_index", mIndex);
+        outState.putInt("recorder_index", mRecorderIndex);
         outState.putInt("selected_mode", mSelectedMode);
         super.onSaveInstanceState(outState);
     }
@@ -300,15 +302,23 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             mHostConnectionManager = getHostDevicePlugin().getHostConnectionManager();
             mHostConnectionManager.addTrafficEventListener(mTrafficEventListener);
 
-            HostMediaRecorder[] recorders = mMediaRecorderManager.getRecorders();
-            if (mIndex == -1) {
+            List<Camera2Recorder> recorders = getCameraRecorders();
+            if (mRecorderIndex == -1) {
                 // カメラが選択されていない場合には、使用されているカメラを選択
-                mIndex = getUsedCamera(recorders);
-                if (mIndex == -1) {
+                mRecorderIndex = getUsedCamera(recorders);
+                if (mRecorderIndex == -1) {
                     return;
                 }
             }
-            setRecorder(recorders[mIndex].getId());
+            setRecorder(recorders.get(mRecorderIndex).getId());
+
+            // カメラの個数を計算
+            mRecorderSize = 0;
+            for (HostMediaRecorder recorder : recorders) {
+                if (recorder instanceof Camera2Recorder) {
+                    mRecorderSize++;
+                }
+            }
         }
 
         if (mHostConnectionManager != null) {
@@ -336,18 +346,16 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
      * @param recorders レコーダ一覧
      * @return 使用されているレコーダのインデックス
      */
-    private int getUsedCamera(HostMediaRecorder[] recorders) {
+    private int getUsedCamera(List<Camera2Recorder> recorders) {
         int index = -1;
-        for (int i = 0; i < recorders.length; i++) {
-            if (recorders[i] instanceof Camera2Recorder) {
-                Camera2Recorder camera2Recorder = (Camera2Recorder) recorders[i];
-                if (index == -1) {
-                    index = i;
-                }
-                if (camera2Recorder.getCameraWrapper().isPreview()) {
-                    index = i;
-                    break;
-                }
+        for (int i = 0; i < recorders.size(); i++) {
+            Camera2Recorder camera2Recorder = recorders.get(i);
+            if (index == -1) {
+                index = i;
+            }
+            if (camera2Recorder.getCameraWrapper().isPreview()) {
+                index = i;
+                break;
             }
         }
         return index;
@@ -371,11 +379,28 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             // カメラが使用されている場合は切り替えられないようにしたい.
         }
 
+        mViewModel.setCameraSwitchClickable(false);
+
+        List<Camera2Recorder> recorders = getCameraRecorders();
+        mRecorderIndex = (mRecorderIndex + 1) % recorders.size();
+        setRecorder(recorders.get(mRecorderIndex).getId());
+        showToast("[" + (mRecorderIndex + 1) + "/" + recorders.size() + "] " + recorders.get(mRecorderIndex).getName());
+    }
+
+    /**
+     * カメラ用レコーダのリストを取得します.
+     *
+     * @return カメラ用レコーダのリスト
+     */
+    private List<Camera2Recorder> getCameraRecorders() {
+        List<Camera2Recorder> recorderList = new ArrayList<>();
         HostMediaRecorder[] recorders = mMediaRecorderManager.getRecorders();
-        do {
-            mIndex = (mIndex + 1) % recorders.length;
-        } while (!(recorders[mIndex] instanceof Camera2Recorder));
-        setRecorder(recorders[mIndex].getId());
+        for (HostMediaRecorder recorder : recorders) {
+            if (recorder instanceof Camera2Recorder) {
+                recorderList.add((Camera2Recorder) recorder);
+            }
+        }
+        return recorderList;
     }
 
     /**
@@ -661,11 +686,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         setDisplayRotationButton();
     }
 
-    private void toggleAdjustView() {
-        mAdjustViewFlag = !mAdjustViewFlag;
-        adjustCameraSurfaceView();
-    }
-
     private void toggleMute() {
         mMuted = !mMuted;
 
@@ -682,6 +702,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         setBroadcastButton();
         setRecordingButton();
         setMuteButton();
+        mViewModel.setCameraSwitchClickable(true);
     }
 
     private void adjustCameraSurfaceView() {
@@ -701,11 +722,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
                     w = rect.width();
                     h = rect.height();
                 }
-                if (mAdjustViewFlag) {
-                    surfaceView.adjustSurfaceView(w, h);
-                } else {
-                    surfaceView.fullSurfaceView(w, h);
-                }
+                surfaceView.adjustSurfaceView(w, h);
             }
         });
     }

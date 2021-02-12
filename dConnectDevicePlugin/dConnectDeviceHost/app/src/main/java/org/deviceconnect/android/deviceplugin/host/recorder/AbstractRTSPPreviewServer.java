@@ -58,7 +58,7 @@ public abstract class AbstractRTSPPreviewServer extends AbstractPreviewServer {
             mRtspServer.setCallback(mCallback);
             try {
                 mRtspServer.start();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 callback.onFail();
                 return;
             }

@@ -22,6 +22,18 @@ public class CameraMainViewModel extends BaseObservable {
     private int mParamVisibility = View.GONE;
     private int mSurfaceVisibility = View.GONE;
     private int mPhotoVisibility = View.GONE;
+    private boolean mCameraSwitchClickable = true;
+
+
+    @Bindable
+    public boolean isCameraSwitchClickable() {
+        return mCameraSwitchClickable;
+    }
+
+    public void setCameraSwitchClickable(boolean clickable) {
+        mCameraSwitchClickable = clickable;
+        notifyPropertyChanged(BR.cameraSwitchClickable);
+    }
 
     @Bindable
     public String getBitRate() {

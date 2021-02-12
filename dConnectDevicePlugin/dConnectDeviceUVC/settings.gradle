@@ -1,1 +1,1 @@
-include ':app', ':libuvccamera'
+include ':app', ':libuvc'

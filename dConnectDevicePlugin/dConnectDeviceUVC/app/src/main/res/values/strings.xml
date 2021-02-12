@@ -18,4 +18,10 @@
     <string name="uvc_settings_online" translatable="false">[ONLINE]</string>
     <string name="uvc_settings_offline" translatable="false">[OFFLINE]</string>
     <string name="uvc_settings_no_device_found" translatable="false">USBカメラが接続されていません。</string>
+
+    <string name="uvc_error_permission_title" translatable="false">パーミッションエラー</string>
+    <string name="uvc_error_permission_message" translatable="false">アプリを実行するためのパーミッションが許可されなかったので、アプリケーションを終了します。</string>
+    <string name="uvc_error_positive" translatable="false">はい</string>
+    <string name="uvc_error_negative" translatable="false">いいえ</string>
+    <string name="uvc_error_cancel" translatable="false">キャンセル</string>
 </resources>

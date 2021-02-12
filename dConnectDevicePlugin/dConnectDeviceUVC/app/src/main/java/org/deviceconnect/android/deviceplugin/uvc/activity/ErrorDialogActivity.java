@@ -15,7 +15,6 @@ import android.os.Bundle;
 import android.view.Window;
 
 import org.deviceconnect.android.deviceplugin.uvc.R;
-import org.deviceconnect.android.deviceplugin.uvc.core.UVCDevice;
 
 public class ErrorDialogActivity extends Activity {
 
@@ -67,9 +66,4 @@ public class ErrorDialogActivity extends Activity {
         show(context, context.getString(R.string.uvc_error_dialog_default_title), message);
     }
 
-    public static void showNotSupportedError(final Context context, final UVCDevice device) {
-        String baseMessage = context.getString(R.string.uvc_error_message_device_not_supported);
-        String message = baseMessage.replace("{NAME}", device.getName());
-        show(context, message);
-    }
 }

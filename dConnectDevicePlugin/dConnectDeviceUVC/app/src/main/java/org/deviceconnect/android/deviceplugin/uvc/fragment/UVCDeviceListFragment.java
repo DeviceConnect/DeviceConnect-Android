@@ -22,9 +22,6 @@ import android.widget.TextView;
 import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.uvc.R;
-import org.deviceconnect.android.deviceplugin.uvc.core.UVCDevice;
-import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceApplication;
-import org.deviceconnect.android.deviceplugin.uvc.core.UVCDeviceManager;
 import org.deviceconnect.android.deviceplugin.uvc.fragment.dialog.ErrorDialogFragment;
 import org.deviceconnect.android.deviceplugin.uvc.fragment.dialog.ProgressDialogFragment;
 
@@ -33,9 +30,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
-
-import static org.deviceconnect.android.deviceplugin.uvc.core.UVCDeviceManager.ConnectionListener;
-import static org.deviceconnect.android.deviceplugin.uvc.core.UVCDeviceManager.DiscoveryListener;
 
 public class UVCDeviceListFragment extends Fragment {
     /**
@@ -76,7 +70,7 @@ public class UVCDeviceListFragment extends Fragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
-        mDeviceAdapter = new DeviceAdapter(getActivity(), createDeviceContainers());
+        mDeviceAdapter = new DeviceAdapter(getActivity(), new ArrayList<>());
 
         mFooterView = inflater.inflate(R.layout.item_uvc_error, null);
 
@@ -92,17 +86,13 @@ public class UVCDeviceListFragment extends Fragment {
     public void onResume() {
         super.onResume();
         addFooterView();
-        getManager().startScan();
-        getManager().addConnectionListener(mConnectionListener);
-        getManager().addDiscoveryListener(mDiscoverListener);
+
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        getManager().removeConnectionListener(mConnectionListener);
-        getManager().removeDiscoveryListener(mDiscoverListener);
-        getManager().stopScan();
+
         dismissProgressDialog();
         dismissErrorDialog();
     }
@@ -116,18 +106,6 @@ public class UVCDeviceListFragment extends Fragment {
             return;
         }
         activity.runOnUiThread(() -> {
-            UVCDeviceManager mgr = getManager();
-            if (mgr == null) {
-                return;
-            }
-            LayoutInflater inflater = activity.getLayoutInflater();
-            if (mFooterView != null) {
-                mListView.removeFooterView(mFooterView);
-            }
-            if (mgr.getDeviceList().size() == 0) {
-                mFooterView = inflater.inflate(R.layout.item_uvc_error, null);
-                mListView.addFooterView(mFooterView);
-            }
         });
     }
 
@@ -139,7 +117,7 @@ public class UVCDeviceListFragment extends Fragment {
     private void connectDevice(final DeviceContainer device) {
         showProgressDialog(device.getName());
         mExecutor.execute(() -> {
-            getManager().connectDevice(device.getId());
+
         });
     }
 
@@ -150,7 +128,7 @@ public class UVCDeviceListFragment extends Fragment {
      */
     private void disconnectDevice(final DeviceContainer device) {
         mExecutor.execute(() -> {
-            getManager().disconnectDevice(device.getId());
+
         });
     }
 
@@ -221,132 +199,6 @@ public class UVCDeviceListFragment extends Fragment {
             mErrorDialogFragment.dismiss();
             mErrorDialogFragment = null;
         }
-    }
-
-    /**
-     * Gets a instance of UVCDeviceManager.
-     *
-     * @return UVCDeviceManager
-     */
-    private UVCDeviceManager getManager() {
-        Activity activity = getActivity();
-        if (activity == null) {
-            return null;
-        }
-        UVCDeviceApplication application =
-                (UVCDeviceApplication) activity.getApplication();
-        return application.getDeviceManager();
-    }
-
-    private ConnectionListener mConnectionListener = new ConnectionListener() {
-
-        @Override
-        public void onConnect(final UVCDevice device) {
-            if (getActivity() == null) {
-                return;
-            }
-            getActivity().runOnUiThread(() -> {
-                DeviceContainer container = findDeviceContainerById(device.getId());
-                if (container != null) {
-                    container.setRegisterFlag(true);
-                    mDeviceAdapter.notifyDataSetChanged();
-                }
-                dismissProgressDialog();
-            });
-        }
-
-        @Override
-        public void onConnectionFailed(final UVCDevice device) {
-            if (getActivity() == null) {
-                return;
-            }
-            getActivity().runOnUiThread(() -> {
-                dismissProgressDialog();
-                showErrorDialogNotConnect(device.getName());
-            });
-        }
-
-        @Override
-        public void onDisconnect(final UVCDevice device) {
-            if (getActivity() == null) {
-                return;
-            }
-            getActivity().runOnUiThread(() -> {
-                DeviceContainer container = findDeviceContainerById(device.getId());
-                if (container != null) {
-                    container.setRegisterFlag(false);
-                    mDeviceAdapter.notifyDataSetChanged();
-                }
-                dismissProgressDialog();
-            });
-        }
-    };
-
-    private final DiscoveryListener mDiscoverListener = new DiscoveryListener() {
-
-        @Override
-        public void onDiscovery(final List<UVCDevice> devices) {
-            mLogger.info("Discovered devices: " + devices.size());
-            if (mDeviceAdapter == null) {
-                return;
-            }
-            if (getActivity() == null) {
-                return;
-            }
-            getActivity().runOnUiThread(() -> {
-                mDeviceAdapter.clear();
-                mDeviceAdapter.addAll(createDeviceContainers());
-                mDeviceAdapter.notifyDataSetChanged();
-                addFooterView();
-            });
-        }
-
-    };
-
-    /**
-     * Create a list of device.
-     *
-     * @return list of device
-     */
-    private List<DeviceContainer> createDeviceContainers() {
-        List<DeviceContainer> containers = new ArrayList<>();
-        List<UVCDevice> devices = getManager().getDeviceList();
-        for (UVCDevice device : devices) {
-            containers.add(createContainer(device, device.isInitialized()));
-        }
-        return containers;
-    }
-
-    /**
-     * Look for a DeviceContainer with the given id.
-     *
-     * @param id id of device
-     * @return The DeviceContainer that has the given id or null
-     */
-    private DeviceContainer findDeviceContainerById(final String id) {
-        int size = mDeviceAdapter.getCount();
-        for (int i = 0; i < size; i++) {
-            DeviceContainer container = mDeviceAdapter.getItem(i);
-            if (container.getId().equalsIgnoreCase(id)) {
-                return container;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Create a DeviceContainer from UVCDevice.
-     *
-     * @param device   Instance of UVCDevice
-     * @param register Registration flag
-     * @return Instance of DeviceContainer
-     */
-    private DeviceContainer createContainer(final UVCDevice device, final boolean register) {
-        DeviceContainer container = new DeviceContainer();
-        container.setName(device.getName());
-        container.setId(device.getId());
-        container.setRegisterFlag(register);
-        return container;
     }
 
     private class DeviceContainer {

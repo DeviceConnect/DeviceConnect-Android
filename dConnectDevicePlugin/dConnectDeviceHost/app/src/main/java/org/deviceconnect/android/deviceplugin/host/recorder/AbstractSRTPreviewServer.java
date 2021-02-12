@@ -13,8 +13,6 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
 
-import java.io.IOException;
-
 public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "CameraSRT";

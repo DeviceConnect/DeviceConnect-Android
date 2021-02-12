@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.uvc.profile.UVCSystemProfile;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.PreviewServer;
+import org.deviceconnect.android.deviceplugin.uvc.recorder.uvc.UvcRecorder;
 import org.deviceconnect.android.deviceplugin.uvc.service.UVCService;
 import org.deviceconnect.android.libusb.UsbSerialPortManager;
 import org.deviceconnect.android.libuvc.UVCCamera;
@@ -160,9 +161,11 @@ public class UVCDeviceService extends DConnectMessageService {
                 getSSLContext(new SSLContextCallback() {
                     @Override
                     public void onGet(SSLContext sslContext) {
-                        for (PreviewServer server : service.getUvcRecorder().getServerProvider().getServers()) {
-                            if (sslContext != null && server.useSSLContext()) {
-                                server.setSSLContext(sslContext);
+                        for (UvcRecorder recorder : service.getUvcRecorderList()) {
+                            for (PreviewServer server : recorder.getServerProvider().getServers()) {
+                                if (sslContext != null && server.useSSLContext()) {
+                                    server.setSSLContext(sslContext);
+                                }
                             }
                         }
                     }
@@ -178,7 +181,7 @@ public class UVCDeviceService extends DConnectMessageService {
             @Override
             public void onDisconnected(final UVCCamera uvcCamera) {
                 Log.e("ABC", "######## onDisconnected: " + uvcCamera);
-                getServiceProvider().removeService(uvcCamera.getDeviceName());
+                getServiceProvider().removeService("UVC-" + uvcCamera.getDeviceId());
                 Log.e("ABC", "######## onDisconnected: " + getServiceProvider().getServiceList().size());
             }
 

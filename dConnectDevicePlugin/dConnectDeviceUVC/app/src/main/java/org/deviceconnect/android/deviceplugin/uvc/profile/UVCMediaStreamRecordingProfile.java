@@ -8,11 +8,13 @@ package org.deviceconnect.android.deviceplugin.uvc.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Size;
 
+import org.deviceconnect.android.deviceplugin.uvc.recorder.Broadcaster;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.MediaRecorder;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.PreviewServer;
-import org.deviceconnect.android.deviceplugin.uvc.recorder.h264.UvcH264Recorder;
+import org.deviceconnect.android.deviceplugin.uvc.recorder.uvc.UvcRecorder;
 import org.deviceconnect.android.deviceplugin.uvc.service.UVCService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
@@ -46,9 +48,10 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
             public boolean onRequest(final Intent request, final Intent response) {
                 mExecutor.execute(() -> {
                     try {
-                        UvcH264Recorder recorder = getUvcRecorder();
-                        if (recorder == null) {
-                            MessageUtils.setNotFoundServiceError(response);
+                        UVCService service = (UVCService) getService();
+
+                        if (service == null) {
+                            MessageUtils.setNotFoundServiceError(response, "service is not found.");
                             return;
                         }
 
@@ -57,7 +60,7 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                             return;
                         }
 
-                        setMediaRecorders(response, recorder);
+                        setMediaRecorders(response, service.getUvcRecorderList());
                         setResult(response, DConnectMessage.RESULT_OK);
                     } finally {
                         sendResponse(response);
@@ -78,14 +81,16 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
             public boolean onRequest(final Intent request, final Intent response) {
                 mExecutor.execute(() -> {
                     try {
-                        if (!getService().isOnline()) {
-                            MessageUtils.setIllegalDeviceStateError(response, "device is not connected.");
+                        String target = getTarget(request);
+
+                        UvcRecorder recorder = getUvcRecorderByTarget(target);
+                        if (recorder == null) {
+                            MessageUtils.setNotFoundServiceError(response, target + " is not found.");
                             return;
                         }
 
-                        UvcH264Recorder recorder = getUvcRecorder();
-                        if (recorder == null) {
-                            MessageUtils.setNotFoundServiceError(response);
+                        if (!getService().isOnline()) {
+                            MessageUtils.setIllegalDeviceStateError(response, "device is not connected.");
                             return;
                         }
 
@@ -110,15 +115,19 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
             public boolean onRequest(final Intent request, final Intent response) {
                 mExecutor.execute(() -> {
                     try {
+                        String target = getTarget(request);
                         Integer imageWidth = getImageWidth(request);
                         Integer imageHeight = getImageHeight(request);
                         Integer previewWidth = getPreviewWidth(request);
                         Integer previewHeight = getPreviewHeight(request);
                         Double previewMaxFrameRate = getPreviewMaxFrameRate(request);
+                        Integer previewBitRate = parseInteger(request, "previewBitRate");
+                        Integer previewKeyFrameInterval = parseInteger(request, "previewKeyFrameInterval");
+                        String previewEncoder = request.getStringExtra("previewEncoder");
 
-                        UvcH264Recorder recorder = getUvcRecorder();
+                        UvcRecorder recorder = getUvcRecorderByTarget(target);
                         if (recorder == null) {
-                            MessageUtils.setNotFoundServiceError(response);
+                            MessageUtils.setNotFoundServiceError(response, target + " is not found.");
                             return;
                         }
 
@@ -167,6 +176,23 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                             settings.setPreviewMaxFrameRate(previewMaxFrameRate.intValue());
                         }
 
+                        if (previewBitRate != null) {
+                            settings.setPreviewBitRate(previewBitRate * 1024);
+                        }
+
+                        if (previewKeyFrameInterval != null) {
+                            settings.setPreviewKeyFrameInterval(previewKeyFrameInterval);
+                        }
+
+                        if (previewEncoder != null) {
+                            if (!settings.isSupportedVideoEncoder(previewEncoder)) {
+                                MessageUtils.setInvalidRequestParameterError(response,
+                                        "Unsupported preview encoder: " + previewEncoder);
+                                return;
+                            }
+                            settings.setPreviewEncoder(previewEncoder);
+                        }
+
                         setResult(response, DConnectMessage.RESULT_OK);
                     } finally {
                         sendResponse(response);
@@ -187,13 +213,15 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
             public boolean onRequest(final Intent request, final Intent response) {
                 mExecutor.execute(() -> {
                     try {
-                        if (!getService().isOnline()) {
-                            MessageUtils.setIllegalDeviceStateError(response, "device is not connected.");
+                        String target = getTarget(request);
+
+                        UvcRecorder recorder = getUvcRecorderByTarget(target);
+                        if (recorder == null) {
+                            MessageUtils.setNotFoundServiceError(response, target + " is not found.");
                             return;
                         }
 
-                        UvcH264Recorder recorder = getUvcRecorder();
-                        if (recorder == null) {
+                        if (!getService().isOnline()) {
                             MessageUtils.setIllegalDeviceStateError(response, "device is not connected.");
                             return;
                         }
@@ -226,15 +254,20 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
             public boolean onRequest(final Intent request, final Intent response) {
                 mExecutor.execute(() -> {
                     try {
-                        UvcH264Recorder recorder = getUvcRecorder();
-                        if (recorder != null) {
-                            recorder.stopPreview();
+                        String target = getTarget(request);
+
+                        UvcRecorder recorder = getUvcRecorderByTarget(target);
+                        if (recorder == null) {
+                            MessageUtils.setNotFoundServiceError(response, target + " is not found.");
+                            return;
                         }
 
                         if (!getService().isOnline()) {
                             MessageUtils.setIllegalDeviceStateError(response, "device is not connected.");
                             return;
                         }
+
+                        recorder.stopPreview();
 
                         setResult(response, DConnectMessage.RESULT_OK);
                     } finally {
@@ -244,25 +277,101 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                 return false;
             }
         });
+
+        // PUT /gotapi/mediaStreamRecording/broadcast
+        addApi(new PutApi() {
+            @Override
+            public String getAttribute() {
+                return "broadcast";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String target = getTarget(request);
+                String broadcastURI = request.getStringExtra("broadcastURI");
+
+                UvcRecorder recorder = getUvcRecorderByTarget(target);
+                if (recorder == null) {
+                    MessageUtils.setNotFoundServiceError(response, target + " is not found.");
+                    return true;
+                }
+
+                if (!getService().isOnline()) {
+                    MessageUtils.setIllegalDeviceStateError(response, "device is not connected.");
+                    return true;
+                }
+
+                Broadcaster b = recorder.startBroadcaster(broadcastURI);
+                if (b != null) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else {
+                    MessageUtils.setIllegalServerStateError(response, "Failed to start a broadcast.");
+                }
+
+                return true;
+            }
+        });
+
+        // DELETE /gotapi/mediaStreamRecording/broadcast
+        addApi(new DeleteApi() {
+
+            @Override
+            public String getAttribute() {
+                return "broadcast";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String target = getTarget(request);
+
+                UvcRecorder recorder = getUvcRecorderByTarget(target);
+                if (recorder == null) {
+                    MessageUtils.setNotFoundServiceError(response, target + " is not found.");
+                    return true;
+                }
+
+                if (!getService().isOnline()) {
+                    MessageUtils.setIllegalDeviceStateError(response, "device is not connected.");
+                    return true;
+                }
+
+                recorder.stopBroadcaster();
+                return false;
+            }
+        });
     }
 
-    private UvcH264Recorder getUvcRecorder() {
+    private UvcRecorder getUvcRecorder() {
         UVCService service = (UVCService) getService();
         if (service != null) {
-            return service.getUvcRecorder();
+            return service.getUvcRecorderList().get(0);
         }
         return null;
     }
 
-    private static void setMediaRecorders(final Intent response, final UvcH264Recorder uvcRecorder) {
+    private UvcRecorder getUvcRecorderByTarget(String target) {
+        if (target == null) {
+            return getUvcRecorder();
+        }
+
+        UVCService service = (UVCService) getService();
+        if (service != null) {
+            return service.findUvcRecorderById(target);
+        }
+        return null;
+    }
+
+    private static void setMediaRecorders(final Intent response, final List<UvcRecorder> uvcRecorders) {
         List<Bundle> recorderList = new ArrayList<>();
-        Bundle recorder = new Bundle();
-        setMediaRecorder(recorder, uvcRecorder);
-        recorderList.add(recorder);
+        for (UvcRecorder uvcRecorder : uvcRecorders) {
+            Bundle recorder = new Bundle();
+            setMediaRecorder(recorder, uvcRecorder);
+            recorderList.add(recorder);
+        }
         setRecorders(response, recorderList);
     }
 
-    private static void setMediaRecorder(final Bundle recorder, final UvcH264Recorder uvcRecorder) {
+    private static void setMediaRecorder(final Bundle recorder, final UvcRecorder uvcRecorder) {
         Size previewSize = uvcRecorder.getSettings().getPreviewSize();
 
         setRecorderId(recorder, uvcRecorder.getId());
@@ -276,17 +385,17 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
         setRecorderConfig(recorder, "");
     }
 
-    private static void setOptions(final Intent response, final UvcH264Recorder recorder) {
-//        List<MediaRecorder.Size> options = recorder.getSupportedPreviewSizes();
-//        List<Bundle> previewSizes = new ArrayList<>();
-//        for (MediaRecorder.Size option : options) {
-//            Bundle size = new Bundle();
-//            setWidth(size, option.getWidth());
-//            setHeight(size, option.getHeight());
-//            previewSizes.add(size);
-//        }
-//        setPreviewSizes(response, previewSizes);
-//        setMIMEType(response, recorder.getSupportedMimeTypes());
+    private static void setOptions(final Intent response, final UvcRecorder recorder) {
+        List<Size> options = recorder.getSettings().getSupportedPreviewSizes();
+        List<Bundle> previewSizes = new ArrayList<>();
+        for (Size option : options) {
+            Bundle size = new Bundle();
+            setWidth(size, option.getWidth());
+            setHeight(size, option.getHeight());
+            previewSizes.add(size);
+        }
+        setPreviewSizes(response, previewSizes);
+        setMIMEType(response, recorder.getServerProvider().getSupportedMimeType());
     }
 
     private static void setMIMEType(final Intent response, final List<String> mimeTypes) {

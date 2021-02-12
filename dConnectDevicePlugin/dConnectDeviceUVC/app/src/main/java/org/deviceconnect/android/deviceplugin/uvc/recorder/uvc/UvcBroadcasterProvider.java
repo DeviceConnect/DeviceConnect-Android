@@ -1,17 +1,17 @@
-package org.deviceconnect.android.deviceplugin.uvc.recorder.h264;
+package org.deviceconnect.android.deviceplugin.uvc.recorder.uvc;
 
 import android.content.Context;
 
 import org.deviceconnect.android.deviceplugin.uvc.recorder.AbstractBroadcastProvider;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.Broadcaster;
 
-class UvcBroadcasterProvider extends AbstractBroadcastProvider {
+public class UvcBroadcasterProvider extends AbstractBroadcastProvider {
     /**
      * カメラを操作するレコーダ.
      */
-    private final UvcH264Recorder mRecorder;
+    private final UvcRecorder mRecorder;
 
-    public UvcBroadcasterProvider(Context context, UvcH264Recorder recorder) {
+    public UvcBroadcasterProvider(Context context, UvcRecorder recorder) {
         super(context, recorder);
         mRecorder = recorder;
     }

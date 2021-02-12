@@ -29,7 +29,6 @@ public class UVCCameraMainFragment extends UVCDevicePluginBindFragment {
 
     @Override
     public void onBindService() {
-        Log.e("ABC", "UVCCameraMainFragment::onBindService");
     }
 
     @Override

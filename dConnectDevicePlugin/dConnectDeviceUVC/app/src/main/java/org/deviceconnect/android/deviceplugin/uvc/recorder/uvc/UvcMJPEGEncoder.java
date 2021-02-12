@@ -1,6 +1,7 @@
-package org.deviceconnect.android.deviceplugin.uvc.recorder.mjpeg;
+package org.deviceconnect.android.deviceplugin.uvc.recorder.uvc;
 
-import org.deviceconnect.android.deviceplugin.uvc.recorder.h264.UvcH264Recorder;
+import android.util.Log;
+
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
 import org.deviceconnect.android.libuvc.Parameter;
 
@@ -8,15 +9,15 @@ import java.io.IOException;
 
 public class UvcMJPEGEncoder extends MJPEGEncoder {
 
-    private final UvcH264Recorder mRecorder;
+    private final UvcRecorder mRecorder;
 
-    UvcMJPEGEncoder(UvcH264Recorder recorder) {
+    public UvcMJPEGEncoder(UvcRecorder recorder) {
         mRecorder = recorder;
     }
 
     @Override
     public void start() {
-        mRecorder.getUVCCamera().setPreviewCallback(frame -> {
+        mRecorder.getUVCCamera().setPreviewCallback((frame) -> {
             try {
                 postJPEG(frame.getBuffer());
             } finally {
@@ -25,9 +26,11 @@ public class UvcMJPEGEncoder extends MJPEGEncoder {
         });
 
         try {
-            UvcH264Recorder.UvcSettings settings = (UvcH264Recorder.UvcSettings) mRecorder.getSettings();
+            UvcRecorder.UvcSettings settings = (UvcRecorder.UvcSettings) mRecorder.getSettings();
             Parameter p = settings.getParameter();
-            p.setUseH264(false);
+            if (p == null) {
+                throw new RuntimeException("UVC parameter not found.");
+            }
             mRecorder.getUVCCamera().startVideo(p);
         } catch (Exception e) {
             throw new RuntimeException();

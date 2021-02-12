@@ -43,6 +43,10 @@ public abstract class AbstractMediaRecorder implements MediaRecorder {
      * コンストラクタ.
      */
     public AbstractMediaRecorder(Context context) {
+        if (context == null) {
+            throw new IllegalArgumentException("context is null.");
+        }
+
         mContext = context;
 
         HandlerThread requestThread = new HandlerThread("uvc-media-recorder");

@@ -64,7 +64,7 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
                 mSRTServer.setCallback(mCallback);
                 mSRTServer.setSocketOptions(mSettings.loadSRTSocketOptions());
                 mSRTServer.start();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 callback.onFail();
                 return;
             }

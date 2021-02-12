@@ -64,7 +64,7 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
             }
             try {
                 mMJPEGServer.start();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 callback.onFail();
                 return;
             }
@@ -134,7 +134,7 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
         Size previewSize = settings.getPreviewSize();
         quality.setWidth(previewSize.getWidth());
         quality.setHeight(previewSize.getHeight());
-        quality.setFrameRate(settings.getPreviewMaxFrameRate());
+//        quality.setFrameRate(settings.getPreviewMaxFrameRate());
         quality.setQuality(settings.getPreviewQuality());
     }
 

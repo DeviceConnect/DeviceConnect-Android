@@ -1,10 +1,10 @@
-package org.deviceconnect.android.deviceplugin.uvc.recorder.h264;
+package org.deviceconnect.android.deviceplugin.uvc.recorder.uvc;
 
 import org.deviceconnect.android.libmedia.streaming.mjpeg.SurfaceMJPEGEncoder;
 
-class UvcMJPEGEncoder extends SurfaceMJPEGEncoder {
+public class UvcH264toMJPEGEncoder extends SurfaceMJPEGEncoder {
 
-    UvcMJPEGEncoder(UvcH264Recorder recorder) {
+    public UvcH264toMJPEGEncoder(UvcRecorder recorder) {
         super(recorder.getSurfaceDrawingThread());
     }
 

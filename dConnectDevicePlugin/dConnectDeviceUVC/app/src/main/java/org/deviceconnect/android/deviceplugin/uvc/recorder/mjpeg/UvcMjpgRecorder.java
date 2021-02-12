@@ -7,7 +7,9 @@ import org.deviceconnect.android.deviceplugin.uvc.recorder.AbstractMediaRecorder
 import org.deviceconnect.android.deviceplugin.uvc.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.MediaRecorder;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.PreviewServerProvider;
+import org.deviceconnect.android.deviceplugin.uvc.recorder.uvc.UvcRecorder;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
+import org.deviceconnect.android.libuvc.FrameType;
 import org.deviceconnect.android.libuvc.Parameter;
 import org.deviceconnect.android.libuvc.UVCCamera;
 
@@ -15,31 +17,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UvcMjpgRecorder extends AbstractMediaRecorder {
-
+public class UvcMjpgRecorder extends UvcRecorder {
     private static final String RECORDER_ID = "1";
     private static final String RECORDER_NAME = "uvc-mjpeg";
     private static final String RECORDER_MIME_TYPE_MJPEG = "video/x-mjpeg";
 
-    private final UVCCamera mUVCCamera;
-    private final UvcSettings mSettings;
-
     public UvcMjpgRecorder(Context context, UVCCamera camera) {
-        super(context);
-        mUVCCamera = camera;
-        mSettings = new UvcSettings(context, this);
-
-        initSupportedSettings();
+        super(context, camera);
     }
 
-    public UVCCamera getUVCCamera() {
-        return mUVCCamera;
-    }
-
-    /**
-     * レコーダの設定を初期化します.
-     */
-    private void initSupportedSettings() {
+    @Override
+    protected UvcSettings createSettings() {
+        MjpegSettings mSettings = new MjpegSettings(getContext(), this);
         if (!mSettings.isInitialized()) {
             mSettings.setPictureSize(new Size(640, 480));
             mSettings.setPreviewSize(new Size(640, 480));
@@ -61,16 +50,7 @@ public class UvcMjpgRecorder extends AbstractMediaRecorder {
 
             mSettings.finishInitialization();
         }
-    }
-
-    @Override
-    public synchronized void clean() {
-        super.clean();
-    }
-
-    @Override
-    public void destroy() {
-        super.destroy();
+        return mSettings;
     }
 
     @Override
@@ -88,32 +68,8 @@ public class UvcMjpgRecorder extends AbstractMediaRecorder {
         return RECORDER_MIME_TYPE_MJPEG;
     }
 
-    @Override
-    public MediaRecorder.Settings getSettings() {
-        return mSettings;
-    }
-
-    @Override
-    public PreviewServerProvider getServerProvider() {
-        return null;
-    }
-
-    @Override
-    public BroadcasterProvider getBroadcasterProvider() {
-        return null;
-    }
-
-    @Override
-    public EGLSurfaceDrawingThread getSurfaceDrawingThread() {
-        return null;
-    }
-
-    @Override
-    public void requestPermission(MediaRecorder.PermissionCallback callback) {
-    }
-
-    public class UvcSettings extends MediaRecorder.Settings {
-        UvcSettings(Context context, MediaRecorder recorder) {
+    public class MjpegSettings extends UvcSettings {
+        MjpegSettings(Context context, MediaRecorder recorder) {
             super(context, recorder);
         }
 
@@ -121,9 +77,9 @@ public class UvcMjpgRecorder extends AbstractMediaRecorder {
         public List<Size> getSupportedPictureSizes() {
             List<Size> sizes = new ArrayList<>();
             try {
-                List<Parameter> parameters = mUVCCamera.getParameter();
+                List<Parameter> parameters = getUVCCamera().getParameter();
                 for (Parameter p : parameters) {
-                    if (!p.hasExtH264()) {
+                    if (p.getFrameType() == FrameType.MJPEG) {
                         sizes.add(new Size(p.getWidth(), p.getHeight()));
                     }
                 }
@@ -137,9 +93,9 @@ public class UvcMjpgRecorder extends AbstractMediaRecorder {
         public List<Size> getSupportedPreviewSizes() {
             List<Size> sizes = new ArrayList<>();
             try {
-                List<Parameter> parameters = mUVCCamera.getParameter();
+                List<Parameter> parameters = getUVCCamera().getParameter();
                 for (Parameter p : parameters) {
-                    if (!p.hasExtH264()) {
+                    if (p.getFrameType() == FrameType.MJPEG) {
                         sizes.add(new Size(p.getWidth(), p.getHeight()));
                     }
                 }
@@ -158,11 +114,12 @@ public class UvcMjpgRecorder extends AbstractMediaRecorder {
         public Parameter getParameter() throws IOException {
             Parameter parameter = null;
             Size previewSize = getPreviewSize();
-            List<Parameter> parameters = mUVCCamera.getParameter();
+            List<Parameter> parameters = getUVCCamera().getParameter();
             for (Parameter p : parameters) {
-                if (!p.hasExtH264()) {
+                if (p.getFrameType() == FrameType.MJPEG) {
                     if (p.getWidth() == previewSize.getWidth() && p.getHeight() == previewSize.getHeight()) {
                         parameter = p;
+                        parameter.setUseH264(false);
                     }
                 }
             }

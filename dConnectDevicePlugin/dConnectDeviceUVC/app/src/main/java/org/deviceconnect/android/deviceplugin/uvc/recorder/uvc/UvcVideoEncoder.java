@@ -1,20 +1,20 @@
-package org.deviceconnect.android.deviceplugin.uvc.recorder.h264;
+package org.deviceconnect.android.deviceplugin.uvc.recorder.uvc;
 
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
 import org.deviceconnect.android.libmedia.streaming.video.SurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
-class UvcVideoEncoder extends SurfaceVideoEncoder {
+public class UvcVideoEncoder extends SurfaceVideoEncoder {
     /**
      * 映像のエンコード設定.
      */
     private final CameraVideoQuality mVideoQuality;
 
-    public UvcVideoEncoder(UvcH264Recorder recorder) {
+    public UvcVideoEncoder(UvcRecorder recorder) {
         this(recorder, "video/avc");
     }
 
-    public UvcVideoEncoder(UvcH264Recorder recorder, String mimeType) {
+    public UvcVideoEncoder(UvcRecorder recorder, String mimeType) {
         super(recorder.getSurfaceDrawingThread());
         mVideoQuality = new CameraVideoQuality(mimeType);
     }

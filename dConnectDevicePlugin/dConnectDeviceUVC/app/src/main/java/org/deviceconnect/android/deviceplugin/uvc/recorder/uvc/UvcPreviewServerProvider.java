@@ -1,18 +1,18 @@
-package org.deviceconnect.android.deviceplugin.uvc.recorder.h264;
+package org.deviceconnect.android.deviceplugin.uvc.recorder.uvc;
 
 import android.content.Context;
 
 import org.deviceconnect.android.deviceplugin.uvc.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.MediaRecorder;
 
-class UvcPreviewServerProvider extends AbstractPreviewServerProvider {
+public class UvcPreviewServerProvider extends AbstractPreviewServerProvider {
     /**
      * コンストラクタ.
      *
      * @param context  コンテキスト
      * @param recorder レコーダ
      */
-    UvcPreviewServerProvider(final Context context, final UvcH264Recorder recorder) {
+    public UvcPreviewServerProvider(final Context context, final UvcRecorder recorder) {
         super(context, recorder);
 
         MediaRecorder.Settings settings = recorder.getSettings();

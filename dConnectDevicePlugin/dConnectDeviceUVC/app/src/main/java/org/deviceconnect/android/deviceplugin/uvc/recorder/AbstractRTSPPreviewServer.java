@@ -51,18 +51,14 @@ public abstract class AbstractRTSPPreviewServer extends AbstractPreviewServer {
 
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
-        Log.e("ABC", "######## startWebServer");
         if (mRtspServer == null) {
-            Log.e("ABC", "######## startWebServer");
             mRtspServer = new RtspServer();
             mRtspServer.setServerName(SERVER_NAME);
             mRtspServer.setServerPort(getPort());
             mRtspServer.setCallback(mCallback);
             try {
                 mRtspServer.start();
-            } catch (IOException e) {
-                Log.e("ABC", "######## startWebServer", e);
-
+            } catch (Exception e) {
                 callback.onFail();
                 return;
             }

@@ -1,9 +1,9 @@
-package org.deviceconnect.android.deviceplugin.uvc.recorder.h264;
+package org.deviceconnect.android.deviceplugin.uvc.recorder.uvc;
 
-import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.H264VideoStream;
+import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.H265VideoStream;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 
-class UvcH264VideoStream extends H264VideoStream {
+public class UvcH265VideoStream extends H265VideoStream {
     /**
      * 映像用エンコーダ.
      */
@@ -13,10 +13,10 @@ class UvcH264VideoStream extends H264VideoStream {
      * コンストラクタ.
      *
      * @param recorder 操作するカメラのレコーダ.
-     * @param port 送信先のポート番号
+     * @param port            送信先のポート番号
      */
-    UvcH264VideoStream(UvcH264Recorder recorder, int port) {
-        mVideoEncoder = new UvcVideoEncoder(recorder);
+    UvcH265VideoStream(UvcRecorder recorder, int port) {
+        mVideoEncoder = new UvcVideoEncoder(recorder, "video/hevc");
         setDestinationPort(port);
     }
 

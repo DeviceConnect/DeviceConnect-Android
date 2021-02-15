@@ -13,8 +13,6 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Looper;
-import android.telecom.Call;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -23,12 +21,13 @@ import org.deviceconnect.android.deviceplugin.uvc.profile.UVCSystemProfile;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.uvc.UvcRecorder;
 import org.deviceconnect.android.deviceplugin.uvc.service.UVCService;
+import org.deviceconnect.android.deviceplugin.uvc.util.UVCRegistry;
 import org.deviceconnect.android.libusb.UsbSerialPortManager;
 import org.deviceconnect.android.libuvc.UVCCamera;
 import org.deviceconnect.android.libuvc.UVCCameraManager;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.android.provider.FileManager;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.ssl.KeyStoreCallback;
 import org.deviceconnect.android.ssl.KeyStoreError;
 
@@ -66,26 +65,32 @@ public class UVCDeviceService extends DConnectMessageService {
     private SSLContext mSSLContext;
 
     /**
-     * USB管理クラス.
+     * USB 管理クラス.
      */
     private UsbSerialPortManager mUsbSerialPortManager;
 
     /**
-     * UVCカメラを管理するクラス.
+     * UVC カメラを管理するクラス.
      */
     private UVCCameraManager mUVCCameraManager;
+
+    /**
+     * UVC のリスト管理クラス.
+     */
+    private UVCRegistry mUVCRegistry;
 
     @Override
     public void onCreate() {
         super.onCreate();
         setUseLocalOAuth(false);
-        initManager();
+        init();
+        initUVCCameraManager();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        disposeManager();
+        disposeUVCCameraManager();
     }
 
     @Override
@@ -103,6 +108,7 @@ public class UVCDeviceService extends DConnectMessageService {
             mLogger.info("Plug-in : onManagerTerminated");
         }
     }
+
     @Override
     protected void onDevicePluginReset() {
         // Device Plug-inへのReset要求受信時の処理。
@@ -140,60 +146,58 @@ public class UVCDeviceService extends DConnectMessageService {
         }
     }
 
+    @Override
+    public void setUseLocalOAuth(boolean a) {
+        super.setUseLocalOAuth(a);
+    }
+
+    private void init() {
+        mUVCRegistry = new UVCRegistry(this);
+
+        for (UVCRegistry.UVC uvc : mUVCRegistry.getUVCList()) {
+            UVCService service = new UVCService(getApplicationContext(), uvc.getDeviceId());
+            service.setName(uvc.getName());
+            service.setOnline(false);
+            getServiceProvider().addService(service);
+        }
+    }
+
     /**
      * リソースリセット処理.
      */
     private void resetPluginResource() {
+        for (DConnectService service : getServiceProvider().getServiceList()) {
+            if (service instanceof UVCService) {
+                ((UVCService) service).disconnect();
+            }
+        }
+        disposeUVCCameraManager();
+        initUVCCameraManager();
     }
 
     /**
      * USBを管理するクラスを初期化します.
      */
-    private void initManager() {
+    private void initUVCCameraManager() {
         mUsbSerialPortManager = new UsbSerialPortManager(this);
         mUVCCameraManager = new UVCCameraManager(mUsbSerialPortManager);
         mUVCCameraManager.setOnEventListener(new UVCCameraManager.OnEventListener() {
             @Override
             public void onConnected(final UVCCamera uvcCamera) {
-                Log.e("ABC", "######## onConnected: " + uvcCamera);
-
-                UVCService service = new UVCService(getApplicationContext(), uvcCamera);
-                getSSLContext(new SSLContextCallback() {
-                    @Override
-                    public void onGet(SSLContext sslContext) {
-                        for (UvcRecorder recorder : service.getUvcRecorderList()) {
-                            for (PreviewServer server : recorder.getServerProvider().getServers()) {
-                                if (sslContext != null && server.useSSLContext()) {
-                                    server.setSSLContext(sslContext);
-                                }
-                            }
-                        }
-                    }
-                    @Override
-                    public void onError() {
-                    }
-                });
-                getServiceProvider().addService(service);
-
-                Log.e("ABC", "######## onConnected: " + getServiceProvider().getServiceList().size());
+                connectUVCCamera(uvcCamera);
             }
 
             @Override
             public void onDisconnected(final UVCCamera uvcCamera) {
-                Log.e("ABC", "######## onDisconnected: " + uvcCamera);
-                getServiceProvider().removeService("UVC-" + uvcCamera.getDeviceId());
-                Log.e("ABC", "######## onDisconnected: " + getServiceProvider().getServiceList().size());
+                disconnectUVCCamera(uvcCamera);
             }
 
             @Override
             public void onError(final Exception e) {
-                Log.e("ABC", "######## onError: ", e);
             }
 
             @Override
             public void onRequestPermission(UsbSerialPortManager.PermissionCallback callback) {
-                Log.e("ABC", "######## onPermission: ");
-
                 PermissionUtility.requestPermissions(getApplicationContext(),
                         new Handler(Looper.getMainLooper()),
                         new String[]{Manifest.permission.CAMERA},
@@ -216,7 +220,7 @@ public class UVCDeviceService extends DConnectMessageService {
     /**
      * USBを管理するクラスの後始末を行います.
      */
-    private void disposeManager() {
+    private void disposeUVCCameraManager() {
         if (mUVCCameraManager != null) {
             mUVCCameraManager.stopMonitoring();
             mUVCCameraManager.dispose();
@@ -229,36 +233,75 @@ public class UVCDeviceService extends DConnectMessageService {
         }
     }
 
-    // SSL
-
-    /**
-     * SSLContext を提供するインターフェース.
-     */
-    public interface SSLContextCallback {
-        void onGet(SSLContext context);
-        void onError();
+    private synchronized void connectUVCCamera(UVCCamera uvcCamera) {
+        UVCService service = findUVCServiceByUVC(uvcCamera);
+        if (service == null) {
+            service = new UVCService(getApplicationContext(), createUVCServiceId(uvcCamera));
+            service.connect(uvcCamera);
+            getServiceProvider().addService(service);
+            mUVCRegistry.addUVC(service.getId(), service.getName());
+        } else {
+            service.connect(uvcCamera);
+        }
+        setSSLContext(service);
     }
 
-    public void getSSLContext(final SSLContextCallback callback) {
+    private synchronized void disconnectUVCCamera(UVCCamera uvcCamera) {
+        UVCService service = findUVCServiceByUVC(uvcCamera);
+        if (service != null) {
+            service.disconnect();
+        }
+    }
+
+    private String createUVCServiceId(UVCCamera uvcCamera) {
+        return "uvc-" + uvcCamera.getDeviceId();
+    }
+
+    private UVCService findUVCServiceByUVC(UVCCamera uvcCamera) {
+        return findUVCServiceById(createUVCServiceId(uvcCamera));
+    }
+
+    public UVCService findUVCServiceById(String id) {
+        if (id != null) {
+            DConnectService service = getServiceProvider().getService(id);
+            if (service instanceof UVCService) {
+                return (UVCService) service;
+            }
+        }
+        return null;
+    }
+
+    // SSL
+
+    private void setSSLContext(UVCService service) {
         final SSLContext sslContext = mSSLContext;
         if (sslContext != null) {
-            callback.onGet(sslContext);
+            setSSLContext(service, sslContext);
         } else {
             requestKeyStore(getIPAddress(this), new KeyStoreCallback() {
                 @Override
                 public void onSuccess(final KeyStore keyStore, final Certificate certificate, final Certificate certificate1) {
                     try {
                         mSSLContext = createSSLContext(keyStore, DEFAULT_PASSWORD);
-                        callback.onGet(mSSLContext);
-                    } catch (GeneralSecurityException e) {
-                        callback.onError();
+                        setSSLContext(service, mSSLContext);
+                    } catch (Exception e) {
+                        // ignore.
                     }
                 }
                 @Override
                 public void onError(final KeyStoreError keyStoreError) {
-                    callback.onError();
                 }
             });
+        }
+    }
+
+    private void setSSLContext(UVCService service, SSLContext sslContext) {
+        for (UvcRecorder recorder : service.getUvcRecorderList()) {
+            for (PreviewServer server : recorder.getServerProvider().getServers()) {
+                if (server.useSSLContext()) {
+                    server.setSSLContext(sslContext);
+                }
+            }
         }
     }
 
@@ -289,7 +332,7 @@ public class UVCDeviceService extends DConnectMessageService {
                         }
                     }
                 } catch (SocketException e) {
-                    Log.e("Host", "Get Ethernet IP Error", e);
+                    // ignore.
                 }
             }
         }

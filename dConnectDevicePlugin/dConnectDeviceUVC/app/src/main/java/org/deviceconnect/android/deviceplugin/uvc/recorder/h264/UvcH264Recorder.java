@@ -3,14 +3,7 @@ package org.deviceconnect.android.deviceplugin.uvc.recorder.h264;
 import android.content.Context;
 import android.util.Size;
 
-import org.deviceconnect.android.deviceplugin.uvc.recorder.BroadcasterProvider;
-import org.deviceconnect.android.deviceplugin.uvc.recorder.MediaRecorder;
-import org.deviceconnect.android.deviceplugin.uvc.recorder.PreviewServerProvider;
-import org.deviceconnect.android.deviceplugin.uvc.recorder.uvc.UvcBroadcasterProvider;
-import org.deviceconnect.android.deviceplugin.uvc.recorder.uvc.UvcPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.uvc.UvcRecorder;
-import org.deviceconnect.android.deviceplugin.uvc.recorder.uvc.UvcSurfaceDrawingThread;
-import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libuvc.FrameType;
 import org.deviceconnect.android.libuvc.Parameter;
 import org.deviceconnect.android.libuvc.UVCCamera;
@@ -30,29 +23,32 @@ public class UvcH264Recorder extends UvcRecorder {
 
     @Override
     protected UvcSettings createSettings() {
-        H264Settings mSettings = new H264Settings(getContext(), this);
-        if (!mSettings.isInitialized()) {
-            mSettings.setPictureSize(new Size(640, 480));
-            mSettings.setPreviewSize(new Size(640, 480));
-            mSettings.setPreviewBitRate(2 * 1024 * 1024);
-            mSettings.setPreviewMaxFrameRate(30);
-            mSettings.setPreviewKeyFrameInterval(1);
-            mSettings.setPreviewQuality(80);
+        H264Settings settings = new H264Settings(getContext());
+        if (!settings.isInitialized()) {
+            List<Size> supportPictureSizes = settings.getSupportedPictureSizes();
+            List<Size> supportPreviewSizes = settings.getSupportedPreviewSizes();
 
-            mSettings.setPreviewAudioSource(null);
-            mSettings.setPreviewAudioBitRate(64 * 1024);
-            mSettings.setPreviewSampleRate(16000);
-            mSettings.setPreviewChannel(1);
-            mSettings.setUseAEC(true);
+            settings.setPictureSize(supportPictureSizes.get(0));
+            settings.setPreviewSize(supportPreviewSizes.get(0));
+            settings.setPreviewBitRate(2 * 1024 * 1024);
+            settings.setPreviewMaxFrameRate(30);
+            settings.setPreviewKeyFrameInterval(1);
+            settings.setPreviewQuality(80);
 
-            mSettings.setMjpegPort(11001);
-            mSettings.setMjpegSSLPort(11101);
-            mSettings.setRtspPort(12001);
-            mSettings.setSrtPort(13001);
+            settings.setPreviewAudioSource(null);
+            settings.setPreviewAudioBitRate(64 * 1024);
+            settings.setPreviewSampleRate(16000);
+            settings.setPreviewChannel(1);
+            settings.setUseAEC(true);
 
-            mSettings.finishInitialization();
+            settings.setMjpegPort(11001);
+            settings.setMjpegSSLPort(11101);
+            settings.setRtspPort(12001);
+            settings.setSrtPort(13001);
+
+            settings.finishInitialization();
         }
-        return mSettings;
+        return settings;
     }
 
     @Override
@@ -71,8 +67,8 @@ public class UvcH264Recorder extends UvcRecorder {
     }
 
     public class H264Settings extends UvcSettings {
-        H264Settings(Context context, MediaRecorder recorder) {
-            super(context, recorder);
+        H264Settings(Context context) {
+            super(context);
         }
 
         @Override

@@ -40,19 +40,6 @@ public abstract class UvcRecorder extends AbstractMediaRecorder {
     protected abstract UvcSettings createSettings();
 
     @Override
-    public synchronized void clean() {
-        super.clean();
-
-        try {
-            mUvcBroadcasterProvider.stopBroadcaster();
-            mUvcPreviewServerProvider.stopServers();
-            mUvcSurfaceDrawingThread.stop();
-        } catch (Exception e) {
-            // ignore.
-        }
-    }
-
-    @Override
     public Settings getSettings() {
         return mSettings;
     }
@@ -76,10 +63,14 @@ public abstract class UvcRecorder extends AbstractMediaRecorder {
     public void requestPermission(MediaRecorder.PermissionCallback callback) {
     }
 
-    public static class UvcSettings extends MediaRecorder.Settings {
+    public String getSettingsName() {
+        return mUVCCamera.getDeviceId() + "-" + getId();
+    }
 
-        public UvcSettings(Context context, MediaRecorder recorder) {
-            super(context, recorder);
+    public class UvcSettings extends MediaRecorder.Settings {
+
+        public UvcSettings(Context context) {
+            super(context, getSettingsName());
         }
 
         /**

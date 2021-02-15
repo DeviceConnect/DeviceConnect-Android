@@ -6,273 +6,123 @@
  */
 package org.deviceconnect.android.deviceplugin.uvc.fragment;
 
-
-import android.app.Activity;
 import android.content.Context;
-import android.content.res.Resources;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
-import android.widget.TextView;
 
-import androidx.fragment.app.Fragment;
+import androidx.annotation.NonNull;
+import androidx.databinding.DataBindingUtil;
 
 import org.deviceconnect.android.deviceplugin.uvc.R;
-import org.deviceconnect.android.deviceplugin.uvc.fragment.dialog.ErrorDialogFragment;
-import org.deviceconnect.android.deviceplugin.uvc.fragment.dialog.ProgressDialogFragment;
+import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceService;
+import org.deviceconnect.android.deviceplugin.uvc.databinding.FragmentUvcDeviceListBinding;
+import org.deviceconnect.android.deviceplugin.uvc.databinding.ItemUvcDeviceBinding;
+import org.deviceconnect.android.service.DConnectService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.logging.Logger;
 
-public class UVCDeviceListFragment extends Fragment {
-    /**
-     * Adapter.
-     */
+import static androidx.navigation.fragment.NavHostFragment.findNavController;
+
+public class UVCDeviceListFragment extends UVCDevicePluginBindFragment {
     private DeviceAdapter mDeviceAdapter;
 
-    /**
-     * Error Dialog.
-     */
-    private ErrorDialogFragment mErrorDialogFragment;
-
-    /**
-     * Progress Dialog.
-     */
-    private ProgressDialogFragment mProgressDialogFragment;
-
-    /**
-     * UVC device list view.
-     */
-    private ListView mListView;
-
-    /**
-     * Footer view.
-     */
-    private View mFooterView;
-
-    /**
-     * Logger.
-     */
-    private final Logger mLogger = Logger.getLogger("uvc.dplugin");
-
-    /**
-     * Executor.
-     */
-    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-                             final Bundle savedInstanceState) {
-        mDeviceAdapter = new DeviceAdapter(getActivity(), new ArrayList<>());
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        FragmentUvcDeviceListBinding binding = DataBindingUtil.inflate(inflater,
+                R.layout.fragment_uvc_device_list, container, false);
+        binding.setPresenter(this);
 
-        mFooterView = inflater.inflate(R.layout.item_uvc_error, null);
+        mDeviceAdapter = new DeviceAdapter(getContext(), new ArrayList<>());
 
-        View rootView = inflater.inflate(R.layout.fragment_uvc_device_list, null);
-        mListView = rootView.findViewById(R.id.device_list_view);
-        mListView.setAdapter(mDeviceAdapter);
-        mListView.setItemsCanFocus(true);
+        setTitle(getString(R.string.uvc_settings_title_uvc_device_list));
+
+        View rootView = binding.getRoot();
+        ListView listView = rootView.findViewById(R.id.device_list_view);
+        listView.setAdapter(mDeviceAdapter);
+        listView.setItemsCanFocus(true);
         return rootView;
     }
 
-
     @Override
-    public void onResume() {
-        super.onResume();
-        addFooterView();
+    public void onBindService() {
+        List<DeviceContainer> containers = new ArrayList<>();
 
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        dismissProgressDialog();
-        dismissErrorDialog();
-    }
-
-    /**
-     * Added the view at ListView.
-     */
-    private void addFooterView() {
-        final Activity activity = getActivity();
-        if (activity == null) {
-            return;
-        }
-        activity.runOnUiThread(() -> {
-        });
-    }
-
-    /**
-     * Connect to the UVC device that have heart rate service.
-     *
-     * @param device UVC device that have heart rate service.
-     */
-    private void connectDevice(final DeviceContainer device) {
-        showProgressDialog(device.getName());
-        mExecutor.execute(() -> {
-
-        });
-    }
-
-    /**
-     * Disconnect to the UVC device that have heart rate service.
-     *
-     * @param device UVC device that have heart rate service.
-     */
-    private void disconnectDevice(final DeviceContainer device) {
-        mExecutor.execute(() -> {
-
-        });
-    }
-
-    /**
-     * Display the dialog of connecting a ble device.
-     *
-     * @param name device name
-     */
-    private void showProgressDialog(final String name) {
-        dismissProgressDialog();
-
-        Resources res = getActivity().getResources();
-        String title = res.getString(R.string.uvc_settings_connecting_title);
-        String message = res.getString(R.string.uvc_settings_connecting_message, name);
-        mProgressDialogFragment = ProgressDialogFragment.newInstance(title, message);
-        mProgressDialogFragment.show(getFragmentManager(), "dialog");
-    }
-
-    /**
-     * Dismiss the dialog of connecting a ble device.
-     */
-    private void dismissProgressDialog() {
-        if (mProgressDialogFragment != null) {
-            mProgressDialogFragment.dismiss();
-            mProgressDialogFragment = null;
-        }
-    }
-
-    /**
-     * Display the error dialog of not connect device.
-     *
-     * @param name device name
-     */
-    private void showErrorDialogNotConnect(final String name) {
-        Resources res = getActivity().getResources();
-        String message;
-        if (name == null) {
-            message = res.getString(R.string.uvc_settings_dialog_error_message,
-                    getString(R.string.uvc_settings_default_name));
-        } else {
-            message = res.getString(R.string.uvc_settings_dialog_error_message, name);
-        }
-        showErrorDialog(message);
-    }
-
-    /**
-     * Display the error dialog.
-     *
-     * @param message error message
-     */
-    public void showErrorDialog(final String message) {
-        dismissErrorDialog();
-
-        Resources res = getActivity().getResources();
-        String title = res.getString(R.string.uvc_settings_dialog_error_title);
-        mErrorDialogFragment = ErrorDialogFragment.newInstance(title, message);
-        mErrorDialogFragment.show(getFragmentManager(), "error_dialog");
-        mErrorDialogFragment.setOnDismissListener((dialog) -> {
-            mErrorDialogFragment = null;
-        });
-    }
-
-    /**
-     * Dismiss the error dialog.
-     */
-    private void dismissErrorDialog() {
-        if (mErrorDialogFragment != null) {
-            mErrorDialogFragment.dismiss();
-            mErrorDialogFragment = null;
-        }
-    }
-
-    private class DeviceContainer {
-        private String mName;
-        private String mId;
-        private boolean mRegisterFlag;
-
-        public String getName() {
-            return mName;
-        }
-
-        public void setName(final String name) {
-            if (name == null) {
-                mName = getActivity().getResources().getString(
-                        R.string.uvc_settings_default_name);
-            } else {
-                mName = name;
+        UVCDeviceService deviceService = getUVCDeviceService();
+        if (deviceService != null) {
+            for (DConnectService service : deviceService.getServiceProvider().getServiceList()) {
+                containers.add(new DeviceContainer(service));
             }
         }
 
+        mDeviceAdapter.setContainers(containers);
+    }
+
+    @Override
+    public void onUnbindService() {
+    }
+
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        DeviceContainer container = mDeviceAdapter.getItem(position);
+        Bundle bundle = new Bundle();
+        bundle.putString("service_id", container.getId());
+        findNavController(UVCDeviceListFragment.this).navigate(R.id.action_service_to_recorder, bundle);
+    }
+
+    public class DeviceContainer {
+        private final DConnectService mService;
+
+        DeviceContainer(DConnectService service) {
+            mService = service;
+        }
+
+        public String getName() {
+            return mService.getName();
+        }
+
         public String getId() {
-            return mId;
+            return mService.getId();
         }
 
-        public void setId(final String id) {
-            mId = id;
+        public String getStatus() {
+            return mService.isOnline() ? getString(R.string.uvc_settings_online) : getString(R.string.uvc_settings_offline);
         }
 
-        public boolean isRegisterFlag() {
-            return mRegisterFlag;
-        }
-
-        public void setRegisterFlag(boolean registerFlag) {
-            mRegisterFlag = registerFlag;
+        public int getBackgroundColor() {
+            return mService.isOnline() ? Color.WHITE : Color.GRAY;
         }
     }
 
-    private class DeviceAdapter extends ArrayAdapter<DeviceContainer> {
-        private LayoutInflater mInflater;
-
-        public DeviceAdapter(final Context context, final List<DeviceContainer> objects) {
+    private static class DeviceAdapter extends ArrayAdapter<DeviceContainer> {
+        DeviceAdapter(final Context context, final List<DeviceContainer> objects) {
             super(context, 0, objects);
-            mInflater = (LayoutInflater) context.getSystemService(
-                    Context.LAYOUT_INFLATER_SERVICE);
+        }
+
+        void setContainers(List<DeviceContainer> containers) {
+            clear();
+            addAll(containers);
+            notifyDataSetChanged();
         }
 
         @Override
         public View getView(final int position, View convertView, ViewGroup parent) {
+            ItemUvcDeviceBinding binding;
             if (convertView == null) {
-                convertView = mInflater.inflate(R.layout.item_uvc_device, null);
-            }
-
-            final DeviceContainer device = getItem(position);
-
-            String name = device.getName();
-            TextView nameView = convertView.findViewById(R.id.device_name);
-            nameView.setText(name);
-
-            Button btn = convertView.findViewById(R.id.btn_connect_device);
-            if (device.isRegisterFlag()) {
-                btn.setBackgroundResource(R.drawable.button_red);
-                btn.setText(R.string.uvc_settings_disconnect);
+                LayoutInflater inflater = LayoutInflater.from(getContext());
+                binding = DataBindingUtil.inflate(inflater, R.layout.item_uvc_device, parent, false);
+                convertView = binding.getRoot();
+                convertView.setTag(binding);
             } else {
-                btn.setBackgroundResource(R.drawable.button_blue);
-                btn.setText(R.string.uvc_settings_connect);
+                binding = (ItemUvcDeviceBinding) convertView.getTag();
             }
-            btn.setOnClickListener((v) -> {
-                if (device.isRegisterFlag()) {
-                    disconnectDevice(device);
-                } else {
-                    connectDevice(device);
-                }
-            });
-
+            binding.setDeviceContainer(getItem(position));
             return convertView;
         }
     }

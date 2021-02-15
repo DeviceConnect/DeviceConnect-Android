@@ -17,8 +17,8 @@ import java.util.Objects;
  * @author NTT DOCOMO, INC.
  */
 class UsbDeviceIdFilter implements UsbDeviceFilter {
-    private int mVendorId;
-    private int mProductId;
+    private final int mVendorId;
+    private final int mProductId;
 
     UsbDeviceIdFilter(int vendorId, int productId) {
         mVendorId = vendorId;

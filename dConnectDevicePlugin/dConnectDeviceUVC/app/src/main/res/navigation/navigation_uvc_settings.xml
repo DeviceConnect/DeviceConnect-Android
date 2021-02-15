@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/navigation_settings"
+    app:startDestination="@id/uvc_settings_permission">
+
+    <fragment
+        android:id="@+id/uvc_settings_permission"
+        android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.PermissionConfirmationFragment">
+
+        <action
+            android:id="@+id/action_permission_to_plugin"
+            app:destination="@+id/uvc_settings_plugin"
+            app:popUpTo="@id/uvc_settings_permission"
+            app:popUpToInclusive="true" />
+
+        <action
+            android:id="@+id/action_permission_error_dialog"
+            app:destination="@id/uvc_camera_permission_error_dialog" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/uvc_settings_plugin"
+        android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.UVCPluginSettingsFragment"
+        android:label="uvc_plugin_settings">
+
+        <action
+            android:id="@+id/action_plugin_to_service"
+            app:destination="@+id/uvc_settings_service_list" />
+
+        <action
+            android:id="@+id/action_plugin_to_instruction"
+            app:destination="@+id/uvc_settings_instruction" />
+
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/uvc_settings_instruction"
+        android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.UVCDeviceInstructionFragment"
+        android:label="uvc_settings_instruction">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/uvc_settings_service_list"
+        android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.UVCDeviceListFragment"
+        android:label="uvc_settings_service_list">
+
+        <action
+            android:id="@+id/action_service_to_recorder"
+            app:destination="@+id/uvc_settings_recorder_list" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/uvc_settings_recorder_list"
+        android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.UVCRecorderListFragment">
+
+        <action
+            android:id="@+id/action_recorder_to_main"
+            app:destination="@+id/uvc_settings_main" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/uvc_settings_main"
+        android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.UVCSettingsMainFragment">
+
+        <action
+            android:id="@+id/action_main_to_video"
+            app:destination="@+id/uvc_settings_video" />
+
+        <action
+            android:id="@+id/action_main_to_srt"
+            app:destination="@+id/uvc_settings_srt" />
+
+        <action
+            android:id="@+id/action_main_to_port"
+            app:destination="@+id/uvc_settings_port" />
+
+        <action
+            android:id="@+id/action_main_to_broadcast"
+            app:destination="@+id/uvc_settings_broadcast" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/uvc_settings_video"
+        android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.UVCSettingsVideoFragment">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/uvc_settings_srt"
+        android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.UVCSettingsSRTFragment">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/uvc_settings_port"
+        android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.UVCSettingsPortFragment">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/uvc_settings_broadcast"
+        android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.UVCSettingsBroadcastFragment">
+
+    </fragment>
+
+
+    <dialog
+        android:id="@+id/uvc_camera_permission_error_dialog"
+        android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.dialog.ProgressDialogFragment"
+        android:label="uvc_camera_permission_error_dialog" />
+
+</navigation>

@@ -17,7 +17,7 @@ import java.util.Objects;
  */
 class UsbDeviceClassFilter implements UsbDeviceFilter {
 
-    private int mClassType;
+    private final int mClassType;
 
     UsbDeviceClassFilter(int classType) {
         mClassType = classType;
@@ -39,7 +39,6 @@ class UsbDeviceClassFilter implements UsbDeviceFilter {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(mClassType);
     }
 }

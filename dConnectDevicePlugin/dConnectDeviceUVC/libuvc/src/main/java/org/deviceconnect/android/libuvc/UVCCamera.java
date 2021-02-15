@@ -8,6 +8,7 @@ package org.deviceconnect.android.libuvc;
 
 import android.hardware.usb.UsbDevice;
 import android.os.Build;
+import android.util.Log;
 
 import org.deviceconnect.android.libusb.UsbSerialPort;
 import org.deviceconnect.android.libuvc.utils.QueueThread;
@@ -81,14 +82,11 @@ public class UVCCamera {
     private OnEventListener mOnEventListener;
 
     /**
-     * デバイスID.
-     */
-    private int mDeviceId;
-
-    /**
      * デバイス名.
      */
     private String mDeviceName;
+
+    private String mDeviceId;
 
     /**
      * コンストラクタ.
@@ -134,16 +132,17 @@ public class UVCCamera {
         mOption = new Option(this);
         UVCCameraNative.getOption(mNativePtr, mOption);
 
-        mDeviceId = mUsbSerialPort.getUsbDevice().getDeviceId();
+        mDeviceName = mUsbSerialPort.getDeviceName();
+        if (mDeviceName == null) {
+            // デバイス名が取得できない場合には、他のパラメータを使用してデバイス名を作成
+            if (mUsbSerialPort.getManufacturerName() != null) {
+                mDeviceName = "UVC " + mUsbSerialPort.getManufacturerName();
+            } else {
+                mDeviceName = "UVC " + mUsbSerialPort.getVendorId() + "-" + mUsbSerialPort.getVendorId();
+            }
+        }
 
-        String deviceName = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            deviceName = mUsbSerialPort.getUsbDevice().getProductName();
-        }
-        if (deviceName == null) {
-            deviceName = "UVCCamera";
-        }
-        mDeviceName = deviceName;
+        mDeviceId = mUsbSerialPort.getVendorId() + "-" + mUsbSerialPort.getProductId();
     }
 
     /**
@@ -151,7 +150,7 @@ public class UVCCamera {
      *
      * @return デバイスID
      */
-    public int getDeviceId() {
+    public String getDeviceId() {
         return mDeviceId;
     }
 
@@ -163,7 +162,6 @@ public class UVCCamera {
     public String getDeviceName() {
         return mDeviceName;
     }
-
     /**
      * UVC カメラが設定できるパラメータ一覧を取得します.
      *

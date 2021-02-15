@@ -3,9 +3,15 @@
     <string name="uvc_error_dialog_default_title" translatable="false">エラー</string>
     <string name="uvc_error_message_device_not_supported" translatable="false">USBカメラ {NAME} は下記のフォーマットをサポートしないため利用できません。\n\n - MotionJPEG</string>
 
-    <string name="uvc_settings_title_uvc_device_instruction" translatable="false">[1/2] USBカメラとの接続方法</string>
+    <string name="uvc_settings_uvc_title" translatable="false">UVC プラグイン設定</string>
+    <string name="uvc_settings_uvc_auth" translatable="false">ユーザ認可</string>
+    <string name="uvc_settings_uvc_auth_description" translatable="false">プラグインにアクセスがあった時に認可用のダイアログを表示します。</string>
+    <string name="uvc_settings_uvc_device_instruction" translatable="false">USBカメラとの接続方法</string>
+    <string name="uvc_settings_uvc_device_list" translatable="false">USBカメラ一覧</string>
+
+    <string name="uvc_settings_title_uvc_device_instruction" translatable="false">USBカメラとの接続方法</string>
     <string name="uvc_settings_instruction_uvc_device_connection" translatable="false">端末のUSB端子にUSBカメラを接続してください。\n\n端末からUSBカメラへ電力を充分に供給できない場合には、セルフパワー付USBハブ経由で接続する必要があります。</string>
-    <string name="uvc_settings_title_uvc_device_list" translatable="false">[2/2] USBカメラ一覧</string>
+    <string name="uvc_settings_title_uvc_device_list" translatable="false">USBカメラ一覧</string>
     <string name="uvc_settings_searching" translatable="false">デバイス検索中</string>
     <string name="uvc_settings_connect" translatable="false">接続</string>
     <string name="uvc_settings_disconnect" translatable="false">解除</string>
@@ -15,13 +21,83 @@
     <string name="uvc_settings_dialog_positive" translatable="false">OK</string>
     <string name="uvc_settings_dialog_error_title" translatable="false">USB接続エラー</string>
     <string name="uvc_settings_dialog_error_message" translatable="false">%1$sとの接続に失敗しました</string>
-    <string name="uvc_settings_online" translatable="false">[ONLINE]</string>
-    <string name="uvc_settings_offline" translatable="false">[OFFLINE]</string>
+    <string name="uvc_settings_online" translatable="false">ONLINE</string>
+    <string name="uvc_settings_offline" translatable="false">OFFLINE</string>
     <string name="uvc_settings_no_device_found" translatable="false">USBカメラが接続されていません。</string>
 
+    <string name="uvc_plugin_permission_confirm">このアプリで使用する以下のパーミッションを取得する必要があります。\n\n    - 写真と動画の撮影\n    - デバイス内の写真やメディアへのアクセス</string>
+    <string name="uvc_plugin_permission_button">パーミッション取得</string>
     <string name="uvc_error_permission_title" translatable="false">パーミッションエラー</string>
     <string name="uvc_error_permission_message" translatable="false">アプリを実行するためのパーミッションが許可されなかったので、アプリケーションを終了します。</string>
     <string name="uvc_error_positive" translatable="false">はい</string>
     <string name="uvc_error_negative" translatable="false">いいえ</string>
     <string name="uvc_error_cancel" translatable="false">キャンセル</string>
+
+    <string name="uvc_recorder_settings_title" translatable="false">レコーダ設定</string>
+    <string name="uvc_recorder_settings_video" translatable="false">映像設定</string>
+    <string name="uvc_recorder_settings_audio" translatable="false">音声設定</string>
+    <string name="uvc_recorder_settings_broadcast" translatable="false">配信設定</string>
+    <string name="uvc_recorder_settings_srt" translatable="false">SRT 設定</string>
+    <string name="uvc_recorder_settings_port" translatable="false">ポート設定</string>
+
+    <string name="uvc_recorder_settings_still_image_resolution" translatable="false">静止画解像度</string>
+    <string name="uvc_recorder_settings_preview_resolution" translatable="false">プレビュー解像度</string>
+    <string name="uvc_recorder_settings_framerate" translatable="false">フレームレート (fps)</string>
+    <string name="uvc_recorder_settings_bitrate" translatable="false">ビットレート (bps)</string>
+    <string name="uvc_recorder_settings_bitrate_mode" translatable="false">ビットレートモード</string>
+    <string name="uvc_recorder_settings_i_frame_interval" translatable="false">キーフレームインターバル(秒)</string>
+    <string name="uvc_recorder_settings_video_encode" translatable="false">エンコーダ</string>
+    <string name="uvc_recorder_settings_video_profile_level" translatable="false">プロファイル - レベル</string>
+    <string name="uvc_recorder_settings_use_software_encode" translatable="false">ソフトウェアエンコーダ</string>
+    <string name="uvc_recorder_settings_use_software_encode_summary" translatable="false">MediaCodec でソフトウェアエンコーダを優先して使用します。</string>
+    <string name="uvc_recorder_settings_intra_refresh" translatable="false">イントラリフレッシュ</string>
+    <string name="uvc_recorder_settings_motion_jpeg" translatable="false">MotionJPEG 設定</string>
+    <string name="uvc_recorder_settings_jpeg_quality" translatable="false">クオリティ (%)</string>
+
+    <string name="uvc_recorder_settings_port_motion_jpeg" translatable="false">MotionJPEG 設定</string>
+    <string name="uvc_recorder_settings_port_rtsp" translatable="false">RTSP 設定</string>
+    <string name="uvc_recorder_settings_port_srt" translatable="false">SRT 設定</string>
+    <string name="uvc_recorder_settings_port_number" translatable="false">ポート番号</string>
+
+    <string name="uvc_recorder_settings_broadcast_uri" translatable="false">URL</string>
+
+    <!-- 通知用 -->
+    <string name="uvc_notification_preview">PREVIEW</string>
+    <string name="uvc_notification_preview_ticker">カメラを起動します</string>
+    <string name="uvc_notification_preview_channel_id">org.deviceconnect.android.intent.action.preview.uvc</string>
+    <string name="uvc_notification_preview_channel_title">Device Connect Preview</string>
+    <string name="uvc_notification_preview_channel_message">DeviceConnect でのプレビュー</string>
+    <string name="uvc_notification_preview_content_title">プレビュー配信サーバ [ %1$s ]</string>
+    <string name="uvc_notification_preview_content_message">タップして撮影を停止します。</string>
+    <string name="uvc_notification_channel_id">org.deviceconnect.android.intent.action.notifiy.uvc</string>
+    <string name="uvc_notification_channel_title">Device Connect Notification</string>
+    <string name="uvc_notification_channel_desc">DeviceConnect の通知</string>
+    <string name="uvc_notification_recorder_preview_ticker">プレビュー配信サーバを起動します</string>
+    <string name="uvc_notification_recorder_preview">プレビュー配信サーバ [ %1$s ]</string>
+    <string name="uvc_notification_recorder_preview_content">タップして配信を停止します。</string>
+    <string name="uvc_notification_recorder_broadcast_ticker">ブロードキャストを起動します</string>
+    <string name="uvc_notification_recorder_broadcast">ブロードキャスト [ %1$s ]</string>
+    <string name="uvc_notification_recorder_broadcast_content">タップして配信を停止します。</string>
+    <string name="uvc_notification_recorder_recording_ticker">録画を開始します</string>
+    <string name="uvc_notification_recorder_recording">録画 [ %1$s ]</string>
+    <string name="uvc_notification_recorder_recording_content">タップして録画を停止します。</string>
+
+
+    <string name="uvc_settings_item_srt_peerlatency" translatable="false">SRTO_PEERLATENCY</string>
+    <string name="uvc_settings_item_srt_lossmaxttl" translatable="false">SRTO_LOSSMAXTTL</string>
+    <string name="uvc_settings_item_srt_oheadbw" translatable="false">SRTO_OHEADBW</string>
+    <string name="uvc_settings_item_srt_inputbw" translatable="false">SRTO_INPUTBW</string>
+    <string name="uvc_settings_item_srt_conntimeo" translatable="false">SRTO_CONNTIMEO</string>
+    <string name="uvc_settings_item_srt_peeridletimeo" translatable="false">SRTO_PEERIDLETIMEO</string>
+    <string name="uvc_settings_item_srt_packetfilter" translatable="false">SRTO_PACKETFILTER</string>
+    <string name="uvc_setting_srt_option_auto" translatable="false">Auto</string>
+
+    <string name="pref_key_settings_srt_peerlatency" translatable="false">pref_key_settings_srt_peerlatency</string>
+    <string name="pref_key_settings_srt_lossmaxttl" translatable="false">pref_key_settings_srt_lossmaxttl</string>
+    <string name="pref_key_settings_srt_oheadbw" translatable="false">pref_key_settings_srt_oheadbw</string>
+    <string name="pref_key_settings_srt_inputbw" translatable="false">pref_key_settings_srt_inputbw</string>
+    <string name="pref_key_settings_srt_conntimeo" translatable="false">pref_key_settings_srt_conntimeo</string>
+    <string name="pref_key_settings_srt_peeridletimeo" translatable="false">pref_key_settings_srt_peeridletimeo</string>
+    <string name="pref_key_settings_srt_packetfilter" translatable="false">pref_key_settings_srt_packetfilter</string>
+
 </resources>

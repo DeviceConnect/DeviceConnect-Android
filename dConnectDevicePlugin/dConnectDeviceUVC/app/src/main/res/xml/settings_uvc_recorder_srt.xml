@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <EditTextPreference
+        android:defaultValue="120"
+        android:key="@string/pref_key_settings_srt_peerlatency"
+        android:singleLine="true"
+        android:title="@string/uvc_settings_item_srt_peerlatency"
+        app:iconSpaceReserved="false"
+        app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+        android:defaultValue="0"
+        android:key="@string/pref_key_settings_srt_lossmaxttl"
+        android:singleLine="true"
+        android:title="@string/uvc_settings_item_srt_lossmaxttl"
+        app:iconSpaceReserved="false"
+        app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+        android:key="@string/pref_key_settings_srt_inputbw"
+        android:singleLine="true"
+        android:title="@string/uvc_settings_item_srt_inputbw"
+        app:iconSpaceReserved="false"
+        app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+        android:key="@string/pref_key_settings_srt_oheadbw"
+        android:singleLine="true"
+        android:title="@string/uvc_settings_item_srt_oheadbw"
+        app:iconSpaceReserved="false"
+        app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+        android:defaultValue="3000"
+        android:key="@string/pref_key_settings_srt_conntimeo"
+        android:singleLine="true"
+        android:title="@string/uvc_settings_item_srt_conntimeo"
+        app:iconSpaceReserved="false"
+        app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+        android:defaultValue="5000"
+        android:key="@string/pref_key_settings_srt_peeridletimeo"
+        android:singleLine="true"
+        android:title="@string/uvc_settings_item_srt_peeridletimeo"
+        app:iconSpaceReserved="false"
+        app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+        android:key="@string/pref_key_settings_srt_packetfilter"
+        android:singleLine="true"
+        android:title="@string/uvc_settings_item_srt_packetfilter"
+        app:iconSpaceReserved="false"
+        app:useSimpleSummaryProvider="true" />
+
+</PreferenceScreen>

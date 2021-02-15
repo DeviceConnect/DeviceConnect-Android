@@ -11,20 +11,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.uvc.R;
 
-
-public class UVCDeviceInstructionFragment extends Fragment {
-
-    @Nullable
+public class UVCDeviceInstructionFragment extends UVCDevicePluginBindFragment {
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-                             final Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_uvc_device_instruction, null);
-        return root;
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        setTitle(getString(R.string.uvc_settings_title_uvc_device_instruction));
+        return inflater.inflate(R.layout.fragment_uvc_device_instruction, null);
     }
-
 }

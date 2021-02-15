@@ -14,6 +14,7 @@ import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.util.Log;
 
 import org.deviceconnect.android.libuvc.BuildConfig;
@@ -57,6 +58,41 @@ public class UsbSerialPort {
     private int mTimeout = 1000;
 
     /**
+     * デバイスID.
+     */
+    private final int mDeviceId;
+
+    /**
+     * ベンダーID.
+     */
+    private final int mVendorId;
+
+    /**
+     * プロダクトID.
+     */
+    private final int mProductId;
+
+    /**
+     * デバイス名.
+     */
+    private String mDeviceName;
+
+    /**
+     * シリアルナンバー.
+     */
+    private String mSerialNumber;
+
+    /**
+     * 製造業者名.
+     */
+    private String mManufacturerName;
+
+    /**
+     * バージョン.
+     */
+    private String mVersion;
+
+    /**
      * コンストラクタ.
      *
      * @param manager USB管理クラス
@@ -68,6 +104,20 @@ public class UsbSerialPort {
         }
         mUsbManager = manager;
         mUsbDevice = device;
+
+        mDeviceId = mUsbDevice.getDeviceId();
+        mVendorId = mUsbDevice.getVendorId();
+        mProductId = mUsbDevice.getProductId();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mDeviceName = mUsbDevice.getProductName();
+            mSerialNumber = mUsbDevice.getSerialNumber();
+            mManufacturerName = mUsbDevice.getManufacturerName();
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mVersion = mUsbDevice.getVersion();
+        }
     }
 
     /**
@@ -77,6 +127,81 @@ public class UsbSerialPort {
      */
     public UsbDevice getUsbDevice() {
         return mUsbDevice;
+    }
+
+    /**
+     * デバイス名を取得します.
+     *
+     * Android OS が LOLLIPOP 以下の場合は null を返却します。
+     * USB からデバイス名が取得できなかった場合は null を返却します。
+     *
+     * @return デバイス名
+     */
+    public String getDeviceName() {
+        return mDeviceName;
+    }
+
+    /**
+     * バージョンを取得します.
+     *
+     * Android OS が M 未満の場合は null を返却します。
+     * USB からバージョンが取得できなかった場合は null を返却します。
+     *
+     * @return バージョン
+     */
+    public String getVersion() {
+        return mVersion;
+    }
+
+    /**
+     * 製造業者名を取得します.
+     *
+     * Android OS が LOLLIPOP 以下の場合は null を返却します。
+     * USB から製造業者名が取得できなかった場合は null を返却します。
+     *
+     * @return 製造業者名
+     */
+    public String getManufacturerName() {
+        return mManufacturerName;
+    }
+
+    /**
+     * シリアルナンバーを取得します.
+     *
+     * Android OS が LOLLIPOP 以下の場合は null を返却します。
+     * USB からシリアルナンバーが取得できなかった場合は null を返却します。
+     *
+     * @return シリアルナンバー
+     */
+    public String getSerialNumber() {
+        return mSerialNumber;
+    }
+
+    /**
+     * ベンダー ID を取得します.
+     *
+     * @return ベンダー ID
+     */
+    public int getVendorId() {
+        return mVendorId;
+    }
+
+    /**
+     * プロダクト ID を取得します.
+     *
+     * @return プロダクト ID
+     */
+    public int getProductId() {
+        return mProductId;
+    }
+
+    /**
+     * デバイス ID を取得します.
+     *
+     * @return デバイス ID
+     */
+    public int getDeviceId() {
+        return mDeviceId;
     }
 
     /**
@@ -147,12 +272,7 @@ public class UsbSerialPort {
      * @throws IOException 読み込みに失敗した場合に発生
      */
     public byte[] readDeviceDescriptor() throws IOException {
-        byte[] buf = readDescriptor(UsbConstants.USB_DIR_IN, (1 << 8), 18);
-        if (buf != null) {
-            return buf;
-        } else {
-            throw new IOException("Failed to read a Device descriptor.");
-        }
+        return readDescriptor(UsbConstants.USB_DIR_IN, (1 << 8), 18);
     }
 
     /**
@@ -198,15 +318,8 @@ public class UsbSerialPort {
     private byte[] getConfigurationDescriptor(final int index) throws IOException {
         int requestType = UsbConstants.USB_DIR_IN;
         byte[] buf = readDescriptor(requestType, (2 << 8) | index, 9);
-        if (buf == null) {
-            throw new IOException("Failed to read a Configuration descriptor.");
-        }
-
         int totalLength = (buf[3] & 0xff) << 8 | (buf[2] & 0xff);
         buf = readDescriptor(requestType, (2 << 8) | index, totalLength);
-        if (buf == null) {
-            throw new IOException("Failed to read a all descriptor.");
-        }
         return buf;
     }
 
@@ -241,8 +354,8 @@ public class UsbSerialPort {
             throw new IllegalArgumentException("packet is null.");
         }
 
+        int offset = 0;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            int offset = 0;
             while (offset < packet.length) {
                 int len = mConnection.bulkTransfer(endpoint, packet, offset, packet.length - offset, mTimeout);
                 if (len < 0) {
@@ -250,9 +363,7 @@ public class UsbSerialPort {
                 }
                 offset += len;
             }
-            return offset;
         } else {
-            int offset = 0;
             while (offset < packet.length) {
                 // TODO コピーが遅いので最適化すること
                 byte[] data = new byte[packet.length - offset];
@@ -263,8 +374,8 @@ public class UsbSerialPort {
                 }
                 offset += len;
             }
-            return offset;
         }
+        return offset;
     }
 
     /**

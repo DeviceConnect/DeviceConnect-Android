@@ -12,7 +12,9 @@ public abstract class QueueThread<T> extends Thread {
 
     public synchronized void add(T data) {
         mQueue.offer(data);
-        notifyAll();
+        if (mQueue.size() <= 1) {
+            notifyAll();
+        }
     }
 
     public synchronized T get() throws InterruptedException {

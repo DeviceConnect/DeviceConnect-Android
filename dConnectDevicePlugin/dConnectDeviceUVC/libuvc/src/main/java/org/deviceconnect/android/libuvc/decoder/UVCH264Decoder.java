@@ -24,8 +24,6 @@ import org.deviceconnect.android.libuvc.utils.QueueThread;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * H264をデコードしてSurfaceに描画するクラス.
@@ -228,12 +226,21 @@ class UVCH264Decoder implements UVCDecoder {
         mCsd1.flip();
     }
 
+    /**
+     * MediaCodec でエンコードを行うためのスレッドを開始します.
+     */
     private void startMediaCodec() {
         mWorkThread = new WorkThread();
         mWorkThread.setName("UVC-H264-Decode-Thread");
         mWorkThread.start();
     }
 
+    /**
+     * 指定されたエンコードがハードウェアか確認します.
+     *
+     * @param info エンコーダ情報
+     * @return ハードウェアエンコーダの場合は true、それ以外の場合は false
+     */
     private boolean isHardware(MediaCodecInfo info) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             return info.isHardwareAccelerated();
@@ -243,6 +250,11 @@ class UVCH264Decoder implements UVCDecoder {
         }
     }
 
+    /**
+     * エンコーダの名前を取得します.
+     *
+     * @return エンコーダ名
+     */
     private String getMediaCodecName() {
         String name = null;
         int cnt = MediaCodecList.getCodecCount();
@@ -263,6 +275,9 @@ class UVCH264Decoder implements UVCDecoder {
         return name;
     }
 
+    /**
+     * エンコーダの情報をログに出力します.
+     */
     private void printMediaCodecInfo() {
         int cnt = MediaCodecList.getCodecCount();
         for (int i = 0; i < cnt; i++) {
@@ -322,13 +337,15 @@ class UVCH264Decoder implements UVCDecoder {
      * UVCから送られてきたデータをMediaCodecに渡してデコードを行うスレッド.
      */
     private class WorkThread extends QueueThread<Frame> {
-
+        /**
+         * ソフトウェア使用フラグ.
+         */
         private boolean mUseSoftwareDecoder = false;
 
         @Override
         public void close() {
-            super.close();
             stopMediaCodec();
+            super.close();
         }
 
         @Override
@@ -345,8 +362,10 @@ class UVCH264Decoder implements UVCDecoder {
                 } catch (Exception e) {
                     if (!mUseSoftwareDecoder) {
                         stopMediaCodec();
+
+                        // ハードウェアデコーダで失敗した場合は、
+                        // ソフトウェアデコーダを使用して もう一度エンコードを行う.
                         mUseSoftwareDecoder = true;
-                        Log.e("ABC", "##$$$AA",e );
                     } else {
                         if (DEBUG) {
                             Log.e(TAG, "H264 encode occurred an exception.", e);
@@ -400,12 +419,6 @@ class UVCH264Decoder implements UVCDecoder {
                     mMediaCodec.releaseOutputBuffer(outIndex, true);
                 } else {
                     switch (outIndex) {
-                        case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-                            if (DEBUG) {
-                                Log.d(TAG, "INFO_OUTPUT_BUFFERS_CHANGED");
-                            }
-                            break;
-
                         case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                             if (DEBUG) {
                                 Log.d(TAG, "INFO_OUTPUT_FORMAT_CHANGED");
@@ -417,18 +430,11 @@ class UVCH264Decoder implements UVCDecoder {
                             postSizeChanged(w, h);
                             break;
 
+                        case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
                         case MediaCodec.INFO_TRY_AGAIN_LATER:
                         default:
                             break;
                     }
-                }
-
-                // All decoded frames have been rendered, we can stop playing now
-                if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                    if (DEBUG) {
-                        Log.d(TAG, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
-                    }
-                    break;
                 }
             }
         }

@@ -10,6 +10,7 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Size;
 
+import org.deviceconnect.android.deviceplugin.uvc.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.uvc.util.PropertyUtil;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
@@ -340,14 +341,32 @@ public interface MediaRecorder {
         }
     }
 
+    class ProfileLevel {
+        private final int mProfile;
+        private final int mLevel;
+
+        public ProfileLevel(int profile, int level) {
+            mProfile = profile;
+            mLevel = level;
+        }
+
+        public int getProfile() {
+            return mProfile;
+        }
+
+        public int getLevel() {
+            return mLevel;
+        }
+    }
+
     /**
      * HostMediaRecorder の設定を保持するクラス.
      */
     abstract class Settings {
         private final PropertyUtil mPref;
 
-        public Settings(Context context, MediaRecorder recorder) {
-            mPref = new PropertyUtil(context, recorder.getId());
+        public Settings(Context context, String name) {
+            mPref = new PropertyUtil(context, name);
         }
 
         /**
@@ -522,6 +541,102 @@ public interface MediaRecorder {
         }
 
         /**
+         * ソフトウェアエンコーダを優先的に使用するフラグを確認します.
+         *
+         * @return ソフトウェアエンコーダを優先的に使用する場合は true、それ以外は false
+         */
+        public boolean isUseSoftwareEncoder() {
+            return mPref.getBoolean("preview_use_software_encoder", false);
+        }
+
+        /**
+         * ソフトウェアエンコーダを優先的に使用するフラグを設定します.
+         *
+         * @param used ソフトウェアエンコーダを優先的に使用する場合は true、それ以外は false
+         */
+        public void setUseSoftwareEncoder(boolean used) {
+            mPref.put("preview_use_software_encoder", used);
+        }
+
+        /**
+         * イントラリフレッシュのフレーム数を取得します.
+         *
+         * @return イントラリフレッシュのフレーム数
+         */
+        public Integer getIntraRefresh() {
+            return mPref.getInteger("preview_intra_refresh", 0);
+        }
+
+        /**
+         * イントラリフレッシュのフレーム数を設定します.
+         *
+         * @param refresh イントラリフレッシュのフレーム数
+         */
+        public void setIntraRefresh(Integer refresh) {
+            if (refresh == null) {
+                mPref.remove("preview_intra_refresh");
+            } else {
+                mPref.put("preview_intra_refresh", refresh);
+            }
+        }
+
+        /**
+         * プロファイルとレベルを取得します.
+         *
+         * 未設定の場合には、null を返却します。
+         *
+         * @return プロファイルとレベル
+         */
+        public ProfileLevel getProfileLevel() {
+            Integer profile = mPref.getInteger("preview_profile", null);
+            Integer level = mPref.getInteger("preview_level", null);
+            if (profile != null && level != null) {
+                return new ProfileLevel(profile, level);
+            }
+            return null;
+        }
+
+        /**
+         * プロファイルとレベルを設定します.
+         *
+         * null が設定された場合には、未設定にします。
+         *
+         * サポートされていないプロファイルとレベルが設定された場合には例外を発生します。
+         *
+         * @param pl プロファイルとレベル
+         */
+        public void setProfileLevel(ProfileLevel pl) {
+            if (pl == null) {
+                mPref.remove("preview_profile");
+                mPref.remove("preview_level");
+            } else {
+                if (!isSupportedProfileLevel(pl.getProfile(), pl.getLevel())) {
+                    throw new IllegalArgumentException("profile and level are not supported.");
+                }
+                mPref.put("preview_profile", pl.getProfile());
+                mPref.put("preview_level", pl.getLevel());
+            }
+        }
+
+        /**
+         * 設定されているプロファイルを取得します.
+         *
+         * @return プロファイル
+         */
+        public Integer getProfile() {
+            return mPref.getInteger("preview_profile", 0);
+        }
+
+        /**
+         * 設定されているレベルを取得します.
+         *
+         * @return レベル
+         */
+        public Integer getLevel() {
+            return mPref.getInteger("preview_level", 0);
+        }
+
+        /**
          * プレビューの品質を取得します.
          *
          * @return プレビューの品質
@@ -576,15 +691,24 @@ public interface MediaRecorder {
          * @return サポートしているエンコーダのリスト
          */
         public List<String> getSupportedVideoEncoders() {
-//            List<String> list = new ArrayList<>();
-//            List<String> supported = CapabilityUtil.getSupportedVideoEncoders();
-//            for (VideoEncoderName encoderName : VideoEncoderName.values()) {
-//                if (supported.contains(encoderName.getMimeType())) {
-//                    list.add(encoderName.getName());
-//                }
-//            }
-//            return list;
-            return new ArrayList<>();
+            List<String> list = new ArrayList<>();
+            List<String> supported = CapabilityUtil.getSupportedVideoEncoders();
+            for (VideoEncoderName encoderName : VideoEncoderName.values()) {
+                if (supported.contains(encoderName.getMimeType())) {
+                    list.add(encoderName.getName());
+                }
+            }
+            return list;
+        }
+
+        /**
+         * サポートしているプロファイル・レベルのリストを取得します.
+         *
+         * @return サポートしているプロファイル・レベルのリスト
+         */
+        public List<ProfileLevel> getSupportedProfileLevel() {
+            VideoEncoderName encoderName = getPreviewEncoderName();
+            return CapabilityUtil.getSupportedProfileLevel(encoderName.getMimeType());
         }
 
         /**
@@ -652,6 +776,25 @@ public interface MediaRecorder {
             if (encoderList != null) {
                 for (String e : encoderList) {
                     if (e.equalsIgnoreCase(encoder)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        /**
+         * 指定されたプロファイルとレベルがサポートされているか確認します.
+         *
+         * @param profile プロファイル
+         * @param level レベル
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
+        public boolean isSupportedProfileLevel(int profile, int level) {
+            List<ProfileLevel> list = getSupportedProfileLevel();
+            if (list != null) {
+                for (ProfileLevel pl : list) {
+                    if (profile == pl.getProfile() && level == pl.getLevel()) {
                         return true;
                     }
                 }

@@ -1113,8 +1113,8 @@
             "type": "string"
           },
           {
-            "name": "broadcastURI",
-            "description": "配信先のサーバURI。<br>rtmp://、srt:// のプロトコルに対応",
+            "name": "uri",
+            "description": "配信先のサーバURI。<br>rtmp://、rtmps://、srt:// のプロトコルに対応",
             "in": "query",
             "required": false,
             "type": "string"

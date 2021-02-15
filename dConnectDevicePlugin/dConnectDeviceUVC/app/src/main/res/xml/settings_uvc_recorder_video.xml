@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="@string/uvc_recorder_settings_video"
+        app:iconSpaceReserved="false">
+
+        <ListPreference
+            app:key="camera_picture_size"
+            app:title="@string/uvc_recorder_settings_still_image_resolution"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="camera_preview_size"
+            app:title="@string/uvc_recorder_settings_preview_resolution"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_framerate"
+            app:title="@string/uvc_recorder_settings_framerate"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_i_frame_interval"
+            app:title="@string/uvc_recorder_settings_i_frame_interval"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_bitrate"
+            app:title="@string/uvc_recorder_settings_bitrate"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:iconSpaceReserved="false"
+            app:key="preview_encoder"
+            app:title="@string/uvc_recorder_settings_video_encode"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="preview_profile_level"
+            app:title="@string/uvc_recorder_settings_video_profile_level"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="preview_use_software_encoder"
+            android:title="@string/uvc_recorder_settings_use_software_encode"
+            app:summary="@string/uvc_recorder_settings_use_software_encode_summary"
+            app:iconSpaceReserved="false" />
+
+        <EditTextPreference
+            app:key="preview_intra_refresh"
+            app:title="@string/uvc_recorder_settings_intra_refresh"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/uvc_recorder_settings_motion_jpeg"
+        app:iconSpaceReserved="false">
+
+        <org.deviceconnect.android.deviceplugin.uvc.fragment.preference.SeekBarDialogPreference
+            android:defaultValue="80"
+            android:key="preview_jpeg_quality"
+            android:singleLine="true"
+            android:title="@string/uvc_recorder_settings_jpeg_quality"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+</PreferenceScreen>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="@string/uvc_recorder_settings_broadcast"
+        app:iconSpaceReserved="false">
+
+        <EditTextPreference
+            android:defaultValue="rtmp://localhost:12345"
+            android:singleLine="true"
+            android:title="@string/uvc_recorder_settings_broadcast_uri"
+            app:iconSpaceReserved="false"
+            app:key="broadcast_uri"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

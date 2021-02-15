@@ -5,13 +5,14 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.widget.Toast;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceService;
 import org.deviceconnect.android.deviceplugin.uvc.activity.UVCDevicePluginBindActivity;
+import org.deviceconnect.android.deviceplugin.uvc.activity.UVCSettingsActivity;
 
 public class UVCDevicePluginBindFragment extends Fragment implements UVCDevicePluginBindActivity.OnUVCDevicePluginListener {
     /**
@@ -34,6 +35,21 @@ public class UVCDevicePluginBindFragment extends Fragment implements UVCDevicePl
 
     @Override
     public void onUnbindService() {
+    }
+
+    /**
+     * ActionBar にタイトルを設定します.
+     *
+     * @param title タイトル
+     */
+    public void setTitle(String title) {
+        Activity activity = getActivity();
+        if (activity instanceof UVCSettingsActivity) {
+            ActionBar actionBar = ((UVCSettingsActivity) activity).getSupportActionBar();
+            if (actionBar != null) {
+                actionBar.setTitle(title);
+            }
+        }
     }
 
     /**

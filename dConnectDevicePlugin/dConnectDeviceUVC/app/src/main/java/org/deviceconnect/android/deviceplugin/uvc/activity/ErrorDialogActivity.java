@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.uvc.activity;
 
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -34,7 +33,9 @@ public class ErrorDialogActivity extends Activity {
         Intent intent = getIntent();
         if (intent == null) {
             finish();
+            return;
         }
+
         String title = intent.getStringExtra(PARAM_TITLE);
         String message = intent.getStringExtra(PARAM_MESSAGE);
         if (title == null || message == null) {
@@ -45,12 +46,8 @@ public class ErrorDialogActivity extends Activity {
         builder.setTitle(title);
         builder.setMessage(message);
         builder.setCancelable(true);
-        builder.setPositiveButton(android.R.string.ok, (dialogInterface, i) -> {
-            finish();
-        });
-        builder.setOnCancelListener((dialogInterface) -> {
-            finish();
-        });
+        builder.setPositiveButton(android.R.string.ok, (dialogInterface, i) -> finish());
+        builder.setOnCancelListener((dialogInterface) -> finish());
         builder.create().show();
     }
 
@@ -65,5 +62,4 @@ public class ErrorDialogActivity extends Activity {
     public static void show(final Context context, final String message) {
         show(context, context.getString(R.string.uvc_error_dialog_default_title), message);
     }
-
 }

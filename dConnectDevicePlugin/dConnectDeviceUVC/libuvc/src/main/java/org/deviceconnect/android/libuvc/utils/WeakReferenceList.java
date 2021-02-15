@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class WeakReferenceList<T> implements Iterable<T> {
-    private List<WeakReference<T>> mList = new ArrayList<>();
+    private final List<WeakReference<T>> mList = new ArrayList<>();
 
     public void add(T value) {
         mList.add(new WeakReference<>(value));
@@ -31,7 +31,7 @@ public class WeakReferenceList<T> implements Iterable<T> {
     }
 
     private class ListIterator implements Iterator<T> {
-        private Iterator<WeakReference<T>> mIterator;
+        private final Iterator<WeakReference<T>> mIterator;
         private T mNextValue;
 
         ListIterator() {

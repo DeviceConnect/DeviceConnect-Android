@@ -1,36 +1,44 @@
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_margin="8dp"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_margin="8dp"
-        android:layout_centerInParent="true"
-        android:layout_alignParentLeft="true"
-        android:layout_width="fill_parent"
+    <data>
+
+        <variable
+            name="deviceContainer"
+            type="org.deviceconnect.android.deviceplugin.uvc.fragment.UVCDeviceListFragment.DeviceContainer" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:padding="12dp"
+        android:background="@{deviceContainer.getBackgroundColor()}"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <TextView
             android:id="@+id/device_name"
-            android:text="@string/uvc_settings_default_name"
-            android:textSize="@dimen/text_size_setting_device_name"
-            android:textStyle="bold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="4dp"
+            android:text="@{deviceContainer.name}"
             android:textColor="@color/item_name_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    </LinearLayout>
+            android:textSize="@dimen/text_size_setting_device_name"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/btn_connect_device"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/button_blue"
-        android:layout_margin="8dp"
-        android:text="@string/uvc_settings_connect"
-        android:layout_centerInParent="true"
-        android:layout_alignParentRight="true"
-        android:textColor="#FFFFFF"/>
+        <TextView
+            android:id="@+id/device_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="4dp"
+            android:text="@{deviceContainer.status}"
+            android:textColor="@color/item_name_text"
+            android:textSize="@dimen/text_size_setting_device_status"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/device_name" />
 
-</RelativeLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

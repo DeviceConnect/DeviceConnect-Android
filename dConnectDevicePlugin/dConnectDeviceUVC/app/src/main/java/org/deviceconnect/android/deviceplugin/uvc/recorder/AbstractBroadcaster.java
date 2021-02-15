@@ -88,17 +88,16 @@ public abstract class AbstractBroadcaster implements Broadcaster {
         MediaRecorder recorder = getRecorder();
         MediaRecorder.Settings settings = recorder.getSettings();
 
-        EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
         Size previewSize = settings.getPreviewSize();
         videoQuality.setVideoWidth(previewSize.getWidth());
         videoQuality.setVideoHeight(previewSize.getHeight());
         videoQuality.setBitRate(settings.getPreviewBitRate());
         videoQuality.setFrameRate(settings.getPreviewMaxFrameRate());
         videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());
-//        videoQuality.setUseSoftwareEncoder(settings.isUseSoftwareEncoder());
-//        videoQuality.setIntraRefresh(settings.getIntraRefresh());
-//        videoQuality.setProfile(settings.getProfile());
-//        videoQuality.setLevel(settings.getLevel());
+        videoQuality.setUseSoftwareEncoder(settings.isUseSoftwareEncoder());
+        videoQuality.setIntraRefresh(settings.getIntraRefresh());
+        videoQuality.setProfile(settings.getProfile());
+        videoQuality.setLevel(settings.getLevel());
     }
 
     /**

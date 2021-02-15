@@ -1,30 +1,27 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
-              android:layout_width="fill_parent"
-              android:layout_height="fill_parent"
-              android:orientation="vertical"
-              android:splitMotionEvents="false">
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <TextView
+    <data>
+
+        <variable
+            name="presenter"
+            type="org.deviceconnect.android.deviceplugin.uvc.fragment.UVCDeviceListFragment" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="8sp"
-        android:background="@color/title_background"
-        android:gravity="center"
-        android:text="@string/uvc_settings_title_uvc_device_list"
-        android:textColor="@color/title_text"
-        android:textSize="@dimen/text_size_title" />
-
-    <View style="@style/horizontalLine" />
-
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
         <ListView
             android:id="@+id/device_list_view"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"/>
-    </LinearLayout>
-</LinearLayout>
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:onItemClickListener="@{presenter.onItemClick}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

@@ -3,12 +3,7 @@ package org.deviceconnect.android.deviceplugin.uvc.recorder.mjpeg;
 import android.content.Context;
 import android.util.Size;
 
-import org.deviceconnect.android.deviceplugin.uvc.recorder.AbstractMediaRecorder;
-import org.deviceconnect.android.deviceplugin.uvc.recorder.BroadcasterProvider;
-import org.deviceconnect.android.deviceplugin.uvc.recorder.MediaRecorder;
-import org.deviceconnect.android.deviceplugin.uvc.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.uvc.UvcRecorder;
-import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libuvc.FrameType;
 import org.deviceconnect.android.libuvc.Parameter;
 import org.deviceconnect.android.libuvc.UVCCamera;
@@ -28,29 +23,33 @@ public class UvcMjpgRecorder extends UvcRecorder {
 
     @Override
     protected UvcSettings createSettings() {
-        MjpegSettings mSettings = new MjpegSettings(getContext(), this);
-        if (!mSettings.isInitialized()) {
-            mSettings.setPictureSize(new Size(640, 480));
-            mSettings.setPreviewSize(new Size(640, 480));
-            mSettings.setPreviewBitRate(2 * 1024 * 1024);
-            mSettings.setPreviewMaxFrameRate(30);
-            mSettings.setPreviewKeyFrameInterval(1);
-            mSettings.setPreviewQuality(80);
+        MjpegSettings settings = new MjpegSettings(getContext());
+        if (!settings.isInitialized()) {
+            List<Size> supportPictureSizes = settings.getSupportedPictureSizes();
+            List<Size> supportPreviewSizes = settings.getSupportedPreviewSizes();
 
-            mSettings.setPreviewAudioSource(null);
-            mSettings.setPreviewAudioBitRate(64 * 1024);
-            mSettings.setPreviewSampleRate(16000);
-            mSettings.setPreviewChannel(1);
-            mSettings.setUseAEC(true);
+            settings.setPictureSize(supportPictureSizes.get(0));
+            settings.setPreviewSize(supportPreviewSizes.get(0));
 
-            mSettings.setMjpegPort(11000);
-            mSettings.setMjpegSSLPort(11100);
-            mSettings.setRtspPort(12000);
-            mSettings.setSrtPort(13000);
+            settings.setPreviewBitRate(2 * 1024 * 1024);
+            settings.setPreviewMaxFrameRate(30);
+            settings.setPreviewKeyFrameInterval(1);
+            settings.setPreviewQuality(80);
 
-            mSettings.finishInitialization();
+            settings.setPreviewAudioSource(null);
+            settings.setPreviewAudioBitRate(64 * 1024);
+            settings.setPreviewSampleRate(16000);
+            settings.setPreviewChannel(1);
+            settings.setUseAEC(true);
+
+            settings.setMjpegPort(11000);
+            settings.setMjpegSSLPort(11100);
+            settings.setRtspPort(12000);
+            settings.setSrtPort(13000);
+
+            settings.finishInitialization();
         }
-        return mSettings;
+        return settings;
     }
 
     @Override
@@ -69,8 +68,8 @@ public class UvcMjpgRecorder extends UvcRecorder {
     }
 
     public class MjpegSettings extends UvcSettings {
-        MjpegSettings(Context context, MediaRecorder recorder) {
-            super(context, recorder);
+        MjpegSettings(Context context) {
+            super(context);
         }
 
         @Override

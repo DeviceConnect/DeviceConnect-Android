@@ -66,7 +66,7 @@ public class UvcSurfaceDrawingThread extends EGLSurfaceDrawingThread {
 
             Parameter parameter = settings.getParameter();
             if (parameter == null) {
-                throw new RuntimeException();
+                throw new RuntimeException("UVC parameter not found.");
             }
 
             mPlayer = new UVCPlayer();

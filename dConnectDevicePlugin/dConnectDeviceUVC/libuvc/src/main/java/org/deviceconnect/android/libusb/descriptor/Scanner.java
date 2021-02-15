@@ -17,12 +17,12 @@ public class Scanner {
     /**
      * スキャンする byte 配列.
      */
-    private byte[] mBuffer;
+    private final byte[] mBuffer;
 
     /**
      * スキャンするサイズ.
      */
-    private int mLength;
+    private final int mLength;
 
     /**
      * スキャンしている位置.

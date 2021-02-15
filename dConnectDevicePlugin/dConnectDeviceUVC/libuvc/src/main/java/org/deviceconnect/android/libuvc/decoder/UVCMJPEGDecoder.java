@@ -82,8 +82,6 @@ class UVCMJPEGDecoder implements UVCDecoder {
                 canvas.drawBitmap(bitmap, 0, 0, null);
                 bitmap.recycle();
             }
-        } catch (Throwable t) {
-            // ignore.
         } finally {
             mSurface.unlockCanvasAndPost(canvas);
         }

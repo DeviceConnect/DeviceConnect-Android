@@ -15,16 +15,6 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".activity.UVCServiceListActivity"
-            android:exported="false"
-            android:label="@string/app_name" />
-
-        <activity
-            android:name=".activity.UVCDeviceSettingsActivity"
-            android:exported="false"
-            android:label="@string/app_name" />
-
-        <activity
             android:name=".activity.ErrorDialogActivity"
             android:theme="@style/Theme.Transparent" />
 
@@ -33,9 +23,10 @@
             android:excludeFromRecents="true"
             android:exported="false" />
 
-        <activity android:name=".activity.UVCCameraActivity"
+        <!-- プラグインの設定画面用の Activity -->
+        <activity android:name=".activity.UVCSettingsActivity"
             android:exported="true"
-            android:theme="@style/AppCompatTheme.NoActionBar">
+            android:theme="@style/AppCompatTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

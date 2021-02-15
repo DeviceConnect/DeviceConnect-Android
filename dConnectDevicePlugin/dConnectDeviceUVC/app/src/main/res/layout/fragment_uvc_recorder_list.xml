@@ -1,26 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
         <variable
             name="presenter"
-            type="org.deviceconnect.android.deviceplugin.uvc.fragment.UVCCameraMainFragment.Presenter" />
-
+            type="org.deviceconnect.android.deviceplugin.uvc.fragment.UVCRecorderListFragment" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <org.deviceconnect.android.deviceplugin.uvc.ui.PreviewSurfaceView
-            android:id="@+id/fragment_host_camera_surface_view"
+        <ListView
+            android:id="@+id/recorder_list_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="0dp"
-            android:padding="0dp"
+            android:onItemClickListener="@{presenter.onItemClick}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"

@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 
 import org.deviceconnect.android.deviceplugin.uvc.R;
+import org.deviceconnect.android.deviceplugin.uvc.databinding.FragmentUvcPermissionConfirmationBinding;
 import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
 
 import java.util.List;
@@ -26,7 +27,10 @@ public class PermissionConfirmationFragment extends UVCDevicePluginBindFragment 
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return null;
+        FragmentUvcPermissionConfirmationBinding binding = DataBindingUtil.inflate(inflater,
+                R.layout.fragment_uvc_permission_confirmation, container, false);
+        binding.setPresenter(this);
+        return binding.getRoot();
     }
 
     @Override
@@ -86,13 +90,13 @@ public class PermissionConfirmationFragment extends UVCDevicePluginBindFragment 
      * パーミッションの許可が降りている場合に次の画面に遷移します.
      */
     public void onNextFragment() {
-        findNavController(PermissionConfirmationFragment.this).navigate(R.id.action_permission_to_main);
+        findNavController(this).navigate(R.id.action_permission_to_plugin);
     }
 
     /**
      * パーミッションの許可が降りなかった場合の処理を行います.
      */
     public void onPermissionDeny() {
-
+        findNavController(this).navigate(R.id.action_permission_error_dialog);
     }
 }

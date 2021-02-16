@@ -345,8 +345,10 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             if (index == -1) {
                 index = i;
             }
-            // 配信中を選択するようにする
-            if (camera2Recorder.isBroadcasterRunning() || camera2Recorder.isPreviewRunning()) {
+            // 配信中のレコーダのインデックスを設定する
+            if (camera2Recorder.isBroadcasterRunning()
+                    || camera2Recorder.isPreviewRunning()
+                    || camera2Recorder.getState() == HostMediaRecorder.State.RECORDING) {
                 index = i;
                 break;
             }
@@ -370,7 +372,9 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     private void switchCameraRecorder() {
         if (mMediaRecorder instanceof Camera2Recorder) {
             // カメラが使用されている場合は切り替えられないようにする
-            if (mMediaRecorder.isBroadcasterRunning() || mMediaRecorder.isPreviewRunning()) {
+            if (mMediaRecorder.isBroadcasterRunning()
+                    || mMediaRecorder.isPreviewRunning()
+                    || mMediaRecorder.getState() == HostMediaRecorder.State.RECORDING) {
                 showToast(R.string.host_recorder_running);
                 return;
             }
@@ -425,7 +429,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         postDelay(() -> {
             startEGLSurfaceDrawingThread();
             // 連続で切り替えできなように少し時間を置いてから UI をリフレッシュ
-            postDelay(this::refreshUI, 300);
+            postDelay(this::refreshUI, 400);
         }, 100);
     }
 

@@ -94,9 +94,11 @@ public class UVCDeviceListFragment extends UVCDevicePluginBindFragment {
 
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         DeviceContainer container = mDeviceAdapter.getItem(position);
-        Bundle bundle = new Bundle();
-        bundle.putString("service_id", container.getId());
-        findNavController(UVCDeviceListFragment.this).navigate(R.id.action_service_to_recorder, bundle);
+        if (container.isOnline()) {
+            Bundle bundle = new Bundle();
+            bundle.putString("service_id", container.getId());
+            findNavController(this).navigate(R.id.action_service_to_recorder, bundle);
+        }
     }
 
     public class DeviceContainer {
@@ -116,6 +118,10 @@ public class UVCDeviceListFragment extends UVCDevicePluginBindFragment {
 
         public String getStatus() {
             return mService.isOnline() ? getString(R.string.uvc_settings_online) : getString(R.string.uvc_settings_offline);
+        }
+
+        public boolean isOnline() {
+            return mService.isOnline();
         }
 
         public int getBackgroundColor() {

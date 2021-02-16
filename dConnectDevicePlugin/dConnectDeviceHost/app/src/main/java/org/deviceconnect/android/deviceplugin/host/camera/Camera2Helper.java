@@ -136,10 +136,11 @@ public final class Camera2Helper {
     }
 
     /**
+     * デプスとカメラ映像が排他的か確認します.
      *
-     * @param cameraManager
-     * @param cameraId
-     * @return
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @return 排他的な場合はtrue、それ以外はfalse
      */
     public static boolean exclusiveDepth(final CameraManager cameraManager, final String cameraId) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {

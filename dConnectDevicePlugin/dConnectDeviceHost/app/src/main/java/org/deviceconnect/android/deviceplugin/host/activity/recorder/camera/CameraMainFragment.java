@@ -31,6 +31,7 @@ import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.fragment.HostDevicePluginBindFragment;
 import org.deviceconnect.android.deviceplugin.host.activity.recorder.settings.SettingsActivity;
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
+import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.connection.HostConnectionManager;
 import org.deviceconnect.android.deviceplugin.host.connection.HostTraffic;
 import org.deviceconnect.android.deviceplugin.host.databinding.FragmentHostCameraMainBinding;
@@ -60,7 +61,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     private Surface mSurface;
     private String mRecorderId;
     private int mRecorderIndex = -1;
-    private int mRecorderSize = 0;
     private boolean mDrawFlag = false;
     private boolean mMuted = false;
     private int mSelectedMode = 0;
@@ -311,14 +311,6 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
                 }
             }
             setRecorder(recorders.get(mRecorderIndex).getId());
-
-            // カメラの個数を計算
-            mRecorderSize = 0;
-            for (HostMediaRecorder recorder : recorders) {
-                if (recorder instanceof Camera2Recorder) {
-                    mRecorderSize++;
-                }
-            }
         }
 
         if (mHostConnectionManager != null) {
@@ -353,7 +345,8 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             if (index == -1) {
                 index = i;
             }
-            if (camera2Recorder.getCameraWrapper().isPreview()) {
+            // 配信中を選択するようにする
+            if (camera2Recorder.isBroadcasterRunning() || camera2Recorder.isPreviewRunning()) {
                 index = i;
                 break;
             }
@@ -376,12 +369,19 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
      */
     private void switchCameraRecorder() {
         if (mMediaRecorder instanceof Camera2Recorder) {
-            // カメラが使用されている場合は切り替えられないようにしたい.
+            // カメラが使用されている場合は切り替えられないようにする
+            if (mMediaRecorder.isBroadcasterRunning() || mMediaRecorder.isPreviewRunning()) {
+                showToast(R.string.host_recorder_running);
+                return;
+            }
         }
 
-        mViewModel.setCameraSwitchClickable(false);
-
         List<Camera2Recorder> recorders = getCameraRecorders();
+        if (recorders.isEmpty()) {
+            // 基本的にはありえないがカメラが見つけられなかった場合は処理を行わない。
+            return;
+        }
+        mViewModel.setCameraSwitchClickable(false);
         mRecorderIndex = (mRecorderIndex + 1) % recorders.size();
         setRecorder(recorders.get(mRecorderIndex).getId());
         showToast("[" + (mRecorderIndex + 1) + "/" + recorders.size() + "] " + recorders.get(mRecorderIndex).getName());
@@ -397,7 +397,13 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         HostMediaRecorder[] recorders = mMediaRecorderManager.getRecorders();
         for (HostMediaRecorder recorder : recorders) {
             if (recorder instanceof Camera2Recorder) {
-                recorderList.add((Camera2Recorder) recorder);
+                CameraWrapper cameraWrapper = ((Camera2Recorder) recorder).getCameraWrapper();
+                if (!cameraWrapper.isDepth()) {
+                    recorderList.add((Camera2Recorder) recorder);
+                } else if (!cameraWrapper.isExclusiveDepth()) {
+                    // デプスカメラは排除
+                    recorderList.add((Camera2Recorder) recorder);
+                }
             }
         }
         return recorderList;
@@ -418,7 +424,8 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         // ここでは、停止から少しだけ開始を送らせておきます。
         postDelay(() -> {
             startEGLSurfaceDrawingThread();
-            refreshUI();
+            // 連続で切り替えできなように少し時間を置いてから UI をリフレッシュ
+            postDelay(this::refreshUI, 300);
         }, 100);
     }
 

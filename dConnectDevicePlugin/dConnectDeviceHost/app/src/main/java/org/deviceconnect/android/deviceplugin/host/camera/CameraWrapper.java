@@ -153,6 +153,14 @@ public class CameraWrapper {
         }
     }
 
+    public boolean isDepth() {
+        return Camera2Helper.availableDepth(mCameraManager, mCameraId);
+    }
+
+    public boolean isExclusiveDepth() {
+        return Camera2Helper.exclusiveDepth(mCameraManager, mCameraId);
+    }
+
     public boolean isPreview() {
         return mPreviewSurface != null;
     }

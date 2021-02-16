@@ -23,6 +23,7 @@ public class CameraMainViewModel extends BaseObservable {
     private int mSurfaceVisibility = View.GONE;
     private int mPhotoVisibility = View.GONE;
     private boolean mCameraSwitchClickable = true;
+    private int mRunningVisibility = View.GONE;
 
 
     @Bindable
@@ -135,7 +136,6 @@ public class CameraMainViewModel extends BaseObservable {
         notifyPropertyChanged(BR.surfaceVisibility);
     }
 
-
     @Bindable
     public int getPhotoVisibility() {
         return mPhotoVisibility;
@@ -144,5 +144,15 @@ public class CameraMainViewModel extends BaseObservable {
     public void setPhotoVisibility(int visibility) {
         mPhotoVisibility = visibility;
         notifyPropertyChanged(BR.photoVisibility);
+    }
+
+    @Bindable
+    public int getRunningVisibility() {
+        return mRunningVisibility;
+    }
+
+    public void setRunningVisibility(int visibility) {
+        mRunningVisibility = visibility;
+        notifyPropertyChanged(BR.runningVisibility);
     }
 }

@@ -372,9 +372,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
     private void switchCameraRecorder() {
         if (mMediaRecorder instanceof Camera2Recorder) {
             // カメラが使用されている場合は切り替えられないようにする
-            if (mMediaRecorder.isBroadcasterRunning()
-                    || mMediaRecorder.isPreviewRunning()
-                    || mMediaRecorder.getState() == HostMediaRecorder.State.RECORDING) {
+            if (checkRecorderRunning()) {
                 showToast(R.string.host_recorder_running);
                 return;
             }
@@ -773,6 +771,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         } else {
             mViewModel.setTogglePreviewResId(R.drawable.ic_baseline_tap_and_play_48);
         }
+        setRunningVisibility();
     }
 
     private void setBroadcastButton() {
@@ -785,6 +784,7 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
         } else {
             mViewModel.setToggleBroadcastResId(R.drawable.ic_baseline_cloud_upload_48);
         }
+        setRunningVisibility();
     }
 
     private void setRecordingButton() {
@@ -796,6 +796,21 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
             mViewModel.setToggleRecordingResId(R.drawable.ic_baseline_stop_24);
         } else {
             mViewModel.setToggleRecordingResId(R.drawable.ic_baseline_videocam_48);
+        }
+        setRunningVisibility();
+    }
+
+    private boolean checkRecorderRunning() {
+        return (mMediaRecorder.isBroadcasterRunning()
+                || mMediaRecorder.isPreviewRunning()
+                || mMediaRecorder.getState() == HostMediaRecorder.State.RECORDING);
+    }
+
+    private void setRunningVisibility() {
+        if (checkRecorderRunning()) {
+            mViewModel.setRunningVisibility(View.VISIBLE);
+        } else {
+            mViewModel.setRunningVisibility(View.GONE);
         }
     }
 

@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.uvc;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
@@ -15,6 +16,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import androidx.annotation.NonNull;
+import androidx.preference.PreferenceManager;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.uvc.profile.UVCSystemProfile;
@@ -88,7 +90,7 @@ public class UVCDeviceService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
-        setUseLocalOAuth(false);
+        setUseLocalOAuth(checkUseLocalOAuth());
         init();
         initUVCCameraManager();
     }
@@ -401,8 +403,32 @@ public class UVCDeviceService extends DConnectMessageService {
         }
     }
 
+    /**
+     * ユーザ認可の設定を取得します.
+     *
+     * @return ユーザ認可の設定
+     */
+    private boolean checkUseLocalOAuth() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        return prefs.getBoolean("uvc_settings_auth", false);
+    }
+
+    /**
+     * UVC 接続・切断イベントを通知するリスナー.
+     */
     public interface OnEventListener {
+        /**
+         * UVC が接続したことを通知します.
+         *
+         * @param service 接続した UVC サービス
+         */
         void onConnected(UVCService service);
+
+        /**
+         * UVC が切断されたことを通知します.
+         *
+         * @param service 切断された UVC サービス
+         */
         void onDisconnected(UVCService service);
     }
 }

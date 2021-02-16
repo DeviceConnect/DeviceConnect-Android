@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UvcH264Recorder extends UvcRecorder {
-    private static final String RECORDER_ID = "0";
-    private static final String RECORDER_NAME = "uvc-h264";
+    private static final String RECORDER_ID = "1";
+    private static final String RECORDER_NAME = "h264";
     private static final String RECORDER_MIME_TYPE_MJPEG = "video/x-mjpeg";
 
     public UvcH264Recorder(Context context, UVCCamera camera) {

@@ -5,9 +5,9 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.uvc.profile.UVCMediaStreamRecordingProfile;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.MediaRecorder;
-import org.deviceconnect.android.deviceplugin.uvc.recorder.MediaRecorderManager;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.h264.UvcH264Recorder;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.mjpeg.UvcMjpgRecorder;
+import org.deviceconnect.android.deviceplugin.uvc.recorder.uncompressed.UvcUncompressedRecorder;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.uvc.UvcRecorder;
 import org.deviceconnect.android.libuvc.Parameter;
 import org.deviceconnect.android.libuvc.UVCCamera;
@@ -66,6 +66,7 @@ public class UVCService extends DConnectService {
     private void initRecorders(Context context, UVCCamera camera) {
         boolean hasMJPEG = false;
         boolean hasH264 = false;
+        boolean hasUncompressed = false;
         try {
             Log.d("ABC", "UVCCamera: " + camera.getDeviceName());
             Log.d("ABC", "DeviceId: " + camera.getDeviceId());
@@ -73,6 +74,9 @@ public class UVCService extends DConnectService {
             for (Parameter p : parameters) {
                 Log.d("ABC", p.getFrameType() + " [" + p.hasExtH264() + "]: " + p.getWidth() + "x" + p.getHeight());
                 switch (p.getFrameType()) {
+                    case UNCOMPRESSED:
+                        hasUncompressed = true;
+                        break;
                     case MJPEG:
                         hasMJPEG = true;
                         if (p.hasExtH264()) {
@@ -92,8 +96,13 @@ public class UVCService extends DConnectService {
         if (hasMJPEG) {
             mUvcRecorderList.add(new UvcMjpgRecorder(context, camera));
         }
+
         if (hasH264) {
             mUvcRecorderList.add(new UvcH264Recorder(context, camera));
+        }
+
+        if (hasUncompressed) {
+            mUvcRecorderList.add(new UvcUncompressedRecorder(context, camera));
         }
 
         for (MediaRecorder recorder : mUvcRecorderList) {

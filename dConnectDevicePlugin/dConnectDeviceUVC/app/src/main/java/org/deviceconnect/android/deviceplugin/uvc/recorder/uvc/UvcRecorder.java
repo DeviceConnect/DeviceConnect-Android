@@ -60,6 +60,12 @@ public abstract class UvcRecorder extends AbstractMediaRecorder {
     }
 
     @Override
+    public void onConfigChange() {
+        mUvcBroadcasterProvider.onConfigChange();
+        mUvcPreviewServerProvider.onConfigChange();
+    }
+
+    @Override
     public void requestPermission(MediaRecorder.PermissionCallback callback) {
     }
 

@@ -24,6 +24,7 @@ import org.deviceconnect.android.deviceplugin.uvc.R;
 import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceService;
 import org.deviceconnect.android.deviceplugin.uvc.databinding.FragmentUvcDeviceListBinding;
 import org.deviceconnect.android.deviceplugin.uvc.databinding.ItemUvcDeviceBinding;
+import org.deviceconnect.android.deviceplugin.uvc.service.UVCService;
 import org.deviceconnect.android.service.DConnectService;
 
 import java.util.ArrayList;
@@ -33,6 +34,24 @@ import static androidx.navigation.fragment.NavHostFragment.findNavController;
 
 public class UVCDeviceListFragment extends UVCDevicePluginBindFragment {
     private DeviceAdapter mDeviceAdapter;
+
+    private UVCDeviceService mUVCDeviceService;
+
+    private final UVCDeviceService.OnEventListener mOnEventListener = new UVCDeviceService.OnEventListener() {
+        @Override
+        public void onConnected(UVCService service) {
+            if (mDeviceAdapter != null) {
+                mDeviceAdapter.notifyDataSetChanged();
+            }
+        }
+
+        @Override
+        public void onDisconnected(UVCService service) {
+            if (mDeviceAdapter != null) {
+                mDeviceAdapter.notifyDataSetChanged();
+            }
+        }
+    };
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -55,11 +74,12 @@ public class UVCDeviceListFragment extends UVCDevicePluginBindFragment {
     public void onBindService() {
         List<DeviceContainer> containers = new ArrayList<>();
 
-        UVCDeviceService deviceService = getUVCDeviceService();
-        if (deviceService != null) {
-            for (DConnectService service : deviceService.getServiceProvider().getServiceList()) {
+        mUVCDeviceService = getUVCDeviceService();
+        if (mUVCDeviceService != null) {
+            for (DConnectService service : mUVCDeviceService.getServiceProvider().getServiceList()) {
                 containers.add(new DeviceContainer(service));
             }
+            mUVCDeviceService.addOnEventListener(mOnEventListener);
         }
 
         mDeviceAdapter.setContainers(containers);
@@ -67,6 +87,9 @@ public class UVCDeviceListFragment extends UVCDevicePluginBindFragment {
 
     @Override
     public void onUnbindService() {
+        if (mUVCDeviceService != null) {
+            mUVCDeviceService.removeOnEventListener(mOnEventListener);
+        }
     }
 
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {

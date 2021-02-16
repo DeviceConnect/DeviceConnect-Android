@@ -25,6 +25,7 @@ import org.deviceconnect.android.deviceplugin.uvc.util.UVCRegistry;
 import org.deviceconnect.android.libusb.UsbSerialPortManager;
 import org.deviceconnect.android.libuvc.UVCCamera;
 import org.deviceconnect.android.libuvc.UVCCameraManager;
+import org.deviceconnect.android.libuvc.utils.WeakReferenceList;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
@@ -79,6 +80,11 @@ public class UVCDeviceService extends DConnectMessageService {
      */
     private UVCRegistry mUVCRegistry;
 
+    /**
+     * イベントを通知するリスナーを格納するリスト.
+     */
+    private final WeakReferenceList<OnEventListener> mOnEventListeners = new WeakReferenceList<>();
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -91,6 +97,7 @@ public class UVCDeviceService extends DConnectMessageService {
     public void onDestroy() {
         super.onDestroy();
         disposeUVCCameraManager();
+        mOnEventListeners.clear();
     }
 
     @Override
@@ -151,6 +158,51 @@ public class UVCDeviceService extends DConnectMessageService {
         super.setUseLocalOAuth(a);
     }
 
+    /**
+     * イベントを通知するリスナーを追加します.
+     *
+     * 追加したリスナーは、{@link #removeOnEventListener(OnEventListener)} で削除してください。
+     *
+     * @param listener 追加するリスナー
+     */
+    public void addOnEventListener(OnEventListener listener) {
+        mOnEventListeners.add(listener);
+    }
+
+    /**
+     * イベントを通知するリスナーを削除します.
+     *
+     * @param listener 削除するリスナー
+     */
+    public void removeOnEventListener(OnEventListener listener) {
+        mOnEventListeners.remove(listener);
+    }
+
+    /**
+     * UVC の接続イベントを通知します.
+     *
+     * @param service 接続した UVC サービス
+     */
+    private void postOnConnected(UVCService service) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onConnected(service);
+        }
+    }
+
+    /**
+     * UVC の切断イベントを通知します.
+     *
+     * @param service 切断した UVC サービス
+     */
+    private void postOnDisconnected(UVCService service) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onDisconnected(service);
+        }
+    }
+
+    /**
+     * 初期化処理を行います.
+     */
     private void init() {
         mUVCRegistry = new UVCRegistry(this);
 
@@ -244,6 +296,7 @@ public class UVCDeviceService extends DConnectMessageService {
             service.connect(uvcCamera);
         }
         setSSLContext(service);
+        postOnConnected(service);
     }
 
     private synchronized void disconnectUVCCamera(UVCCamera uvcCamera) {
@@ -251,6 +304,7 @@ public class UVCDeviceService extends DConnectMessageService {
         if (service != null) {
             service.disconnect();
         }
+        postOnDisconnected(service);
     }
 
     private String createUVCServiceId(UVCCamera uvcCamera) {
@@ -345,5 +399,10 @@ public class UVCDeviceService extends DConnectMessageService {
                     (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
                     (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
         }
+    }
+
+    public interface OnEventListener {
+        void onConnected(UVCService service);
+        void onDisconnected(UVCService service);
     }
 }

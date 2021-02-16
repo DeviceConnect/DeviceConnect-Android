@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class UVCSettingsVideoFragment extends UVCSettingsBaseFragment {
+public class UVCSettingsVideoFragment extends UVCSettingsParameterFragment {
     private MediaRecorder mMediaRecorder;
 
     @Override

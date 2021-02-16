@@ -161,6 +161,11 @@ public interface MediaRecorder {
     boolean isMute();
 
     /**
+     * 設定が変更されたことを通知します.
+     */
+    void onConfigChange();
+
+    /**
      * SSL コンテキストの設定を行います.
      *
      * @param sslContext SSL コンテキスト

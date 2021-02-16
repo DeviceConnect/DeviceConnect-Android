@@ -1,4 +1,4 @@
-package org.deviceconnect.android.deviceplugin.uvc.recorder.mjpeg;
+package org.deviceconnect.android.deviceplugin.uvc.recorder.uncompressed;
 
 import android.content.Context;
 import android.util.Size;
@@ -12,18 +12,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UvcMjpgRecorder extends UvcRecorder {
-    private static final String RECORDER_ID = "0";
-    private static final String RECORDER_NAME = "mjpeg";
+public class UvcUncompressedRecorder extends UvcRecorder {
+    private static final String RECORDER_ID = "2";
+    private static final String RECORDER_NAME = "uncompressed";
     private static final String RECORDER_MIME_TYPE_MJPEG = "video/x-mjpeg";
 
-    public UvcMjpgRecorder(Context context, UVCCamera camera) {
+    public UvcUncompressedRecorder(Context context, UVCCamera camera) {
         super(context, camera);
     }
 
     @Override
     protected UvcSettings createSettings() {
-        MjpegSettings settings = new MjpegSettings(getContext());
+        UncompressedSettings settings = new UncompressedSettings(getContext());
         if (!settings.isInitialized()) {
             List<Size> supportPictureSizes = settings.getSupportedPictureSizes();
             List<Size> supportPreviewSizes = settings.getSupportedPreviewSizes();
@@ -42,10 +42,10 @@ public class UvcMjpgRecorder extends UvcRecorder {
             settings.setPreviewChannel(1);
             settings.setUseAEC(true);
 
-            settings.setMjpegPort(11000);
-            settings.setMjpegSSLPort(11100);
-            settings.setRtspPort(12000);
-            settings.setSrtPort(13000);
+            settings.setMjpegPort(11002);
+            settings.setMjpegSSLPort(11102);
+            settings.setRtspPort(12002);
+            settings.setSrtPort(13002);
 
             settings.finishInitialization();
         }
@@ -67,8 +67,8 @@ public class UvcMjpgRecorder extends UvcRecorder {
         return RECORDER_MIME_TYPE_MJPEG;
     }
 
-    public class MjpegSettings extends UvcSettings {
-        MjpegSettings(Context context) {
+    public class UncompressedSettings extends UvcSettings {
+        UncompressedSettings(Context context) {
             super(context);
         }
 
@@ -78,7 +78,7 @@ public class UvcMjpgRecorder extends UvcRecorder {
             try {
                 List<Parameter> parameters = getUVCCamera().getParameter();
                 for (Parameter p : parameters) {
-                    if (p.getFrameType() == FrameType.MJPEG) {
+                    if (p.getFrameType() == FrameType.UNCOMPRESSED) {
                         sizes.add(new Size(p.getWidth(), p.getHeight()));
                     }
                 }
@@ -94,7 +94,7 @@ public class UvcMjpgRecorder extends UvcRecorder {
             try {
                 List<Parameter> parameters = getUVCCamera().getParameter();
                 for (Parameter p : parameters) {
-                    if (p.getFrameType() == FrameType.MJPEG) {
+                    if (p.getFrameType() == FrameType.UNCOMPRESSED) {
                         sizes.add(new Size(p.getWidth(), p.getHeight()));
                     }
                 }
@@ -115,7 +115,7 @@ public class UvcMjpgRecorder extends UvcRecorder {
             Size previewSize = getPreviewSize();
             List<Parameter> parameters = getUVCCamera().getParameter();
             for (Parameter p : parameters) {
-                if (p.getFrameType() == FrameType.MJPEG) {
+                if (p.getFrameType() == FrameType.UNCOMPRESSED) {
                     if (p.getWidth() == previewSize.getWidth() && p.getHeight() == previewSize.getHeight()) {
                         parameter = p;
                         parameter.setUseH264(false);

@@ -53,7 +53,7 @@ public abstract class AudioEncoder extends MediaEncoder {
                         MediaCodecInfo.AudioCapabilities audioCapabilities = caps.getAudioCapabilities();
                         for (int sampleRate : audioCapabilities.getSupportedSampleRates()) {
                             if (sampleRate == audioQuality.getSamplingRate()) {
-                                if (codecInfo == null || codecInfo.getName().startsWith("OMX.")) {
+                                if (codecInfo == null || c.getName().startsWith("OMX.")) {
                                     codecInfo = c;
                                 }
                                 break;

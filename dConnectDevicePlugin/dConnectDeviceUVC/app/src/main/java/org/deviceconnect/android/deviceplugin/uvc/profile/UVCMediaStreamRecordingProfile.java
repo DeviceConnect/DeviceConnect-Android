@@ -246,6 +246,13 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     settings.setPreviewQuality((int) (previewJpegQuality * 100));
                 }
 
+                try {
+                    recorder.onConfigChange();
+                } catch (Exception e) {
+                    MessageUtils.setIllegalDeviceStateError(response, "Failed to change a config.");
+                    return true;
+                }
+
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             }

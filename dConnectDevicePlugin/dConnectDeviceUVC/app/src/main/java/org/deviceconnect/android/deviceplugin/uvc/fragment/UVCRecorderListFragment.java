@@ -47,23 +47,17 @@ public class UVCRecorderListFragment extends UVCDevicePluginBindFragment {
 
     @Override
     public void onBindService() {
-        List<RecorderContainer> containers = new ArrayList<>();
-
         UVCDeviceService deviceService = getUVCDeviceService();
         if (deviceService != null) {
             String serviceId = getServiceId();
             if (serviceId != null) {
                 UVCService service = deviceService.findUVCServiceById(serviceId);
-                for (MediaRecorder recorder : service.getUvcRecorderList()) {
-                    if (recorder instanceof UvcRecorder) {
-                        containers.add(new RecorderContainer(service, (UvcRecorder) recorder));
-                    }
+                if (service != null) {
+                    setTitle(service.getName());
                 }
-                setTitle(service.getName());
             }
         }
-
-        mAdapter.setContainers(containers);
+        mAdapter.setContainers(createRecorderContainerList());
     }
 
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -73,6 +67,27 @@ public class UVCRecorderListFragment extends UVCDevicePluginBindFragment {
         bundle.putString("recorder_id", container.getId());
         bundle.putString("settings_name", container.getSettingsName());
         findNavController(this).navigate(R.id.action_recorder_to_main, bundle);
+    }
+
+    private List<RecorderContainer> createRecorderContainerList() {
+        List<RecorderContainer> containers = new ArrayList<>();
+
+        UVCDeviceService deviceService = getUVCDeviceService();
+        if (deviceService != null) {
+            String serviceId = getServiceId();
+            if (serviceId != null) {
+                UVCService service = deviceService.findUVCServiceById(serviceId);
+                if (service != null) {
+                    for (MediaRecorder recorder : service.getUvcRecorderList()) {
+                        if (recorder instanceof UvcRecorder) {
+                            containers.add(new RecorderContainer(service, (UvcRecorder) recorder));
+                        }
+                    }
+                }
+            }
+        }
+
+        return containers;
     }
 
     private String getServiceId() {

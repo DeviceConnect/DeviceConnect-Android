@@ -15,10 +15,6 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".activity.ErrorDialogActivity"
-            android:theme="@style/Theme.Transparent" />
-
-        <activity
             android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
             android:excludeFromRecents="true"
             android:exported="false" />
@@ -42,14 +38,6 @@
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/org_deviceconnect_android_deviceplugin_uvc" />
-        </service>
-
-        <service
-            android:name="org.deviceconnect.android.message.DConnectLaunchService"
-            android:exported="true">
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin"
-                android:value="enable" />
         </service>
 
         <!-- Device Connect API リクエストのレシーバー -->

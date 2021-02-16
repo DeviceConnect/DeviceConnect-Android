@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.uvc.recorder;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.os.Build;
 import android.util.Size;
 
@@ -666,6 +667,43 @@ public interface MediaRecorder {
                 throw new IllegalArgumentException("quality is over 100.");
             }
             mPref.put("preview_jpeg_quality", quality);
+        }
+
+        /**
+         * 切り抜き範囲を取得します.
+         *
+         * 範囲ば設定されていない場合には、null を返却します.
+         *
+         * @return 切り抜き範囲
+         */
+        public Rect getDrawingRange() {
+            return mPref.getRect("preview_clip_left",
+                    "preview_clip_top",
+                    "preview_clip_right",
+                    "preview_clip_bottom");
+        }
+
+        /**
+         * 切り抜き範囲を設定します.
+         *
+         * 引数に null が指定された場合には、切り抜き範囲を削除します。
+         *
+         * @param rect 切り抜き範囲
+         */
+        public void setDrawingRange(Rect rect) {
+            if (rect == null) {
+                mPref.remove("preview_clip_left");
+                mPref.remove("preview_clip_top");
+                mPref.remove("preview_clip_right");
+                mPref.remove("preview_clip_bottom");
+            } else {
+                mPref.put(
+                        "preview_clip_left",
+                        "preview_clip_top",
+                        "preview_clip_right",
+                        "preview_clip_bottom",
+                        rect);
+            }
         }
 
         /**

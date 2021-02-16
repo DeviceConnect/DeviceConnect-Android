@@ -30,6 +30,7 @@ import org.deviceconnect.android.service.DConnectService;
 import java.util.ArrayList;
 import java.util.List;
 
+import static androidx.navigation.fragment.NavHostFragment.create;
 import static androidx.navigation.fragment.NavHostFragment.findNavController;
 
 public class UVCDeviceListFragment extends UVCDevicePluginBindFragment {
@@ -41,7 +42,7 @@ public class UVCDeviceListFragment extends UVCDevicePluginBindFragment {
         @Override
         public void onConnected(UVCService service) {
             if (mDeviceAdapter != null) {
-                mDeviceAdapter.notifyDataSetChanged();
+                mDeviceAdapter.setContainers(createDeviceContainerList());
             }
         }
 
@@ -72,17 +73,11 @@ public class UVCDeviceListFragment extends UVCDevicePluginBindFragment {
 
     @Override
     public void onBindService() {
-        List<DeviceContainer> containers = new ArrayList<>();
-
         mUVCDeviceService = getUVCDeviceService();
         if (mUVCDeviceService != null) {
-            for (DConnectService service : mUVCDeviceService.getServiceProvider().getServiceList()) {
-                containers.add(new DeviceContainer(service));
-            }
             mUVCDeviceService.addOnEventListener(mOnEventListener);
         }
-
-        mDeviceAdapter.setContainers(containers);
+        mDeviceAdapter.setContainers(createDeviceContainerList());
     }
 
     @Override
@@ -90,6 +85,16 @@ public class UVCDeviceListFragment extends UVCDevicePluginBindFragment {
         if (mUVCDeviceService != null) {
             mUVCDeviceService.removeOnEventListener(mOnEventListener);
         }
+    }
+
+    private List<DeviceContainer> createDeviceContainerList() {
+        List<DeviceContainer> containers = new ArrayList<>();
+        if (mUVCDeviceService != null) {
+            for (DConnectService service : mUVCDeviceService.getServiceProvider().getServiceList()) {
+                containers.add(new DeviceContainer(service));
+            }
+        }
+        return containers;
     }
 
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {

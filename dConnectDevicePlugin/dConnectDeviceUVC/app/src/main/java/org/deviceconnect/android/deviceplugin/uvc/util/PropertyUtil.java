@@ -3,6 +3,7 @@ package org.deviceconnect.android.deviceplugin.uvc.util;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
+import android.util.Log;
 import android.util.Size;
 
 import java.util.Set;
@@ -127,7 +128,7 @@ public final class PropertyUtil {
                 int top = Integer.parseInt(t);
                 int right = Integer.parseInt(r);
                 int bottom = Integer.parseInt(b);
-                if (left > 0 && top > 0 && right > 0 && bottom > 0) {
+                if (left >= 0 && top >= 0 && right >= 0 && bottom >= 0) {
                     return new Rect(left, top, right, bottom);
                 }
             } catch (Exception e) {

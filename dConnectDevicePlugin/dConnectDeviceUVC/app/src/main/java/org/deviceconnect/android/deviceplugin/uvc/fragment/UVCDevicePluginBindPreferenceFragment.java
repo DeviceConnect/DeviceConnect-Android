@@ -56,8 +56,8 @@ public abstract class UVCDevicePluginBindPreferenceFragment extends PreferenceFr
      */
     public void setTitle(String title) {
         Activity activity = getActivity();
-        if (activity instanceof UVCSettingsActivity) {
-            ActionBar actionBar = ((UVCSettingsActivity) activity).getSupportActionBar();
+        if (activity instanceof UVCDevicePluginBindActivity) {
+            ActionBar actionBar = ((UVCDevicePluginBindActivity) activity).getSupportActionBar();
             if (actionBar != null) {
                 actionBar.setTitle(title);
             }

@@ -80,7 +80,7 @@ public class UVCService extends DConnectService {
                     case MJPEG:
                         hasMJPEG = true;
                         if (p.hasExtH264()) {
-                            // Extension Unit を持っていない場合に H264 としては使用できない
+                            // Extension Unit を持っている場合に H264 として使用できる。
                             hasH264 = true;
                         }
                         break;

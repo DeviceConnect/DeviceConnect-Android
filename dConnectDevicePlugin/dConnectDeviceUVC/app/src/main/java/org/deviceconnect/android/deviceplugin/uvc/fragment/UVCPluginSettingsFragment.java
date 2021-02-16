@@ -1,8 +1,6 @@
 package org.deviceconnect.android.deviceplugin.uvc.fragment;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.preference.Preference;
 import androidx.preference.SwitchPreferenceCompat;

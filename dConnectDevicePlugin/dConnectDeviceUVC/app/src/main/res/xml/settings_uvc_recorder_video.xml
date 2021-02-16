@@ -76,4 +76,40 @@
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/uvc_recorder_settings_range_to_cut_out"
+        app:iconSpaceReserved="false">
+
+        <EditTextPreference
+            app:key="preview_clip_left"
+            app:title="@string/uvc_recorder_settings_cut_out_left"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_clip_top"
+            app:title="@string/uvc_recorder_settings_cut_out_top"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_clip_right"
+            app:title="@string/uvc_recorder_settings_cut_out_right"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_clip_bottom"
+            app:title="@string/uvc_recorder_settings_cut_out_bottom"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <PreferenceScreen
+            app:key="preview_clip_reset"
+            app:title="@string/uvc_recorder_settings_cut_out_reset"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
 </PreferenceScreen>

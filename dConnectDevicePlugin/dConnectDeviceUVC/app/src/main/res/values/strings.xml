@@ -1,30 +1,24 @@
 <resources>
     <string name="app_name" translatable="false">UVC (Device Connect Device Plug-in)</string>
-    <string name="uvc_error_dialog_default_title" translatable="false">エラー</string>
-    <string name="uvc_error_message_device_not_supported" translatable="false">USBカメラ {NAME} は下記のフォーマットをサポートしないため利用できません。\n\n - MotionJPEG</string>
 
+    <!-- プラグイン設定画面 -->
     <string name="uvc_settings_uvc_title" translatable="false">UVC プラグイン設定</string>
     <string name="uvc_settings_uvc_auth" translatable="false">ユーザ認可</string>
     <string name="uvc_settings_uvc_auth_description" translatable="false">プラグインにアクセスがあった時に認可用のダイアログを表示します。</string>
     <string name="uvc_settings_uvc_device_instruction" translatable="false">USBカメラとの接続方法</string>
     <string name="uvc_settings_uvc_device_list" translatable="false">USBカメラ一覧</string>
 
+    <!-- 接続説明画面 -->
     <string name="uvc_settings_title_uvc_device_instruction" translatable="false">USBカメラとの接続方法</string>
     <string name="uvc_settings_instruction_uvc_device_connection" translatable="false">端末のUSB端子にUSBカメラを接続してください。\n\n端末からUSBカメラへ電力を充分に供給できない場合には、セルフパワー付USBハブ経由で接続する必要があります。</string>
+
+    <!-- USBカメラ一覧画面 -->
     <string name="uvc_settings_title_uvc_device_list" translatable="false">USBカメラ一覧</string>
-    <string name="uvc_settings_searching" translatable="false">デバイス検索中</string>
-    <string name="uvc_settings_connect" translatable="false">接続</string>
-    <string name="uvc_settings_disconnect" translatable="false">解除</string>
-    <string name="uvc_settings_default_name" translatable="false">Unknown</string>
-    <string name="uvc_settings_connecting_title" translatable="false">USB接続</string>
-    <string name="uvc_settings_connecting_message" translatable="false">%1$sと接続中</string>
-    <string name="uvc_settings_dialog_positive" translatable="false">OK</string>
-    <string name="uvc_settings_dialog_error_title" translatable="false">USB接続エラー</string>
-    <string name="uvc_settings_dialog_error_message" translatable="false">%1$sとの接続に失敗しました</string>
     <string name="uvc_settings_online" translatable="false">ONLINE</string>
     <string name="uvc_settings_offline" translatable="false">OFFLINE</string>
     <string name="uvc_settings_no_device_found" translatable="false">USBカメラが接続されていません。</string>
 
+    <!-- パーミッション画面 -->
     <string name="uvc_plugin_permission_confirm">このアプリで使用する以下のパーミッションを取得する必要があります。\n\n    - 写真と動画の撮影\n    - デバイス内の写真やメディアへのアクセス</string>
     <string name="uvc_plugin_permission_button">パーミッション取得</string>
     <string name="uvc_error_permission_title" translatable="false">パーミッションエラー</string>
@@ -33,6 +27,7 @@
     <string name="uvc_error_negative" translatable="false">いいえ</string>
     <string name="uvc_error_cancel" translatable="false">キャンセル</string>
 
+    <!-- レコーダ設定画面 -->
     <string name="uvc_recorder_settings_title" translatable="false">レコーダ設定</string>
     <string name="uvc_recorder_settings_video" translatable="false">映像設定</string>
     <string name="uvc_recorder_settings_audio" translatable="false">音声設定</string>
@@ -40,6 +35,7 @@
     <string name="uvc_recorder_settings_srt" translatable="false">SRT 設定</string>
     <string name="uvc_recorder_settings_port" translatable="false">ポート設定</string>
 
+    <!-- 映像設定画面 -->
     <string name="uvc_recorder_settings_still_image_resolution" translatable="false">静止画解像度</string>
     <string name="uvc_recorder_settings_preview_resolution" translatable="false">プレビュー解像度</string>
     <string name="uvc_recorder_settings_framerate" translatable="false">フレームレート (fps)</string>
@@ -53,12 +49,20 @@
     <string name="uvc_recorder_settings_intra_refresh" translatable="false">イントラリフレッシュ</string>
     <string name="uvc_recorder_settings_motion_jpeg" translatable="false">MotionJPEG 設定</string>
     <string name="uvc_recorder_settings_jpeg_quality" translatable="false">クオリティ (%)</string>
+    <string name="uvc_recorder_settings_range_to_cut_out">切り抜き範囲</string>
+    <string name="uvc_recorder_settings_cut_out_left">Left</string>
+    <string name="uvc_recorder_settings_cut_out_top">Top</string>
+    <string name="uvc_recorder_settings_cut_out_right">Right</string>
+    <string name="uvc_recorder_settings_cut_out_bottom">Bottom</string>
+    <string name="uvc_recorder_settings_cut_out_reset">リセット</string>
 
+    <!-- ポート設定画面 -->
     <string name="uvc_recorder_settings_port_motion_jpeg" translatable="false">MotionJPEG 設定</string>
     <string name="uvc_recorder_settings_port_rtsp" translatable="false">RTSP 設定</string>
     <string name="uvc_recorder_settings_port_srt" translatable="false">SRT 設定</string>
     <string name="uvc_recorder_settings_port_number" translatable="false">ポート番号</string>
 
+    <!-- 配信設定画面 -->
     <string name="uvc_recorder_settings_broadcast_uri" translatable="false">URL</string>
 
     <!-- 通知用 -->
@@ -82,7 +86,7 @@
     <string name="uvc_notification_recorder_recording">録画 [ %1$s ]</string>
     <string name="uvc_notification_recorder_recording_content">タップして録画を停止します。</string>
 
-
+    <!-- SRT 設定画面 -->
     <string name="uvc_settings_item_srt_peerlatency" translatable="false">SRTO_PEERLATENCY</string>
     <string name="uvc_settings_item_srt_lossmaxttl" translatable="false">SRTO_LOSSMAXTTL</string>
     <string name="uvc_settings_item_srt_oheadbw" translatable="false">SRTO_OHEADBW</string>

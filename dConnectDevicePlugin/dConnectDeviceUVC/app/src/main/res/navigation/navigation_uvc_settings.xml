@@ -110,10 +110,9 @@
 
     </fragment>
 
-
     <dialog
         android:id="@+id/uvc_camera_permission_error_dialog"
-        android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.dialog.ProgressDialogFragment"
+        android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.dialog.PermissionErrorDialogFragment"
         android:label="uvc_camera_permission_error_dialog" />
 
 </navigation>

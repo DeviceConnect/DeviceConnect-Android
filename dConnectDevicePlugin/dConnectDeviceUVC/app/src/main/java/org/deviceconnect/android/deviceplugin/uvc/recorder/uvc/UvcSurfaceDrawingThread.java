@@ -2,9 +2,10 @@ package org.deviceconnect.android.deviceplugin.uvc.recorder.uvc;
 
 import android.graphics.SurfaceTexture;
 import android.util.Log;
+import android.util.Size;
 import android.view.Surface;
 
-import org.deviceconnect.android.deviceplugin.uvc.recorder.uvc.UvcRecorder;
+import org.deviceconnect.android.deviceplugin.uvc.recorder.MediaRecorder;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libuvc.Parameter;
 import org.deviceconnect.android.libuvc.UVCCamera;
@@ -34,6 +35,13 @@ public class UvcSurfaceDrawingThread extends EGLSurfaceDrawingThread {
     }
 
     // EGLSurfaceDrawingThread
+
+    @Override
+    public void start() {
+        MediaRecorder.Settings settings = mRecorder.getSettings();
+        setDrawingRange(settings.getDrawingRange());
+        super.start();
+    }
 
     @Override
     public int getDisplayRotation() {

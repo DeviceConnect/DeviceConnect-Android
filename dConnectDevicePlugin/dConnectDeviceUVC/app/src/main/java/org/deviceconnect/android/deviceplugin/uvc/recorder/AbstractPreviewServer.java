@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.uvc.recorder;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.util.Size;
 
 import org.deviceconnect.android.deviceplugin.uvc.BuildConfig;
@@ -182,9 +183,15 @@ public abstract class AbstractPreviewServer implements PreviewServer {
         MediaRecorder recorder = getRecorder();
         MediaRecorder.Settings settings = recorder.getSettings();
 
-        Size previewSize = settings.getPreviewSize();
-        videoQuality.setVideoWidth(previewSize.getWidth());
-        videoQuality.setVideoHeight(previewSize.getHeight());
+        Rect rect = settings.getDrawingRange();
+        if (rect != null) {
+            videoQuality.setVideoWidth(rect.width());
+            videoQuality.setVideoHeight(rect.height());
+        } else {
+            Size previewSize = settings.getPreviewSize();
+            videoQuality.setVideoWidth(previewSize.getWidth());
+            videoQuality.setVideoHeight(previewSize.getHeight());
+        }
         videoQuality.setBitRate(settings.getPreviewBitRate());
         videoQuality.setFrameRate(settings.getPreviewMaxFrameRate());
         videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());

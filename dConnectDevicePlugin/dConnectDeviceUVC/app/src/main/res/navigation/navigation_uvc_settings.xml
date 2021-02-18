@@ -10,7 +10,7 @@
 
         <action
             android:id="@+id/action_permission_to_plugin"
-            app:destination="@+id/uvc_settings_plugin"
+            app:destination="@id/uvc_settings_plugin"
             app:popUpTo="@id/uvc_settings_permission"
             app:popUpToInclusive="true" />
 
@@ -27,11 +27,11 @@
 
         <action
             android:id="@+id/action_plugin_to_service"
-            app:destination="@+id/uvc_settings_service_list" />
+            app:destination="@id/uvc_settings_service_list" />
 
         <action
             android:id="@+id/action_plugin_to_instruction"
-            app:destination="@+id/uvc_settings_instruction" />
+            app:destination="@id/uvc_settings_instruction" />
 
     </fragment>
 
@@ -50,7 +50,7 @@
 
         <action
             android:id="@+id/action_service_to_recorder"
-            app:destination="@+id/uvc_settings_recorder_list" />
+            app:destination="@id/uvc_settings_recorder_list" />
 
     </fragment>
 
@@ -60,7 +60,7 @@
 
         <action
             android:id="@+id/action_recorder_to_main"
-            app:destination="@+id/uvc_settings_main" />
+            app:destination="@id/uvc_settings_main" />
 
     </fragment>
 
@@ -70,19 +70,19 @@
 
         <action
             android:id="@+id/action_main_to_video"
-            app:destination="@+id/uvc_settings_video" />
+            app:destination="@id/uvc_settings_video" />
 
         <action
             android:id="@+id/action_main_to_srt"
-            app:destination="@+id/uvc_settings_srt" />
+            app:destination="@id/uvc_settings_srt" />
 
         <action
             android:id="@+id/action_main_to_port"
-            app:destination="@+id/uvc_settings_port" />
+            app:destination="@id/uvc_settings_port" />
 
         <action
             android:id="@+id/action_main_to_broadcast"
-            app:destination="@+id/uvc_settings_broadcast" />
+            app:destination="@id/uvc_settings_broadcast" />
 
     </fragment>
 

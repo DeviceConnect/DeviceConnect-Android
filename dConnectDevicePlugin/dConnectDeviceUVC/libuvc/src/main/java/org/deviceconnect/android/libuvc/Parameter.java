@@ -288,6 +288,7 @@ public class Parameter {
                 "  width: " + mWidth + ",\n" +
                 "  height: " + mHeight + ",\n" +
                 "  fps: " + mFps + ",\n" +
+                "  useH264: " + mUseH264 + ",\n" +
                 "  supportedFps: " + toFpsList() + ",\n" +
                 "  extra: " + mExtras + "\n" +
                 "]\n";

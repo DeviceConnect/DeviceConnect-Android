@@ -9,6 +9,7 @@ package org.deviceconnect.android.libuvc.decoder;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.view.Surface;
 
 import org.deviceconnect.android.libuvc.Frame;
@@ -21,6 +22,11 @@ import org.deviceconnect.android.libuvc.UVCCamera;
  * @author NTT DOCOMO, INC.
  */
 class UVCMJPEGDecoder implements UVCDecoder {
+    /**
+     * 描画用の Paint.
+     */
+    private final Paint mPaint = new Paint();
+
     /**
      * 描画先の Surface.
      */
@@ -79,7 +85,7 @@ class UVCMJPEGDecoder implements UVCDecoder {
             int length = frame.getLength();
             Bitmap bitmap = BitmapFactory.decodeByteArray(buffer, 0, length);
             if (bitmap != null) {
-                canvas.drawBitmap(bitmap, 0, 0, null);
+                canvas.drawBitmap(bitmap, 0, 0, mPaint);
                 bitmap.recycle();
             }
         } finally {

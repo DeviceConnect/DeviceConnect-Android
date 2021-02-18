@@ -17,13 +17,18 @@ public class UvcMJPEGPreviewServer extends AbstractMJPEGPreviewServer {
 
     @Override
     protected MJPEGEncoder createSurfaceMJPEGEncoder() {
-        MediaRecorder recorder = getRecorder();
-        if (recorder instanceof UvcH264Recorder) {
-            return new UvcH264toMJPEGEncoder((UvcRecorder) getRecorder());
-        } else if (recorder instanceof UvcMjpgRecorder) {
-            return new UvcMJPEGEncoder((UvcRecorder) getRecorder());
-        } else {
-            return null;
-        }
+        // UvcMJPEGEncoder を使用すると UVC から送られてくる JPEG を
+        // そのまま MJPEG サーバから配信しますが、それだと端末の画面に
+        // 表示する処理が行えないので、MJPEG を一旦 Surface に描画してからエンコードするようにします。
+        return new UvcH264toMJPEGEncoder((UvcRecorder) getRecorder());
+        // 以下の条件分を使用することで、MJPEG をそのまま配信するようになります。
+//        MediaRecorder recorder = getRecorder();
+//        if (recorder instanceof UvcH264Recorder) {
+//            return new UvcH264toMJPEGEncoder((UvcRecorder) getRecorder());
+//        } else if (recorder instanceof UvcMjpgRecorder) {
+//            return new UvcMJPEGEncoder((UvcRecorder) getRecorder());
+//        } else {
+//            return null;
+//        }
     }
 }

@@ -39,6 +39,8 @@ public class UvcSurfaceDrawingThread extends EGLSurfaceDrawingThread {
     @Override
     public void start() {
         MediaRecorder.Settings settings = mRecorder.getSettings();
+        Size previewSize = settings.getPreviewSize();
+        setSize(previewSize.getWidth(), previewSize.getHeight());
         setDrawingRange(settings.getDrawingRange());
         super.start();
     }

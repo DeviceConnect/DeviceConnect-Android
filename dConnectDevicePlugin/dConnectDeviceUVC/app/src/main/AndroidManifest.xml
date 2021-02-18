@@ -11,7 +11,7 @@
     <application
         android:allowBackup="false"
         android:icon="@drawable/dconnect_icon"
-        android:label="@string/app_name"
+        android:label="@string/app_name_uvc"
         android:theme="@style/AppTheme">
 
         <activity
@@ -22,6 +22,7 @@
         <!-- プラグインの設定画面用の Activity -->
         <activity android:name=".activity.UVCSettingsActivity"
             android:exported="true"
+            android:label="@string/app_name_uvc_settings"
             android:theme="@style/AppCompatTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -83,7 +83,7 @@ public class UvcMjpgRecorder extends UvcRecorder {
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                // ignore.
             }
             return sizes;
         }
@@ -99,7 +99,7 @@ public class UvcMjpgRecorder extends UvcRecorder {
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                // ignore.
             }
             return sizes;
         }

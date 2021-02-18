@@ -1,7 +1,5 @@
 package org.deviceconnect.android.deviceplugin.uvc.recorder.uvc;
 
-import android.util.Log;
-
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
 import org.deviceconnect.android.libuvc.Parameter;
 

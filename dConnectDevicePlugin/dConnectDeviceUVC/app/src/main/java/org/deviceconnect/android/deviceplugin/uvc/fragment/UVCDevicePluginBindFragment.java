@@ -23,8 +23,8 @@ public class UVCDevicePluginBindFragment extends Fragment implements UVCDevicePl
     @Override
     public void onResume() {
         super.onResume();
-
         if (isBound()) {
+            // すでに接続されている場合には即座に呼び出す
             onBindService();
         }
     }

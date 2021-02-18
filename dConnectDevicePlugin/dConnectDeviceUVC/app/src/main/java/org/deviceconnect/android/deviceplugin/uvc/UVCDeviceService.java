@@ -327,6 +327,15 @@ public class UVCDeviceService extends DConnectMessageService {
         return null;
     }
 
+    public UVCService getActiveUVCService() {
+        for (DConnectService service : getServiceProvider().getServiceList()) {
+            if (service instanceof UVCService && service.isOnline()) {
+                return (UVCService) service;
+            }
+        }
+        return null;
+    }
+
     // SSL
 
     private void setSSLContext(UVCService service) {

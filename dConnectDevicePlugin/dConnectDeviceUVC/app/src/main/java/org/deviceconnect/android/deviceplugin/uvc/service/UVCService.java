@@ -137,4 +137,11 @@ public class UVCService extends DConnectService {
         }
         return null;
     }
+
+    public UvcRecorder getDefaultRecorder() {
+        if (mUvcRecorderList.isEmpty()) {
+            return null;
+        }
+        return mUvcRecorderList.get(0);
+    }
 }

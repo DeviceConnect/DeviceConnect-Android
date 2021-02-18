@@ -60,8 +60,19 @@ public class UVCRecorderListFragment extends UVCDevicePluginBindFragment {
         mAdapter.setContainers(createRecorderContainerList());
     }
 
+    private String getServiceId() {
+        Bundle args = getArguments();
+        if (args != null) {
+            return args.getString("service_id");
+        }
+        return null;
+    }
+
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        RecorderContainer container = mAdapter.getItem(position);
+        gotoRecorderSettings(mAdapter.getItem(position));
+    }
+
+    private void gotoRecorderSettings(RecorderContainer container) {
         Bundle bundle = new Bundle();
         bundle.putString("service_id", container.getServiceId());
         bundle.putString("recorder_id", container.getId());
@@ -88,14 +99,6 @@ public class UVCRecorderListFragment extends UVCDevicePluginBindFragment {
         }
 
         return containers;
-    }
-
-    private String getServiceId() {
-        Bundle args = getArguments();
-        if (args != null) {
-            return args.getString("service_id");
-        }
-        return null;
     }
 
     public static class RecorderContainer {

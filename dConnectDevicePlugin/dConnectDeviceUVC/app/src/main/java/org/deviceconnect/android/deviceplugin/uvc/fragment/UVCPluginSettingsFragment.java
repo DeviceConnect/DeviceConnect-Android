@@ -1,5 +1,6 @@
 package org.deviceconnect.android.deviceplugin.uvc.fragment;
 
+import android.app.Activity;
 import android.os.Bundle;
 
 import androidx.preference.Preference;
@@ -7,6 +8,7 @@ import androidx.preference.SwitchPreferenceCompat;
 
 import org.deviceconnect.android.deviceplugin.uvc.R;
 import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceService;
+import org.deviceconnect.android.deviceplugin.uvc.activity.UVCSettingsActivity;
 
 import static androidx.navigation.fragment.NavHostFragment.findNavController;
 

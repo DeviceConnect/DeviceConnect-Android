@@ -1,7 +1,6 @@
 package org.deviceconnect.android.deviceplugin.uvc.activity;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 
 import androidx.appcompat.app.ActionBar;

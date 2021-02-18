@@ -35,7 +35,6 @@
 
     </fragment>
 
-
     <fragment
         android:id="@+id/uvc_settings_instruction"
         android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.UVCDeviceInstructionFragment"

@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.uvc.fragment;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -22,6 +23,7 @@ import androidx.databinding.DataBindingUtil;
 
 import org.deviceconnect.android.deviceplugin.uvc.R;
 import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceService;
+import org.deviceconnect.android.deviceplugin.uvc.activity.UVCSettingsActivity;
 import org.deviceconnect.android.deviceplugin.uvc.databinding.FragmentUvcDeviceListBinding;
 import org.deviceconnect.android.deviceplugin.uvc.databinding.ItemUvcDeviceBinding;
 import org.deviceconnect.android.deviceplugin.uvc.service.UVCService;
@@ -100,10 +102,14 @@ public class UVCDeviceListFragment extends UVCDevicePluginBindFragment {
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         DeviceContainer container = mDeviceAdapter.getItem(position);
         if (container.isOnline()) {
-            Bundle bundle = new Bundle();
-            bundle.putString("service_id", container.getId());
-            findNavController(this).navigate(R.id.action_service_to_recorder, bundle);
+            gotoRecorderList(container.getId());
         }
+    }
+
+    private void gotoRecorderList(String serviceId) {
+        Bundle bundle = new Bundle();
+        bundle.putString("service_id", serviceId);
+        findNavController(this).navigate(R.id.action_service_to_recorder, bundle);
     }
 
     public class DeviceContainer {

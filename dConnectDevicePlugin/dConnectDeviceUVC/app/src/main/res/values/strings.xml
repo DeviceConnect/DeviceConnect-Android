@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">UVC (Device Connect Device Plug-in)</string>
+    <string name="app_name_uvc" translatable="false">UVC (Device Connect Device Plug-in)</string>
 
     <!-- プラグイン設定画面 -->
     <string name="uvc_settings_uvc_title" translatable="false">UVC プラグイン設定</string>

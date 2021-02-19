@@ -1,5 +1,6 @@
 package org.deviceconnect.android.deviceplugin.uvc.recorder.uvc;
 
+import android.Manifest;
 import android.content.Context;
 
 import org.deviceconnect.android.deviceplugin.uvc.recorder.AbstractMediaRecorder;
@@ -67,6 +68,7 @@ public abstract class UvcRecorder extends AbstractMediaRecorder {
 
     @Override
     public void requestPermission(MediaRecorder.PermissionCallback callback) {
+        requestPermission(new String[] {Manifest.permission.CAMERA}, callback);
     }
 
     public String getSettingsName() {

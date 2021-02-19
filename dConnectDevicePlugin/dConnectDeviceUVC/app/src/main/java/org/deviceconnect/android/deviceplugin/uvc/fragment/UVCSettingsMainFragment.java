@@ -16,23 +16,32 @@ public class UVCSettingsMainFragment extends UVCSettingsBaseFragment {
 
     @Override
     public boolean onPreferenceTreeClick(final Preference preference) {
-        Bundle args = getArguments();
-        if (args != null) {
-            Bundle bundle = new Bundle();
-            bundle.putString("service_id", getServiceId());
-            bundle.putString("recorder_id", getRecorderId());
-            bundle.putString("settings_name", getSettingsName());
-
+        Bundle arguments = createArguments();
+        if (arguments != null) {
             if ("recorder_settings_video".equals(preference.getKey())) {
-                findNavController(this).navigate(R.id.action_main_to_video, bundle);
+                findNavController(this).navigate(R.id.action_main_to_video, arguments);
             } else if ("recorder_settings_srt".equals(preference.getKey())) {
-                findNavController(this).navigate(R.id.action_main_to_srt, bundle);
+                findNavController(this).navigate(R.id.action_main_to_srt, arguments);
             } else if ("recorder_settings_broadcast".equals(preference.getKey())) {
-                findNavController(this).navigate(R.id.action_main_to_broadcast, bundle);
+                findNavController(this).navigate(R.id.action_main_to_broadcast, arguments);
             } else if ("recorder_settings_port".equals(preference.getKey())) {
-                findNavController(this).navigate(R.id.action_main_to_port, bundle);
+                findNavController(this).navigate(R.id.action_main_to_port, arguments);
             }
         }
         return super.onPreferenceTreeClick(preference);
+    }
+
+    private Bundle createArguments() {
+        String serviceId = getServiceId();
+        String recorderId = getRecorderId();
+        String settingsName = getSettingsName();
+        if (serviceId != null && recorderId != null && settingsName != null) {
+            Bundle bundle = new Bundle();
+            bundle.putString("service_id", serviceId);
+            bundle.putString("recorder_id", recorderId);
+            bundle.putString("settings_name", settingsName);
+            return bundle;
+        }
+        return null;
     }
 }

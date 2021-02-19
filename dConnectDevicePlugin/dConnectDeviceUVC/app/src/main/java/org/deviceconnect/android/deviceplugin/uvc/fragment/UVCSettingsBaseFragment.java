@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.uvc.fragment;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,10 +29,23 @@ public abstract class UVCSettingsBaseFragment extends UVCDevicePluginBindPrefere
 
     @Override
     public void onBindService() {
+        String title = createTitle();
+        if (title != null) {
+            setTitle(title);
+        }
+    }
+
+    private String createTitle() {
         UVCService service = getUVCService();
         if (service != null) {
-            setTitle(service.getName());
+            String title = service.getName();
+            UvcRecorder recorder = getRecorder();
+            if (recorder != null) {
+                title += " - " + recorder.getName();
+            }
+            return title;
         }
+        return null;
     }
 
     public UVCDeviceService getUVCDeviceService() {
@@ -53,31 +67,46 @@ public abstract class UVCSettingsBaseFragment extends UVCDevicePluginBindPrefere
     public UvcRecorder getRecorder() {
         UVCService service = getUVCService();
         if (service != null) {
-            return  service.findUvcRecorderById(getRecorderId());
+            return service.findUvcRecorderById(getRecorderId());
         }
         return null;
     }
 
     public String getServiceId() {
-        Bundle args = getArguments();
-        if (args != null) {
-            return args.getString("service_id");
-        }
-        return null;
+        return getArgs("service_id");
     }
 
     public String getRecorderId() {
+        return getArgs("recorder_id");
+    }
+
+    public String getSettingsName() {
+        return getArgs("settings_name");
+    }
+
+    private String getArgs(String key) {
+        String serviceId = getBundleArgs(key);
+        if (serviceId == null) {
+            serviceId = getIntentArgs(key);
+        }
+        return serviceId;
+    }
+
+    private String getBundleArgs(String key) {
         Bundle args = getArguments();
         if (args != null) {
-            return args.getString("recorder_id");
+            return args.getString(key);
         }
         return null;
     }
 
-    public String getSettingsName() {
-        Bundle args = getArguments();
-        if (args != null) {
-            return args.getString("settings_name");
+    private String getIntentArgs(String key) {
+        Activity a = getActivity();
+        if (a != null) {
+            Intent args = a.getIntent();
+            if (args != null) {
+                return args.getStringExtra(key);
+            }
         }
         return null;
     }

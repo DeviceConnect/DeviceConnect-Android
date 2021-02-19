@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.uvc.fragment;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Size;
 
 import androidx.annotation.NonNull;
@@ -37,6 +38,8 @@ public class UVCSettingsVideoFragment extends UVCSettingsParameterFragment {
         super.onBindService();
 
         mMediaRecorder = getRecorder();
+
+        Log.e("ABC", "#### " + mMediaRecorder);
 
         if (mMediaRecorder == null) {
             return;

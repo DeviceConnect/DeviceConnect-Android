@@ -1002,6 +1002,28 @@ public interface MediaRecorder {
             return list;
         }
 
+        // 配信
+
+        /**
+         * 配信先の URI を取得します.
+         *
+         * 設定されていない場合は null を返却します.
+         *
+         * @return 配信先の URI
+         */
+        public String getBroadcastURI() {
+            return mPref.getString("broadcast_uri", null);
+        }
+
+        /**
+         * 配信先の URI を設定します.
+         *
+         * @param broadcastURI 配信先の URI
+         */
+        public void setBroadcastURI(String broadcastURI) {
+            mPref.put("broadcast_uri", broadcastURI);
+        }
+
         // ポート番号
 
         /**

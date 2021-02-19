@@ -45,6 +45,31 @@ public class UVCDevicePluginBindActivity extends AppCompatActivity {
     }
 
     /**
+     * Manager を起動します.
+     */
+    public void startManager() {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse("gotapi://start/server"));
+        intent.setPackage("org.deviceconnect.android.manager");
+        startActivity(intent);
+    }
+
+    /**
+     * Manager の起動を確認します.
+     *
+     * @return 起動している場合は true、それ以外は false
+     */
+    public boolean isManagerStarted() {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo serviceInfo : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if ("org.deviceconnect.android.manager".equals(serviceInfo.service.getPackageName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * UVC プラグインを取得します.
      *
      * 接続されていない場合は null を返却します。

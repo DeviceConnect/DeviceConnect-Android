@@ -3,15 +3,16 @@ package org.deviceconnect.android.deviceplugin.uvc.recorder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.uvc.recorder.h264.UvcH264Recorder;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.mjpeg.UvcMjpgRecorder;
+import org.deviceconnect.android.deviceplugin.uvc.recorder.uncompressed.UvcUncompressedRecorder;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.uvc.UvcRecorder;
+import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
 import org.deviceconnect.android.libuvc.Parameter;
 import org.deviceconnect.android.libuvc.UVCCamera;
-import org.deviceconnect.android.message.DevicePluginContext;
-import org.deviceconnect.android.provider.FileManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,11 +33,6 @@ public class MediaRecorderManager {
      * ブロードキャスト停止用アクションを定義.
      */
     public static final String ACTION_STOP_BROADCAST = "org.deviceconnect.android.deviceplugin.uvc.STOP_BROADCAST";
-
-    /**
-     * サービスのIDを格納するためのキーを定義.
-     */
-    public static final String KEY_SERVICE_ID = "service_id";
 
     /**
      * レコーダのIDを格納するためのキーを定義.
@@ -60,19 +56,194 @@ public class MediaRecorderManager {
         }
     };
 
+    /**
+     * レコーダのリスト.
+     */
+    private final List<UvcRecorder> mUvcRecorderList = new ArrayList<>();
     private final Context mContext;
+
+    /**
+     * 各レコーダのイベントを通知するためのリスナー.
+     */
+    private final WeakReferenceList<OnEventListener> mOnEventListeners = new WeakReferenceList<>();
 
     /**
      * コンストラクタ.
      *
      * @param context コンテキスト
      */
-    public MediaRecorderManager(final Context context) {
+    public MediaRecorderManager(Context context, UVCCamera uvcCamera) {
         mContext = context;
+        initRecorders(context, uvcCamera);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ACTION_STOP_PREVIEW);
+        filter.addAction(ACTION_STOP_RECORDING);
+        filter.addAction(ACTION_STOP_BROADCAST);
+        mContext.registerReceiver(mBroadcastReceiver, filter);
     }
 
-    private Context getContext() {
-        return mContext;
+    /**
+     * 後始末を行います.
+     */
+    public void destroy() {
+        try {
+            mContext.unregisterReceiver(mBroadcastReceiver);
+        } catch (Exception e) {
+            // ignore.
+        }
+
+        mOnEventListeners.clear();
+
+        for (MediaRecorder recorder : mUvcRecorderList) {
+            try {
+                recorder.destroy();
+            } catch (Exception e) {
+                // ignore.
+            }
+        }
+
+        mUvcRecorderList.clear();
+    }
+
+    /**
+     * レコーダのリストを取得します.
+     *
+     * @return レコーダ
+     */
+    public List<UvcRecorder> getUvcRecorderList() {
+        return mUvcRecorderList;
+    }
+
+    /**
+     * レコーダ ID を指定してレコーダを取得します.
+     *
+     * レコーダが見つからない場合は null を返却します。
+     *
+     * @param id レコーダID
+     * @return レコーダ
+     */
+    public UvcRecorder findUvcRecorderById(String id) {
+        if (id != null) {
+            for (UvcRecorder recorder : getUvcRecorderList()) {
+                if (id.equalsIgnoreCase(recorder.getId())) {
+                    return recorder;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * デフォルトのレコーダを取得します.
+     *
+     * レコーダが存在しない場合には null を返却します。
+     *
+     * @return デフォルトのレコーダ
+     */
+    public UvcRecorder getDefaultRecorder() {
+        if (mUvcRecorderList.isEmpty()) {
+            return null;
+        }
+        return mUvcRecorderList.get(0);
+    }
+
+    /**
+     * レコーダの初期化処理を行います.
+     *
+     * @param context コンテキスト
+     * @param camera UVC デバイス
+     */
+    private void initRecorders(Context context, UVCCamera camera) {
+        boolean hasMJPEG = false;
+        boolean hasH264 = false;
+        boolean hasUncompressed = false;
+        try {
+            Log.d("ABC", "UVCCamera: " + camera.getDeviceName());
+            Log.d("ABC", "DeviceId: " + camera.getDeviceId());
+            List<Parameter> parameters = camera.getParameter();
+            for (Parameter p : parameters) {
+                Log.d("ABC", p.getFrameType() + " [" + p.hasExtH264() + "]: " + p.getWidth() + "x" + p.getHeight());
+                switch (p.getFrameType()) {
+                    case UNCOMPRESSED:
+                        hasUncompressed = true;
+                        break;
+                    case MJPEG:
+                        hasMJPEG = true;
+                        if (p.hasExtH264()) {
+                            // Extension Unit を持っている場合に H264 として使用できる。
+                            hasH264 = true;
+                        }
+                        break;
+                    case H264:
+                        hasH264 = true;
+                        break;
+                }
+            }
+        } catch (IOException e) {
+            // ignore.
+        }
+
+        if (hasMJPEG) {
+            addUvcRecorder(new UvcMjpgRecorder(context, camera));
+        }
+
+        if (hasH264) {
+            addUvcRecorder(new UvcH264Recorder(context, camera));
+        }
+
+        if (hasUncompressed) {
+            addUvcRecorder(new UvcUncompressedRecorder(context, camera));
+        }
+
+        for (MediaRecorder recorder : mUvcRecorderList) {
+            recorder.initialize();
+        }
+    }
+
+    /**
+     * UvcRecorder をリストに追加します.
+     *
+     * @param mediaRecorder 追加するレコーダ
+     */
+    private void addUvcRecorder(UvcRecorder mediaRecorder) {
+        mediaRecorder.setOnEventListener(new MediaRecorder.OnEventListener() {
+            @Override
+            public void onPreviewStarted(List<PreviewServer> servers) {
+                postOnPreviewStarted(mediaRecorder, servers);
+            }
+
+            @Override
+            public void onPreviewStopped() {
+                postOnPreviewStopped(mediaRecorder);
+            }
+
+            @Override
+            public void onPreviewError(Exception e) {
+                postOnPreviewError(mediaRecorder, e);
+            }
+
+            @Override
+            public void onBroadcasterStarted(Broadcaster broadcaster) {
+                postOnBroadcasterStarted(mediaRecorder, broadcaster);
+            }
+
+            @Override
+            public void onBroadcasterStopped(Broadcaster broadcaster) {
+                postOnBroadcasterStopped(mediaRecorder, broadcaster);
+            }
+
+            @Override
+            public void onBroadcasterError(Broadcaster broadcaster, Exception e) {
+                postOnBroadcasterError(mediaRecorder, broadcaster, e);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                postOnError(mediaRecorder, e);
+            }
+        });
+        mUvcRecorderList.add(mediaRecorder);
     }
 
     /**
@@ -81,19 +252,9 @@ public class MediaRecorderManager {
      * @param id レコーダの ID
      */
     private void stopPreviewServer(final String id) {
-        if (id == null) {
-            return;
-        }
-    }
-
-    /**
-     * 指定された ID のレコードの録音・録画を停止します.
-     *
-     * @param id レコードの ID
-     */
-    private void stopRecording(final String id) {
-        if (id == null) {
-            return;
+        MediaRecorder recorder = findUvcRecorderById(id);
+        if (recorder != null) {
+            recorder.stopPreview();
         }
     }
 
@@ -103,8 +264,126 @@ public class MediaRecorderManager {
      * @param id レコードの ID
      */
     private void stopBroadcast(final String id) {
-        if (id == null) {
-            return;
+        MediaRecorder recorder = findUvcRecorderById(id);
+        if (recorder != null) {
+            recorder.stopBroadcaster();
         }
+    }
+
+    /**
+     * 指定された ID のレコードの録音・録画を停止します.
+     *
+     * @param id レコードの ID
+     */
+    private void stopRecording(final String id) {
+    }
+
+    /**
+     * イベント通知用のリスナーを追加します.
+     *
+     * @param listener 追加するリスナー
+     */
+    public void addOnEventListener(OnEventListener listener) {
+        mOnEventListeners.add(listener);
+    }
+
+    /**
+     * イベント通知用のリスナーを削除します.
+     *
+     * @param listener 削除するリスナー
+     */
+    public void removeOnEventListener(OnEventListener listener) {
+        mOnEventListeners.remove(listener);
+    }
+
+    private void postOnPreviewStarted(MediaRecorder recorder, List<PreviewServer> servers) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onPreviewStarted(recorder, servers);
+        }
+    }
+
+    private void postOnPreviewStopped(MediaRecorder recorder) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onPreviewStopped(recorder);
+        }
+    }
+
+    private void postOnPreviewError(MediaRecorder recorder, Exception e) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onPreviewError(recorder, e);
+        }
+    }
+
+    private void postOnBroadcasterStarted(MediaRecorder recorder, Broadcaster broadcaster) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onBroadcasterStarted(recorder, broadcaster);
+        }
+    }
+
+    private void postOnBroadcasterStopped(MediaRecorder recorder, Broadcaster broadcaster) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onBroadcasterStopped(recorder, broadcaster);
+        }
+    }
+
+    private void postOnBroadcasterError(MediaRecorder recorder, Broadcaster broadcaster, Exception e) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onBroadcasterError(recorder, broadcaster, e);
+        }
+    }
+
+//    private void postOnTakePhoto(MediaRecorder recorder, String uri, String filePath, String mimeType) {
+//        for (OnEventListener l : mOnEventListeners) {
+//            l.onTakePhoto(recorder, uri, filePath, mimeType);
+//        }
+//    }
+//
+//    private void postOnRecordingStarted(MediaRecorder recorder, String fileName) {
+//        for (OnEventListener l : mOnEventListeners) {
+//            l.onRecordingStarted(recorder, fileName);
+//        }
+//    }
+//
+//    private void postOnRecordingPause(MediaRecorder recorder) {
+//        for (OnEventListener l : mOnEventListeners) {
+//            l.onRecordingPause(recorder);
+//        }
+//    }
+//
+//    private void postOnRecordingResume(MediaRecorder recorder) {
+//        for (OnEventListener l : mOnEventListeners) {
+//            l.onRecordingResume(recorder);
+//        }
+//    }
+//
+//    private void postOnRecordingStopped(MediaRecorder recorder, String fileName) {
+//        for (OnEventListener l : mOnEventListeners) {
+//            l.onRecordingStopped(recorder, fileName);
+//        }
+//    }
+
+    private void postOnError(MediaRecorder recorder, Exception e) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onError(recorder, e);
+        }
+    }
+
+    public interface OnEventListener {
+        void onPreviewStarted(MediaRecorder recorder, List<PreviewServer> servers);
+        void onPreviewStopped(MediaRecorder recorder);
+        void onPreviewError(MediaRecorder recorder, Exception e);
+
+        void onBroadcasterStarted(MediaRecorder recorder, Broadcaster broadcaster);
+        void onBroadcasterStopped(MediaRecorder recorder, Broadcaster broadcaster);
+        void onBroadcasterError(MediaRecorder recorder, Broadcaster broadcaster, Exception e);
+
+//        void onTakePhoto(MediaRecorder recorder, String uri, String filePath, String mimeType);
+//
+//        void onRecordingStarted(MediaRecorder recorder, String fileName);
+//        void onRecordingPause(MediaRecorder recorder);
+//        void onRecordingResume(MediaRecorder recorder);
+//        void onRecordingStopped(MediaRecorder recorder, String fileName);
+
+        void onError(MediaRecorder recorder, Exception e);
     }
 }

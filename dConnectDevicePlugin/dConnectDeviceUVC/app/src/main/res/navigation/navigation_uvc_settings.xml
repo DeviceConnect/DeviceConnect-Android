@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/uvc_settings_permission"
-        android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.PermissionConfirmationFragment">
+        android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.UVCPermissionConfirmationFragment">
 
         <action
             android:id="@+id/action_permission_to_plugin"

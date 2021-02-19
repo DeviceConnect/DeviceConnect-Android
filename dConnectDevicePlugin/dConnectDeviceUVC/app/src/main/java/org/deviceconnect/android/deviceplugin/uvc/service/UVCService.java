@@ -5,6 +5,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.uvc.profile.UVCMediaStreamRecordingProfile;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.MediaRecorder;
+import org.deviceconnect.android.deviceplugin.uvc.recorder.MediaRecorderManager;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.h264.UvcH264Recorder;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.mjpeg.UvcMjpgRecorder;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.uncompressed.UvcUncompressedRecorder;
@@ -18,8 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UVCService extends DConnectService {
-    private final List<UvcRecorder> mUvcRecorderList = new ArrayList<>();
     private final Context mContext;
+    private MediaRecorderManager mMediaRecorderManager;
 
     public UVCService(Context context, String serviceId) {
         super(serviceId);
@@ -39,7 +40,11 @@ public class UVCService extends DConnectService {
     public synchronized void connect(UVCCamera camera) {
         setName(camera.getDeviceName());
         setOnline(true);
-        initRecorders(mContext, camera);
+
+        if (mMediaRecorderManager != null) {
+            mMediaRecorderManager.destroy();
+        }
+        mMediaRecorderManager = new MediaRecorderManager(mContext, camera);
     }
 
     /**
@@ -47,67 +52,14 @@ public class UVCService extends DConnectService {
      */
     public synchronized void disconnect() {
         setOnline(false);
-        for (MediaRecorder recorder : mUvcRecorderList) {
-            try {
-                recorder.destroy();
-            } catch (Exception e) {
-                // ignore.
-            }
+        if (mMediaRecorderManager != null) {
+            mMediaRecorderManager.destroy();
+            mMediaRecorderManager = null;
         }
-        mUvcRecorderList.clear();
     }
 
-    /**
-     * レコーダの初期化処理を行います.
-     *
-     * @param context コンテキスト
-     * @param camera UVC デバイス
-     */
-    private void initRecorders(Context context, UVCCamera camera) {
-        boolean hasMJPEG = false;
-        boolean hasH264 = false;
-        boolean hasUncompressed = false;
-        try {
-            Log.d("ABC", "UVCCamera: " + camera.getDeviceName());
-            Log.d("ABC", "DeviceId: " + camera.getDeviceId());
-            List<Parameter> parameters = camera.getParameter();
-            for (Parameter p : parameters) {
-                Log.d("ABC", p.getFrameType() + " [" + p.hasExtH264() + "]: " + p.getWidth() + "x" + p.getHeight());
-                switch (p.getFrameType()) {
-                    case UNCOMPRESSED:
-                        hasUncompressed = true;
-                        break;
-                    case MJPEG:
-                        hasMJPEG = true;
-                        if (p.hasExtH264()) {
-                            // Extension Unit を持っている場合に H264 として使用できる。
-                            hasH264 = true;
-                        }
-                        break;
-                    case H264:
-                        hasH264 = true;
-                        break;
-                }
-            }
-        } catch (IOException e) {
-            // ignore.
-        }
-
-        if (hasMJPEG) {
-            mUvcRecorderList.add(new UvcMjpgRecorder(context, camera));
-        }
-
-        if (hasH264) {
-            mUvcRecorderList.add(new UvcH264Recorder(context, camera));
-        }
-
-        if (hasUncompressed) {
-            mUvcRecorderList.add(new UvcUncompressedRecorder(context, camera));
-        }
-
-        for (MediaRecorder recorder : mUvcRecorderList) {
-            recorder.initialize();
-        }
+    public synchronized MediaRecorderManager getMediaRecorderManager() {
+        return mMediaRecorderManager;
     }
 
     /**
@@ -116,7 +68,7 @@ public class UVCService extends DConnectService {
      * @return レコーダ
      */
     public List<UvcRecorder> getUvcRecorderList() {
-        return mUvcRecorderList;
+        return mMediaRecorderManager != null ? mMediaRecorderManager.getUvcRecorderList() : new ArrayList<>();
     }
 
     /**
@@ -128,20 +80,10 @@ public class UVCService extends DConnectService {
      * @return レコーダ
      */
     public UvcRecorder findUvcRecorderById(String id) {
-        if (id != null) {
-            for (UvcRecorder recorder : getUvcRecorderList()) {
-                if (id.equalsIgnoreCase(recorder.getId())) {
-                    return recorder;
-                }
-            }
-        }
-        return null;
+        return mMediaRecorderManager != null ? mMediaRecorderManager.findUvcRecorderById(id) : null;
     }
 
     public UvcRecorder getDefaultRecorder() {
-        if (mUvcRecorderList.isEmpty()) {
-            return null;
-        }
-        return mUvcRecorderList.get(0);
+        return mMediaRecorderManager != null ? mMediaRecorderManager.getDefaultRecorder() : null;
     }
 }

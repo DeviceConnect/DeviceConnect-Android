@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name_uvc" translatable="false">UVC (Device Connect Device Plug-in)</string>
     <string name="app_name_uvc_settings" translatable="false">UVC 設定</string>
-
     <!-- プラグイン設定画面 -->
     <string name="uvc_settings_uvc_title" translatable="false">UVC プラグイン設定</string>
     <string name="uvc_settings_uvc_auth" translatable="false">ユーザ認可</string>
@@ -104,5 +103,8 @@
     <string name="pref_key_settings_srt_conntimeo" translatable="false">pref_key_settings_srt_conntimeo</string>
     <string name="pref_key_settings_srt_peeridletimeo" translatable="false">pref_key_settings_srt_peeridletimeo</string>
     <string name="pref_key_settings_srt_packetfilter" translatable="false">pref_key_settings_srt_packetfilter</string>
+
+    <!-- Manager 起動画面 -->
+    <string name="fragment_uvc_manager_starting_confirm" translatable="false">Device Connect Manager に接続中</string>
 
 </resources>

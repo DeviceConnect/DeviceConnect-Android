@@ -18,7 +18,7 @@ import java.util.List;
 
 import static androidx.navigation.fragment.NavHostFragment.findNavController;
 
-public class PermissionConfirmationFragment extends UVCDevicePluginBindFragment {
+public abstract class PermissionConfirmationFragment extends UVCDevicePluginBindFragment {
     /**
      * パーミッションのリクエストコード.
      */
@@ -81,21 +81,18 @@ public class PermissionConfirmationFragment extends UVCDevicePluginBindFragment 
      */
     public String[] getPermissions() {
         return new String[] {
-                Manifest.permission.CAMERA
+                Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
         };
     }
 
     /**
      * パーミッションの許可が降りている場合に次の画面に遷移します.
      */
-    public void onNextFragment() {
-        findNavController(this).navigate(R.id.action_permission_to_plugin);
-    }
+    public abstract void onNextFragment();
 
     /**
      * パーミッションの許可が降りなかった場合の処理を行います.
      */
-    public void onPermissionDeny() {
-        findNavController(this).navigate(R.id.action_permission_error_dialog);
-    }
+    public abstract void onPermissionDeny();
 }

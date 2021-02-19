@@ -39,8 +39,6 @@ public class UVCSettingsVideoFragment extends UVCSettingsParameterFragment {
 
         mMediaRecorder = getRecorder();
 
-        Log.e("ABC", "#### " + mMediaRecorder);
-
         if (mMediaRecorder == null) {
             return;
         }

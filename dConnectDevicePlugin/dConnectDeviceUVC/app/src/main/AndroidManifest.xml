@@ -23,14 +23,7 @@
         <activity android:name=".activity.UVCSettingsActivity"
             android:exported="true"
             android:label="@string/app_name_uvc_settings"
-            android:theme="@style/AppCompatTheme">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
-        </activity>
+            android:theme="@style/AppCompatTheme" />
 
         <!-- プラグイン本体サービス -->
         <service

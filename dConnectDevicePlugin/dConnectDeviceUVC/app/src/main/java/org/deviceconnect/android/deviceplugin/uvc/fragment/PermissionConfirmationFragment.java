@@ -81,8 +81,7 @@ public abstract class PermissionConfirmationFragment extends UVCDevicePluginBind
      */
     public String[] getPermissions() {
         return new String[] {
-                Manifest.permission.CAMERA,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                Manifest.permission.CAMERA
         };
     }
 

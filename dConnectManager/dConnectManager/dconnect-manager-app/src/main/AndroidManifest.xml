@@ -127,7 +127,13 @@
             android:label="@string/app_name"
             android:theme="@style/AppTheme.AppCompat.Translucent">
         </activity>
-
+        <!-- セキュリティ設定ダイアログ用Activity. -->
+        <activity
+            android:name="org.deviceconnect.android.manager.setting.SecuritySettingDialogActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.AppCompat.Translucent">
+        </activity>
         <!-- キーワード表示用Activity. -->
         <activity
             android:name="org.deviceconnect.android.manager.setting.KeywordDialogActivity"

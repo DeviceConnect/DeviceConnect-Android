@@ -277,4 +277,10 @@
     <string name="fragment_accesslog_delete_accesslog_positive">はい</string>
     <string name="fragment_accesslog_delete_accesslog_negative">いいえ</string>
     <string name="fragment_accesslog_empty">アクセスログがありません</string>
+
+    <!-- ================= Open Security Setting ================= -->
+    <string name="dialog_open_security_setting">セキュリティの設定を開く</string>
+    <string name="dialog_title_security_setting">証明書の手動インストール</string>
+    <string name="dialog_message_security_setting">Android11(R)以降、アプリケーションは認証局(CA)を自動的にインストールできなくなりました。\n\n設定で「セキュリティ＞暗号化と視覚情報＞証明書」のインストールの順に移動します。そこから「CA証明書」を選択肢新しくエクスポートした証明書ファイルを選択します。\n\n証明書は、外部ストレージのダウンロードフォルダにエクスポートしました。</string>
+    <string name="dialog_error_message_not_export_ca">CA証明書の出力に失敗しました</string>
 </resources>

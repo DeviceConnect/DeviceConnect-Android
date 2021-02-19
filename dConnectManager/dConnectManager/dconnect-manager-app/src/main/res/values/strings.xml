@@ -277,4 +277,11 @@
     <string name="fragment_accesslog_delete_accesslog_positive">Yes</string>
     <string name="fragment_accesslog_delete_accesslog_negative">No</string>
     <string name="fragment_accesslog_empty">No Access Log</string>
+
+    <!-- ================= Open Security Setting ================= -->
+    <string name="dialog_open_security_setting">Open the security settings</string>
+    <string name="dialog_title_security_setting">Manual installation of certificates</string>
+    <string name="dialog_message_security_setting">Starting with Android 11(R), applications can no longer automatically install a Certificate Authority (CA).  \n\nIn the settings, go to \"Security＞Encryption and Visual Information＞Install Certificates\". From there, select \"CA Certificates\" and select the newly exported certificate file.\n\nWe exported the certificate to the Downloads folder on our external storage.</string>
+    <string name="dialog_error_message_not_export_ca">Failed to output CA certificate.</string>
+
 </resources>

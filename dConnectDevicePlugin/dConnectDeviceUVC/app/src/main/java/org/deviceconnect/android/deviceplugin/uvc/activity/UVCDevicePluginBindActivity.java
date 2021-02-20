@@ -1,14 +1,10 @@
 package org.deviceconnect.android.deviceplugin.uvc.activity;
 
-import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.net.Uri;
-import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -16,7 +12,7 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceService;
 
-public class UVCDevicePluginBindActivity extends AppCompatActivity {
+public abstract class UVCDevicePluginBindActivity extends AppCompatActivity {
     /**
      * UVC プラグイン.
      */
@@ -28,11 +24,6 @@ public class UVCDevicePluginBindActivity extends AppCompatActivity {
     private boolean mIsBound = false;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
         bindService();
@@ -42,31 +33,6 @@ public class UVCDevicePluginBindActivity extends AppCompatActivity {
     protected void onDestroy() {
         unbindService();
         super.onDestroy();
-    }
-
-    /**
-     * Manager を起動します.
-     */
-    public void startManager() {
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse("gotapi://start/server"));
-        intent.setPackage("org.deviceconnect.android.manager");
-        startActivity(intent);
-    }
-
-    /**
-     * Manager の起動を確認します.
-     *
-     * @return 起動している場合は true、それ以外は false
-     */
-    public boolean isManagerStarted() {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo serviceInfo : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if ("org.deviceconnect.android.manager".equals(serviceInfo.service.getPackageName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -128,20 +94,20 @@ public class UVCDevicePluginBindActivity extends AppCompatActivity {
     /**
      * HostDevicePlugin に接続します.
      */
-    public void bindService() {
+    public synchronized void bindService() {
         if (mIsBound) {
             return;
         }
         mIsBound = true;
 
-        Intent intent = new Intent(this, UVCDeviceService.class);
+        Intent intent = new Intent(getApplicationContext(), UVCDeviceService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
     /**
      * HostDevicePlugin から切断します.
      */
-    public void unbindService() {
+    public synchronized void unbindService() {
         if (mIsBound) {
             mIsBound = false;
             onUnbindService();

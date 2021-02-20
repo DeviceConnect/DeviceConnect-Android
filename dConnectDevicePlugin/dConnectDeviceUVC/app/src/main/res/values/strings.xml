@@ -96,6 +96,7 @@
     <string name="uvc_settings_item_srt_packetfilter" translatable="false">SRTO_PACKETFILTER</string>
     <string name="uvc_setting_srt_option_auto" translatable="false">Auto</string>
 
+    <!-- SRT 設定キー -->
     <string name="pref_key_settings_srt_peerlatency" translatable="false">pref_key_settings_srt_peerlatency</string>
     <string name="pref_key_settings_srt_lossmaxttl" translatable="false">pref_key_settings_srt_lossmaxttl</string>
     <string name="pref_key_settings_srt_oheadbw" translatable="false">pref_key_settings_srt_oheadbw</string>
@@ -103,8 +104,5 @@
     <string name="pref_key_settings_srt_conntimeo" translatable="false">pref_key_settings_srt_conntimeo</string>
     <string name="pref_key_settings_srt_peeridletimeo" translatable="false">pref_key_settings_srt_peeridletimeo</string>
     <string name="pref_key_settings_srt_packetfilter" translatable="false">pref_key_settings_srt_packetfilter</string>
-
-    <!-- Manager 起動画面 -->
-    <string name="fragment_uvc_manager_starting_confirm" translatable="false">Device Connect Manager に接続中</string>
 
 </resources>

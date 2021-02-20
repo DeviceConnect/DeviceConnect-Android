@@ -9,7 +9,11 @@ package org.deviceconnect.android.libuvc.decoder;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.ImageDecoder;
 import android.graphics.Paint;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.Log;
 import android.view.Surface;
 
 import org.deviceconnect.android.libuvc.Frame;

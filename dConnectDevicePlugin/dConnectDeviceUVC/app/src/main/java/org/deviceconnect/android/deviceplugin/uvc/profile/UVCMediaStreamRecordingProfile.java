@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.uvc.profile;
 
 import android.content.Intent;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Size;
 
@@ -75,14 +76,20 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
             public boolean onRequest(final Intent request, final Intent response) {
                 String target = getTarget(request);
 
-                UvcRecorder recorder = getUvcRecorderByTarget(target);
-                if (recorder == null) {
-                    MessageUtils.setNotFoundServiceError(response, target + " is not found.");
+                UVCService service = (UVCService) getService();
+                if (service == null) {
+                    MessageUtils.setNotFoundServiceError(response, "service is not found.");
                     return true;
                 }
 
-                if (!getService().isOnline()) {
+                if (!service.isOnline()) {
                     MessageUtils.setIllegalDeviceStateError(response, "device is not connected.");
+                    return true;
+                }
+
+                UvcRecorder recorder = getUvcRecorderByTarget(target);
+                if (recorder == null) {
+                    MessageUtils.setNotFoundServiceError(response, target + " is not found.");
                     return true;
                 }
 
@@ -114,7 +121,24 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                 String previewLevel = request.getStringExtra("previewLevel");
                 Integer previewIntraRefresh = parseInteger("previewIntraRefresh");
                 Double previewJpegQuality = parseDouble(request, "previewJpegQuality");
+                Integer previewClipLeft = parseInteger(request, "previewClipLeft");
+                Integer previewClipTop = parseInteger(request, "previewClipTop");
+                Integer previewClipRight = parseInteger(request, "previewClipRight");
+                Integer previewClipBottom = parseInteger(request, "previewClipBottom");
+                Boolean previewClipReset = parseBoolean(request, "previewClipReset");
                 MediaRecorder.ProfileLevel profileLevel = null;
+                Rect drawingRect = null;
+
+                UVCService service = (UVCService) getService();
+                if (service == null) {
+                    MessageUtils.setNotFoundServiceError(response, "service is not found.");
+                    return true;
+                }
+
+                if (!service.isOnline()) {
+                    MessageUtils.setIllegalDeviceStateError(response, "device is not connected.");
+                    return true;
+                }
 
                 UvcRecorder recorder = getUvcRecorderByTarget(target);
                 if (recorder == null) {
@@ -124,10 +148,7 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
 
                 MediaRecorder.Settings settings = recorder.getSettings();
 
-                if (!getService().isOnline()) {
-                    MessageUtils.setIllegalDeviceStateError(response, "device is not connected.");
-                    return true;
-                }
+                // 値の妥当性チェック
 
                 if (imageWidth == null && imageHeight != null ||
                         imageWidth != null && imageHeight == null) {
@@ -208,6 +229,62 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     return true;
                 }
 
+                if (previewClipLeft != null || previewClipTop != null
+                        || previewClipRight != null || previewClipBottom != null) {
+
+                    if (previewClipLeft == null) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "previewClipLeft is not set.");
+                        return true;
+                    }
+
+                    if (previewClipTop == null) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "previewClipTop is not set.");
+                        return true;
+                    }
+
+                    if (previewClipRight == null) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "previewClipRight is not set.");
+                        return true;
+                    }
+
+                    if (previewClipBottom == null) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "previewClipBottom is not set.");
+                        return true;
+                    }
+
+                    if (previewClipLeft < 0) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "previewClipLeft cannot set a negative value.");
+                        return true;
+                    }
+
+                    if (previewClipBottom < 0) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "previewClipBottom cannot set a negative value.");
+                        return true;
+                    }
+
+                    if (previewClipLeft >= previewClipRight) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "previewClipLeft is larger than previewClipRight.");
+                        return true;
+                    }
+
+                    if (previewClipTop >= previewClipBottom) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "previewClipTop is larger than previewClipBottom.");
+                        return true;
+                    }
+
+                    drawingRect = new Rect(previewClipLeft, previewClipTop, previewClipRight, previewClipBottom);
+                }
+
+                // 設定
+
                 if (imageWidth != null) {
                     settings.setPictureSize(new Size(imageWidth, imageHeight));
                 }
@@ -246,6 +323,12 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     settings.setPreviewQuality((int) (previewJpegQuality * 100));
                 }
 
+                if (previewClipReset) {
+                    settings.setDrawingRange(null);
+                } else if (drawingRect != null) {
+                    settings.setDrawingRange(drawingRect);
+                }
+
                 try {
                     recorder.onConfigChange();
                 } catch (Exception e) {
@@ -269,14 +352,20 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
             public boolean onRequest(final Intent request, final Intent response) {
                 String target = getTarget(request);
 
-                UvcRecorder recorder = getUvcRecorderByTarget(target);
-                if (recorder == null) {
-                    MessageUtils.setNotFoundServiceError(response, target + " is not found.");
+                UVCService service = (UVCService) getService();
+                if (service == null) {
+                    MessageUtils.setNotFoundServiceError(response, "service is not found.");
                     return true;
                 }
 
-                if (!getService().isOnline()) {
+                if (!service.isOnline()) {
                     MessageUtils.setIllegalDeviceStateError(response, "device is not connected.");
+                    return true;
+                }
+
+                UvcRecorder recorder = getUvcRecorderByTarget(target);
+                if (recorder == null) {
+                    MessageUtils.setNotFoundServiceError(response, target + " is not found.");
                     return true;
                 }
 
@@ -304,14 +393,20 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
             public boolean onRequest(final Intent request, final Intent response) {
                 String target = getTarget(request);
 
-                UvcRecorder recorder = getUvcRecorderByTarget(target);
-                if (recorder == null) {
-                    MessageUtils.setNotFoundServiceError(response, target + " is not found.");
+                UVCService service = (UVCService) getService();
+                if (service == null) {
+                    MessageUtils.setNotFoundServiceError(response, "service is not found.");
                     return true;
                 }
 
-                if (!getService().isOnline()) {
+                if (!service.isOnline()) {
                     MessageUtils.setIllegalDeviceStateError(response, "device is not connected.");
+                    return true;
+                }
+
+                UvcRecorder recorder = getUvcRecorderByTarget(target);
+                if (recorder == null) {
+                    MessageUtils.setNotFoundServiceError(response, target + " is not found.");
                     return true;
                 }
 
@@ -339,14 +434,20 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     return true;
                 }
 
-                UvcRecorder recorder = getUvcRecorderByTarget(target);
-                if (recorder == null) {
-                    MessageUtils.setNotFoundServiceError(response, target + " is not found.");
+                UVCService service = (UVCService) getService();
+                if (service == null) {
+                    MessageUtils.setNotFoundServiceError(response, "service is not found.");
                     return true;
                 }
 
-                if (!getService().isOnline()) {
+                if (!service.isOnline()) {
                     MessageUtils.setIllegalDeviceStateError(response, "device is not connected.");
+                    return true;
+                }
+
+                UvcRecorder recorder = getUvcRecorderByTarget(target);
+                if (recorder == null) {
+                    MessageUtils.setNotFoundServiceError(response, target + " is not found.");
                     return true;
                 }
 
@@ -376,14 +477,20 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
             public boolean onRequest(final Intent request, final Intent response) {
                 String target = getTarget(request);
 
-                UvcRecorder recorder = getUvcRecorderByTarget(target);
-                if (recorder == null) {
-                    MessageUtils.setNotFoundServiceError(response, target + " is not found.");
+                UVCService service = (UVCService) getService();
+                if (service == null) {
+                    MessageUtils.setNotFoundServiceError(response, "service is not found.");
                     return true;
                 }
 
-                if (!getService().isOnline()) {
+                if (!service.isOnline()) {
                     MessageUtils.setIllegalDeviceStateError(response, "device is not connected.");
+                    return true;
+                }
+
+                UvcRecorder recorder = getUvcRecorderByTarget(target);
+                if (recorder == null) {
+                    MessageUtils.setNotFoundServiceError(response, target + " is not found.");
                     return true;
                 }
 
@@ -396,7 +503,7 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
     private UvcRecorder getUvcRecorder() {
         UVCService service = (UVCService) getService();
         if (service != null) {
-            return service.getUvcRecorderList().get(0);
+            return service.getDefaultRecorder();
         }
         return null;
     }

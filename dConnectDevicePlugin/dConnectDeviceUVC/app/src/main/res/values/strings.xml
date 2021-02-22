@@ -49,12 +49,12 @@
     <string name="uvc_recorder_settings_intra_refresh" translatable="false">イントラリフレッシュ</string>
     <string name="uvc_recorder_settings_motion_jpeg" translatable="false">MotionJPEG 設定</string>
     <string name="uvc_recorder_settings_jpeg_quality" translatable="false">クオリティ (%)</string>
-    <string name="uvc_recorder_settings_range_to_cut_out">切り抜き範囲</string>
-    <string name="uvc_recorder_settings_cut_out_left">Left</string>
-    <string name="uvc_recorder_settings_cut_out_top">Top</string>
-    <string name="uvc_recorder_settings_cut_out_right">Right</string>
-    <string name="uvc_recorder_settings_cut_out_bottom">Bottom</string>
-    <string name="uvc_recorder_settings_cut_out_reset">リセット</string>
+    <string name="uvc_recorder_settings_range_to_cut_out" translatable="false">切り抜き範囲</string>
+    <string name="uvc_recorder_settings_cut_out_left" translatable="false">Left</string>
+    <string name="uvc_recorder_settings_cut_out_top" translatable="false">Top</string>
+    <string name="uvc_recorder_settings_cut_out_right" translatable="false">Right</string>
+    <string name="uvc_recorder_settings_cut_out_bottom" translatable="false">Bottom</string>
+    <string name="uvc_recorder_settings_cut_out_reset" translatable="false">リセット</string>
 
     <!-- ポート設定画面 -->
     <string name="uvc_recorder_settings_port_motion_jpeg" translatable="false">MotionJPEG 設定</string>

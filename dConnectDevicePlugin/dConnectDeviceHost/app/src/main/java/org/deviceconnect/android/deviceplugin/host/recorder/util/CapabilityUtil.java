@@ -73,6 +73,54 @@ public final class CapabilityUtil {
     }
 
     /**
+     * 指定されたマイムタイプがサポートしている音声のサンプルレートのリストを取得します.
+     *
+     * @param mimeType マイムタイプ
+     * @return サポートされている音声のサンプルレートのリスト
+     */
+    public static List<Integer> getSupportedSampleRates(String mimeType) {
+        List<Integer> sampleRateList = new ArrayList<>();
+        for (MediaCodecInfo codecInfo : getMediaCodecInfoList()) {
+            if (codecInfo.isEncoder()) {
+                boolean hasMimeType = false;
+                String[] types = codecInfo.getSupportedTypes();
+                for (String type : types) {
+                    if (type.equalsIgnoreCase(mimeType)) {
+                        hasMimeType = true;
+                        break;
+                    }
+                }
+
+                if (hasMimeType) {
+                    try {
+                        MediaCodecInfo.CodecCapabilities caps = codecInfo.getCapabilitiesForType(mimeType);
+                        if (caps != null) {
+                            MediaCodecInfo.AudioCapabilities audioCapabilities = caps.getAudioCapabilities();
+                            for (int s : audioCapabilities.getSupportedSampleRates()) {
+                                if (!sampleRateList.contains(s)) {
+                                    sampleRateList.add(s);
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        // ignore.
+                    }
+                }
+            }
+        }
+        return sampleRateList;
+    }
+
+    /**
+     * サポートされている音声のサンプルレートのリストを取得します.
+     *
+     * @return サポートされている音声のサンプルレートのリスト
+     */
+    public static List<Integer> getSupportedSampleRates() {
+        return getSupportedSampleRates("audio/mp4a-latm");
+    }
+
+    /**
      * サポートされている音声コーデックのリストを取得します.
      *
      * @return サポートされている音声コーデックのリスト

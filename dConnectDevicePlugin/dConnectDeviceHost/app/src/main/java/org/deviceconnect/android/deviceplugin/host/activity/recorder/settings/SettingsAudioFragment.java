@@ -25,12 +25,13 @@ public class SettingsAudioFragment extends SettingsParameterFragment {
         mMediaRecorder = getRecorder();
 
         setPreviewAudioSource(mMediaRecorder.getSettings());
+        setPreviewSampleRate(mMediaRecorder.getSettings());
         setInputTypeNumber("preview_audio_bitrate");
         setInputTypeNumber("preview_audio_channel");
     }
 
     /**
-     * 静止画の解像度の Preference を作成します.
+     * 静止画の解像度の Preference に値を設定します.
      *
      * @param settings レコーダの設定
      */
@@ -58,6 +59,31 @@ public class SettingsAudioFragment extends SettingsParameterFragment {
                             entryValues.add("default");
                             break;
                     }
+                }
+                pref.setEntries(entryNames.toArray(new String[0]));
+                pref.setEntryValues(entryValues.toArray(new String[0]));
+                pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
+            } else {
+                pref.setEnabled(false);
+            }
+        }
+    }
+
+    /**
+     * サンプルレートの Preference に値を設定します.
+     *
+     * @param settings レコーダの設定
+     */
+    private void setPreviewSampleRate(HostMediaRecorder.Settings settings) {
+        ListPreference pref = findPreference("preview_audio_sample_rate");
+        if (pref != null) {
+            List<Integer> list = settings.getSupportedSampleRateList();
+            if (list != null && !list.isEmpty()) {
+                List<String> entryNames = new ArrayList<>();
+                List<String> entryValues = new ArrayList<>();
+                for (Integer sampleRate : list) {
+                    entryNames.add(String.valueOf(sampleRate));
+                    entryValues.add(String.valueOf(sampleRate));
                 }
                 pref.setEntries(entryNames.toArray(new String[0]));
                 pref.setEntryValues(entryValues.toArray(new String[0]));

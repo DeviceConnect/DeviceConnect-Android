@@ -17,13 +17,13 @@ import android.util.Range;
 import android.util.Size;
 import android.view.WindowManager;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
-import androidx.annotation.NonNull;
 
 /**
  * カメラ操作を行うためのユーティリティクラス.
@@ -40,6 +40,57 @@ final class Camera2Helper {
         }
 
         Log.d("Camera2", "---- Camera Info ----");
+
+        int[] capabilities = characteristics.get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES);
+        if (capabilities != null) {
+            Log.e("Camera2", "## REQUEST_AVAILABLE_CAPABILITIES");
+            for (int caps : capabilities) {
+                switch (caps) {
+                    case CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_SECURE_IMAGE_DATA:
+                        Log.e("Camera2", "  REQUEST_AVAILABLE_CAPABILITIES_SECURE_IMAGE_DATA: [" + caps + "]");
+                        break;
+                    case CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_MONOCHROME:
+                        Log.e("Camera2", "  REQUEST_AVAILABLE_CAPABILITIES_MONOCHROME: [" + caps + "]");
+                        break;
+                    case CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_LOGICAL_MULTI_CAMERA:
+                        Log.e("Camera2", "  REQUEST_AVAILABLE_CAPABILITIES_LOGICAL_MULTI_CAMERA: [" + caps + "]");
+                        break;
+                    case CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_MOTION_TRACKING:
+                        Log.e("Camera2", "  REQUEST_AVAILABLE_CAPABILITIES_MOTION_TRACKING: [" + caps + "]");
+                        break;
+                    case CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_CONSTRAINED_HIGH_SPEED_VIDEO:
+                        Log.e("Camera2", "  REQUEST_AVAILABLE_CAPABILITIES_CONSTRAINED_HIGH_SPEED_VIDEO: [" + caps + "]");
+                        break;
+                    case CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_DEPTH_OUTPUT:
+                        Log.e("Camera2", "  REQUEST_AVAILABLE_CAPABILITIES_DEPTH_OUTPUT: [" + caps + "]");
+                        break;
+                    case CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_YUV_REPROCESSING:
+                        Log.e("Camera2", "  REQUEST_AVAILABLE_CAPABILITIES_YUV_REPROCESSING: [" + caps + "]");
+                        break;
+                    case CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_BURST_CAPTURE:
+                        Log.e("Camera2", "  REQUEST_AVAILABLE_CAPABILITIES_BURST_CAPTURE: [" + caps + "]");
+                        break;
+                    case CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_READ_SENSOR_SETTINGS:
+                        Log.e("Camera2", "  REQUEST_AVAILABLE_CAPABILITIES_READ_SENSOR_SETTINGS: [" + caps + "]");
+                        break;
+                    case CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_PRIVATE_REPROCESSING:
+                        Log.e("Camera2", "  REQUEST_AVAILABLE_CAPABILITIES_PRIVATE_REPROCESSING: [" + caps + "]");
+                        break;
+                    case CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_RAW:
+                        Log.e("Camera2", "  REQUEST_AVAILABLE_CAPABILITIES_RAW: [" + caps + "]");
+                        break;
+                    case CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_MANUAL_POST_PROCESSING:
+                        Log.e("Camera2", "  REQUEST_AVAILABLE_CAPABILITIES_MANUAL_POST_PROCESSING: [" + caps + "]");
+                        break;
+                    case CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_MANUAL_SENSOR:
+                        Log.e("Camera2", "  REQUEST_AVAILABLE_CAPABILITIES_MANUAL_SENSOR: [" + caps + "]");
+                        break;
+                    case CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_BACKWARD_COMPATIBLE:
+                        Log.e("Camera2", "  REQUEST_AVAILABLE_CAPABILITIES_BACKWARD_COMPATIBLE: [" + caps + "]");
+                        break;
+                }
+            }
+        }
 
         int[] availableOpticalStabilization = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_OPTICAL_STABILIZATION);
         if (availableOpticalStabilization != null && availableOpticalStabilization.length > 0) {

@@ -114,6 +114,20 @@ public abstract class HostDevicePluginBindFragment extends Fragment implements H
     }
 
     /**
+     * トーストを表示します.
+     *
+     * @param message メッセージ
+     */
+    public void showToast(String message) {
+        runOnUiThread(() -> {
+            Context context = getContext();
+            if (context != null) {
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
      * UI スレッドで Runnable を実行します.
      *
      * @param run 実行する Runnable

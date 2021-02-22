@@ -65,7 +65,7 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
             }
             try {
                 mMJPEGServer.start();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 callback.onFail();
                 return;
             }

@@ -35,6 +35,8 @@
     <string name="host_manager_usage_stats_button">使用履歴画面を開く</string>
     <string name="host_manager_main_button">アプリ起動</string>
 
+    <string name="host_camera_running">撮影中</string>
+    <string name="host_recorder_running">撮影中は他のレコーダに切り替えられません。</string>
     <string name="host_recorder_failed_to_broadcast">ブロードキャストに失敗しました</string>
     <string name="host_recorder_failed_to_start_preview">プレビュー配信に失敗しました</string>
     <string name="host_recorder_failed_to_start_recording">録画に失敗しました</string>

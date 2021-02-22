@@ -1520,7 +1520,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return プレビュー音声のサンプルレート
          */
         public int getPreviewSampleRate() {
-            return mPref.getInteger("preview_audio_sample_rate", 8000);
+            return mPref.getInteger("preview_audio_sample_rate", 16000);
         }
 
         /**
@@ -1528,8 +1528,15 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          *
          * @param sampleRate プレビュー音声のサンプルレート
          */
-        public void setPreviewSampleRate(int sampleRate) {
-            mPref.put("preview_audio_sample_rate", sampleRate);
+        public void setPreviewSampleRate(Integer sampleRate) {
+            if (sampleRate == null) {
+                mPref.remove("preview_audio_sample_rate");
+            } else {
+                if (!isSupportedSampleRate(sampleRate)) {
+                    throw new IllegalArgumentException("preivewSampleRate is invalid.");
+                }
+                mPref.put("preview_audio_sample_rate", sampleRate);
+            }
         }
 
         /**
@@ -1615,6 +1622,33 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
                 }
             }
             return list;
+        }
+
+        /**
+         * サポートしているサンプルレートのリストを取得します.
+         *
+         * @return サポートしているサンプルレートのリスト
+         */
+        public List<Integer> getSupportedSampleRateList() {
+            return CapabilityUtil.getSupportedSampleRates();
+        }
+
+        /**
+         * 指定されたサンプルレートがサポートされているか確認します.
+         *
+         * @param sampleRate サンプルレート
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
+        public boolean isSupportedSampleRate(int sampleRate) {
+            List<Integer> sampleRates = getSupportedSampleRateList();
+            if (sampleRates != null) {
+                for (Integer s : sampleRates) {
+                    if (s == sampleRate) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         // 配信

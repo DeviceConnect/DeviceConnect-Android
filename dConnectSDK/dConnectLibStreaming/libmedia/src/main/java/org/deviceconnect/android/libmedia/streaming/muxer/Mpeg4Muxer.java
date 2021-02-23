@@ -19,6 +19,11 @@ public class Mpeg4Muxer implements IMediaMuxer {
     private boolean mVideoEnabled = false;
     private boolean mAudioEnabled = false;
 
+    /**
+     * エンコード開始時間.
+     */
+    private long mPresentationTimeUs;
+
     private final Object mLockObject = new Object();
 
     public Mpeg4Muxer(String outputPath) {
@@ -36,6 +41,7 @@ public class Mpeg4Muxer implements IMediaMuxer {
         mMuxerStarted = false;
         mVideoEnabled = videoQuality != null;
         mAudioEnabled = audioQuality != null;
+        mPresentationTimeUs = 0;
         return true;
     }
 
@@ -49,7 +55,7 @@ public class Mpeg4Muxer implements IMediaMuxer {
                 try {
                     mLockObject.wait(5000);
                 } catch (Exception e) {
-                    return;
+                    // ignore.
                 }
             }
         }
@@ -81,7 +87,7 @@ public class Mpeg4Muxer implements IMediaMuxer {
                 try {
                     mLockObject.wait(5000);
                 } catch (Exception e) {
-                    return;
+                    // ignore.
                 }
             }
         }
@@ -119,6 +125,13 @@ public class Mpeg4Muxer implements IMediaMuxer {
             }
             mMuxer = null;
         }
+    }
+
+    private long getPresentationTime(MediaCodec.BufferInfo bufferInfo) {
+        if (mPresentationTimeUs == 0) {
+            mPresentationTimeUs = bufferInfo.presentationTimeUs;
+        }
+        return bufferInfo.presentationTimeUs - mPresentationTimeUs;
     }
 
     private synchronized void startMixer() {

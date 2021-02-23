@@ -28,7 +28,6 @@ import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
-import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.AudioStream;
@@ -240,20 +239,12 @@ public class MainActivity extends AppCompatActivity {
                 VideoStream videoStream;
                 if (mimeType.equalsIgnoreCase("video/hevc")) {
                     videoStream = new CameraH265VideoStream(mCameraSurfaceDrawingThread);
-                    videoStream.setDestinationPort(5006);
-                    if (mStreamingRecorder != null) {
-                        EGLSurfaceBase eglSurfaceBase = mCameraSurfaceDrawingThread.createEGLSurfaceBase(mStreamingRecorder.getSurface());
-                        eglSurfaceBase.setTag(mStreamingRecorder.getSurface());
-                        mCameraSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
-                    }
                 } else {
                     videoStream = new CameraH264VideoStream(mCameraSurfaceDrawingThread);
-                    videoStream.setDestinationPort(5006);
-                    if (mStreamingRecorder != null) {
-                        EGLSurfaceBase eglSurfaceBase = mCameraSurfaceDrawingThread.createEGLSurfaceBase(mStreamingRecorder.getSurface());
-                        eglSurfaceBase.setTag(mStreamingRecorder.getSurface());
-                        mCameraSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
-                    }
+                }
+                videoStream.setDestinationPort(5006);
+                if (mStreamingRecorder != null) {
+                    mCameraSurfaceDrawingThread.addEGLSurfaceBase(mStreamingRecorder.getSurface());
                 }
 
                 boolean swap = mCameraSurfaceDrawingThread.isSwappedDimensions();

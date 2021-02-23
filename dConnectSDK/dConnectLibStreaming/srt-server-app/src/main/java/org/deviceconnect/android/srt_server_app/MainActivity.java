@@ -265,6 +265,33 @@ public class MainActivity extends AppCompatActivity {
                     if (mSettings.isAudioEnabled()) {
                         MicAACLATMEncoder audioEncoder = new MicAACLATMEncoder();
                         audioEncoder.setMute(false);
+//                        audioEncoder.setFilter(new MicAACLATMEncoder.Filter() {
+//                            float coef = 0.1f;
+//                            private int tmp;
+//
+//                            private int calcLowPassFilter(int a, int b) {
+//                                return (int) (coef * a + (1.0f - coef) * b);
+//                            }
+//
+//                            @Override
+//                            public void onPrepare(int bufferSize) {
+//                                tmp = 0;
+//                            }
+//
+//                            @Override
+//                            public void onProcessing(ByteBuffer src, int len, ByteBuffer dst) {
+//                                ShortBuffer sb = src.asShortBuffer();
+//                                for (int i = 0; i < sb.limit(); i += 2) {
+//                                    int t = sb.get();
+//                                    dst.asShortBuffer().put((short) calcLowPassFilter(t, tmp));
+//                                    tmp = t;
+//                                }
+//                            }
+//
+//                            @Override
+//                            public void onRelease() {
+//                            }
+//                        });
 
                         AudioQuality audioQuality = audioEncoder.getAudioQuality();
                         audioQuality.setBitRate(mSettings.getAudioBitRate());
@@ -348,9 +375,6 @@ public class MainActivity extends AppCompatActivity {
 
         mCamera2 = Camera2WrapperManager.createCamera(getApplicationContext(), facing);
         mCamera2.getSettings().setPreviewSize(new Size(cameraWidth, cameraHeight));
-
-        Log.e("ABC", "## " + mCameraView.getHolder().getSurface()
-        );
 
         mCameraSurfaceDrawingThread = new CameraSurfaceDrawingThread(mCamera2);
         mCameraSurfaceDrawingThread.addEGLSurfaceBase(mCameraView.getHolder().getSurface());

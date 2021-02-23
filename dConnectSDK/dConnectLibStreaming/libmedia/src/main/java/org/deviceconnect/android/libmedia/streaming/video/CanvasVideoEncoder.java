@@ -14,14 +14,14 @@ public abstract class CanvasVideoEncoder extends SurfaceVideoEncoder {
     private static final String TAG = "CANVAS";
 
     /**
+     * 映像のエンコード設定.
+     */
+    private final VideoQuality mVideoQuality;
+
+    /**
      * Canvas 描画用のスレッド.
      */
     private DrawThread mThread;
-
-    /**
-     * 映像のエンコード設定.
-     */
-    private VideoQuality mVideoQuality;
 
     /**
      * コンストラクタ.

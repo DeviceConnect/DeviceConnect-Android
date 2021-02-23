@@ -7,7 +7,6 @@ import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread
 import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
@@ -67,12 +66,10 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     private final EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
         @Override
         public void onStarted() {
-            MJPEGQuality quality = getMJPEGQuality();
-            mSurfaceDrawingThread.addEGLSurfaceBase(quality.getWidth(), quality.getHeight(), TAG_SURFACE);
             try {
                 prepare();
                 startRecording();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 postOnError(new MJPEGEncoderException(e));
             }
         }
@@ -109,43 +106,39 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
         mInternalCreateSurfaceDrawingThread = false;
     }
 
-    /**
-     * エンコードを開始します.
-     */
-    public synchronized void start() {
+    @Override
+    public void start() {
         startDrawingThreadInternal();
     }
 
-    /**
-     * エンコードを停止します.
-     */
-    public synchronized void stop() {
+    @Override
+    public void stop() {
         stopDrawingThreadInternal();
     }
 
     /**
      * エンコーダーの準備を行います.
-     *
-     * @throws IOException エンコーダーの準備に失敗した場合に発生
      */
-    protected abstract void prepare() throws IOException;
+    protected void prepare() {
+    }
 
     /**
      * エンコードを開始します.
-     *
-     * @throws IOException 開始に失敗した場合に発生
      */
-    protected abstract void startRecording() throws IOException;
+    protected void startRecording() {
+    }
 
     /**
      * エンコードを停止します.
      */
-    protected abstract void stopRecording();
+    protected void stopRecording() {
+    }
 
     /**
      * エンコーダーの破棄処理を行います.
      */
-    protected abstract void release();
+    protected void release() {
+    }
 
     /**
      * SurfaceDrawingThread が動作している確認します.
@@ -170,7 +163,7 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     /**
      * Surface への描画スレッドを開始します。
      */
-    private void startDrawingThreadInternal() {
+    private synchronized void startDrawingThreadInternal() {
         MJPEGQuality quality = getMJPEGQuality();
         int w = quality.getWidth();
         int h = quality.getHeight();
@@ -187,16 +180,15 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
             mSurfaceDrawingThread = createEGLSurfaceDrawingThread();
         }
         mSurfaceDrawingThread.setSize(w, h);
+        mSurfaceDrawingThread.addEGLSurfaceBase(quality.getWidth(), quality.getHeight(), TAG_SURFACE);
         mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
-        if (!isRunningSurfaceDrawingThread()) {
-            mSurfaceDrawingThread.start();
-        }
+        mSurfaceDrawingThread.start();
     }
 
     /**
      * Surface への描画スレッドを停止します。
      */
-    private void stopDrawingThreadInternal() {
+    private synchronized void stopDrawingThreadInternal() {
         if (mSurfaceDrawingThread != null) {
             mSurfaceDrawingThread.removeEGLSurfaceBase(TAG_SURFACE);
             mSurfaceDrawingThread.stop(false);

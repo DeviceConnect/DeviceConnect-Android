@@ -26,8 +26,6 @@ import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
-import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
-import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.util.CameraSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
 import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
@@ -94,12 +92,15 @@ public class MainActivity extends AppCompatActivity {
      */
     private Camera2Wrapper mCamera2;
 
+    /**
+     * カメラの描画を行うためのスレッド.
+     */
     private CameraSurfaceDrawingThread mCameraSurfaceDrawingThread;
 
     /**
      * ハンドラ
      */
-    private Handler mHandler = new Handler(Looper.getMainLooper());
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -348,36 +349,26 @@ public class MainActivity extends AppCompatActivity {
         mCamera2 = Camera2WrapperManager.createCamera(getApplicationContext(), facing);
         mCamera2.getSettings().setPreviewSize(new Size(cameraWidth, cameraHeight));
 
+        Log.e("ABC", "## " + mCameraView.getHolder().getSurface()
+        );
+
         mCameraSurfaceDrawingThread = new CameraSurfaceDrawingThread(mCamera2);
-        mCameraSurfaceDrawingThread.addOnDrawingEventListener(new EGLSurfaceDrawingThread.OnDrawingEventListener() {
-            @Override
-            public void onStarted() {
-                EGLSurfaceBase surfaceBase = mCameraSurfaceDrawingThread.createEGLSurfaceBase(mCameraView.getHolder().getSurface());
-                mCameraSurfaceDrawingThread.addEGLSurfaceBase(surfaceBase);
-            }
-
-            @Override
-            public void onStopped() {
-            }
-
-            @Override
-            public void onError(Exception e) {
-            }
-
-            @Override
-            public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
-            }
-        });
+        mCameraSurfaceDrawingThread.addEGLSurfaceBase(mCameraView.getHolder().getSurface());
         mCameraSurfaceDrawingThread.start();
 
         // SurfaceView のサイズを調整
-        adjustSurfaceView(mCameraSurfaceDrawingThread.isSwappedDimensions());
+        adjustSurfaceView(mCamera2.isSwappedDimensions());
     }
 
     private synchronized void stopCamera() {
         if (mCameraSurfaceDrawingThread != null) {
             mCameraSurfaceDrawingThread.stop();
             mCameraSurfaceDrawingThread = null;
+        }
+
+        if (mCamera2 != null) {
+            mCamera2.close();
+            mCamera2 = null;
         }
     }
 

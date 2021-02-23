@@ -29,7 +29,6 @@ import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
-import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.AudioStream;
@@ -82,6 +81,9 @@ public class MainActivity extends AppCompatActivity {
      */
     private Camera2Wrapper mCamera2;
 
+    /**
+     * カメラの描画を行うためスレッドクラス.
+     */
     private CameraSurfaceDrawingThread mCameraSurfaceDrawingThread;
 
     /**
@@ -92,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * ハンドラ.
      */
-    private Handler mHandler = new Handler(Looper.getMainLooper());
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -358,25 +360,7 @@ public class MainActivity extends AppCompatActivity {
         mCamera2.getSettings().setPreviewSize(new Size(cameraWidth, cameraHeight));
 
         mCameraSurfaceDrawingThread = new CameraSurfaceDrawingThread(mCamera2);
-        mCameraSurfaceDrawingThread.addOnDrawingEventListener(new EGLSurfaceDrawingThread.OnDrawingEventListener() {
-            @Override
-            public void onStarted() {
-                EGLSurfaceBase surfaceBase = mCameraSurfaceDrawingThread.createEGLSurfaceBase(mCameraView.getHolder().getSurface());
-                mCameraSurfaceDrawingThread.addEGLSurfaceBase(surfaceBase);
-            }
-
-            @Override
-            public void onStopped() {
-            }
-
-            @Override
-            public void onError(Exception e) {
-            }
-
-            @Override
-            public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
-            }
-        });
+        mCameraSurfaceDrawingThread.addEGLSurfaceBase(mCameraView.getHolder().getSurface());
         mCameraSurfaceDrawingThread.start();
 
         // SurfaceView のサイズを調整

@@ -44,10 +44,7 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-
-        if (isManagerStarted()) {
-            bindService();
-        }
+        bindService();
     }
 
     @Override
@@ -75,7 +72,7 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo serviceInfo : manager.getRunningServices(Integer.MAX_VALUE)) {
             if ("org.deviceconnect.android.manager".equals(serviceInfo.service.getPackageName())) {
-                return true;
+                return serviceInfo.started;
             }
         }
         return false;

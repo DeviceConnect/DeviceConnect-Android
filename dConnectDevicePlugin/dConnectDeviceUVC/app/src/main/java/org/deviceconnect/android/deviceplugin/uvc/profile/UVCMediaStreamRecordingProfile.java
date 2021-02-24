@@ -369,15 +369,30 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     return true;
                 }
 
-                List<PreviewServer> servers = recorder.startPreview();
-                if (servers.isEmpty()) {
-                    MessageUtils.setIllegalDeviceStateError(response, "Failed to start a preview server.");
-                } else {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    setUri(response, getDefaultUri(servers));
-                    setStreams(response, servers);
-                }
-                return true;
+                recorder.requestPermission(new MediaRecorder.PermissionCallback() {
+                    @Override
+                    public void onAllowed() {
+                        List<PreviewServer> servers = recorder.startPreview();
+                        if (servers.isEmpty()) {
+                            MessageUtils.setIllegalDeviceStateError(response,
+                                    "Failed to start a preview server.");
+                        } else {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            setUri(response, getDefaultUri(servers));
+                            setStreams(response, servers);
+                        }
+                        sendResponse(response);
+                    }
+
+                    @Override
+                    public void onDisallowed() {
+                        MessageUtils.setUnknownError(response,
+                                "Permission for camera is not granted.");
+                        sendResponse(response);
+                    }
+                });
+
+                return false;
             }
         });
 
@@ -410,10 +425,22 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     return true;
                 }
 
-                recorder.stopPreview();
+                recorder.requestPermission(new MediaRecorder.PermissionCallback() {
+                    @Override
+                    public void onAllowed() {
+                        recorder.stopPreview();
+                        setResult(response, DConnectMessage.RESULT_OK);
+                        sendResponse(response);
+                    }
 
-                setResult(response, DConnectMessage.RESULT_OK);
-                return true;
+                    @Override
+                    public void onDisallowed() {
+                        MessageUtils.setUnknownError(response,
+                                "Permission for camera is not granted.");
+                        sendResponse(response);
+                    }
+                });
+                return false;
             }
         });
 
@@ -456,13 +483,27 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     return true;
                 }
 
-                Broadcaster b = recorder.startBroadcaster(broadcastURI);
-                if (b != null) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } else {
-                    MessageUtils.setIllegalServerStateError(response, "Failed to start a broadcast.");
-                }
-                return true;
+                recorder.requestPermission(new MediaRecorder.PermissionCallback() {
+                    @Override
+                    public void onAllowed() {
+                        Broadcaster b = recorder.startBroadcaster(broadcastURI);
+                        if (b != null) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                        } else {
+                            MessageUtils.setIllegalServerStateError(response,
+                                    "Failed to start a broadcast.");
+                        }
+                        sendResponse(response);
+                    }
+
+                    @Override
+                    public void onDisallowed() {
+                        MessageUtils.setUnknownError(response,
+                                "Permission for camera is not granted.");
+                        sendResponse(response);
+                    }
+                });
+                return false;
             }
         });
 
@@ -494,7 +535,22 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     return true;
                 }
 
-                recorder.stopBroadcaster();
+                recorder.requestPermission(new MediaRecorder.PermissionCallback() {
+                    @Override
+                    public void onAllowed() {
+                        recorder.stopBroadcaster();
+
+                        setResult(response, DConnectMessage.RESULT_OK);
+                        sendResponse(response);
+                    }
+
+                    @Override
+                    public void onDisallowed() {
+                        MessageUtils.setUnknownError(response,
+                                "Permission for camera is not granted.");
+                        sendResponse(response);
+                    }
+                });
                 return false;
             }
         });

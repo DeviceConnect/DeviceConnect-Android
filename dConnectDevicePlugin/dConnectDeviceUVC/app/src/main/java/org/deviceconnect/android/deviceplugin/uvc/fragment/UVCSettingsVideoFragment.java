@@ -81,12 +81,9 @@ public class UVCSettingsVideoFragment extends UVCSettingsParameterFragment {
                 pref.setEntryValues(entryValues.toArray(new String[0]));
                 pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
 
-                String value = pref.getValue();
-                if (value == null) {
-                    Size pictureSize = settings.getPictureSize();
-                    if (pictureSize != null) {
-                        pref.setValue(getValueFromSize(pictureSize));
-                    }
+                Size pictureSize = settings.getPictureSize();
+                if (pictureSize != null) {
+                    pref.setValue(getValueFromSize(pictureSize));
                 }
                 pref.setVisible(true);
             } else {
@@ -114,12 +111,9 @@ public class UVCSettingsVideoFragment extends UVCSettingsParameterFragment {
                 pref.setEntryValues(entryValues.toArray(new String[0]));
                 pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
 
-                String value = pref.getValue();
-                if (value == null) {
-                    Size previewSize = settings.getPreviewSize();
-                    if (previewSize != null) {
-                        pref.setValue(getValueFromSize(previewSize));
-                    }
+                Size previewSize = settings.getPreviewSize();
+                if (previewSize != null) {
+                    pref.setValue(getValueFromSize(previewSize));
                 }
                 pref.setVisible(true);
             } else {

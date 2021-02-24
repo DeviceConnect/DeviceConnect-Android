@@ -323,7 +323,7 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     settings.setPreviewQuality((int) (previewJpegQuality * 100));
                 }
 
-                if (previewClipReset) {
+                if (previewClipReset != null && previewClipReset) {
                     settings.setDrawingRange(null);
                 } else if (drawingRect != null) {
                     settings.setDrawingRange(drawingRect);

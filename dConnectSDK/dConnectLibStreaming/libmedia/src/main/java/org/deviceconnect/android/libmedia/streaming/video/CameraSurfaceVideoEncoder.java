@@ -6,7 +6,7 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     /**
      * 映像のエンコード設定.
      */
-    private CameraVideoQuality mVideoQuality;
+    private final CameraVideoQuality mVideoQuality;
 
     /**
      * コンストラクタ.

@@ -24,8 +24,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
-import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
-import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.CameraMJPEGEncoder;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoderException;
@@ -310,25 +308,7 @@ public class MainActivity extends AppCompatActivity {
         mCamera2.getSettings().setPreviewSize(new Size(cameraWidth, cameraHeight));
 
         mCameraSurfaceDrawingThread = new CameraSurfaceDrawingThread(mCamera2);
-        mCameraSurfaceDrawingThread.addOnDrawingEventListener(new EGLSurfaceDrawingThread.OnDrawingEventListener() {
-            @Override
-            public void onStarted() {
-                EGLSurfaceBase surfaceBase = mCameraSurfaceDrawingThread.createEGLSurfaceBase(mSurface);
-                mCameraSurfaceDrawingThread.addEGLSurfaceBase(surfaceBase);
-            }
-
-            @Override
-            public void onStopped() {
-            }
-
-            @Override
-            public void onError(Exception e) {
-            }
-
-            @Override
-            public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
-            }
-        });
+        mCameraSurfaceDrawingThread.addEGLSurfaceBase(mSurface);
         mCameraSurfaceDrawingThread.start();
 
         // SurfaceView のサイズを調整

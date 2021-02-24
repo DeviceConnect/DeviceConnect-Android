@@ -16,16 +16,10 @@ public abstract class EGLSurfaceBase {
     private int mHeight = -1;
     private Object mTag;
 
-    EGLSurfaceBase(EGLCore core) {
-        if (core == null) {
-            throw new IllegalArgumentException("EGLCore is null.");
-        }
-        mEGLCore = core;
+    EGLSurfaceBase() {
     }
 
-    EGLSurfaceBase(EGLCore core, int width, int height) {
-        this(core);
-
+    EGLSurfaceBase(int width, int height) {
         if (width <= 0) {
             throw new IllegalArgumentException("width is zero or negative value.");
         }
@@ -36,6 +30,22 @@ public abstract class EGLSurfaceBase {
 
         mWidth = width;
         mHeight = height;
+    }
+
+    /**
+     * EGLSurfaceBase を初期化します.
+     *
+     * @param core EGLSurfaceBase で使用する EGLCore
+     */
+    abstract void initEGLSurfaceBase(EGLCore core);
+
+    /**
+     * EGLCore を設定します.
+     *
+     * @param core EGLCore
+     */
+    protected void setEGLCore(EGLCore core) {
+        mEGLCore = core;
     }
 
     /**
@@ -78,10 +88,11 @@ public abstract class EGLSurfaceBase {
      * Surface that was passed to our constructor.
      */
     public void release() {
-        if (mEGLCore.getEGLDisplay() != EGL14.EGL_NO_DISPLAY) {
+        if (mEGLCore != null && mEGLCore.getEGLDisplay() != EGL14.EGL_NO_DISPLAY) {
             EGL14.eglDestroySurface(mEGLCore.getEGLDisplay(), mEGLSurface);
         }
         mEGLSurface = EGL14.EGL_NO_SURFACE;
+        mEGLCore = null;
     }
 
     /**

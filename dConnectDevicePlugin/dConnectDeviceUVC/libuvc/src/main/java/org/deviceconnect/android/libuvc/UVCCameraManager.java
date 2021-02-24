@@ -77,7 +77,11 @@ public class UVCCameraManager {
 
         @Override
         public void onRequestPermission(UsbSerialPortManager.PermissionCallback callback) {
-            notifyOnRequestPermission(callback);
+            if (checkCameraPermission()) {
+                callback.allow();
+            } else {
+                notifyOnRequestPermission(callback);
+            }
         }
     };
 

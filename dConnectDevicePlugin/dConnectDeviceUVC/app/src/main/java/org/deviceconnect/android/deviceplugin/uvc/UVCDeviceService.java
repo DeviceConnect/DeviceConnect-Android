@@ -14,6 +14,7 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.preference.PreferenceManager;
@@ -248,6 +249,9 @@ public class UVCDeviceService extends DConnectMessageService {
 
             @Override
             public void onError(final Exception e) {
+                if (BuildConfig.DEBUG) {
+                    Log.w("UVC", "error", e);
+                }
             }
 
             @Override

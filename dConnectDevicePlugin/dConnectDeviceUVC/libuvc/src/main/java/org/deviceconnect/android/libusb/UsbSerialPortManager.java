@@ -606,14 +606,14 @@ public class UsbSerialPortManager {
                     if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                         attachUsbSerialPort(device);
                     } else {
-                        postOnRequestPermission(device);
+                        postError(device);
                     }
                 }
                 nextRequestPermission();
             } else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
                 UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                 if (device != null) {
-                    checkAttach(device);
+                    postOnRequestPermission(device);
                 }
             } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
                 UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);

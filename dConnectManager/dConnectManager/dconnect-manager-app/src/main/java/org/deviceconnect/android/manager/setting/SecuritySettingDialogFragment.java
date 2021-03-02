@@ -60,9 +60,8 @@ public class SecuritySettingDialogFragment extends DialogFragment {
                 @Override
                 public void onSuccess(@NonNull String s) {
                     shareCA(new File(fileMgr.getBasePath(), "manager.pem"));
-                    Intent installIntent = new Intent(Settings.ACTION_APP_SEARCH_SETTINGS);
+                    Intent installIntent = new Intent(Settings.ACTION_SECURITY_SETTINGS);
                     installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-                    installIntent.putExtra(SearchManager.QUERY, "CA証明書");
                     startActivity(installIntent);
                 }
 

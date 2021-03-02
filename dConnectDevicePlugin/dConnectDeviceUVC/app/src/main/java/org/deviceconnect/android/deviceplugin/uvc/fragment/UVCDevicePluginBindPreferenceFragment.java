@@ -18,6 +18,9 @@ import androidx.preference.PreferenceFragmentCompat;
 import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceService;
 import org.deviceconnect.android.deviceplugin.uvc.activity.UVCDevicePluginBindActivity;
 import org.deviceconnect.android.deviceplugin.uvc.activity.UVCSettingsActivity;
+import org.deviceconnect.android.deviceplugin.uvc.service.UVCService;
+
+import static androidx.navigation.fragment.NavHostFragment.findNavController;
 
 public abstract class UVCDevicePluginBindPreferenceFragment extends PreferenceFragmentCompat implements UVCDevicePluginBindActivity.OnUVCDevicePluginListener {
 
@@ -49,6 +52,28 @@ public abstract class UVCDevicePluginBindPreferenceFragment extends PreferenceFr
     public void onUnbindService() {
     }
 
+    @Override
+    public void onUvcConnected(UVCService service) {
+    }
+
+    @Override
+    public void onUvcDisconnected(UVCService service) {
+    }
+
+    /**
+     * 前の画面に戻ります.
+     *
+     * 前の画面がない場合には Activity を終了します。
+     */
+    public void popBackFragment() {
+        int entryCount = getParentFragmentManager().getBackStackEntryCount();
+        if (entryCount == 0) {
+            getActivity().finish();
+        } else {
+            findNavController(this).popBackStack();
+        }
+    }
+
     /**
      * ActionBar にタイトルを設定します.
      *
@@ -65,7 +90,7 @@ public abstract class UVCDevicePluginBindPreferenceFragment extends PreferenceFr
     }
 
     /**
-     * HostDevicePlugin との接続を確認します.
+     * UVCDeviceService との接続を確認します.
      *
      * @return 接続されている場合はtrue、それ以外はfalse
      */
@@ -78,11 +103,11 @@ public abstract class UVCDevicePluginBindPreferenceFragment extends PreferenceFr
     }
 
     /**
-     * 接続されている HostDevicePlugin のインスタンスを取得します.
+     * 接続されている UVCDeviceService のインスタンスを取得します.
      * <p>
      * 接続されていない場合には null を返却します。
      *
-     * @return HostDevicePlugin のインスタンス
+     * @return UVCDeviceService のインスタンス
      */
     public UVCDeviceService getUVCDeviceService() {
         Activity activity = getActivity();

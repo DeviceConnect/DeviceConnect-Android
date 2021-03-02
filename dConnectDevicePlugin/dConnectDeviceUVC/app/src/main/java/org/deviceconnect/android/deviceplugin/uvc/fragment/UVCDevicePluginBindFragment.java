@@ -13,6 +13,9 @@ import androidx.fragment.app.Fragment;
 import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceService;
 import org.deviceconnect.android.deviceplugin.uvc.activity.UVCDevicePluginBindActivity;
 import org.deviceconnect.android.deviceplugin.uvc.activity.UVCSettingsActivity;
+import org.deviceconnect.android.deviceplugin.uvc.service.UVCService;
+
+import static androidx.navigation.fragment.NavHostFragment.findNavController;
 
 public class UVCDevicePluginBindFragment extends Fragment implements UVCDevicePluginBindActivity.OnUVCDevicePluginListener {
     /**
@@ -37,6 +40,28 @@ public class UVCDevicePluginBindFragment extends Fragment implements UVCDevicePl
     public void onUnbindService() {
     }
 
+    @Override
+    public void onUvcConnected(UVCService service) {
+    }
+
+    @Override
+    public void onUvcDisconnected(UVCService service) {
+    }
+
+    /**
+     * 前の画面に戻ります.
+     *
+     * 前の画面がない場合には Activity を終了します。
+     */
+    public void popBackFragment() {
+        int entryCount = getParentFragmentManager().getBackStackEntryCount();
+        if (entryCount == 0) {
+            getActivity().finish();
+        } else {
+            findNavController(this).popBackStack();
+        }
+    }
+
     /**
      * ActionBar にタイトルを設定します.
      *
@@ -53,7 +78,7 @@ public class UVCDevicePluginBindFragment extends Fragment implements UVCDevicePl
     }
 
     /**
-     * HostDevicePlugin との接続状態を確認します.
+     * UVCDeviceService との接続状態を確認します.
      *
      * @return 接続中の場合はtrue、それ以外はfalse
      */
@@ -76,6 +101,21 @@ public class UVCDevicePluginBindFragment extends Fragment implements UVCDevicePl
         Activity activity = getActivity();
         if (activity instanceof UVCDevicePluginBindActivity) {
             return ((UVCDevicePluginBindActivity) activity).getUVCDeviceService();
+        }
+        return null;
+    }
+
+    /**
+     * 接続されている UVC サービスを取得します.
+     *
+     * 接続されていない場合には null を返却します。
+     *
+     * @return UVCService のインスタンス
+     */
+    public UVCService getUVCService() {
+        UVCDeviceService deviceService = getUVCDeviceService();
+        if (deviceService != null) {
+            return deviceService.getActiveUVCService();
         }
         return null;
     }

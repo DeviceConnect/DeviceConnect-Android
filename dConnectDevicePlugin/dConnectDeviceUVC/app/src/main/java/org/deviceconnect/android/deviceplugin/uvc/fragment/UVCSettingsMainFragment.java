@@ -15,6 +15,16 @@ public class UVCSettingsMainFragment extends UVCSettingsBaseFragment {
     }
 
     @Override
+    public void onBindService() {
+        super.onBindService();
+
+        if (!isOnlineUVCService()) {
+            // UVC が接続されていない場合には前の画面に戻ります
+            popBackFragment();
+        }
+    }
+
+    @Override
     public boolean onPreferenceTreeClick(final Preference preference) {
         Bundle arguments = createArguments();
         if (arguments != null) {

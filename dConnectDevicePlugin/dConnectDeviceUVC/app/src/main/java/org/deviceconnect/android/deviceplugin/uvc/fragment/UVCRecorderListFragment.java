@@ -58,6 +58,24 @@ public class UVCRecorderListFragment extends UVCDevicePluginBindFragment {
             }
         }
         mAdapter.setContainers(createRecorderContainerList());
+
+        if (!isOnlineUVCService()) {
+            // UVC が接続されていない場合には前の画面に戻ります
+            popBackFragment();
+        }
+    }
+
+    @Override
+    public void onUvcDisconnected(UVCService service) {
+        popBackFragment();
+    }
+
+    public boolean isOnlineUVCService() {
+        UVCService service = getUVCService();
+        if (service != null) {
+            return service.isOnline();
+        }
+        return false;
     }
 
     private String getServiceId() {

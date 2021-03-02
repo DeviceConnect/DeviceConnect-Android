@@ -35,6 +35,11 @@ public abstract class UVCSettingsBaseFragment extends UVCDevicePluginBindPrefere
         }
     }
 
+    @Override
+    public void onUvcDisconnected(UVCService service) {
+        popBackFragment();
+    }
+
     private String createTitle() {
         UVCService service = getUVCService();
         if (service != null) {
@@ -48,20 +53,20 @@ public abstract class UVCSettingsBaseFragment extends UVCDevicePluginBindPrefere
         return null;
     }
 
-    public UVCDeviceService getUVCDeviceService() {
-        Activity activity = getActivity();
-        if (activity instanceof UVCDevicePluginBindActivity) {
-            return ((UVCDevicePluginBindActivity) activity).getUVCDeviceService();
-        }
-        return null;
-    }
-
     public UVCService getUVCService() {
         UVCDeviceService deviceService = getUVCDeviceService();
         if (deviceService != null) {
             return deviceService.findUVCServiceById(getServiceId());
         }
         return null;
+    }
+
+    public boolean isOnlineUVCService() {
+        UVCService service = getUVCService();
+        if (service != null) {
+            return service.isOnline();
+        }
+        return false;
     }
 
     public UvcRecorder getRecorder() {

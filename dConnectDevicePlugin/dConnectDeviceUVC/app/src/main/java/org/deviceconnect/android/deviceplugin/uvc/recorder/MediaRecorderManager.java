@@ -159,11 +159,8 @@ public class MediaRecorderManager {
         boolean hasH264 = false;
         boolean hasUncompressed = false;
         try {
-            Log.d("ABC", "UVCCamera: " + camera.getDeviceName());
-            Log.d("ABC", "DeviceId: " + camera.getDeviceId());
             List<Parameter> parameters = camera.getParameter();
             for (Parameter p : parameters) {
-                Log.d("ABC", p.getFrameType() + " [" + p.hasExtH264() + "]: " + p.getWidth() + "x" + p.getHeight());
                 switch (p.getFrameType()) {
                     case UNCOMPRESSED:
                         hasUncompressed = true;

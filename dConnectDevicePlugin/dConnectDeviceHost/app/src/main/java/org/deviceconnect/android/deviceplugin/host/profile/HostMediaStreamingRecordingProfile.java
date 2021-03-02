@@ -125,6 +125,12 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                     }
                                 }
                                 info.putFloat("previewJpegQuality", settings.getPreviewQuality() / 100.0f);
+
+                                Bundle status = new Bundle();
+                                status.putBoolean("preview", recorder.isPreviewRunning());
+                                status.putBoolean("broadcast", recorder.isBroadcasterRunning());
+                                status.putBoolean("recording", recorder.getState() == HostMediaRecorder.State.RECORDING);
+                                info.putParcelable("status", status);
                             }
 
                             // 切り抜き設定

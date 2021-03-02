@@ -660,7 +660,7 @@ static void uvc_notify_frame(struct uvc_device_handle *handle, struct uvc_frame 
  * @param pktbuf パケットデータ
  * @param actual_length パケットデータサイズ
  */
-static void uvc_reap_payload(struct uvc_device_handle *handle, uint8_t *pktbuf, uint32_t actual_length) {
+static void uvc_reap_payload(struct uvc_device_handle *handle, struct usbdevfs_urb *urb, uint8_t *pktbuf, uint32_t actual_length) {
     uint8_t bHeaderLength = pktbuf[0];
     uint8_t bmHeaderInfo = pktbuf[1];
 
@@ -670,6 +670,8 @@ static void uvc_reap_payload(struct uvc_device_handle *handle, uint8_t *pktbuf, 
 
     int frame_id = (bmHeaderInfo & UVC_STREAM_FID);
     if (bmHeaderInfo & UVC_STREAM_ERR) {
+        ioctl(handle->fd, USBDEVFS_CLEAR_HALT, urb->endpoint);
+        handle->frame[frame_id]->got_bytes = 0;
         LOGE("@@@ uvc_reap_payload: UVC_STREAM_ERR. frame[%d]", frame_id);
     } else {
         // フレームの切り替え処理
@@ -732,9 +734,14 @@ static void uvc_reap_payload(struct uvc_device_handle *handle, uint8_t *pktbuf, 
  */
 static void uvc_reap_iso_transfer(struct uvc_device_handle *handle, struct usbdevfs_urb *urb) {
     for (int i = 0; i < urb->number_of_packets; i++) {
+        if (urb->iso_frame_desc[i].status < 0) {
+            LOGW("UVC isochronous frame lost (%d).\n", urb->iso_frame_desc[i].status);
+            continue;
+        }
+
         uint8_t *pktbuf = urb->buffer + urb->iso_frame_desc[i].length * i;
         uint32_t actual_length = urb->iso_frame_desc[i].actual_length;
-        uvc_reap_payload(handle, pktbuf, actual_length);
+        uvc_reap_payload(handle, urb, pktbuf, actual_length);
     }
 }
 
@@ -745,7 +752,7 @@ static void uvc_reap_iso_transfer(struct uvc_device_handle *handle, struct usbde
  * @param urb USB要求ブロック
  */
 static void uvc_reap_bulk_transfer(struct uvc_device_handle *handle, struct usbdevfs_urb *urb) {
-    uvc_reap_payload(handle, urb->buffer, (uint32_t) urb->actual_length);
+    uvc_reap_payload(handle, urb, urb->buffer, (uint32_t) urb->actual_length);
 }
 
 /**
@@ -763,6 +770,11 @@ static uvc_result uvc_reap_transfer(struct uvc_device_handle *handle) {
 
     if (handle->running == UVC_VIDEO_STOP) {
         LOGW("@@@ uvc_reap_transfer: uvc camera is already stopped.");
+        return UVC_ERROR;
+    }
+
+    if (urb->status != 0) {
+        LOGW("@@@ uvc_reap_transfer: failed to read a uvc.");
         return UVC_ERROR;
     }
 
@@ -1202,7 +1214,7 @@ static uvc_result uvc_isochronous_transfer(struct uvc_device_handle *handle, uin
 
     struct uvc_video_streaming_altsetting *altsetting = uvc_get_active_streaming_altsetting(handle);
     while (altsetting) {
-        struct uvc_endpoint_descriptor *endpoint;
+        struct uvc_endpoint_descriptor *endpoint = NULL;
 
         if (is_still) {
             endpoint = altsetting->still_endpoint;
@@ -1221,8 +1233,8 @@ static uvc_result uvc_isochronous_transfer(struct uvc_device_handle *handle, uin
 
                 // 使用する uvc_transfer の個数を制限します。
                 // 大きいサイズにすると Nexus5X で ENOMEM (メモリ不足) が発生したので、小さくしています。
-                if (packets_per_transfer > 4) {
-                    packets_per_transfer = 4;
+                if (packets_per_transfer > 32) {
+                    packets_per_transfer = 32;
                 }
 
                 total_transfer_size = packets_per_transfer * endpoint_bytes_per_packet;

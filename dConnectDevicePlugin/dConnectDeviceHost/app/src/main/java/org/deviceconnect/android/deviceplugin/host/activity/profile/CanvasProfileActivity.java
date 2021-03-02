@@ -153,15 +153,7 @@ public class CanvasProfileActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
         mForegroundFlag = true;
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(CanvasDrawImageObject.ACTION_DRAW_CANVAS);
-        filter.addAction(CanvasDrawImageObject.ACTION_DELETE_CANVAS);
-        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
-
-        refreshImage(mIntent);
 
         if (mDownloadThread != null) {
             mDownloadThread.terminate();
@@ -169,6 +161,13 @@ public class CanvasProfileActivity extends AppCompatActivity {
         mDownloadThread = new DownloadThread();
         mDownloadThread.setName("Canvas-Download-Thread");
         mDownloadThread.start();
+
+        refreshImage(mIntent);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(CanvasDrawImageObject.ACTION_DRAW_CANVAS);
+        filter.addAction(CanvasDrawImageObject.ACTION_DELETE_CANVAS);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
     }
 
     @Override

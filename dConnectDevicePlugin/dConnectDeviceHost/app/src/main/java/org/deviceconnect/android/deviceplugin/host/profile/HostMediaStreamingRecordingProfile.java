@@ -441,7 +441,12 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 settings.setDrawingRange(new Rect(previewClipLeft, previewClipTop, previewClipRight, previewClipBottom));
             }
 
-            recorder.onConfigChange();
+            try {
+                recorder.onConfigChange();
+            } catch (Exception e) {
+                MessageUtils.setIllegalDeviceStateError(response, "Failed to change a config.");
+                return;
+            }
 
             setResult(response, DConnectMessage.RESULT_OK);
         }

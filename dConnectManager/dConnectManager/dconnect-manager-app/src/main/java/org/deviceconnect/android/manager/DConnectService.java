@@ -7,17 +7,34 @@
 package org.deviceconnect.android.manager;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.SearchManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Binder;
+import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.provider.MediaStore;
+import android.provider.Settings;
 import android.security.KeyChain;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+
 import android.util.Log;
+import android.widget.Toast;
 
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
+import org.deviceconnect.android.deviceplugin.host.activity.profile.CanvasProfileActivity;
+import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
 import org.deviceconnect.android.manager.core.DConnectManager;
 import org.deviceconnect.android.manager.core.DConnectSettings;
@@ -31,19 +48,28 @@ import org.deviceconnect.android.manager.core.util.DConnectUtil;
 import org.deviceconnect.android.manager.core.util.VersionName;
 import org.deviceconnect.android.manager.profile.DConnectSettingProfile;
 import org.deviceconnect.android.manager.setting.KeywordDialogActivity;
+import org.deviceconnect.android.manager.setting.SecuritySettingDialogActivity;
+import org.deviceconnect.android.manager.setting.SecuritySettingDialogFragment;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.NotificationUtil;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.android.ssl.KeyStoreCallback;
 import org.deviceconnect.android.ssl.KeyStoreError;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.util.Enumeration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -278,6 +304,7 @@ public class DConnectService extends Service {
             }
         }
     }
+
     /**
      * Hostプラグインを追加します.
      */
@@ -427,7 +454,7 @@ public class DConnectService extends Service {
      * プラグインの有効・無効を設定します.
      *
      * @param pluginId プラグインID
-     * @param enable 有効の場合はtrue、無効の場合はfalse
+     * @param enable   有効の場合はtrue、無効の場合はfalse
      */
     public void setEnablePlugin(final String pluginId, final boolean enable) {
         final DevicePlugin plugin = mManager.getPluginManager().getDevicePlugin(pluginId);
@@ -479,12 +506,21 @@ public class DConnectService extends Service {
         mManager.requestKeyStore(ipAddress, new KeyStoreCallback() {
             @Override
             public void onSuccess(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
+
                 try {
-                    Intent installIntent = KeyChain.createInstallIntent();
-                    installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-                    installIntent.putExtra(KeyChain.EXTRA_NAME, "Device Connect Root CA");
-                    installIntent.putExtra(KeyChain.EXTRA_CERTIFICATE, rootCert.getEncoded());
-                    startActivity(installIntent);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        Intent installIntent = new Intent();
+                        installIntent.setClass(getApplicationContext(), SecuritySettingDialogActivity.class);
+                        installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                        installIntent.putExtra(SecuritySettingDialogFragment.EXTRA_ROOT_CERT, rootCert.getEncoded());
+                        startActivity(installIntent);
+                    } else {
+                        Intent installIntent = KeyChain.createInstallIntent();
+                        installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                        installIntent.putExtra(KeyChain.EXTRA_NAME, "Device Connect Root CA");
+                        installIntent.putExtra(KeyChain.EXTRA_CERTIFICATE, rootCert.getEncoded());
+                        startActivity(installIntent);
+                    }
                 } catch (Exception e) {
                     mLogger.log(Level.SEVERE, "Failed to encode server certificate.", e);
                 }

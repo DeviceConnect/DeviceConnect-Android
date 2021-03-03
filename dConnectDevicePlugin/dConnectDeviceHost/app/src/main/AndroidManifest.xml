@@ -62,7 +62,7 @@
             android:exported="false"
             android:launchMode="singleInstance"
             android:taskAffinity=".canvas"
-            android:theme="@style/AppCompatTheme" />
+            android:theme="@style/AppCompatTheme.NoActionBar" />
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.profile.TouchProfileActivity"
@@ -70,7 +70,7 @@
             android:exported="false"
             android:launchMode="singleInstance"
             android:taskAffinity=".touch"
-            android:theme="@style/AppCompatTheme" />
+            android:theme="@style/AppCompatTheme.NoActionBar" />
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.profile.KeyEventProfileActivity"
@@ -78,7 +78,7 @@
             android:exported="false"
             android:launchMode="singleInstance"
             android:taskAffinity=".keyevent"
-            android:theme="@style/AppCompatTheme" />
+            android:theme="@style/AppCompatTheme.NoActionBar" />
 
         <!-- パーミッション要求画面 -->
 

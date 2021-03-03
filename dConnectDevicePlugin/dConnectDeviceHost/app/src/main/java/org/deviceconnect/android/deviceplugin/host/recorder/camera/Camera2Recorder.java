@@ -266,16 +266,9 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     }
 
     @Override
-    public void onDisplayRotation(final int degree) {
-        mCurrentRotation = degree;
-        mCamera2BroadcasterProvider.onConfigChange();
-        mCamera2PreviewServerProvider.onConfigChange();
-    }
-
-    @Override
-    public void onConfigChange() {
-        mCamera2BroadcasterProvider.onConfigChange();
-        mCamera2PreviewServerProvider.onConfigChange();
+    public void onDisplayRotation(int rotation) {
+        mCurrentRotation = rotation;
+        super.onDisplayRotation(rotation);
     }
 
     @Override

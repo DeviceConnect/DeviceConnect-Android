@@ -164,6 +164,34 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     }
 
     @Override
+    public void onDisplayRotation(int rotation) {
+        PreviewServerProvider previewServerProvider = getServerProvider();
+        if (previewServerProvider != null) {
+            previewServerProvider.onConfigChange();
+        }
+
+        BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
+        if (broadcasterProvider != null) {
+            broadcasterProvider.onConfigChange();
+        }
+    }
+
+    @Override
+    public void onConfigChange() {
+        PreviewServerProvider previewServerProvider = getServerProvider();
+        if (previewServerProvider != null) {
+            previewServerProvider.onConfigChange();
+        }
+
+        BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
+        if (broadcasterProvider != null) {
+            broadcasterProvider.onConfigChange();
+        }
+
+        postOnConfigChanged();
+    }
+
+    @Override
     public List<PreviewServer> startPreview() {
         PreviewServerProvider provider = getServerProvider();
         if (provider == null) {
@@ -239,6 +267,8 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
         if (broadcasterProvider != null) {
             broadcasterProvider.setMute(mute);
         }
+
+        postOnMuteChanged(mute);
     }
 
     @Override
@@ -348,6 +378,16 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
      */
     protected void postRequestHandler(Runnable run) {
         mRequestHandler.post(run);
+    }
+
+    /**
+     * Runnable を順番に実行します.
+     *
+     * @param run 実行する Runnable
+     * @param delay 実行するまでの遅延
+     */
+    protected void postRequestHandler(Runnable run, long delay) {
+        mRequestHandler.postDelayed(run, delay);
     }
 
     /**
@@ -592,6 +632,18 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
             } else {
                 Log.e(TAG, "Failed to register audio: file=" + filePath);
             }
+        }
+    }
+
+    protected void postOnMuteChanged(boolean mute) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onMuteChanged(mute);
+        }
+    }
+
+    protected void postOnConfigChanged() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onConfigChanged();
         }
     }
 

@@ -94,6 +94,14 @@ public class CameraMainFragment extends HostDevicePluginBindFragment {
 
     private final HostMediaRecorderManager.OnEventListener mOnEventListener = new HostMediaRecorderManager.OnEventListener() {
         @Override
+        public void onMuteChanged(HostMediaRecorder recorder, boolean mute) {
+        }
+
+        @Override
+        public void onConfigChanged(HostMediaRecorder recorder) {
+        }
+
+        @Override
         public void onPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers) {
             setPreviewButton();
         }

@@ -23,6 +23,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamReco
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -251,7 +252,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             }
 
             if (recorder.getState() != HostMediaRecorder.State.INACTIVE
-                && recorder.getState() != HostMediaRecorder.State.PREVIEW) {
+                    && recorder.getState() != HostMediaRecorder.State.PREVIEW) {
                 MessageUtils.setInvalidRequestParameterError(response, "settings of active target cannot be changed.");
                 return;
             }
@@ -613,9 +614,22 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
+            // TODO 他のカメラとは排他的に処理を行うようにします。
+            if (!mRecorderMgr.canUseRecorder(recorder)) {
+                // 他のカメラが使用中の場合はエラーを返却
+                MessageUtils.setIllegalDeviceStateError(response, "Other cameras are being used.");
+                return true;
+            }
+
             recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                 @Override
                 public void onAllowed() {
+                    // TODO 他のカメラとは排他的に処理を行うようにします。
+                    if (recorder instanceof Camera2Recorder) {
+                        // 使用する予定のレコーダがカメラの場合は、使用していない他のカメラを停止する
+                        mRecorderMgr.stopCameraRecorder(recorder);
+                    }
+
                     recorder.takePhoto(new HostDevicePhotoRecorder.OnPhotoEventListener() {
                         @Override
                         public void onTakePhoto(final String uri, final String filePath, final String mimeType) {
@@ -660,6 +674,13 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
             if (recorder == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+                return true;
+            }
+
+            // TODO 他のカメラとは排他的に処理を行うようにします。
+            if (!mRecorderMgr.canUseRecorder(recorder)) {
+                // 他のカメラが使用中の場合はエラーを返却
+                MessageUtils.setIllegalDeviceStateError(response, "Other cameras are being used.");
                 return true;
             }
 
@@ -830,6 +851,13 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+                return true;
+            }
+
+            // TODO 他のカメラとは排他的に処理を行うようにします。
+            if (!mRecorderMgr.canUseRecorder(recorder)) {
+                // 他のカメラが使用中の場合はエラーを返却
+                MessageUtils.setIllegalDeviceStateError(response, "Other cameras are being used.");
                 return true;
             }
 
@@ -1022,6 +1050,14 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     private final HostMediaRecorderManager.OnEventListener mOnEventListener = new HostMediaRecorderManager.OnEventListener() {
         @Override
+        public void onMuteChanged(HostMediaRecorder recorder, boolean mute) {
+        }
+
+        @Override
+        public void onConfigChanged(HostMediaRecorder recorder) {
+        }
+
+        @Override
         public void onPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers) {
         }
 
@@ -1132,9 +1168,22 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     return true;
                 }
 
+                // TODO 他のカメラとは排他的に処理を行うようにします。
+                if (!mRecorderMgr.canUseRecorder(recorder)) {
+                    // 他のカメラが使用中の場合はエラーを返却
+                    MessageUtils.setIllegalDeviceStateError(response, "Other cameras are being used.");
+                    return true;
+                }
+
                 recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                     @Override
                     public void onAllowed() {
+                        // TODO 他のカメラとは排他的に処理を行うようにします。
+                        if (recorder instanceof Camera2Recorder) {
+                            // 使用する予定のレコーダがカメラの場合は、使用していない他のカメラを停止する
+                            mRecorderMgr.stopCameraRecorder(recorder);
+                        }
+
                         Broadcaster b = recorder.startBroadcaster(broadcastURI);
                         if (b != null) {
                             setResult(response, DConnectMessage.RESULT_OK);
@@ -1172,6 +1221,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                     return true;
                 }
+
                 recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                     @Override
                     public void onAllowed() {
@@ -1193,7 +1243,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     private HostDevicePlugin getHostDevicePlugin() {
         return (HostDevicePlugin) getContext();
-     }
+    }
 
     /**
      * サポートしている静止画の解像度をレスポンスに格納します.
@@ -1238,7 +1288,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
      * @param encoderNames エンコーダのリスト
      */
     private static void setSupportedVideoEncoders(Intent response, List<String> encoderNames) {
-       List<Bundle> encoders = new ArrayList<>();
+        List<Bundle> encoders = new ArrayList<>();
         for (String name : encoderNames) {
             HostMediaRecorder.VideoEncoderName encoderName = HostMediaRecorder.VideoEncoderName.nameOf(name);
             Bundle encoder = new Bundle();
@@ -1344,8 +1394,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     private void sendEventForRecordingChange(final String serviceId, final HostMediaRecorder.State state,
-                                            final String uri, final String path,
-                                            final String mimeType, final String errorMessage) {
+                                             final String uri, final String path,
+                                             final String mimeType, final String errorMessage) {
         List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,
                 MediaStreamRecordingProfile.PROFILE_NAME, null,
                 MediaStreamRecordingProfile.ATTRIBUTE_ON_RECORDING_CHANGE);

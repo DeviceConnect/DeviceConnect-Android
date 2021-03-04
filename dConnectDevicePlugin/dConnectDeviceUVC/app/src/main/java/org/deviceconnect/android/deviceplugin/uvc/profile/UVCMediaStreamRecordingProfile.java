@@ -20,6 +20,7 @@ import org.deviceconnect.android.deviceplugin.uvc.recorder.MediaRecorder;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.uvc.UvcRecorder;
 import org.deviceconnect.android.deviceplugin.uvc.service.UVCService;
+import org.deviceconnect.android.deviceplugin.uvc.util.CapabilityUtil;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;
@@ -586,18 +587,52 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
         setRecorders(response, recorderList);
     }
 
-    private static void setMediaRecorder(final Bundle recorder, final UvcRecorder uvcRecorder) {
-        Size previewSize = uvcRecorder.getSettings().getPreviewSize();
+    private static void setMediaRecorder(final Bundle info, final UvcRecorder recorder) {
+        MediaRecorder.Settings settings = recorder.getSettings();
+        Size previewSize = settings.getPreviewSize();
 
-        setRecorderId(recorder, uvcRecorder.getId());
-        setRecorderName(recorder, uvcRecorder.getName());
-        setRecorderState(recorder, uvcRecorder.isPreviewRunning() ? RecorderState.RECORDING
-            : RecorderState.INACTIVE);
-        setRecorderPreviewWidth(recorder, previewSize.getWidth());
-        setRecorderPreviewHeight(recorder, previewSize.getHeight());
-        setRecorderPreviewMaxFrameRate(recorder, uvcRecorder.getSettings().getPreviewMaxFrameRate());
-        setRecorderMIMEType(recorder, uvcRecorder.getMimeType());
-        setRecorderConfig(recorder, "");
+        setRecorderId(info, recorder.getId());
+        setRecorderName(info, recorder.getName());
+        setRecorderState(info, recorder.isPreviewRunning() ? RecorderState.RECORDING : RecorderState.INACTIVE);
+        setRecorderPreviewWidth(info, previewSize.getWidth());
+        setRecorderPreviewHeight(info, previewSize.getHeight());
+        setRecorderPreviewMaxFrameRate(info, settings.getPreviewMaxFrameRate());
+        setRecorderMIMEType(info, recorder.getMimeType());
+        setRecorderConfig(info, "");
+        info.putInt("previewBitRate", settings.getPreviewBitRate() / 1024);
+        info.putInt("previewKeyFrameInterval", settings.getPreviewKeyFrameInterval());
+        info.putString("previewEncoder", settings.getPreviewEncoder());
+        info.putString("previewEncoder", settings.getPreviewEncoder());
+        info.putFloat("previewJpegQuality", settings.getPreviewQuality() / 100.0f);
+        MediaRecorder.ProfileLevel pl = settings.getProfileLevel();
+        if (pl != null) {
+            switch (MediaRecorder.VideoEncoderName.nameOf(settings.getPreviewEncoder())) {
+                case H264:
+                    info.putString("previewProfile", H264Profile.valueOf(pl.getProfile()).getName());
+                    info.putString("previewLevel", H264Level.valueOf(pl.getLevel()).getName());
+                    break;
+                case H265:
+                    info.putString("previewProfile", H265Profile.valueOf(pl.getProfile()).getName());
+                    info.putString("previewLevel", H265Level.valueOf(pl.getLevel()).getName());
+                    break;
+            }
+        }
+        Bundle status = new Bundle();
+        status.putBoolean("preview", recorder.isPreviewRunning());
+        status.putBoolean("broadcast", recorder.isBroadcasterRunning());
+//        status.putBoolean("recording", recorder.getState() == MediaRecorder.State.RECORDING);
+        info.putParcelable("status", status);
+
+        // 切り抜き設定
+        Rect rect = settings.getDrawingRange();
+        if (rect != null) {
+            Bundle drawingRect = new Bundle();
+            drawingRect.putInt("left", rect.left);
+            drawingRect.putInt("top", rect.top);
+            drawingRect.putInt("right", rect.right);
+            drawingRect.putInt("bottom", rect.bottom);
+            info.putBundle("previewClip", drawingRect);
+        }
     }
 
     private static void setOptions(final Intent response, final UvcRecorder recorder) {
@@ -611,6 +646,15 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
         }
         setPreviewSizes(response, previewSizes);
         setMIMEType(response, recorder.getServerProvider().getSupportedMimeType());
+        List<Bundle> encoders = new ArrayList<>();
+        for (String name : recorder.getSettings().getSupportedVideoEncoders()) {
+            MediaRecorder.VideoEncoderName encoderName = MediaRecorder.VideoEncoderName.nameOf(name);
+            Bundle encoder = new Bundle();
+            encoder.putString("name", name);
+            encoder.putParcelableArray("profileLevel", getProfileLevels(encoderName));
+            encoders.add(encoder);
+        }
+        response.putExtra("encoder", encoders.toArray(new Bundle[0]));
     }
 
     private static void setMIMEType(final Intent response, final List<String> mimeTypes) {
@@ -641,5 +685,40 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
             streams.add(stream);
         }
         return streams.toArray(new Bundle[0]);
+    }
+
+    /**
+     * エンコーダがサポートしているプロファイルとレベルを格納した Bundle の配列を取得します.
+     *
+     * @param encoderName エンコーダ
+     * @return プロファイルとレベルを格納した Bundle の配列
+     */
+    private static Bundle[] getProfileLevels(MediaRecorder.VideoEncoderName encoderName) {
+        List<Bundle> list = new ArrayList<>();
+        for (MediaRecorder.ProfileLevel pl : CapabilityUtil.getSupportedProfileLevel(encoderName.getMimeType())) {
+            switch (encoderName) {
+                case H264: {
+                    H264Profile p = H264Profile.valueOf(pl.getProfile());
+                    H264Level l = H264Level.valueOf(pl.getLevel());
+                    if (p != null && l != null) {
+                        Bundle encoder = new Bundle();
+                        encoder.putString("profile", p.getName());
+                        encoder.putString("level", l.getName());
+                        list.add(encoder);
+                    }
+                }   break;
+                case H265: {
+                    H265Profile p = H265Profile.valueOf(pl.getProfile());
+                    H265Level l = H265Level.valueOf(pl.getLevel());
+                    if (p != null && l != null) {
+                        Bundle encoder = new Bundle();
+                        encoder.putString("profile", p.getName());
+                        encoder.putString("level", l.getName());
+                        list.add(encoder);
+                    }
+                }   break;
+            }
+        }
+        return list.toArray(new Bundle[0]);
     }
 }

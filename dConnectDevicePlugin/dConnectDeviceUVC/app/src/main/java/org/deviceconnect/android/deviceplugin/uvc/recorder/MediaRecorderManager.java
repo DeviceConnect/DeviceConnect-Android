@@ -206,6 +206,11 @@ public class MediaRecorderManager {
     private void addUvcRecorder(UvcRecorder mediaRecorder) {
         mediaRecorder.setOnEventListener(new MediaRecorder.OnEventListener() {
             @Override
+            public void onConfigChanged() {
+                postOnConfigChanged(mediaRecorder);
+            }
+
+            @Override
             public void onPreviewStarted(List<PreviewServer> servers) {
                 postOnPreviewStarted(mediaRecorder, servers);
             }
@@ -293,6 +298,12 @@ public class MediaRecorderManager {
         mOnEventListeners.remove(listener);
     }
 
+    private void postOnConfigChanged(MediaRecorder recorder) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onConfigChanged(recorder);
+        }
+    }
+
     private void postOnPreviewStarted(MediaRecorder recorder, List<PreviewServer> servers) {
         for (OnEventListener l : mOnEventListeners) {
             l.onPreviewStarted(recorder, servers);
@@ -366,6 +377,8 @@ public class MediaRecorderManager {
     }
 
     public interface OnEventListener {
+        void onConfigChanged(MediaRecorder recorder);
+
         void onPreviewStarted(MediaRecorder recorder, List<PreviewServer> servers);
         void onPreviewStopped(MediaRecorder recorder);
         void onPreviewError(MediaRecorder recorder, Exception e);

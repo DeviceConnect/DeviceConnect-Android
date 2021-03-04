@@ -244,6 +244,11 @@ public interface MediaRecorder {
      */
     interface OnEventListener {
         /**
+         * レコーダの設定が変更されたことを通知します.
+         */
+        void onConfigChanged();
+
+        /**
          * プレビュー配信を開始した時に呼び出されます.
          *
          * @param servers 開始したプレビュー配信サーバ

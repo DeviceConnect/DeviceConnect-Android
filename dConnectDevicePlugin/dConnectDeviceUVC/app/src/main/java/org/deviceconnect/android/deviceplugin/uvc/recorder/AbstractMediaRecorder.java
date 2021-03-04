@@ -134,6 +134,21 @@ public abstract class AbstractMediaRecorder implements MediaRecorder {
     }
 
     @Override
+    public void onConfigChange() {
+        PreviewServerProvider serverProvider = getServerProvider();
+        if (serverProvider != null) {
+            serverProvider.onConfigChange();
+        }
+
+        BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
+        if (broadcasterProvider != null) {
+            broadcasterProvider.onConfigChange();
+        }
+
+        postOnConfigChanged();
+    }
+
+    @Override
     public State getState() {
         return mState;
     }
@@ -396,6 +411,12 @@ public abstract class AbstractMediaRecorder implements MediaRecorder {
         intent.setAction(MediaRecorderManager.ACTION_STOP_RECORDING);
         intent.putExtra(MediaRecorderManager.KEY_RECORDER_ID, id);
         return PendingIntent.getBroadcast(mContext, getNotificationId(), intent, 0);
+    }
+
+    protected void postOnConfigChanged() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onConfigChanged();
+        }
     }
 
     protected void postOnPreviewStarted(List<PreviewServer> servers) {

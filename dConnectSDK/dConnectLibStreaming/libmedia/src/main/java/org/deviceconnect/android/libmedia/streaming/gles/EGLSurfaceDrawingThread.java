@@ -95,12 +95,30 @@ public class EGLSurfaceDrawingThread {
     }
 
     /**
+     * レンダリングのタイムアウトを取得します.
+     *
+     * @return タイムアウト
+     */
+    public int getTimeout() {
+        return mTimeout;
+    }
+
+    /**
      * 描画範囲を設定します.
      *
      * @param rect 描画範囲
      */
     public void setDrawingRange(Rect rect) {
         mDrawingRange = rect;
+    }
+
+    /**
+     * 描画範囲設定を取得します.
+     *
+     * @return 描画範囲
+     */
+    public Rect getDrawingRange() {
+        return mDrawingRange;
     }
 
     /**
@@ -349,16 +367,12 @@ public class EGLSurfaceDrawingThread {
      *
      * @return SurfaceTextureManager のインスタンス
      */
-    private SurfaceTextureManager createStManager() {
+    protected SurfaceTextureManager createStManager() {
         SurfaceTextureManager manager = new SurfaceTextureManager();
-        manager.setTimeout(mTimeout);
-        // SurfaceTexture に解像度を設定
         SurfaceTexture st = manager.getSurfaceTexture();
         st.setDefaultBufferSize(mWidth, mHeight);
         if (mDrawingRange != null) {
-            int w = isSwappedDimensions() ? mHeight : mWidth;
-            int h = isSwappedDimensions() ? mWidth : mHeight;
-            manager.setDrawingRange(mDrawingRange, w, h);
+            manager.setDrawingRange(mDrawingRange, mWidth, mHeight);
         }
         return manager;
     }
@@ -509,6 +523,7 @@ public class EGLSurfaceDrawingThread {
                 mEGLCore.makeCurrent();
 
                 mStManager = createStManager();
+                mStManager.setTimeout(mTimeout);
 
                 synchronized (mEGLSurfaceBases) {
                     for (EGLSurfaceBase surfaceBase : mEGLSurfaceBases) {

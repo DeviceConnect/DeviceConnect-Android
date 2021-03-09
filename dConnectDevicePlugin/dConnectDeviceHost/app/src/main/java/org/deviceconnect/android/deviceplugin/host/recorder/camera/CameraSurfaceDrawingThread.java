@@ -9,6 +9,7 @@ import android.view.WindowManager;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
+import org.deviceconnect.android.libmedia.streaming.gles.SurfaceTextureManager;
 
 public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
     /**
@@ -75,6 +76,20 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
             setDrawingRange(settings.getDrawingRange());
             super.start();
         }
+    }
+
+    @Override
+    protected SurfaceTextureManager createStManager() {
+        SurfaceTextureManager manager = new SurfaceTextureManager();
+        SurfaceTexture st = manager.getSurfaceTexture();
+        st.setDefaultBufferSize(getWidth(), getHeight());
+        if (getDrawingRange() != null) {
+            // カメラは描画時に端末の向きによって回転するので、ここでは描画範囲の計算も回転してから行う
+            int w = isSwappedDimensions() ? getHeight() : getWidth();
+            int h = isSwappedDimensions() ? getWidth() : getHeight();
+            manager.setDrawingRange(getDrawingRange(), w, h);
+        }
+        return manager;
     }
 
     private void startCamera(SurfaceTexture surfaceTexture) {

@@ -127,6 +127,8 @@
     <string name="host_recorder_settings_audio_source_app">App Audio</string>
 
     <string name="host_recorder_settings_broadcast_uri">URL</string>
+    <string name="host_recorder_settings_broadcast_retry_count">Retry Count</string>
+    <string name="host_recorder_settings_broadcast_retry_interval">Retry Interval (msec)</string>
 
     <string name="host_recorder_settings_port_motion_jpeg">MotionJPEG Settings</string>
     <string name="host_recorder_settings_port_rtsp">RTSP Settings</string>

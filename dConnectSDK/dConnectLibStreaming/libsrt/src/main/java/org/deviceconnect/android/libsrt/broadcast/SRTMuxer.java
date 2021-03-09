@@ -2,6 +2,7 @@ package org.deviceconnect.android.libsrt.broadcast;
 
 import android.net.Uri;
 
+import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.SRT;
@@ -13,17 +14,17 @@ public class SRTMuxer extends Mpeg2TsMuxer {
     /**
      * 接続先の URI.
      */
-    private String mBroadcastURI;
+    private final String mBroadcastURI;
 
     /**
      * 接続先のアドレス.
      */
-    private String mAddress;
+    private final String mAddress;
 
     /**
      * 接続先のポート番号.
      */
-    private int mPort;
+    private final int mPort;
 
     /**
      * ソケット.
@@ -89,6 +90,9 @@ public class SRTMuxer extends Mpeg2TsMuxer {
             mSocket.setOption(SRT.SRTO_SENDER, true);
             mSocket.connect(mAddress, mPort);
         } catch (SRTSocketException e) {
+            if (mOnEventListener != null) {
+                mOnEventListener.onError(new MediaEncoderException(e));
+            }
             return false;
         }
 
@@ -120,29 +124,38 @@ public class SRTMuxer extends Mpeg2TsMuxer {
         try {
             mSocket.send(data, offset,length);
         } catch (SRTSocketException e) {
-            // TODO エラー処理
+            if (mOnEventListener != null) {
+                mOnEventListener.onError(new MediaEncoderException(e));
+            }
         }
     }
 
     /**
-     * RtmpMuxer のイベントを通知するリスナー.
+     * SRTMuxer のイベントを通知するリスナー.
      */
     public interface OnEventListener {
         /**
-         * RTMP サーバに接続されたことを通知します.
+         * SRT サーバに接続されたことを通知します.
          */
         void onConnected();
 
         /**
-         * RTMP サーバから切断されたことを通知します.
+         * SRT サーバから切断されたことを通知します.
          */
         void onDisconnected();
 
         /**
-         * RTMP サーバからの通信ビットレートを通知します.
+         * SRT サーバからの通信ビットレートを通知します.
          *
          * @param bitrate ビットレート
          */
         void onNewBitrate(long bitrate);
+
+        /**
+         * SRT サーバとの接続でエラーが発生したことを通知します.
+         *
+         * @param e エラー原因の例外
+         */
+        void onError(MediaEncoderException e);
     }
 }

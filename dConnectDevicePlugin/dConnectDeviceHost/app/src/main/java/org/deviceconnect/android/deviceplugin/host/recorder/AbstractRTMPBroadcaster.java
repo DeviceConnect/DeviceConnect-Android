@@ -68,7 +68,11 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
             setAudioQuality(audioEncoder.getAudioQuality());
         }
 
+        HostMediaRecorder.Settings settings = getRecorder().getSettings();
+
         mRtmpClient = new RtmpClient(getBroadcastURI());
+        mRtmpClient.setMaxRetryCount(settings.getRetryCount());
+        mRtmpClient.setRetryInterval(settings.getRetryInterval());
         mRtmpClient.setVideoEncoder(videoEncoder);
         mRtmpClient.setAudioEncoder(audioEncoder);
         mRtmpClient.setOnEventListener(new RtmpClient.OnEventListener() {

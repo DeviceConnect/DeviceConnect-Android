@@ -132,6 +132,8 @@
 
     <!-- Broadcast -->
     <string name="host_recorder_settings_broadcast_uri">URL</string>
+    <string name="host_recorder_settings_broadcast_retry_count">リトライ回数</string>
+    <string name="host_recorder_settings_broadcast_retry_interval">リトライ間隔(ミリ秒)</string>
 
     <!-- ポート設定 -->
     <string name="host_recorder_settings_port_motion_jpeg">MotionJPEG 設定</string>

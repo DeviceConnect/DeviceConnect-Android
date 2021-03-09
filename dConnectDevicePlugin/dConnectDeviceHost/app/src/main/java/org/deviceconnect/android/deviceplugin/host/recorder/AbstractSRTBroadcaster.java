@@ -68,7 +68,11 @@ public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
             setAudioQuality(audioEncoder.getAudioQuality());
         }
 
+        HostMediaRecorder.Settings settings = getRecorder().getSettings();
+
         mSrtClient = new SRTClient(getBroadcastURI());
+        mSrtClient.setMaxRetryCount(settings.getRetryCount());
+        mSrtClient.setRetryInterval(settings.getRetryInterval());
         mSrtClient.setVideoEncoder(videoEncoder);
         mSrtClient.setAudioEncoder(audioEncoder);
         mSrtClient.setOnEventListener(new SRTClient.OnEventListener() {

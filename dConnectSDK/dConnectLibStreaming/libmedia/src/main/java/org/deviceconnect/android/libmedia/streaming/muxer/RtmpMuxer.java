@@ -9,6 +9,7 @@ import net.ossrs.rtmp.SrsFlvMuxer;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.IMediaMuxer;
+import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
@@ -99,7 +100,7 @@ public class RtmpMuxer implements IMediaMuxer {
                 latch.countDown();
 
                 if (mOnEventListener != null) {
-                    mOnEventListener.onDisconnected();
+                    mOnEventListener.onError(new MediaEncoderException(reason));
                 }
             }
 
@@ -248,5 +249,12 @@ public class RtmpMuxer implements IMediaMuxer {
          * @param bitrate ビットレート
          */
         void onNewBitrate(long bitrate);
+
+        /**
+         * RTMP サーバでエラーが発生したことを通知します.
+         *
+         * @param e エラー理由
+         */
+        void onError(MediaEncoderException e);
     }
 }

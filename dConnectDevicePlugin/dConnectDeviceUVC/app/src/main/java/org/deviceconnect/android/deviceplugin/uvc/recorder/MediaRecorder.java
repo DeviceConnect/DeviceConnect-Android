@@ -1029,6 +1029,50 @@ public interface MediaRecorder {
             mPref.put("broadcast_uri", broadcastURI);
         }
 
+        /**
+         * リトライ回数を取得します.
+         *
+         * @return リトライ回数
+         */
+        public int getRetryCount() {
+            return mPref.getInteger("broadcast_retry_count", 0);
+        }
+
+        /**
+         * リトライ回数を設定します.
+         *
+         * @param count リトライ回数
+         */
+        public void setRetryCount(int count) {
+            if (count < 0) {
+                mPref.remove("broadcast_retry_count");
+            } else {
+                mPref.put("broadcast_retry_count", count);
+            }
+        }
+
+        /**
+         * リトライのインターバルを取得します.
+         *
+         * @return リトライのインターバル
+         */
+        public int getRetryInterval() {
+            return mPref.getInteger("broadcast_retry_interval", 3000);
+        }
+
+        /**
+         * リトライのインターバルを設定します.
+         *
+         * @param interval リトライのインターバル
+         */
+        public void setRetryInterval(int interval) {
+            if (interval < 0) {
+                mPref.remove("broadcast_retry_interval");
+            } else {
+                mPref.put("broadcast_retry_interval", interval);
+            }
+        }
+
         // ポート番号
 
         /**

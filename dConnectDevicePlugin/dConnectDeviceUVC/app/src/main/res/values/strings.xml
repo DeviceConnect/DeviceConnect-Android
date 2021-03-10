@@ -64,6 +64,8 @@
 
     <!-- 配信設定画面 -->
     <string name="uvc_recorder_settings_broadcast_uri" translatable="false">URL</string>
+    <string name="uvc_recorder_settings_broadcast_retry_count" translatable="false">リトライ回数</string>
+    <string name="uvc_recorder_settings_broadcast_retry_interval" translatable="false">リトライ間隔(ミリ秒)</string>
 
     <!-- 通知用 -->
     <string name="uvc_notification_preview">PREVIEW</string>

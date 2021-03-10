@@ -14,6 +14,22 @@
             app:key="broadcast_uri"
             app:useSimpleSummaryProvider="true" />
 
+        <EditTextPreference
+            android:defaultValue="0"
+            android:singleLine="true"
+            android:title="@string/uvc_recorder_settings_broadcast_retry_count"
+            app:iconSpaceReserved="false"
+            app:key="broadcast_retry_count"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            android:defaultValue="3000"
+            android:singleLine="true"
+            android:title="@string/uvc_recorder_settings_broadcast_retry_interval"
+            app:iconSpaceReserved="false"
+            app:key="broadcast_retry_interval"
+            app:useSimpleSummaryProvider="true" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>

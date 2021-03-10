@@ -68,7 +68,11 @@ public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
             setAudioQuality(audioEncoder.getAudioQuality());
         }
 
+        MediaRecorder.Settings settings = getRecorder().getSettings();
+
         mSrtClient = new SRTClient(getBroadcastURI());
+        mSrtClient.setMaxRetryCount(settings.getRetryCount());
+        mSrtClient.setRetryInterval(settings.getRetryInterval());
         mSrtClient.setVideoEncoder(videoEncoder);
         mSrtClient.setAudioEncoder(audioEncoder);
         mSrtClient.setOnEventListener(new SRTClient.OnEventListener() {
@@ -99,6 +103,7 @@ public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
                 if (mOnBroadcasterEventListener != null) {
                     mOnBroadcasterEventListener.onError(e);
                 }
+                AbstractSRTBroadcaster.this.stop();
             }
 
             @Override
@@ -107,7 +112,6 @@ public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
 
             @Override
             public void onDisconnected() {
-                AbstractSRTBroadcaster.this.stop();
             }
 
             @Override

@@ -1,5 +1,7 @@
 package org.deviceconnect.android.deviceplugin.uvc.recorder;
 
+import android.util.Log;
+
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
@@ -68,7 +70,11 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
             setAudioQuality(audioEncoder.getAudioQuality());
         }
 
+        MediaRecorder.Settings settings = getRecorder().getSettings();
+
         mRtmpClient = new RtmpClient(getBroadcastURI());
+        mRtmpClient.setMaxRetryCount(settings.getRetryCount());
+        mRtmpClient.setRetryInterval(settings.getRetryInterval());
         mRtmpClient.setVideoEncoder(videoEncoder);
         mRtmpClient.setAudioEncoder(audioEncoder);
         mRtmpClient.setOnEventListener(new RtmpClient.OnEventListener() {
@@ -99,6 +105,8 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
                 if (mOnBroadcasterEventListener != null) {
                     mOnBroadcasterEventListener.onError(e);
                 }
+
+                AbstractRTMPBroadcaster.this.stop();
             }
 
             @Override
@@ -107,7 +115,6 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
 
             @Override
             public void onDisconnected() {
-                AbstractRTMPBroadcaster.this.stop();
             }
 
             @Override

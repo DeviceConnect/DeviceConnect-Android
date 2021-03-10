@@ -12,8 +12,6 @@ import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.MicAACLAT
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStream;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
-import java.io.IOException;
-
 public abstract class AbstractRTSPPreviewServer extends AbstractPreviewServer {
 
     /**
@@ -152,6 +150,18 @@ public abstract class AbstractRTSPPreviewServer extends AbstractPreviewServer {
             RtspSession session = mRtspServer.getRtspSession();
             if (session != null) {
                 session.restartVideoStream();
+            }
+        }
+    }
+
+    /**
+     * エンコーダに設定を反映し、再スタートします.
+     */
+    private void restartAudioStream() {
+        if (mRtspServer != null) {
+            RtspSession session = mRtspServer.getRtspSession();
+            if (session != null) {
+                session.restartAudioStream();
             }
         }
     }

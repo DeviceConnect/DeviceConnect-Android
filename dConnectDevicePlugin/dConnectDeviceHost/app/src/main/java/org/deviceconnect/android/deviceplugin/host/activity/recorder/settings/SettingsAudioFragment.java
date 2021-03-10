@@ -6,6 +6,7 @@ import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ public class SettingsAudioFragment extends SettingsParameterFragment {
 
         setPreviewAudioSource(mMediaRecorder.getSettings());
         setPreviewSampleRate(mMediaRecorder.getSettings());
+        setPreviewAudioCoefficient(mMediaRecorder.getSettings());
         setInputTypeNumber("preview_audio_bitrate");
         setInputTypeNumber("preview_audio_channel");
     }
@@ -94,7 +96,20 @@ public class SettingsAudioFragment extends SettingsParameterFragment {
         }
     }
 
+    /**
+     * フィルターの係数用の Preference に値を設定します.
+     *
+     * @param settings レコーダ設定
+     */
+    private void setPreviewAudioCoefficient(HostMediaRecorder.Settings settings) {
+        SeekBarDialogPreference pref = findPreference("preview_audio_coefficient");
+        if (pref != null) {
+            pref.setMinValue(0);
+            pref.setMaxValue(100);
+        }
+    }
+
     private final Preference.OnPreferenceChangeListener mOnPreferenceChangeListener = (preference, newValue) -> {
-        return true;
+        return mMediaRecorder != null;
     };
 }

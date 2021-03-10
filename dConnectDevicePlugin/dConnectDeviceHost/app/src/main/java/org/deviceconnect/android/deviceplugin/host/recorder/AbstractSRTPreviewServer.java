@@ -162,6 +162,18 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
     }
 
     /**
+     * エンコーダの設定を反映して、再スタートします.
+     */
+    private void restartAudioEncoder() {
+        if (mSRTServer != null) {
+            SRTSession session = mSRTServer.getSRTSession();
+            if (session != null) {
+                session.restartAudioEncoder();
+            }
+        }
+    }
+
+    /**
      * SRT 用の映像エンコーダを作成します.
      *
      * @return SRT 用の映像エンコーダ

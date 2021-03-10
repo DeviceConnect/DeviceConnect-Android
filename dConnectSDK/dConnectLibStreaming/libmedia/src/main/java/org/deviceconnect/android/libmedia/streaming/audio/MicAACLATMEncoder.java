@@ -12,6 +12,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
+import org.deviceconnect.android.libmedia.streaming.audio.filter.Filter;
 import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 
 import java.nio.ByteBuffer;
@@ -53,16 +54,6 @@ public class MicAACLATMEncoder extends AudioEncoder {
      */
     private byte[] mMuteBuffer;
 
-    /**
-     * フィルタの処理.
-     */
-    private Filter mFilter;
-
-    /**
-     * フィルタ処理のために音声データを一時的に格納するバッファ.
-     */
-    private ByteBuffer mFilterBuffer;
-
     @Override
     public AudioQuality getAudioQuality() {
         return mAudioQuality;
@@ -102,34 +93,17 @@ public class MicAACLATMEncoder extends AudioEncoder {
             mMediaCodec.queueInputBuffer(index, 0, length, getPTSUs(), 0);
         } else {
             mAudioThread.add(() -> {
-                int len;
-                if (mFilter != null) {
-                    len = mAudioRecord.read(mFilterBuffer, inputData.capacity());
-                    mFilter.onProcessing(mFilterBuffer, len, inputData);
-                    mFilterBuffer.clear();
-                } else {
-                    len = mAudioRecord.read(inputData, mBufferSize);
-                    if (DEBUG && len < 0) {
-                        Log.e(TAG, "An error occurred with the AudioRecord API ! len=" + len);
-                    }
+                int len = mAudioRecord.read(inputData, mBufferSize);
+                if (DEBUG && len < 0) {
+                    Log.e(TAG, "An error occurred with the AudioRecord API ! len=" + len);
+                }
+                Filter filter = mAudioQuality.getFilter();
+                if (filter != null && len > 0) {
+                    filter.onProcessing(inputData, len);
                 }
                 mMediaCodec.queueInputBuffer(index, 0, len, getPTSUs(), 0);
             });
         }
-    }
-
-    /**
-     * フィルタを設定します.
-     *
-     * フィルタが設定されている場合には、音声入力時に {@link Filter#onProcessing(ByteBuffer, int, ByteBuffer)}を呼び出します。
-     *
-     * @param filter フィルタ
-     */
-    public void setFilter(Filter filter) {
-        if (mAudioThread != null && mAudioThread.isAlive()) {
-            return;
-        }
-        mFilter = filter;
     }
 
     /**
@@ -256,11 +230,6 @@ public class MicAACLATMEncoder extends AudioEncoder {
             }
         }
 
-        if (mFilter != null) {
-            mFilterBuffer = ByteBuffer.allocateDirect(mBufferSize);
-            mFilter.onPrepare(mBufferSize);
-        }
-
         mAudioRecord.startRecording();
 
         mAudioThread = new AudioRecordThread();
@@ -291,40 +260,14 @@ public class MicAACLATMEncoder extends AudioEncoder {
             mAudioRecord = null;
         }
 
-        if (mFilter != null) {
-            mFilterBuffer = null;
-            mFilter.onRelease();
+        Filter filter = mAudioQuality.getFilter();
+        if (filter != null) {
+            filter.onRelease();
         }
 
         if (mEchoCanceler != null) {
             mEchoCanceler.release();
             mEchoCanceler = null;
         }
-    }
-
-    /**
-     * フィルタ処理を行うためのインターフェース.
-     */
-    public interface Filter {
-        /**
-         * 音声入力の準備を行います.
-         *
-         * @param bufferSize バッファサイズ
-         */
-        void onPrepare(int bufferSize);
-
-        /**
-         * フィルタ処理を行います.
-         *
-         * @param src 音声入力データ
-         * @param len 音声入力でーたサイズ
-         * @param dest 音声入力データの出力先
-         */
-        void onProcessing(ByteBuffer src, int len, ByteBuffer dest);
-
-        /**
-         * 音声入力の終了処理を行います.
-         */
-        void onRelease();
     }
 }

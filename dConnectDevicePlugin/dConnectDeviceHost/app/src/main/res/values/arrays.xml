@@ -239,8 +239,20 @@
         <item>app</item>
     </string-array>
 
+    <string-array name="audio_filter_names">
+        <item>None</item>
+        <item>Low-Pass</item>
+        <item>High-Pass</item>
+    </string-array>
+
+    <string-array name="audio_filter_values">
+        <item>none</item>
+        <item>low-pass</item>
+        <item>high-pass</item>
+    </string-array>
+
     <string name="settings_audio_bit_rate">64</string>
-    <string name="settings_audio_sampling_rate">8000</string>
+    <string name="settings_audio_sampling_rate">44100</string>
     <string-array name="settings_audio_sampling_rates">
         <item>96000</item>
         <item>88200</item>

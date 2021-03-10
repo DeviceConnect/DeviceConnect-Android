@@ -120,6 +120,8 @@
     <string name="host_recorder_settings_audio_bitrate">ビットレート (bps)</string>
     <string name="host_recorder_settings_audio_sampling_rate">サンプリングレート</string>
     <string name="host_recorder_settings_audio_source">音声入力</string>
+    <string name="host_recorder_settings_audio_filter">フィルタ</string>
+    <string name="host_recorder_settings_audio_coefficient">係数</string>
     <string name="host_recorder_settings_audio_channel">チャンネル</string>
     <string name="host_recorder_settings_audio_mute">ミュート</string>
     <string name="host_recorder_settings_audio_mute_summary">ミュートの設定を行います。</string>

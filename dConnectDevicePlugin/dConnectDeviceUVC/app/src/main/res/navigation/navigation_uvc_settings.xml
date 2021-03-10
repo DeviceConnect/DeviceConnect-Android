@@ -16,7 +16,7 @@
 
         <action
             android:id="@+id/action_permission_error_dialog"
-            app:destination="@id/uvc_camera_permission_error_dialog" />
+            app:destination="@id/uvc_uvc_permission_error_dialog" />
 
     </fragment>
 
@@ -110,8 +110,8 @@
     </fragment>
 
     <dialog
-        android:id="@+id/uvc_camera_permission_error_dialog"
+        android:id="@+id/uvc_uvc_permission_error_dialog"
         android:name="org.deviceconnect.android.deviceplugin.uvc.fragment.dialog.PermissionErrorDialogFragment"
-        android:label="uvc_camera_permission_error_dialog" />
+        android:label="uvc_uvc_permission_error_dialog" />
 
 </navigation>

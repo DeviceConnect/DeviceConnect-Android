@@ -54,6 +54,22 @@
             android:title="@string/host_recorder_settings_audio_echo_canceler"
             app:iconSpaceReserved="false" />
 
+        <ListPreference
+            android:defaultValue="none"
+            android:entries="@array/audio_filter_names"
+            android:entryValues="@array/audio_filter_values"
+            android:key="preview_audio_filter"
+            android:title="@string/host_recorder_settings_audio_filter"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference
+            android:defaultValue="10"
+            android:key="preview_audio_coefficient"
+            android:singleLine="true"
+            android:title="@string/host_recorder_settings_audio_coefficient"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
 </PreferenceScreen>

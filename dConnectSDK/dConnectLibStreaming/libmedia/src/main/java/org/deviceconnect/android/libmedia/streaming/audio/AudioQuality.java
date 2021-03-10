@@ -1,19 +1,25 @@
 package org.deviceconnect.android.libmedia.streaming.audio;
 
 import android.media.AudioFormat;
+import android.media.MediaCodecInfo;
+
+import org.deviceconnect.android.libmedia.streaming.audio.filter.Filter;
 
 public abstract class AudioQuality {
-    private static final int DEFAULT_SAMPLING_RATE = 8000;
+    private static final int DEFAULT_SAMPLING_RATE = 44100;
     private static final int DEFAULT_CHANNEL = AudioFormat.CHANNEL_IN_MONO;
     private static final int DEFAULT_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
     private static final int DEFAULT_BIT_RATE = 64 * 1024;
+    private static final int DEFAULT_AAC_PROFILE = MediaCodecInfo.CodecProfileLevel.AACObjectLC;
 
     private final String mMimeType;
     private int mSamplingRate = DEFAULT_SAMPLING_RATE;
     private int mBitRate = DEFAULT_BIT_RATE;
     private int mChannel = DEFAULT_CHANNEL;
     private int mFormat = DEFAULT_FORMAT;
+    private int mAACProfile = DEFAULT_AAC_PROFILE;
     private int mMaxInputSize = 0;
+    private Filter mFilter;
 
     /**
      * エコーキャンセラーの使用フラグ.
@@ -92,10 +98,12 @@ public abstract class AudioQuality {
      * デフォルトでは、 {@link AudioFormat#ENCODING_PCM_16BIT} が設定されています。
      * </p>
      *
-     * @param format {@link AudioFormat#ENCODING_PCM_16BIT} or {@link AudioFormat#ENCODING_PCM_8BIT}
+     * @param format {@link AudioFormat#ENCODING_PCM_16BIT} or {@link AudioFormat#ENCODING_PCM_8BIT} or {@link AudioFormat#ENCODING_PCM_FLOAT}
      */
     public void setFormat(int format) {
-        if (format != AudioFormat.ENCODING_PCM_16BIT && format != AudioFormat.ENCODING_PCM_8BIT) {
+        if (format != AudioFormat.ENCODING_PCM_16BIT &&
+                format != AudioFormat.ENCODING_PCM_8BIT &&
+                format != AudioFormat.ENCODING_PCM_FLOAT) {
             throw new IllegalArgumentException("Not supported a format. format=" + format);
         }
         mFormat = format;
@@ -117,6 +125,42 @@ public abstract class AudioQuality {
      */
     public void setUseAEC(boolean useAEC) {
         mUseAEC = useAEC;
+    }
+
+    /**
+     * AAC プロファイルを設定します.
+     *
+     * @param profile AAC プロファイル
+     */
+    public void setAACProfile(int profile) {
+        mAACProfile = profile;
+    }
+
+    /**
+     * AAC プロファイルを取得します.
+     *
+     * @return AAC プロファイル
+     */
+    public int getAACProfile() {
+        return mAACProfile;
+    }
+
+    /**
+     * フィルタを設定します.
+     *
+     * @param filter フィルタ
+     */
+    public void setFilter(Filter filter) {
+        mFilter = filter;
+    }
+
+    /**
+     * フィルタを取得します.
+     *
+     * @return フィルタ
+     */
+    public Filter getFilter() {
+        return mFilter;
     }
 
     /**

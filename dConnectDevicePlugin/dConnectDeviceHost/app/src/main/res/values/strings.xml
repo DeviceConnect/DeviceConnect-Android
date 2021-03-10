@@ -117,6 +117,8 @@
     <string name="host_recorder_settings_audio_bitrate">Bitrate (bps)</string>
     <string name="host_recorder_settings_audio_sampling_rate">Sampling Rate</string>
     <string name="host_recorder_settings_audio_source">Audio Source</string>
+    <string name="host_recorder_settings_audio_filter">Filter</string>
+    <string name="host_recorder_settings_audio_coefficient">Coefficient</string>
     <string name="host_recorder_settings_audio_channel">Channel</string>
     <string name="host_recorder_settings_audio_mute">Mute</string>
     <string name="host_recorder_settings_audio_mute_summary">Set the mute.</string>

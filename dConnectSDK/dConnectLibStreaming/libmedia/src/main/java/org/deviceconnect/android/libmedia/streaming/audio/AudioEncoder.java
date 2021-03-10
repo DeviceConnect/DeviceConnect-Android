@@ -92,9 +92,13 @@ public abstract class AudioEncoder extends MediaEncoder {
         format.setInteger(MediaFormat.KEY_BIT_RATE, audioQuality.getBitRate());
         format.setInteger(MediaFormat.KEY_CHANNEL_COUNT, audioQuality.getChannelCount());
         format.setInteger(MediaFormat.KEY_CHANNEL_MASK, audioQuality.getChannel());
-        format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+        format.setInteger(MediaFormat.KEY_AAC_PROFILE, audioQuality.getAACProfile());
         if (audioQuality.getMaxInputSize() > 0) {
             format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, audioQuality.getMaxInputSize());
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            format.setInteger(MediaFormat.KEY_PCM_ENCODING, audioQuality.getFormat());
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

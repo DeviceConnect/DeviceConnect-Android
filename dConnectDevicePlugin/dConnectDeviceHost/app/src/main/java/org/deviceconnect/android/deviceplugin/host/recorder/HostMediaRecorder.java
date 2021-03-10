@@ -337,6 +337,30 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         }
     }
 
+    enum AudioFilter {
+        LOW_PASS("low-pass"),
+        HIGH_PASS("high-pass");
+
+        private final String mName;
+
+        AudioFilter(String name) {
+            mName = name;
+        }
+
+        public String getName() {
+            return mName;
+        }
+
+        public static AudioFilter nameOf(String name) {
+            for (AudioFilter filter : values()) {
+                if (filter.mName.equalsIgnoreCase(name)) {
+                    return filter;
+                }
+            }
+            return null;
+        }
+    }
+
     /**
      * MediaRecorder の状態.
      */
@@ -1603,6 +1627,26 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public void setMute(boolean mute) {
             mPref.put("preview_audio_mute", mute);
+        }
+
+        public AudioFilter getAudioFilter() {
+            return AudioFilter.nameOf(mPref.getString("preview_audio_filter", "none"));
+        }
+
+        public void setAudioFilter(AudioFilter filter) {
+            if (filter == null) {
+                mPref.remove("preview_audio_filter");
+            } else {
+                mPref.put("preview_audio_filter", filter.mName);
+            }
+        }
+
+        public float getAudioCoefficient() {
+            return mPref.getInteger("preview_audio_coefficient", 10) / 100.0f;
+        }
+
+        public void setAudioCoefficient(float coefficient) {
+            mPref.put("preview_audio_coefficient", (int) (coefficient * 100));
         }
 
         public boolean isSupportedAudioSource(AudioSource source) {

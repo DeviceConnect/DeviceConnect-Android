@@ -1,7 +1,7 @@
 package org.deviceconnect.android.libsrt.broadcast;
 
 import android.os.Handler;
-import android.os.Looper;
+import android.os.HandlerThread;
 
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.MediaStreamer;
@@ -22,7 +22,7 @@ public class SRTClient {
     /**
      * ハンドラ.
      */
-    private final Handler mHandler = new Handler(Looper.getMainLooper());
+    private Handler mRetryHandler;
 
     /**
      * リトライ数.
@@ -32,12 +32,12 @@ public class SRTClient {
     /**
      * リトライ回数.
      */
-    private int mMaxRetryCount = 3;
+    private int mMaxRetryCount = 0;
 
     /**
      * リトライを行うインターバル.
      */
-    private int mRetryInterval = 2000;
+    private int mRetryInterval = 4000;
 
     /**
      * リトライフラグ.
@@ -48,16 +48,100 @@ public class SRTClient {
     private boolean mRetryFlag;
 
     /**
-     * 起動フラグ.
+     * イベントを送信するリスナー.
      */
-    private boolean mRunnableFlag;
+    private OnEventListener mOnEventListener;
 
     /**
      * コンストラクタ.
      */
     public SRTClient(String broadcastURI) {
         mSRTMuxer = new SRTMuxer(broadcastURI);
+        mSRTMuxer.setOnEventListener(new SRTMuxer.OnEventListener() {
+            @Override
+            public void onConnected() {
+                if (mOnEventListener != null) {
+                    mOnEventListener.onConnected();
+                }
+            }
+
+            @Override
+            public void onDisconnected() {
+                if (mOnEventListener != null) {
+                    mOnEventListener.onDisconnected();
+                }
+            }
+
+            @Override
+            public void onNewBitrate(long bitrate) {
+                if (mOnEventListener != null) {
+                    mOnEventListener.onNewBitrate(bitrate);
+                }
+            }
+
+            @Override
+            public void onError(MediaEncoderException e) {
+                error(e);
+            }
+        });
+
         mMediaStreamer = new MediaStreamer(mSRTMuxer);
+        mMediaStreamer.setOnEventListener(new MediaStreamer.OnEventListener() {
+            @Override
+            public void onStarted() {
+                mRetryCount = 0;
+
+                if (mOnEventListener != null) {
+                    mOnEventListener.onStarted();
+                }
+            }
+
+            @Override
+            public void onStopped() {
+                if (mOnEventListener != null) {
+                    mOnEventListener.onStopped();
+                }
+            }
+
+            @Override
+            public void onError(MediaEncoderException e) {
+                error(e);
+            }
+        });
+    }
+
+    /**
+     * エラー処理を行います.
+     *
+     * @param e エラー原因の例外
+     */
+    private synchronized void error(MediaEncoderException e) {
+        if (mRetryFlag) {
+            // リトライ処理中なので、連続で発生したエラーは無視する。
+            return;
+        }
+
+        if (mRetryCount < mMaxRetryCount) {
+            mRetryCount++;
+            mRetryFlag = true;
+
+            mMediaStreamer.stop();
+
+            if (mRetryHandler != null) {
+                mRetryHandler.postDelayed(() -> {
+                    if (mRetryHandler != null) {
+                        mMediaStreamer.start();
+                    }
+                    mRetryFlag = false;
+                }, mRetryInterval);
+            }
+        } else {
+            stop();
+
+            if (mOnEventListener != null) {
+                mOnEventListener.onError(e);
+            }
+        }
     }
 
     /**
@@ -102,62 +186,7 @@ public class SRTClient {
      * @param listener リスナー
      */
     public void setOnEventListener(OnEventListener listener) {
-        mMediaStreamer.setOnEventListener(listener);
-        mSRTMuxer.setOnEventListener(new SRTMuxer.OnEventListener() {
-            @Override
-            public void onConnected() {
-                // 接続できたのでリトライ数を初期化
-                mRetryCount = 0;
-                if (listener != null) {
-                    listener.onConnected();
-                }
-            }
-
-            @Override
-            public void onDisconnected() {
-                if (mRetryFlag) {
-                    // エラーが発生して切断された時も、このイベントが呼び出されるので
-                    // リトライの処理を行っている間はリスナーに通知しないようにブロックする。
-                    return;
-                }
-
-                if (listener != null) {
-                    listener.onDisconnected();
-                }
-            }
-
-            @Override
-            public void onNewBitrate(long bitrate) {
-                if (listener != null) {
-                    listener.onNewBitrate(bitrate);
-                }
-            }
-
-            @Override
-            public void onError(MediaEncoderException e) {
-                if (mRetryFlag) {
-                    return;
-                }
-
-                if (mRetryCount < mMaxRetryCount) {
-                    mRetryCount++;
-                    mRetryFlag = true;
-
-                    mMediaStreamer.stop();
-
-                    mHandler.postDelayed(() -> {
-                        mRetryFlag = false;
-                        if (mRunnableFlag) {
-                            mMediaStreamer.start();
-                        }
-                    }, mRetryInterval);
-                } else {
-                    if (listener != null) {
-                        listener.onError(e);
-                    }
-                }
-            }
-        });
+        mOnEventListener = listener;
     }
 
     /**
@@ -166,23 +195,33 @@ public class SRTClient {
      * @return 動作中の場合は true、それ以外は false
      */
     public boolean isRunning() {
-        return mMediaStreamer.isRunning();
+        return mRetryHandler != null;
     }
 
     /**
      * RTMP のセッションを開始します.
      */
-    public void start() {
+    public synchronized void start() {
+        if (mRetryHandler != null) {
+            return;
+        }
+
+        HandlerThread thread = new HandlerThread("rtmp-retry-thread");
+        thread.start();
+        mRetryHandler = new Handler(thread.getLooper());
         mRetryCount = mMaxRetryCount;
-        mRunnableFlag = true;
+        mRetryFlag = false;
         mMediaStreamer.start();
     }
 
     /**
      * RTMP のセッションを停止します.
      */
-    public void stop() {
-        mRunnableFlag = false;
+    public synchronized void stop() {
+        if (mRetryHandler != null) {
+            mRetryHandler.getLooper().quit();
+            mRetryHandler = null;
+        }
         mMediaStreamer.stop();
     }
 
@@ -281,6 +320,9 @@ public class SRTClient {
         }
     }
 
+    /**
+     * SRTClient で発生したイベントを通知するリスナー.
+     */
     public interface OnEventListener extends MediaStreamer.OnEventListener, SRTMuxer.OnEventListener {
     }
 }

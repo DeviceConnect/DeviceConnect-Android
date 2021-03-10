@@ -103,6 +103,8 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
                 if (mOnBroadcasterEventListener != null) {
                     mOnBroadcasterEventListener.onError(e);
                 }
+
+                AbstractRTMPBroadcaster.this.stop();
             }
 
             @Override
@@ -111,7 +113,6 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
 
             @Override
             public void onDisconnected() {
-                AbstractRTMPBroadcaster.this.stop();
             }
 
             @Override

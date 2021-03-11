@@ -65,7 +65,7 @@ public class UvcSurfaceDrawingThread extends EGLSurfaceDrawingThread {
         stopCamera();
     }
 
-    private void startCamera(SurfaceTexture surfaceTexture) {
+    private synchronized void startCamera(SurfaceTexture surfaceTexture) {
         try {
             UvcRecorder.UvcSettings settings = (UvcRecorder.UvcSettings) mRecorder.getSettings();
 
@@ -100,7 +100,7 @@ public class UvcSurfaceDrawingThread extends EGLSurfaceDrawingThread {
         }
     }
 
-    private void stopCamera() {
+    private synchronized void stopCamera() {
         if (mPlayer != null) {
             try {
                 mPlayer.stop();

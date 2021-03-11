@@ -17,6 +17,7 @@ import org.deviceconnect.android.deviceplugin.uvc.profile.utils.H265Level;
 import org.deviceconnect.android.deviceplugin.uvc.profile.utils.H265Profile;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.Broadcaster;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.MediaRecorder;
+import org.deviceconnect.android.deviceplugin.uvc.recorder.MediaRecorderManager;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.uvc.UvcRecorder;
 import org.deviceconnect.android.deviceplugin.uvc.service.UVCService;
@@ -370,6 +371,13 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     return true;
                 }
 
+                MediaRecorderManager mrm = service.getMediaRecorderManager();
+                if (!mrm.canUseRecorder(recorder)) {
+                    // 他のカメラが使用中の場合はエラーを返却
+                    MessageUtils.setIllegalDeviceStateError(response, "Other recorder are being used.");
+                    return true;
+                }
+
                 recorder.requestPermission(new MediaRecorder.PermissionCallback() {
                     @Override
                     public void onAllowed() {
@@ -484,9 +492,22 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     return true;
                 }
 
+                MediaRecorderManager mrm = service.getMediaRecorderManager();
+                if (!mrm.canUseRecorder(recorder)) {
+                    // 他のカメラが使用中の場合はエラーを返却
+                    MessageUtils.setIllegalDeviceStateError(response, "Other recorder are being used.");
+                    return true;
+                }
+
                 recorder.requestPermission(new MediaRecorder.PermissionCallback() {
                     @Override
                     public void onAllowed() {
+                        // TODO 排他的に処理を行うようにします。
+                        if (recorder instanceof UvcRecorder) {
+                            // 使用していない場合は停止する
+                            mrm.stopCameraRecorder(recorder);
+                        }
+
                         Broadcaster b = recorder.startBroadcaster(broadcastURI);
                         if (b != null) {
                             setResult(response, DConnectMessage.RESULT_OK);

@@ -10,6 +10,7 @@ import org.deviceconnect.android.deviceplugin.uvc.recorder.h264.UvcH264Recorder;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.mjpeg.UvcMjpgRecorder;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.uncompressed.UvcUncompressedRecorder;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.uvc.UvcRecorder;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
 import org.deviceconnect.android.libuvc.Parameter;
 import org.deviceconnect.android.libuvc.UVCCamera;
@@ -105,6 +106,59 @@ public class MediaRecorderManager {
 
         mUvcRecorderList.clear();
     }
+
+    /**
+     * レコーダが使用できるか確認します.
+     *
+     * @param recorder レコーダ
+     * @return 使用できる場合はtrue、それ以外はfalse
+     */
+    public boolean canUseRecorder(UvcRecorder recorder) {
+        for (UvcRecorder uvcRecorder : getUvcRecorderList()) {
+            if (uvcRecorder == recorder) {
+                continue;
+            }
+            if (uvcRecorder.isPreviewRunning() || uvcRecorder.isBroadcasterRunning() ||
+                    uvcRecorder.getState() == MediaRecorder.State.RECORDING) {
+                // カメラが使用中
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 使用するレコーダ以外のレコーダを停止します。
+     *
+     * プレビュー配信中などの停止できない場合には、停止しません。
+     * その場合には、カメラを使用できないので注意が必要になります。
+     *
+     * @param useRecorder 使用するレコーダ
+     */
+    public void stopCameraRecorder(MediaRecorder useRecorder) {
+        for (MediaRecorder recorder : getUvcRecorderList()) {
+            if (recorder == useRecorder) {
+                continue;
+            }
+
+            if (recorder instanceof UvcRecorder) {
+                if (!recorder.isPreviewRunning() && !recorder.isBroadcasterRunning() &&
+                        recorder.getState() != MediaRecorder.State.RECORDING) {
+                    // 強制的にカメラを停止
+                    EGLSurfaceDrawingThread drawingThread = recorder.getSurfaceDrawingThread();
+                    drawingThread.stop(true);
+
+                    // カメラの処理は別スレッドで行われているので、ここで少し待機します
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException e) {
+                        // ignore.
+                    }
+                }
+            }
+        }
+    }
+
 
     /**
      * レコーダのリストを取得します.

@@ -18,12 +18,7 @@ public class Mpeg4Muxer implements IMediaMuxer {
     private boolean mMuxerStarted = false;
     private boolean mVideoEnabled = false;
     private boolean mAudioEnabled = false;
-
-    /**
-     * エンコード開始時間.
-     */
     private long mPresentationTimeUs;
-
     private final Object mLockObject = new Object();
 
     public Mpeg4Muxer(String outputPath) {
@@ -63,18 +58,7 @@ public class Mpeg4Muxer implements IMediaMuxer {
 
     @Override
     public void onWriteVideoData(ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
-        if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-            bufferInfo.size = 0;
-        }
-
-        if (bufferInfo.size != 0) {
-            if (!mMuxerStarted || mVideoTrackIndex == -1) {
-                return;
-            }
-            encodedData.position(bufferInfo.offset);
-            encodedData.limit(bufferInfo.offset + bufferInfo.size);
-            mMuxer.writeSampleData(mVideoTrackIndex, encodedData, bufferInfo);
-        }
+        writeData(mVideoTrackIndex, encodedData, bufferInfo);
     }
 
     @Override
@@ -95,22 +79,15 @@ public class Mpeg4Muxer implements IMediaMuxer {
 
     @Override
     public void onWriteAudioData(ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
-        if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-            bufferInfo.size = 0;
-        }
-
-        if (bufferInfo.size != 0) {
-            if (!mMuxerStarted || mAudioTrackIndex == -1) {
-                return;
-            }
-            encodedData.position(bufferInfo.offset);
-            encodedData.limit(bufferInfo.offset + bufferInfo.size);
-            mMuxer.writeSampleData(mAudioTrackIndex, encodedData, bufferInfo);
-        }
+       writeData(mAudioTrackIndex, encodedData, bufferInfo);
     }
 
     @Override
     public void onReleased() {
+        synchronized (mLockObject) {
+            mLockObject.notifyAll();
+        }
+
         if (mMuxer != null) {
             try {
                 mMuxer.stop();
@@ -124,6 +101,22 @@ public class Mpeg4Muxer implements IMediaMuxer {
                 // ignore.
             }
             mMuxer = null;
+        }
+    }
+
+    private synchronized void writeData(int trackIndex, ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
+        if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+            bufferInfo.size = 0;
+        }
+
+        if (bufferInfo.size != 0) {
+            if (!mMuxerStarted || mAudioTrackIndex == -1) {
+                return;
+            }
+            bufferInfo.presentationTimeUs = getPresentationTime(bufferInfo);
+            encodedData.position(bufferInfo.offset);
+            encodedData.limit(bufferInfo.offset + bufferInfo.size);
+            mMuxer.writeSampleData(trackIndex, encodedData, bufferInfo);
         }
     }
 

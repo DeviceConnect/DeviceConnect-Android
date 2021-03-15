@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.util.Range;
 import android.util.Size;
 
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
@@ -22,6 +23,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamReco
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -124,6 +126,12 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                     }
                                 }
                                 info.putFloat("previewJpegQuality", settings.getPreviewQuality() / 100.0f);
+
+                                Bundle status = new Bundle();
+                                status.putBoolean("preview", recorder.isPreviewRunning());
+                                status.putBoolean("broadcast", recorder.isBroadcasterRunning());
+                                status.putBoolean("recording", recorder.getState() == HostMediaRecorder.State.RECORDING);
+                                info.putParcelable("status", status);
                             }
 
                             // 切り抜き設定
@@ -184,6 +192,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         setSupportedImageSizes(response, settings.getSupportedPictureSizes());
                         setSupportedPreviewSizes(response, settings.getSupportedPreviewSizes());
                         setSupportedVideoEncoders(response, settings.getSupportedVideoEncoders());
+                        setSupportedFps(response, settings.getSupportedFps());
                     } else if (recorder.getMimeType().startsWith("audio/")) {
                         // 音声系の設定
                     }
@@ -227,6 +236,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             Integer previewClipRight = parseInteger(request, "previewClipRight");
             Integer previewClipBottom = parseInteger(request, "previewClipBottom");
             Boolean previewClipReset = parseBoolean(request, "previewClipReset");
+            HostMediaRecorder.ProfileLevel profileLevel = null;
 
             HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
@@ -242,42 +252,47 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             }
 
             if (recorder.getState() != HostMediaRecorder.State.INACTIVE
-                && recorder.getState() != HostMediaRecorder.State.PREVIEW) {
+                    && recorder.getState() != HostMediaRecorder.State.PREVIEW) {
                 MessageUtils.setInvalidRequestParameterError(response, "settings of active target cannot be changed.");
                 return;
             }
 
-            if (imageWidth != null && imageHeight != null) {
+            // 値の妥当性チェック
+
+            if (imageWidth != null || imageHeight != null) {
+                if (imageWidth == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "imageWidth is not set.");
+                    return;
+                }
+
+                if (imageHeight == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "imageHeight is not set.");
+                    return;
+                }
+
                 if (!settings.isSupportedPictureSize(imageWidth, imageHeight)) {
                     MessageUtils.setInvalidRequestParameterError(response, "Unsupported image size: imageWidth = "
                             + imageWidth + ", imageHeight = " + imageHeight);
                     return;
                 }
-                Size newSize = new Size(imageWidth, imageHeight);
-                settings.setPictureSize(newSize);
             }
 
-            if (previewWidth != null && previewHeight != null) {
+            if (previewWidth != null || previewHeight != null) {
+                if (previewWidth == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "previewWidth is not set.");
+                    return;
+                }
+
+                if (previewHeight == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "previewHeight is not set.");
+                    return;
+                }
+
                 if (!settings.isSupportedPreviewSize(previewWidth, previewHeight)) {
                     MessageUtils.setInvalidRequestParameterError(response, "Unsupported preview size: previewWidth = "
                             + previewWidth + ", previewHeight = " + previewHeight);
                     return;
                 }
-
-                Size newSize = new Size(previewWidth, previewHeight);
-                settings.setPreviewSize(newSize);
-            }
-
-            if (previewMaxFrameRate != null) {
-                settings.setPreviewMaxFrameRate(previewMaxFrameRate.intValue());
-            }
-
-            if (previewBitRate != null) {
-                settings.setPreviewBitRate(previewBitRate * 1024);
-            }
-
-            if (previewKeyFrameInterval != null) {
-                settings.setPreviewKeyFrameInterval(previewKeyFrameInterval);
             }
 
             if (previewEncoder != null) {
@@ -286,9 +301,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             "Unsupported preview encoder: " + previewEncoder);
                     return;
                 }
-                settings.setPreviewEncoder(previewEncoder);
-                // エンコーダが切り替えられた場合は、プロファイル・レベルは設定無しにする
-                settings.setProfileLevel(null);
             }
 
             if (previewProfile != null || previewLevel != null) {
@@ -308,28 +320,24 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     case H264: {
                         H264Profile p = H264Profile.nameOf(previewProfile);
                         H264Level l = H264Level.nameOf(previewLevel);
-                        if (!settings.isSupportedProfileLevel(p.getValue(), l.getValue())) {
+                        if (p == null || l == null || !settings.isSupportedProfileLevel(p.getValue(), l.getValue())) {
                             MessageUtils.setInvalidRequestParameterError(response,
                                     "Unsupported preview profile and level: " + previewProfile + " - " + previewLevel);
                             return;
                         }
-                        settings.setProfileLevel(new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue()));
+                        profileLevel = new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue());
                     }   break;
                     case H265: {
                         H265Profile p = H265Profile.nameOf(previewProfile);
                         H265Level l = H265Level.nameOf(previewLevel);
-                        if (!settings.isSupportedProfileLevel(p.getValue(), l.getValue())) {
+                        if (p == null || l == null || !settings.isSupportedProfileLevel(p.getValue(), l.getValue())) {
                             MessageUtils.setInvalidRequestParameterError(response,
                                     "Unsupported preview profile and level: " + previewProfile + " - " + previewLevel);
                             return;
                         }
-                        settings.setProfileLevel(new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue()));
+                        profileLevel = new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue());
                     }   break;
                 }
-            }
-
-            if (previewIntraRefresh != null) {
-                settings.setIntraRefresh(previewIntraRefresh);
             }
 
             if (previewJpegQuality != null) {
@@ -338,47 +346,107 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             "previewJpegQuality is invalid. value=" + previewJpegQuality);
                     return;
                 }
+            }
+
+            if (previewClipLeft != null || previewClipTop != null
+                    || previewClipRight != null || previewClipBottom != null) {
+                if (previewClipLeft == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "previewClipLeft is not set.");
+                    return;
+                }
+
+                if (previewClipTop == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "previewClipTop is not set.");
+                    return;
+                }
+
+                if (previewClipRight == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "previewClipRight is not set.");
+                    return;
+                }
+
+                if (previewClipBottom == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "previewClipBottom is not set.");
+                    return;
+                }
+
+                if (previewClipLeft < 0) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "previewClipLeft cannot set a negative value.");
+                    return;
+                }
+
+                if (previewClipBottom < 0) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "previewClipBottom cannot set a negative value.");
+                    return;
+                }
+
+                if (previewClipLeft >= previewClipRight) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "previewClipLeft is larger than previewClipRight.");
+                    return;
+                }
+
+                if (previewClipTop >= previewClipBottom) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "previewClipTop is larger than previewClipBottom.");
+                    return;
+                }
+            }
+
+            // 値の設定
+
+            if (imageWidth != null && imageHeight != null) {
+                settings.setPictureSize(new Size(imageWidth, imageHeight));
+            }
+
+            if (previewWidth != null && previewHeight != null) {
+                settings.setPreviewSize(new Size(previewWidth, previewHeight));
+            }
+
+            if (previewMaxFrameRate != null) {
+                settings.setPreviewMaxFrameRate(previewMaxFrameRate.intValue());
+            }
+
+            if (previewBitRate != null) {
+                settings.setPreviewBitRate(previewBitRate * 1024);
+            }
+
+            if (previewKeyFrameInterval != null) {
+                settings.setPreviewKeyFrameInterval(previewKeyFrameInterval);
+            }
+
+            if (previewEncoder != null) {
+                settings.setPreviewEncoder(previewEncoder);
+                // エンコーダが切り替えられた場合は、プロファイル・レベルは設定無しにする
+                settings.setProfileLevel(null);
+            }
+
+            if (profileLevel != null) {
+                settings.setProfileLevel(profileLevel);
+            }
+
+            if (previewIntraRefresh != null) {
+                settings.setIntraRefresh(previewIntraRefresh);
+            }
+
+            if (previewJpegQuality != null) {
                 settings.setPreviewQuality((int) (previewJpegQuality * 100));
             }
 
             if (previewClipReset != null && previewClipReset) {
                 settings.setDrawingRange(null);
-            } else if (previewClipLeft != null && previewClipTop != null
-                    && previewClipRight != null && previewClipBottom != null) {
-                if (previewClipLeft == 0 && previewClipTop == 0
-                        && previewClipRight == 0 && previewClipBottom == 0) {
-                    settings.setDrawingRange(null);
-                } else {
-                    if (previewClipLeft < 0) {
-                        MessageUtils.setInvalidRequestParameterError(response,
-                                "previewClipLeft cannot set a negative value.");
-                        return;
-                    }
-
-                    if (previewClipBottom < 0) {
-                        MessageUtils.setInvalidRequestParameterError(response,
-                                "previewClipBottom cannot set a negative value.");
-                        return;
-                    }
-
-                    if (previewClipLeft >= previewClipRight) {
-                        MessageUtils.setInvalidRequestParameterError(response,
-                                "previewClipLeft is larger than previewClipRight.");
-                        return;
-                    }
-
-                    if (previewClipTop >= previewClipBottom) {
-                        MessageUtils.setInvalidRequestParameterError(response,
-                                "previewClipTop is larger than previewClipBottom.");
-                        return;
-                    }
-
-                    Rect rect = new Rect(previewClipLeft, previewClipTop, previewClipRight, previewClipBottom);
-                    settings.setDrawingRange(rect);
-                }
+            } else if (previewClipLeft != null) {
+                settings.setDrawingRange(new Rect(previewClipLeft, previewClipTop, previewClipRight, previewClipBottom));
             }
 
-            recorder.onConfigChange();
+            try {
+                recorder.onConfigChange();
+            } catch (Exception e) {
+                MessageUtils.setIllegalDeviceStateError(response, "Failed to change a config.");
+                return;
+            }
 
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -551,9 +619,22 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
+            // TODO 他のカメラとは排他的に処理を行うようにします。
+            if (!mRecorderMgr.canUseRecorder(recorder)) {
+                // 他のカメラが使用中の場合はエラーを返却
+                MessageUtils.setIllegalDeviceStateError(response, "Other cameras are being used.");
+                return true;
+            }
+
             recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                 @Override
                 public void onAllowed() {
+                    // TODO 他のカメラとは排他的に処理を行うようにします。
+                    if (recorder instanceof Camera2Recorder) {
+                        // 使用する予定のレコーダがカメラの場合は、使用していない他のカメラを停止する
+                        mRecorderMgr.stopCameraRecorder(recorder);
+                    }
+
                     recorder.takePhoto(new HostDevicePhotoRecorder.OnPhotoEventListener() {
                         @Override
                         public void onTakePhoto(final String uri, final String filePath, final String mimeType) {
@@ -598,6 +679,13 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
             if (recorder == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+                return true;
+            }
+
+            // TODO 他のカメラとは排他的に処理を行うようにします。
+            if (!mRecorderMgr.canUseRecorder(recorder)) {
+                // 他のカメラが使用中の場合はエラーを返却
+                MessageUtils.setIllegalDeviceStateError(response, "Other cameras are being used.");
                 return true;
             }
 
@@ -768,6 +856,13 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+                return true;
+            }
+
+            // TODO 他のカメラとは排他的に処理を行うようにします。
+            if (!mRecorderMgr.canUseRecorder(recorder)) {
+                // 他のカメラが使用中の場合はエラーを返却
+                MessageUtils.setIllegalDeviceStateError(response, "Other cameras are being used.");
                 return true;
             }
 
@@ -960,6 +1055,14 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     private final HostMediaRecorderManager.OnEventListener mOnEventListener = new HostMediaRecorderManager.OnEventListener() {
         @Override
+        public void onMuteChanged(HostMediaRecorder recorder, boolean mute) {
+        }
+
+        @Override
+        public void onConfigChanged(HostMediaRecorder recorder) {
+        }
+
+        @Override
         public void onPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers) {
         }
 
@@ -1070,9 +1173,22 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     return true;
                 }
 
+                // TODO 他のカメラとは排他的に処理を行うようにします。
+                if (!mRecorderMgr.canUseRecorder(recorder)) {
+                    // 他のカメラが使用中の場合はエラーを返却
+                    MessageUtils.setIllegalDeviceStateError(response, "Other cameras are being used.");
+                    return true;
+                }
+
                 recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                     @Override
                     public void onAllowed() {
+                        // TODO 他のカメラとは排他的に処理を行うようにします。
+                        if (recorder instanceof Camera2Recorder) {
+                            // 使用する予定のレコーダがカメラの場合は、使用していない他のカメラを停止する
+                            mRecorderMgr.stopCameraRecorder(recorder);
+                        }
+
                         Broadcaster b = recorder.startBroadcaster(broadcastURI);
                         if (b != null) {
                             setResult(response, DConnectMessage.RESULT_OK);
@@ -1110,6 +1226,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                     return true;
                 }
+
                 recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                     @Override
                     public void onAllowed() {
@@ -1131,7 +1248,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     private HostDevicePlugin getHostDevicePlugin() {
         return (HostDevicePlugin) getContext();
-     }
+    }
 
     /**
      * サポートしている静止画の解像度をレスポンスに格納します.
@@ -1176,7 +1293,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
      * @param encoderNames エンコーダのリスト
      */
     private static void setSupportedVideoEncoders(Intent response, List<String> encoderNames) {
-       List<Bundle> encoders = new ArrayList<>();
+        List<Bundle> encoders = new ArrayList<>();
         for (String name : encoderNames) {
             HostMediaRecorder.VideoEncoderName encoderName = HostMediaRecorder.VideoEncoderName.nameOf(name);
             Bundle encoder = new Bundle();
@@ -1223,6 +1340,22 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     /**
+     * カメラがサポートしている Fps のリストをレスポンスに格納します.
+     *
+     * @param response レスポンス
+     * @param supportedFps サポートしている fps のリスト
+     */
+    private static void setSupportedFps(Intent response, List<Range<Integer>> supportedFps) {
+        List<Integer> fpsList = new ArrayList<>();
+        for (Range<Integer> fps : supportedFps) {
+            if (!fpsList.contains(fps.getUpper())) {
+                fpsList.add(fps.getUpper());
+            }
+        }
+        response.putExtra("frameRate", fpsList.toArray(new Integer[0]));
+    }
+
+    /**
      * 指定されたマイムタイプがレコーダでサポートされているか確認します.
      *
      * @param recorder レコーダ
@@ -1266,8 +1399,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     private void sendEventForRecordingChange(final String serviceId, final HostMediaRecorder.State state,
-                                            final String uri, final String path,
-                                            final String mimeType, final String errorMessage) {
+                                             final String uri, final String path,
+                                             final String mimeType, final String errorMessage) {
         List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,
                 MediaStreamRecordingProfile.PROFILE_NAME, null,
                 MediaStreamRecordingProfile.ATTRIBUTE_ON_RECORDING_CHANGE);

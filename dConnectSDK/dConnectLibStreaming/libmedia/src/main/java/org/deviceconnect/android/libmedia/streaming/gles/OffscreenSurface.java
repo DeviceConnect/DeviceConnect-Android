@@ -15,9 +15,14 @@ public class OffscreenSurface extends EGLSurfaceBase {
      * @param width オフスクリーンの横幅
      * @param height オフスクリーンの縦幅
      */
-    public OffscreenSurface(EGLCore core, int width, int height) {
-        super(core, width, height);
-        setEGLSurface(createEGLSurface(core.getEGLDisplay(), core.getEGLConfigs(), width, height));
+    public OffscreenSurface(int width, int height) {
+        super(width, height);
+    }
+
+    @Override
+    void initEGLSurfaceBase(EGLCore core) {
+        setEGLCore(core);
+        setEGLSurface(createEGLSurface(core.getEGLDisplay(), core.getEGLConfigs(), getWidth(), getHeight()));
     }
 
     private EGLSurface createEGLSurface(EGLDisplay display, EGLConfig[] configs, int width, int height) {

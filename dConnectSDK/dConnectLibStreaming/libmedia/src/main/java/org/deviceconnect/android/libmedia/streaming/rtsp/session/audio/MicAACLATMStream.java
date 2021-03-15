@@ -92,6 +92,9 @@ public class MicAACLATMStream extends AudioStream {
 
             if (DEBUG) {
                 Log.d(TAG, "### Audio Config " + mAudioConfig);
+                Log.d(TAG, "###   profile " + profile);
+                Log.d(TAG, "###   samplingRateIndex " + samplingRateIndex);
+                Log.d(TAG, "###   channelCount " + channelCount);
             }
         }
     }

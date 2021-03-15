@@ -36,9 +36,53 @@ public abstract class AudioEncoder extends MediaEncoder {
 
         String mimeType = audioQuality.getMimeType();
 
+        MediaCodecInfo codecInfo = null;
+
         List<MediaCodecInfo> infoList = getMediaCodecInfo(mimeType);
         if (infoList.isEmpty()) {
             throw new IOException(mimeType + " not supported.");
+        }
+
+        // 指定されたサンプルレートがサポートしている MediaCodec を選択する。
+        // ハードウェアエンコーダ(OMX.) を優先的に選択する。
+        for (MediaCodecInfo c : infoList) {
+            if (c.isEncoder()) {
+                try {
+                    MediaCodecInfo.CodecCapabilities caps = c.getCapabilitiesForType(mimeType);
+                    if (caps != null) {
+                        MediaCodecInfo.AudioCapabilities audioCapabilities = caps.getAudioCapabilities();
+                        for (int sampleRate : audioCapabilities.getSupportedSampleRates()) {
+                            if (sampleRate == audioQuality.getSamplingRate()) {
+                                if (codecInfo == null || c.getName().startsWith("OMX.")) {
+                                    codecInfo = c;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // ignore.
+                }
+            }
+        }
+
+        if (codecInfo == null) {
+            throw new RuntimeException(mimeType + " not supported.");
+        }
+
+        if (DEBUG) {
+            Log.d(TAG, "List of MediaCodeInfo supported by MediaCodec.");
+            for (MediaCodecInfo info : infoList) {
+                Log.d(TAG, "  " + info.getName());
+            }
+            Log.i(TAG, "---");
+            Log.i(TAG, "SELECT: " + codecInfo.getName());
+            Log.i(TAG, "MIME_TYPE: " + audioQuality.getMimeType());
+            Log.i(TAG, "SAMPLE_RATE: " + audioQuality.getSamplingRate());
+            Log.i(TAG, "CHANNEL: " + audioQuality.getChannelCount());
+            Log.i(TAG, "FORMAT: " + audioQuality.getFormat());
+            Log.i(TAG, "BIT_RATE: " + audioQuality.getBitRate());
+            Log.i(TAG, "---");
         }
 
         MediaFormat format = MediaFormat.createAudioFormat(audioQuality.getMimeType(),
@@ -48,9 +92,13 @@ public abstract class AudioEncoder extends MediaEncoder {
         format.setInteger(MediaFormat.KEY_BIT_RATE, audioQuality.getBitRate());
         format.setInteger(MediaFormat.KEY_CHANNEL_COUNT, audioQuality.getChannelCount());
         format.setInteger(MediaFormat.KEY_CHANNEL_MASK, audioQuality.getChannel());
-        format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+        format.setInteger(MediaFormat.KEY_AAC_PROFILE, audioQuality.getAACProfile());
         if (audioQuality.getMaxInputSize() > 0) {
             format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, audioQuality.getMaxInputSize());
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            format.setInteger(MediaFormat.KEY_PCM_ENCODING, audioQuality.getFormat());
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -59,21 +107,7 @@ public abstract class AudioEncoder extends MediaEncoder {
             format.setInteger(MediaFormat.KEY_PRIORITY, 0x00);
         }
 
-        if (DEBUG) {
-            Log.d(TAG, "List of MediaCodeInfo supported by MediaCodec.");
-            for (MediaCodecInfo info : infoList) {
-                Log.d(TAG, "  " + info.getName());
-            }
-            Log.i(TAG, "---");
-            Log.i(TAG, "MIME_TYPE: " + audioQuality.getMimeType());
-            Log.i(TAG, "SAMPLE_RATE: " + audioQuality.getSamplingRate());
-            Log.i(TAG, "CHANNEL: " + audioQuality.getChannelCount());
-            Log.i(TAG, "FORMAT: " + audioQuality.getFormat());
-            Log.i(TAG, "BIT_RATE: " + audioQuality.getBitRate());
-            Log.i(TAG, "---");
-        }
-
-        mMediaCodec = MediaCodec.createEncoderByType(audioQuality.getMimeType());
+        mMediaCodec = MediaCodec.createByCodecName(codecInfo.getName());
         mMediaCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
     }
 

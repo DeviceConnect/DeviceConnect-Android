@@ -269,6 +269,14 @@ public abstract class MediaEncoder {
      * エンコーダの処理を停止します.
      */
     private void stopEncoder() {
+        if (mMediaCodec != null ) {
+            try {
+                mMediaCodec.signalEndOfInputStream();
+            } catch (Exception e) {
+                // ignore.
+            }
+        }
+
         try {
             stopRecording();
         } catch (Exception e) {

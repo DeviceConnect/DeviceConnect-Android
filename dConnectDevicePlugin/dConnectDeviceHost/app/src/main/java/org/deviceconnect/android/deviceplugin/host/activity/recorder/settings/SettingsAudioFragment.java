@@ -6,6 +6,7 @@ import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 
 import java.util.ArrayList;
@@ -25,12 +26,14 @@ public class SettingsAudioFragment extends SettingsParameterFragment {
         mMediaRecorder = getRecorder();
 
         setPreviewAudioSource(mMediaRecorder.getSettings());
+        setPreviewSampleRate(mMediaRecorder.getSettings());
+        setPreviewAudioCoefficient(mMediaRecorder.getSettings());
         setInputTypeNumber("preview_audio_bitrate");
         setInputTypeNumber("preview_audio_channel");
     }
 
     /**
-     * 静止画の解像度の Preference を作成します.
+     * 静止画の解像度の Preference に値を設定します.
      *
      * @param settings レコーダの設定
      */
@@ -68,7 +71,45 @@ public class SettingsAudioFragment extends SettingsParameterFragment {
         }
     }
 
+    /**
+     * サンプルレートの Preference に値を設定します.
+     *
+     * @param settings レコーダの設定
+     */
+    private void setPreviewSampleRate(HostMediaRecorder.Settings settings) {
+        ListPreference pref = findPreference("preview_audio_sample_rate");
+        if (pref != null) {
+            List<Integer> list = settings.getSupportedSampleRateList();
+            if (list != null && !list.isEmpty()) {
+                List<String> entryNames = new ArrayList<>();
+                List<String> entryValues = new ArrayList<>();
+                for (Integer sampleRate : list) {
+                    entryNames.add(String.valueOf(sampleRate));
+                    entryValues.add(String.valueOf(sampleRate));
+                }
+                pref.setEntries(entryNames.toArray(new String[0]));
+                pref.setEntryValues(entryValues.toArray(new String[0]));
+                pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
+            } else {
+                pref.setEnabled(false);
+            }
+        }
+    }
+
+    /**
+     * フィルターの係数用の Preference に値を設定します.
+     *
+     * @param settings レコーダ設定
+     */
+    private void setPreviewAudioCoefficient(HostMediaRecorder.Settings settings) {
+        SeekBarDialogPreference pref = findPreference("preview_audio_coefficient");
+        if (pref != null) {
+            pref.setMinValue(0);
+            pref.setMaxValue(100);
+        }
+    }
+
     private final Preference.OnPreferenceChangeListener mOnPreferenceChangeListener = (preference, newValue) -> {
-        return true;
+        return mMediaRecorder != null;
     };
 }

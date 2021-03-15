@@ -17,6 +17,7 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
+import android.os.Build;
 import android.util.Range;
 import android.util.Size;
 
@@ -93,6 +94,69 @@ public final class Camera2Helper {
             }
         }
         return null;
+    }
+
+    /**
+     * 指定された機能が利用可能か確認します.
+     *
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @param capability 機能
+     * @return 機能が利用可能な場合は true、それ以外は false
+     */
+    private static boolean availableCapability(final CameraManager cameraManager, final String cameraId, final int capability) {
+        try {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            int[] capabilities = characteristics.get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES);
+            if (capabilities != null) {
+                for (int caps : capabilities) {
+                    if (caps == capability) {
+                        return true;
+                    }
+                }
+            }
+        } catch (CameraAccessException e) {
+            // ignore.
+        }
+        return false;
+    }
+
+    /**
+     * デプス機能が利用可能か確認します.
+     *
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @return 機能が利用可能な場合は true、それ以外は false
+     */
+    public static boolean availableDepth(final CameraManager cameraManager, final String cameraId) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return false;
+        }
+        return availableCapability(cameraManager, cameraId, CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_DEPTH_OUTPUT);
+    }
+
+    /**
+     * デプスとカメラ映像が排他的か確認します.
+     *
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @return 排他的な場合はtrue、それ以外はfalse
+     */
+    public static boolean exclusiveDepth(final CameraManager cameraManager, final String cameraId) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return false;
+        }
+
+        try {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            Boolean exclusive = characteristics.get(CameraCharacteristics.DEPTH_DEPTH_IS_EXCLUSIVE);
+            if (exclusive != null) {
+                return exclusive;
+            }
+        } catch (CameraAccessException e) {
+            // ignore.
+        }
+        return false;
     }
 
     /**

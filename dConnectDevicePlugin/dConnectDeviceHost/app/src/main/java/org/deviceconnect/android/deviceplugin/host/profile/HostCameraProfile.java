@@ -35,7 +35,7 @@ import java.util.List;
  */
 public class HostCameraProfile extends DConnectProfile {
 
-    private HostMediaRecorderManager mRecorderManager;
+    private final HostMediaRecorderManager mRecorderManager;
 
     @Override
     public String getProfileName() {
@@ -44,7 +44,6 @@ public class HostCameraProfile extends DConnectProfile {
 
     public HostCameraProfile(final HostMediaRecorderManager recorderManager) {
         mRecorderManager = recorderManager;
-
 
         // GET /gotapi/camera/options
         addApi(new GetApi() {
@@ -282,29 +281,21 @@ public class HostCameraProfile extends DConnectProfile {
 
                 HostMediaRecorder.Settings settings = recorder.getSettings();
 
+                // 値の妥当性チェック
+
                 AutoFocus af = AutoFocus.nameOf(autoFocus);
-                if (af != null) {
-                    if (af == AutoFocus.NONE) {
-                        settings.setPreviewAutoFocusMode(null);
-                    } else {
-                        if (!settings.isSupportedAutoFocusMode(af.getValue())) {
-                            MessageUtils.setInvalidRequestParameterError(response, "autoFocus is invalid.");
-                            return true;
-                        }
-                        settings.setPreviewAutoFocusMode(af.getValue());
+                if (af != null && af != AutoFocus.NONE) {
+                    if (!settings.isSupportedAutoFocusMode(af.getValue())) {
+                        MessageUtils.setInvalidRequestParameterError(response, autoFocus + " is not supported.");
+                        return true;
                     }
                 }
 
                 WhiteBalance wb = WhiteBalance.nameOf(whiteBalance);
-                if (wb != null) {
-                    if (wb == WhiteBalance.NONE) {
-                        settings.setPreviewWhiteBalance(null);
-                    } else {
-                        if (!settings.isSupportedWhiteBalanceMode(wb.getValue())) {
-                            MessageUtils.setInvalidRequestParameterError(response, "whiteBalance is invalid.");
-                            return true;
-                        }
-                        settings.setPreviewWhiteBalance(wb.getValue());
+                if (wb != null && wb != WhiteBalance.NONE) {
+                    if (!settings.isSupportedWhiteBalanceMode(wb.getValue())) {
+                        MessageUtils.setInvalidRequestParameterError(response, whiteBalance + " is not supported.");
+                        return true;
                     }
                 }
 
@@ -313,19 +304,13 @@ public class HostCameraProfile extends DConnectProfile {
                         MessageUtils.setInvalidRequestParameterError(response, "whiteBalanceTemperature is invalid.");
                         return true;
                     }
-                    settings.setPreviewWhiteBalanceTemperature(whiteBalanceTemperature);
                 }
 
                 AutoExposure ae = AutoExposure.nameOf(autoExposure);
-                if (ae != null) {
-                    if (ae == AutoExposure.NONE) {
-                        settings.setAutoExposureMode(null);
-                    } else {
-                        if (!settings.isSupportedAutoExposureMode(ae.getValue())) {
-                            MessageUtils.setInvalidRequestParameterError(response, "autoExposure is invalid.");
-                            return true;
-                        }
-                        settings.setAutoExposureMode(ae.getValue());
+                if (ae != null && ae != AutoExposure.NONE) {
+                    if (!settings.isSupportedAutoExposureMode(ae.getValue())) {
+                        MessageUtils.setInvalidRequestParameterError(response, autoExposure + " is not supported.");
+                        return true;
                     }
                 }
 
@@ -334,7 +319,6 @@ public class HostCameraProfile extends DConnectProfile {
                         MessageUtils.setInvalidRequestParameterError(response, "sensorExposureTime is invalid.");
                         return true;
                     }
-                    settings.setSensorExposureTime(sensorExposureTime);
                 }
 
                 if (sensorSensitivity != null) {
@@ -342,7 +326,6 @@ public class HostCameraProfile extends DConnectProfile {
                         MessageUtils.setInvalidRequestParameterError(response, "sensorSensitivity is invalid.");
                         return true;
                     }
-                    settings.setSensorSensitivity(sensorSensitivity);
                 }
 
                 if (sensorFrameDuration != null) {
@@ -350,44 +333,101 @@ public class HostCameraProfile extends DConnectProfile {
                         MessageUtils.setInvalidRequestParameterError(response, "sensorFrameDuration is invalid.");
                         return true;
                     }
-                    settings.setSensorFrameDuration(sensorFrameDuration);
                 }
 
                 Stabilization stab = Stabilization.nameOf(stabilization);
-                if (stab != null) {
-                    if (stab == Stabilization.NONE) {
-                        settings.setStabilizationMode(null);
-                    } else {
-                        if (!settings.isSupportedStabilization(stab.getValue())) {
-                            MessageUtils.setInvalidRequestParameterError(response, "stabilization is invalid.");
-                            return true;
-                        }
-                        settings.setStabilizationMode(stab.getValue());
+                if (stab != null && stab != Stabilization.NONE) {
+                    if (!settings.isSupportedStabilization(stab.getValue())) {
+                        MessageUtils.setInvalidRequestParameterError(response, "Stabilization " + stabilization + " is not suppoted.");
+                        return true;
                     }
                 }
 
                 OpticalStabilization opticalStab = OpticalStabilization.nameOf(opticalStabilization);
-                if (opticalStab != null) {
-                    if (opticalStab == OpticalStabilization.NONE) {
-                        settings.setOpticalStabilizationMode(null);
-                    } else {
-                        if (!settings.isSupportedOpticalStabilization(opticalStab.getValue())) {
-                            MessageUtils.setInvalidRequestParameterError(response, "opticalStabilization is invalid.");
-                            return true;
-                        }
-                        settings.setOpticalStabilizationMode(opticalStab.getValue());
+                if (opticalStab != null && opticalStab != OpticalStabilization.NONE) {
+                    if (!settings.isSupportedOpticalStabilization(opticalStab.getValue())) {
+                        MessageUtils.setInvalidRequestParameterError(response, "OpticalStabilization " + opticalStabilization + " is not supported.");
+                        return true;
                     }
                 }
 
                 NoiseReduction nr = NoiseReduction.nameOf(noiseReduction);
+                if (nr != null && nr != NoiseReduction.NONE) {
+                    if (!settings.isSupportedNoiseReduction(nr.getValue())) {
+                        MessageUtils.setInvalidRequestParameterError(response, "NoiseReduction " + noiseReduction + " is not supported.");
+                        return true;
+                    }
+                }
+
+                if (focalLength != null && focalLength != 0) {
+                    if (!settings.isSupportedFocalLength(focalLength)) {
+                        MessageUtils.setInvalidRequestParameterError(response, "FocalLength"  + focalLength + " is not supported.");
+                        return true;
+                    }
+                }
+
+                // 値の設定
+
+                if (af != null) {
+                    if (af == AutoFocus.NONE) {
+                        settings.setPreviewAutoFocusMode(null);
+                    } else {
+                        settings.setPreviewAutoFocusMode(af.getValue());
+                    }
+                }
+
+                if (wb != null) {
+                    if (wb == WhiteBalance.NONE) {
+                        settings.setPreviewWhiteBalance(null);
+                    } else {
+                        settings.setPreviewWhiteBalance(wb.getValue());
+                    }
+                }
+
+                if (whiteBalanceTemperature != null) {
+                    settings.setPreviewWhiteBalanceTemperature(whiteBalanceTemperature);
+                }
+
+                if (ae != null) {
+                    if (ae == AutoExposure.NONE) {
+                        settings.setAutoExposureMode(null);
+                    } else {
+                        settings.setAutoExposureMode(ae.getValue());
+                    }
+                }
+
+                if (sensorExposureTime != null) {
+                    settings.setSensorExposureTime(sensorExposureTime);
+                }
+
+                if (sensorSensitivity != null) {
+                    settings.setSensorSensitivity(sensorSensitivity);
+                }
+
+                if (sensorFrameDuration != null) {
+                    settings.setSensorFrameDuration(sensorFrameDuration);
+                }
+
+                if (stab != null) {
+                    if (stab == Stabilization.NONE) {
+                        settings.setStabilizationMode(null);
+                    } else {
+                        settings.setStabilizationMode(stab.getValue());
+                    }
+                }
+
+                if (opticalStab != null) {
+                    if (opticalStab == OpticalStabilization.NONE) {
+                        settings.setOpticalStabilizationMode(null);
+                    } else {
+                        settings.setOpticalStabilizationMode(opticalStab.getValue());
+                    }
+                }
+
                 if (nr != null) {
                     if (nr == NoiseReduction.NONE) {
                         settings.setNoiseReduction(null);
                     } else {
-                        if (!settings.isSupportedNoiseReduction(nr.getValue())) {
-                            MessageUtils.setInvalidRequestParameterError(response, "noiseReduction is invalid.");
-                            return true;
-                        }
                         settings.setNoiseReduction(nr.getValue());
                     }
                 }
@@ -396,13 +436,11 @@ public class HostCameraProfile extends DConnectProfile {
                     if (focalLength == 0) {
                         settings.setFocalLength(null);
                     } else {
-                        if (!settings.isSupportedFocalLength(focalLength)) {
-                            MessageUtils.setInvalidRequestParameterError(response, "focalLength is invalid.");
-                            return true;
-                        }
                         settings.setFocalLength(focalLength);
                     }
                 }
+
+                recorder.onConfigChange();
 
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;

@@ -10,18 +10,22 @@ public class WindowSurface extends EGLSurfaceBase {
     /**
      * 描画先の Surface.
      */
-    private Surface mSurface;
+    private final Surface mSurface;
 
     /**
      * Creates a CodecInputSurface from a Surface.
      */
-    public WindowSurface(EGLCore core, Surface surface) {
-        super(core);
+    public WindowSurface(Surface surface) {
         if (surface == null) {
             throw new IllegalArgumentException("surface is null.");
         }
         mSurface = surface;
-        setEGLSurface(createEGLSurface(core.getEGLDisplay(), core.getEGLConfigs(), surface));
+    }
+
+    @Override
+    void initEGLSurfaceBase(EGLCore core) {
+        setEGLCore(core);
+        setEGLSurface(createEGLSurface(core.getEGLDisplay(), core.getEGLConfigs(), mSurface));
     }
 
     /**

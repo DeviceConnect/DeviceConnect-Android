@@ -229,18 +229,6 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     }
 
     @Override
-    public void onDisplayRotation(final int rotation) {
-        mScreenCastBroadcasterProvider.onConfigChange();
-        mScreenCastPreviewServerProvider.onConfigChange();
-    }
-
-    @Override
-    public void onConfigChange() {
-        mScreenCastBroadcasterProvider.onConfigChange();
-        mScreenCastPreviewServerProvider.onConfigChange();
-    }
-
-    @Override
     public void requestPermission(final PermissionCallback callback) {
         if (mSettings.getPreviewAudioSource() == AudioSource.DEFAULT ||
                 mSettings.getPreviewAudioSource() == AudioSource.MIC) {

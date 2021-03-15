@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<deviceplugin-provider>
+<deviceplugin-provider spec-path="org_deviceconnect_android_deviceplugin_uvc/api" >
 
     <profile name="serviceDiscovery" />
     <profile name="serviceInformation" />
     <profile name="system" />
+    <profile name="camera" />
     <profile name="mediaStreamRecording" />
     
 </deviceplugin-provider>

@@ -1,34 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.deviceconnect.android.deviceplugin.uvc" >
-
-    <uses-feature android:name="android.hardware.usb.host" />
+    package="org.deviceconnect.android.deviceplugin.uvc">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature android:name="android.hardware.usb.host" />
+
     <application
-        android:name=".UVCDeviceApplication"
+        android:allowBackup="false"
         android:icon="@drawable/dconnect_icon"
-        android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:label="@string/app_name_uvc"
+        android:theme="@style/AppTheme">
 
-        <activity
-            android:name=".activity.UVCServiceListActivity"
-            android:label="@string/app_name" >
-        </activity>
+        <!-- プラグインの設定画面用の Activity -->
+        <activity android:name=".activity.UVCSettingsActivity"
+            android:exported="true"
+            android:label="@string/app_name_uvc_settings"
+            android:theme="@style/AppCompatTheme" />
 
-        <activity
-            android:name=".activity.UVCDeviceSettingsActivity"
-            android:label="@string/app_name" >
-        </activity>
+        <!-- プラグイン本体サービス -->
+        <service
+            android:name=".UVCDeviceService"
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_uvc" />
+        </service>
 
-        <activity
-            android:name=".activity.ErrorDialogActivity"
-            android:theme="@style/Theme.Transparent">
-        </activity>
-
-        <receiver android:name=".UVCDeviceServiceProvider" >
+        <!-- Device Connect API リクエストのレシーバー -->
+        <!--
+            NOTE:  下記のレシーバーは、旧仕様のDevice Connect Managerとの互換性、
+            およびDevice Connect Managerのアンインストール検知のために残しています.
+        -->
+        <receiver
+            android:name=".UVCDeviceServiceProvider"
+            android:enabled="true"
+            android:exported="true">
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/org_deviceconnect_android_deviceplugin_uvc" />
@@ -39,32 +48,9 @@
                 <action android:name="org.deviceconnect.action.POST" />
                 <action android:name="org.deviceconnect.action.DELETE" />
                 <!-- uninstall notification -->
-                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
-                <data android:scheme="package"/>
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED" />
+                <data android:scheme="package" />
             </intent-filter>
         </receiver>
-
-        <service
-            android:name=".UVCDeviceService"
-            android:exported="true" >
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin"
-                android:resource="@xml/org_deviceconnect_android_deviceplugin_uvc" />
-        </service>
-
-        <service
-            android:name="org.deviceconnect.android.message.DConnectLaunchService"
-            android:exported="true" >
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin"
-                android:value="enable" />
-        </service>
-
-        <activity
-            android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
-            android:excludeFromRecents="true"
-            android:exported="false" >
-        </activity>
     </application>
-
 </manifest>

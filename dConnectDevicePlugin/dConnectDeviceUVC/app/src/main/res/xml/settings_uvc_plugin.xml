@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreferenceCompat
+        android:defaultValue="false"
+        android:key="uvc_settings_auth"
+        android:title="@string/uvc_settings_uvc_auth"
+        app:iconSpaceReserved="false"
+        app:summary="@string/uvc_settings_uvc_auth_description" />
+
+    <PreferenceScreen
+        app:iconSpaceReserved="false"
+        app:key="uvc_settings_service_list"
+        app:title="@string/uvc_settings_uvc_device_list" />
+
+    <PreferenceScreen
+        app:iconSpaceReserved="false"
+        app:key="uvc_settings_service_instruction"
+        app:title="@string/uvc_settings_uvc_device_instruction" />
+
+</PreferenceScreen>

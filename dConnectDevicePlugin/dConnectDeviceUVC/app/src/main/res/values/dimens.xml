@@ -6,6 +6,7 @@
     <dimen name="text_size_title">16sp</dimen>
 
     <dimen name="text_size_setting_device_name">24sp</dimen>
+    <dimen name="text_size_setting_device_status">16sp</dimen>
     <dimen name="text_size_setting_device_address">16sp</dimen>
     <dimen name="text_size_searching">16sp</dimen>
 </resources>

@@ -12,6 +12,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
+import org.deviceconnect.android.libmedia.streaming.audio.filter.Filter;
 import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 
 import java.nio.ByteBuffer;
@@ -93,12 +94,13 @@ public class MicAACLATMEncoder extends AudioEncoder {
         } else {
             mAudioThread.add(() -> {
                 int len = mAudioRecord.read(inputData, mBufferSize);
-                if (len < 0) {
-                    if (DEBUG) {
-                        Log.e(TAG, "An error occurred with the AudioRecord API ! len=" + len);
-                    }
+                if (DEBUG && len < 0) {
+                    Log.e(TAG, "An error occurred with the AudioRecord API ! len=" + len);
                 }
-                inputData.flip();
+                Filter filter = mAudioQuality.getFilter();
+                if (filter != null && len > 0) {
+                    filter.onProcessing(inputData, len);
+                }
                 mMediaCodec.queueInputBuffer(index, 0, len, getPTSUs(), 0);
             });
         }
@@ -256,6 +258,11 @@ public class MicAACLATMEncoder extends AudioEncoder {
                 // ignore.
             }
             mAudioRecord = null;
+        }
+
+        Filter filter = mAudioQuality.getFilter();
+        if (filter != null) {
+            filter.onRelease();
         }
 
         if (mEchoCanceler != null) {

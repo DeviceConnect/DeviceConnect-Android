@@ -35,7 +35,6 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
     private final EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
         @Override
         public void onStarted() {
-            mSurfaceDrawingThread.addEGLSurfaceBase(mMediaCodecSurface);
             onStartSurfaceDrawing();
         }
 
@@ -108,10 +107,9 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
         }
 
         mSurfaceDrawingThread.setSize(quality.getVideoWidth(), quality.getVideoHeight());
+        mSurfaceDrawingThread.addEGLSurfaceBase(mMediaCodecSurface);
         mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
-        if (!mSurfaceDrawingThread.isRunning()) {
-            mSurfaceDrawingThread.start();
-        }
+        mSurfaceDrawingThread.start();
     }
 
     /**
@@ -155,10 +153,12 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
     /**
      * Surface への描画準備が完了したことを通知します.
      */
-    protected abstract void onStartSurfaceDrawing();
+    protected void onStartSurfaceDrawing() {
+    }
 
     /**
      * Surface への描画が終了したことを通知します.
      */
-    protected abstract void onStopSurfaceDrawing();
+    protected void onStopSurfaceDrawing() {
+    }
 }

@@ -1,5 +1,9 @@
 package org.deviceconnect.android.libmedia.streaming.rtmp;
 
+import android.os.Handler;
+import android.os.HandlerThread;
+
+import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.MediaStreamer;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.muxer.RtmpMuxer;
@@ -17,11 +21,164 @@ public class RtmpClient {
     private final MediaStreamer mMediaStreamer;
 
     /**
+     * ハンドラ.
+     */
+    private Handler mRetryHandler;
+
+    /**
+     * リトライ数.
+     */
+    private int mRetryCount;
+
+    /**
+     * リトライ回数.
+     */
+    private int mMaxRetryCount = 0;
+
+    /**
+     * リトライを行うインターバル.
+     */
+    private int mRetryInterval = 4000;
+
+    /**
+     * リトライフラグ.
+     * <p>
+     * このフラグがtrueの場合はリトライ処理中になります。
+     * </p>
+     */
+    private boolean mRetryFlag;
+
+    /**
+     * イベントを送信するリスナー.
+     */
+    private OnEventListener mOnEventListener;
+
+    /**
      * コンストラクタ.
      */
     public RtmpClient(String broadcastURI) {
         mRtmpMuxer = new RtmpMuxer(broadcastURI);
+        mRtmpMuxer.setOnEventListener(new RtmpMuxer.OnEventListener() {
+            @Override
+            public void onConnected() {
+                if (mOnEventListener != null) {
+                    mOnEventListener.onConnected();
+                }
+            }
+
+            @Override
+            public void onDisconnected() {
+                if (mOnEventListener != null) {
+                    mOnEventListener.onDisconnected();
+                }
+            }
+
+            @Override
+            public void onNewBitrate(long bitrate) {
+                if (mOnEventListener != null) {
+                    mOnEventListener.onNewBitrate(bitrate);
+                }
+            }
+
+            @Override
+            public void onError(MediaEncoderException e) {
+                error(e);
+            }
+        });
+
         mMediaStreamer = new MediaStreamer(mRtmpMuxer);
+        mMediaStreamer.setOnEventListener(new MediaStreamer.OnEventListener() {
+            @Override
+            public void onStarted() {
+                mRetryCount = 0;
+
+                if (mOnEventListener != null) {
+                    mOnEventListener.onStarted();
+                }
+            }
+
+            @Override
+            public void onStopped() {
+                if (mOnEventListener != null) {
+                    mOnEventListener.onStopped();
+                }
+            }
+
+            @Override
+            public void onError(MediaEncoderException e) {
+                error(e);
+            }
+        });
+    }
+
+    /**
+     * エラー処理を行います.
+     *
+     * @param e エラー原因の例外
+     */
+    private synchronized void error(MediaEncoderException e) {
+        if (mRetryFlag) {
+            // リトライ処理中なので、連続で発生したエラーは無視する。
+            return;
+        }
+
+        if (mRetryCount < mMaxRetryCount) {
+            mRetryCount++;
+            mRetryFlag = true;
+
+            mMediaStreamer.stop();
+
+            if (mRetryHandler != null) {
+                mRetryHandler.postDelayed(() -> {
+                    if (mRetryHandler != null) {
+                        mMediaStreamer.start();
+                    }
+                    mRetryFlag = false;
+                }, mRetryInterval);
+            }
+        } else {
+            stop();
+
+            if (mOnEventListener != null) {
+                mOnEventListener.onError(e);
+            }
+        }
+    }
+
+    /**
+     * リトライ回数を設定します.
+     *
+     * @param maxRetryCount リトライ回数
+     */
+    public void setMaxRetryCount(int maxRetryCount) {
+        mMaxRetryCount = maxRetryCount;
+    }
+
+    /**
+     * リトライ回数を取得します.
+     *
+     * @return リトライ回数
+     */
+    public int getMaxRetryCount() {
+        return mMaxRetryCount;
+    }
+
+    /**
+     * リトライのインターバルを設定します.
+     *
+     * @param interval リトライを行うインターバル
+     */
+    public void setRetryInterval(int interval) {
+        mRetryInterval = interval;
+    }
+
+    /**
+     * リトライのインターバルを取得します.
+     *
+     * @return リトライのインターバル
+     */
+    public int getRetryInterval() {
+        return mRetryInterval;
     }
 
     /**
@@ -30,8 +187,7 @@ public class RtmpClient {
      * @param listener リスナー
      */
     public void setOnEventListener(OnEventListener listener) {
-        mRtmpMuxer.setOnEventListener(listener);
-        mMediaStreamer.setOnEventListener(listener);
+        mOnEventListener = listener;
     }
 
     /**
@@ -40,20 +196,33 @@ public class RtmpClient {
      * @return 動作中の場合は true、それ以外は false
      */
     public boolean isRunning() {
-        return mMediaStreamer.isRunning();
+        return mRetryHandler != null;
     }
 
     /**
      * RTMP のセッションを開始します.
      */
-    public void start() {
+    public synchronized void start() {
+        if (mRetryHandler != null) {
+            return;
+        }
+
+        HandlerThread thread = new HandlerThread("rtmp-retry-thread");
+        thread.start();
+        mRetryHandler = new Handler(thread.getLooper());
+        mRetryCount = mMaxRetryCount;
+        mRetryFlag = false;
         mMediaStreamer.start();
     }
 
     /**
      * RTMP のセッションを停止します.
      */
-    public void stop() {
+    public synchronized void stop() {
+        if (mRetryHandler != null) {
+            mRetryHandler.getLooper().quit();
+            mRetryHandler = null;
+        }
         mMediaStreamer.stop();
     }
 
@@ -152,6 +321,9 @@ public class RtmpClient {
         }
     }
 
+    /**
+     * RtmpClient で発生したイベントを通知するリスナー.
+     */
     public interface OnEventListener extends MediaStreamer.OnEventListener, RtmpMuxer.OnEventListener {
     }
 }

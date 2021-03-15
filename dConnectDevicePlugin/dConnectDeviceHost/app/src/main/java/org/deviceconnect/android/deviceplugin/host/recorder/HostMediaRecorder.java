@@ -337,6 +337,30 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         }
     }
 
+    enum AudioFilter {
+        LOW_PASS("low-pass"),
+        HIGH_PASS("high-pass");
+
+        private final String mName;
+
+        AudioFilter(String name) {
+            mName = name;
+        }
+
+        public String getName() {
+            return mName;
+        }
+
+        public static AudioFilter nameOf(String name) {
+            for (AudioFilter filter : values()) {
+                if (filter.mName.equalsIgnoreCase(name)) {
+                    return filter;
+                }
+            }
+            return null;
+        }
+    }
+
     /**
      * MediaRecorder の状態.
      */
@@ -371,6 +395,18 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
      * HostMediaRecorder のイベントを通知するリスナー.
      */
     interface OnEventListener extends HostDeviceStreamRecorder.OnEventListener, HostDevicePhotoRecorder.OnEventListener {
+        /**
+         * ミュート状態の変更を通知します.
+         *
+         * @param mute ミュートの場合はtrue、それ以外はfalse
+         */
+        void onMuteChanged(boolean mute);
+
+        /**
+         * レコーダの設定が変更されたことを通知します.
+         */
+        void onConfigChanged();
+
         /**
          * プレビュー配信を開始した時に呼び出されます.
          *
@@ -1520,7 +1556,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return プレビュー音声のサンプルレート
          */
         public int getPreviewSampleRate() {
-            return mPref.getInteger("preview_audio_sample_rate", 8000);
+            return mPref.getInteger("preview_audio_sample_rate", 16000);
         }
 
         /**
@@ -1528,8 +1564,15 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          *
          * @param sampleRate プレビュー音声のサンプルレート
          */
-        public void setPreviewSampleRate(int sampleRate) {
-            mPref.put("preview_audio_sample_rate", sampleRate);
+        public void setPreviewSampleRate(Integer sampleRate) {
+            if (sampleRate == null) {
+                mPref.remove("preview_audio_sample_rate");
+            } else {
+                if (!isSupportedSampleRate(sampleRate)) {
+                    throw new IllegalArgumentException("preivewSampleRate is invalid.");
+                }
+                mPref.put("preview_audio_sample_rate", sampleRate);
+            }
         }
 
         /**
@@ -1586,6 +1629,26 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             mPref.put("preview_audio_mute", mute);
         }
 
+        public AudioFilter getAudioFilter() {
+            return AudioFilter.nameOf(mPref.getString("preview_audio_filter", "none"));
+        }
+
+        public void setAudioFilter(AudioFilter filter) {
+            if (filter == null) {
+                mPref.remove("preview_audio_filter");
+            } else {
+                mPref.put("preview_audio_filter", filter.mName);
+            }
+        }
+
+        public float getAudioCoefficient() {
+            return mPref.getInteger("preview_audio_coefficient", 10) / 100.0f;
+        }
+
+        public void setAudioCoefficient(float coefficient) {
+            mPref.put("preview_audio_coefficient", (int) (coefficient * 100));
+        }
+
         public boolean isSupportedAudioSource(AudioSource source) {
             List<AudioSource> sourceList = getSupportedAudioSource();
             if (sourceList != null) {
@@ -1617,6 +1680,33 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             return list;
         }
 
+        /**
+         * サポートしているサンプルレートのリストを取得します.
+         *
+         * @return サポートしているサンプルレートのリスト
+         */
+        public List<Integer> getSupportedSampleRateList() {
+            return CapabilityUtil.getSupportedSampleRates();
+        }
+
+        /**
+         * 指定されたサンプルレートがサポートされているか確認します.
+         *
+         * @param sampleRate サンプルレート
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
+        public boolean isSupportedSampleRate(int sampleRate) {
+            List<Integer> sampleRates = getSupportedSampleRateList();
+            if (sampleRates != null) {
+                for (Integer s : sampleRates) {
+                    if (s == sampleRate) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         // 配信
 
         /**
@@ -1637,6 +1727,50 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public void setBroadcastURI(String broadcastURI) {
             mPref.put("broadcast_uri", broadcastURI);
+        }
+
+        /**
+         * リトライ回数を取得します.
+         *
+         * @return リトライ回数
+         */
+        public int getRetryCount() {
+            return mPref.getInteger("broadcast_retry_count", 0);
+        }
+
+        /**
+         * リトライ回数を設定します.
+         *
+         * @param count リトライ回数
+         */
+        public void setRetryCount(int count) {
+            if (count < 0) {
+                mPref.remove("broadcast_retry_count");
+            } else {
+                mPref.put("broadcast_retry_count", count);
+            }
+        }
+
+        /**
+         * リトライのインターバルを取得します.
+         *
+         * @return リトライのインターバル
+         */
+        public int getRetryInterval() {
+            return mPref.getInteger("broadcast_retry_interval", 3000);
+        }
+
+        /**
+         * リトライのインターバルを設定します.
+         *
+         * @param interval リトライのインターバル
+         */
+        public void setRetryInterval(int interval) {
+            if (interval < 0) {
+                mPref.remove("broadcast_retry_interval");
+            } else {
+                mPref.put("broadcast_retry_interval", interval);
+            }
         }
 
         // ポート番号

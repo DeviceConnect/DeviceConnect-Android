@@ -95,12 +95,30 @@ public class EGLSurfaceDrawingThread {
     }
 
     /**
+     * レンダリングのタイムアウトを取得します.
+     *
+     * @return タイムアウト
+     */
+    public int getTimeout() {
+        return mTimeout;
+    }
+
+    /**
      * 描画範囲を設定します.
      *
      * @param rect 描画範囲
      */
     public void setDrawingRange(Rect rect) {
         mDrawingRange = rect;
+    }
+
+    /**
+     * 描画範囲設定を取得します.
+     *
+     * @return 描画範囲
+     */
+    public Rect getDrawingRange() {
+        return mDrawingRange;
     }
 
     /**
@@ -135,26 +153,22 @@ public class EGLSurfaceDrawingThread {
     /**
      * Window 用の EGLSurfaceBase を作成します.
      *
-     * {@link #start()} で開始されて、{link #onStarted()} が呼び出された後でないと例外が発生します。
-     *
      * @param surface 描画を行う Surface
      * @return EGLSurfaceBase のインスタンス
      */
     public EGLSurfaceBase createEGLSurfaceBase(Surface surface) {
-        return new WindowSurface(mEGLCore, surface);
+        return new WindowSurface(surface);
     }
 
     /**
      * オフスクリーン用の EGLSurfaceBase を作成します.
-     *
-     * {@link #start()} で開始されて、{link #onStarted()} が呼び出された後でないと例外が発生します。
      *
      * @param width 横幅
      * @param height 縦幅
      * @return EGLSurfaceBase のインスタンス
      */
     public EGLSurfaceBase createEGLSurfaceBase(int width, int height) {
-        return new OffscreenSurface(mEGLCore, width, height);
+        return new OffscreenSurface(width, height);
     }
 
     /**
@@ -166,6 +180,9 @@ public class EGLSurfaceDrawingThread {
      */
     public void addEGLSurfaceBase(EGLSurfaceBase eglSurfaceBase) {
         synchronized (mEGLSurfaceBases) {
+            if (mEGLCore != null) {
+                eglSurfaceBase.initEGLSurfaceBase(mEGLCore);
+            }
             mEGLSurfaceBases.add(eglSurfaceBase);
         }
     }
@@ -350,16 +367,12 @@ public class EGLSurfaceDrawingThread {
      *
      * @return SurfaceTextureManager のインスタンス
      */
-    private SurfaceTextureManager createStManager() {
+    protected SurfaceTextureManager createStManager() {
         SurfaceTextureManager manager = new SurfaceTextureManager();
-        manager.setTimeout(mTimeout);
-        // SurfaceTexture に解像度を設定
         SurfaceTexture st = manager.getSurfaceTexture();
         st.setDefaultBufferSize(mWidth, mHeight);
         if (mDrawingRange != null) {
-            int w = isSwappedDimensions() ? mHeight : mWidth;
-            int h = isSwappedDimensions() ? mWidth : mHeight;
-            manager.setDrawingRange(mDrawingRange, w, h);
+            manager.setDrawingRange(mDrawingRange, mWidth, mHeight);
         }
         return manager;
     }
@@ -462,7 +475,8 @@ public class EGLSurfaceDrawingThread {
     private class DrawingThread extends Thread {
         private static final int STATE_INIT = 1;
         private static final int STATE_RUNNING = 2;
-        private static final int STATE_STOP = 3;
+        private static final int STATE_STOPPING = 3;
+        private static final int STATE_STOPPED = 4;
 
         /**
          * スレッドの状態.
@@ -475,7 +489,7 @@ public class EGLSurfaceDrawingThread {
          * @return スレッドが動作中の場合は true、それ以外は false
          */
         private boolean isRunning() {
-            return mState != STATE_STOP;
+            return mState <= STATE_RUNNING;
         }
 
         /**
@@ -491,7 +505,7 @@ public class EGLSurfaceDrawingThread {
          * スレッドを終了します.
          */
         private void terminate() {
-            mState = STATE_STOP;
+            mState = STATE_STOPPING;
 
             interrupt();
 
@@ -509,11 +523,18 @@ public class EGLSurfaceDrawingThread {
                 mEGLCore.makeCurrent();
 
                 mStManager = createStManager();
+                mStManager.setTimeout(mTimeout);
+
+                synchronized (mEGLSurfaceBases) {
+                    for (EGLSurfaceBase surfaceBase : mEGLSurfaceBases) {
+                        surfaceBase.initEGLSurfaceBase(mEGLCore);
+                    }
+                }
+
+                mState = STATE_RUNNING;
 
                 onStarted();
                 postOnStarted();
-
-                mState = STATE_RUNNING;
 
                 SurfaceTexture st = mStManager.getSurfaceTexture();
                 while (mState == STATE_RUNNING) {
@@ -531,7 +552,7 @@ public class EGLSurfaceDrawingThread {
                     }
                 }
             } catch (Exception e) {
-                if (mState != STATE_STOP) {
+                if (mState != STATE_STOPPING) {
                     postOnError(e);
                 }
             } finally {
@@ -552,7 +573,7 @@ public class EGLSurfaceDrawingThread {
                     mEGLCore = null;
                 }
 
-                mState = STATE_STOP;
+                mState = STATE_STOPPED;
 
                 postOnStopped();
 

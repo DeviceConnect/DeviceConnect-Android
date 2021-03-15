@@ -50,11 +50,6 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     private static final String ID_BASE = "camera";
 
     /**
-     * カメラ名の定義.
-     */
-    private static final String NAME_BASE = "Camera";
-
-    /**
      * ファイル名に付けるプレフィックス.
      */
     private static final String FILENAME_PREFIX = "android_camera_";
@@ -230,7 +225,11 @@ public class Camera2Recorder extends AbstractMediaRecorder {
 
     @Override
     public String getName() {
-        return NAME_BASE + " " + mCameraWrapper.getId() + " (" + mFacing.getName() + ")";
+        if (mCameraWrapper.isDepth()) {
+            return "Depth Camera " + mCameraWrapper.getId() + " (" + mFacing.getName() + ")";
+        } else {
+            return "Camera " + mCameraWrapper.getId() + " (" + mFacing.getName() + ")";
+        }
     }
 
     @Override
@@ -267,16 +266,9 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     }
 
     @Override
-    public void onDisplayRotation(final int degree) {
-        mCurrentRotation = degree;
-        mCamera2BroadcasterProvider.onConfigChange();
-        mCamera2PreviewServerProvider.onConfigChange();
-    }
-
-    @Override
-    public void onConfigChange() {
-        mCamera2BroadcasterProvider.onConfigChange();
-        mCamera2PreviewServerProvider.onConfigChange();
+    public void onDisplayRotation(int rotation) {
+        mCurrentRotation = rotation;
+        super.onDisplayRotation(rotation);
     }
 
     @Override

@@ -20,6 +20,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostAudioRecor
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.screen.ScreenCastRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
 import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.provider.FileManager;
@@ -159,6 +160,16 @@ public class HostMediaRecorderManager {
 
         for (HostMediaRecorder recorder : mRecorders) {
             recorder.setOnEventListener(new HostMediaRecorder.OnEventListener() {
+                @Override
+                public void onMuteChanged(boolean mute) {
+                    postOnMuteChanged(recorder, mute);
+                }
+
+                @Override
+                public void onConfigChanged() {
+                    postOnConfigChanged(recorder);
+                }
+
                 @Override
                 public void onPreviewStarted(List<PreviewServer> servers) {
                     postOnPreviewStarted(recorder, servers);
@@ -308,12 +319,82 @@ public class HostMediaRecorderManager {
     }
 
     /**
+     * 指定されたレコーダが使用できるか確認します.
+     *
+     * @param recorder 使用できるか確認するレコーダ
+     * @return 使用できる場合はtrue、それ以外はfalse
+     */
+    public boolean canUseRecorder(HostMediaRecorder recorder) {
+        if (recorder instanceof Camera2Recorder) {
+            for (HostMediaRecorder cameraRecorder: getCameraRecorders()) {
+                if (recorder == cameraRecorder) {
+                    continue;
+                }
+
+                if (cameraRecorder.isPreviewRunning() || cameraRecorder.isBroadcasterRunning() ||
+                        cameraRecorder.getState() == HostMediaRecorder.State.RECORDING) {
+                    // カメラが使用中
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * カメラ用レコーダで、使用するレコーダ以外のカメラ用レコーダを停止します。
+     *
+     * プレビュー配信中などの停止できない場合には、停止しません。
+     * その場合には、カメラを使用できないので注意が必要になります。
+     *
+     * @param useRecorder 使用するレコーダ
+     */
+    public void stopCameraRecorder(HostMediaRecorder useRecorder) {
+        for (HostMediaRecorder recorder : getRecorders()) {
+            if (recorder == useRecorder) {
+                continue;
+            }
+
+            if (recorder instanceof Camera2Recorder) {
+                if (!recorder.isPreviewRunning() && !recorder.isBroadcasterRunning() &&
+                    recorder.getState() != HostMediaRecorder.State.RECORDING) {
+                    // 強制的にカメラを停止
+                    EGLSurfaceDrawingThread drawingThread = recorder.getSurfaceDrawingThread();
+                    drawingThread.stop(true);
+
+                    // カメラの処理は別スレッドで行われているので、ここで少し待機します
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        // ignore.
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * レコーダの配列を取得します.
      *
      * @return レコーダの配列
      */
     public synchronized HostMediaRecorder[] getRecorders() {
         return mRecorders.toArray(new HostMediaRecorder[0]);
+    }
+
+    /**
+     * カメラ用レコーダのリストを取得します.
+     *
+     * @return カメラ用レコーダの配列
+     */
+    public List<Camera2Recorder> getCameraRecorders() {
+        List<Camera2Recorder> recorders = new ArrayList<>();
+        for (HostMediaRecorder recorder : getRecorders()) {
+            if (recorder instanceof Camera2Recorder) {
+                recorders.add((Camera2Recorder) recorder);
+            }
+        }
+        return recorders;
     }
 
     /**
@@ -491,6 +572,18 @@ public class HostMediaRecorderManager {
         mOnEventListeners.remove(listener);
     }
 
+    private void postOnMuteChanged(HostMediaRecorder recorder, boolean mute) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onMuteChanged(recorder, mute);
+        }
+    }
+
+    private void postOnConfigChanged(HostMediaRecorder recorder) {
+        for (OnEventListener l : mOnEventListeners) {
+            l.onConfigChanged(recorder);
+        }
+    }
+
     private void postOnPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers) {
         for (OnEventListener l : mOnEventListeners) {
             l.onPreviewStarted(recorder, servers);
@@ -564,6 +657,9 @@ public class HostMediaRecorderManager {
     }
 
     public interface OnEventListener {
+        void onMuteChanged(HostMediaRecorder recorder, boolean mute);
+        void onConfigChanged(HostMediaRecorder recorder);
+
         void onPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers);
         void onPreviewStopped(HostMediaRecorder recorder);
         void onPreviewError(HostMediaRecorder recorder, Exception e);

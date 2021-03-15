@@ -34,6 +34,8 @@
     <string name="host_manager_usage_stats_button">Open usage stats</string>
     <string name="host_manager_main_button">Launch to app</string>
 
+    <string name="host_camera_running">LIVE</string>
+    <string name="host_recorder_running">Cannot switch to another recorder during camera running.</string>
     <string name="host_recorder_failed_to_broadcast">Failed to start a broadcast.</string>
     <string name="host_recorder_failed_to_start_preview">Failed to start a preview server.</string>
     <string name="host_recorder_failed_to_start_recording">Failed to start a recording.</string>
@@ -115,6 +117,8 @@
     <string name="host_recorder_settings_audio_bitrate">Bitrate (bps)</string>
     <string name="host_recorder_settings_audio_sampling_rate">Sampling Rate</string>
     <string name="host_recorder_settings_audio_source">Audio Source</string>
+    <string name="host_recorder_settings_audio_filter">Filter</string>
+    <string name="host_recorder_settings_audio_coefficient">Coefficient</string>
     <string name="host_recorder_settings_audio_channel">Channel</string>
     <string name="host_recorder_settings_audio_mute">Mute</string>
     <string name="host_recorder_settings_audio_mute_summary">Set the mute.</string>
@@ -125,6 +129,8 @@
     <string name="host_recorder_settings_audio_source_app">App Audio</string>
 
     <string name="host_recorder_settings_broadcast_uri">URL</string>
+    <string name="host_recorder_settings_broadcast_retry_count">Retry Count</string>
+    <string name="host_recorder_settings_broadcast_retry_interval">Retry Interval (msec)</string>
 
     <string name="host_recorder_settings_port_motion_jpeg">MotionJPEG Settings</string>
     <string name="host_recorder_settings_port_rtsp">RTSP Settings</string>

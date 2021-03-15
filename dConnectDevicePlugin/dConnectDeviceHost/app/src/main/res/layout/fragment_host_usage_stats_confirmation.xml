@@ -46,21 +46,6 @@
                 android:text="@string/host_manager_usage_stats_button"
                 android:textColor="#FFFFFF" />
 
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="16dp"
-                android:minWidth="200dp"
-                android:background="@drawable/button_blue"
-                android:onClick="@{() -> presenter.onNextFragment()}"
-                android:paddingStart="16dp"
-                android:paddingTop="8dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="8dp"
-                android:text="@string/host_manager_main_button"
-                android:textColor="#FFFFFF" />
-
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

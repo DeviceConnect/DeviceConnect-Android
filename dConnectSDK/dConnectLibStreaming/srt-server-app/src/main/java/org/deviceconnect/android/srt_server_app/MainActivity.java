@@ -26,8 +26,6 @@ import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
-import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
-import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.util.CameraSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
 import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
@@ -94,12 +92,15 @@ public class MainActivity extends AppCompatActivity {
      */
     private Camera2Wrapper mCamera2;
 
+    /**
+     * カメラの描画を行うためのスレッド.
+     */
     private CameraSurfaceDrawingThread mCameraSurfaceDrawingThread;
 
     /**
      * ハンドラ
      */
-    private Handler mHandler = new Handler(Looper.getMainLooper());
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -264,6 +265,33 @@ public class MainActivity extends AppCompatActivity {
                     if (mSettings.isAudioEnabled()) {
                         MicAACLATMEncoder audioEncoder = new MicAACLATMEncoder();
                         audioEncoder.setMute(false);
+//                        audioEncoder.setFilter(new MicAACLATMEncoder.Filter() {
+//                            float coef = 0.1f;
+//                            private int tmp;
+//
+//                            private int calcLowPassFilter(int a, int b) {
+//                                return (int) (coef * a + (1.0f - coef) * b);
+//                            }
+//
+//                            @Override
+//                            public void onPrepare(int bufferSize) {
+//                                tmp = 0;
+//                            }
+//
+//                            @Override
+//                            public void onProcessing(ByteBuffer src, int len, ByteBuffer dst) {
+//                                ShortBuffer sb = src.asShortBuffer();
+//                                for (int i = 0; i < sb.limit(); i += 2) {
+//                                    int t = sb.get();
+//                                    dst.asShortBuffer().put((short) calcLowPassFilter(t, tmp));
+//                                    tmp = t;
+//                                }
+//                            }
+//
+//                            @Override
+//                            public void onRelease() {
+//                            }
+//                        });
 
                         AudioQuality audioQuality = audioEncoder.getAudioQuality();
                         audioQuality.setBitRate(mSettings.getAudioBitRate());
@@ -349,35 +377,22 @@ public class MainActivity extends AppCompatActivity {
         mCamera2.getSettings().setPreviewSize(new Size(cameraWidth, cameraHeight));
 
         mCameraSurfaceDrawingThread = new CameraSurfaceDrawingThread(mCamera2);
-        mCameraSurfaceDrawingThread.addOnDrawingEventListener(new EGLSurfaceDrawingThread.OnDrawingEventListener() {
-            @Override
-            public void onStarted() {
-                EGLSurfaceBase surfaceBase = mCameraSurfaceDrawingThread.createEGLSurfaceBase(mCameraView.getHolder().getSurface());
-                mCameraSurfaceDrawingThread.addEGLSurfaceBase(surfaceBase);
-            }
-
-            @Override
-            public void onStopped() {
-            }
-
-            @Override
-            public void onError(Exception e) {
-            }
-
-            @Override
-            public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
-            }
-        });
+        mCameraSurfaceDrawingThread.addEGLSurfaceBase(mCameraView.getHolder().getSurface());
         mCameraSurfaceDrawingThread.start();
 
         // SurfaceView のサイズを調整
-        adjustSurfaceView(mCameraSurfaceDrawingThread.isSwappedDimensions());
+        adjustSurfaceView(mCamera2.isSwappedDimensions());
     }
 
     private synchronized void stopCamera() {
         if (mCameraSurfaceDrawingThread != null) {
             mCameraSurfaceDrawingThread.stop();
             mCameraSurfaceDrawingThread = null;
+        }
+
+        if (mCamera2 != null) {
+            mCamera2.close();
+            mCamera2 = null;
         }
     }
 

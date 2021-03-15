@@ -28,7 +28,7 @@ public class MediaStreamer {
     /**
      * マルチプレクサ.
      */
-    private IMediaMuxer mMediaMuxer;
+    private final IMediaMuxer mMediaMuxer;
 
     /**
      * 映像をエンコードするためのクラス.

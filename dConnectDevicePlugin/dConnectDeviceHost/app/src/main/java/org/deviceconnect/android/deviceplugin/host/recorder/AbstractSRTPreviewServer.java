@@ -13,8 +13,6 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
 
-import java.io.IOException;
-
 public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "CameraSRT";
@@ -64,7 +62,7 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
                 mSRTServer.setCallback(mCallback);
                 mSRTServer.setSocketOptions(mSettings.loadSRTSocketOptions());
                 mSRTServer.start();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 callback.onFail();
                 return;
             }
@@ -159,6 +157,18 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
             SRTSession session = mSRTServer.getSRTSession();
             if (session != null) {
                 session.restartVideoEncoder();
+            }
+        }
+    }
+
+    /**
+     * エンコーダの設定を反映して、再スタートします.
+     */
+    private void restartAudioEncoder() {
+        if (mSRTServer != null) {
+            SRTSession session = mSRTServer.getSRTSession();
+            if (session != null) {
+                session.restartAudioEncoder();
             }
         }
     }

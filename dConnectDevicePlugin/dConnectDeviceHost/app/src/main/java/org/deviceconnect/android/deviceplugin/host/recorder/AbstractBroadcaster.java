@@ -11,6 +11,8 @@ import android.util.Size;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAudioQuality;
+import org.deviceconnect.android.libmedia.streaming.audio.filter.HighPassFilter;
+import org.deviceconnect.android.libmedia.streaming.audio.filter.LowPassFilter;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
@@ -146,6 +148,23 @@ public abstract class AbstractBroadcaster implements Broadcaster {
         audioQuality.setSamplingRate(settings.getPreviewSampleRate());
         audioQuality.setBitRate(settings.getPreviewAudioBitRate());
         audioQuality.setUseAEC(settings.isUseAEC());
+
+        if (settings.getAudioFilter() != null) {
+            float coeff = settings.getAudioCoefficient();
+            switch (settings.getAudioFilter()) {
+                case LOW_PASS:
+                    audioQuality.setFilter(new LowPassFilter(audioQuality, coeff));
+                    break;
+                case HIGH_PASS:
+                    audioQuality.setFilter(new HighPassFilter(audioQuality, coeff));
+                    break;
+                default:
+                    audioQuality.setFilter(null);
+                    break;
+            }
+        } else {
+            audioQuality.setFilter(null);
+        }
 
         MicAudioQuality quality = (MicAudioQuality) audioQuality;
         if (settings.getPreviewAudioSource() == HostMediaRecorder.AudioSource.APP) {

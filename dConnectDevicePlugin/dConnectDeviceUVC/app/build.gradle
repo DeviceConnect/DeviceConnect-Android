@@ -90,12 +90,12 @@ dependencies {
     implementation "androidx.navigation:navigation-fragment-ktx:2.3.3"
     implementation "androidx.navigation:navigation-ui-ktx:2.3.3"
     implementation "androidx.preference:preference:1.1.1"
-    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.2.0'
-    implementation 'androidx.lifecycle:lifecycle-livedata:2.2.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.3.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata:2.3.0'
     implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
     implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.9.7'
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.6'
-    implementation 'org.deviceconnect:libmedia:1.2.0'
-    implementation 'org.deviceconnect:libsrt:1.2.0'
+    implementation 'org.deviceconnect:libmedia:1.2.2'
+    implementation 'org.deviceconnect:libsrt:1.2.2'
     implementation project(':libuvc')
 }

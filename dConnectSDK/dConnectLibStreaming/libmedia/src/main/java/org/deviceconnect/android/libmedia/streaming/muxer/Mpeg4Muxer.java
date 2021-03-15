@@ -79,7 +79,7 @@ public class Mpeg4Muxer implements IMediaMuxer {
 
     @Override
     public void onWriteAudioData(ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
-       writeData(mAudioTrackIndex, encodedData, bufferInfo);
+        writeData(mAudioTrackIndex, encodedData, bufferInfo);
     }
 
     @Override
@@ -105,14 +105,15 @@ public class Mpeg4Muxer implements IMediaMuxer {
     }
 
     private synchronized void writeData(int trackIndex, ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
+        if (!mMuxerStarted) {
+            return;
+        }
+
         if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
             bufferInfo.size = 0;
         }
 
         if (bufferInfo.size != 0) {
-            if (!mMuxerStarted || mAudioTrackIndex == -1) {
-                return;
-            }
             bufferInfo.presentationTimeUs = getPresentationTime(bufferInfo);
             encodedData.position(bufferInfo.offset);
             encodedData.limit(bufferInfo.offset + bufferInfo.size);

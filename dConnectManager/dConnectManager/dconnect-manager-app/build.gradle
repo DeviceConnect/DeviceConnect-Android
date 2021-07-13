@@ -116,7 +116,7 @@ dependencies {
 }
 
 android.testVariants.all { variant ->
-    task("generateJavadocForManagerJUnit", type: Javadoc, overwrite: true) {
+    tasks.register("generate${variant.name.capitalize()}JavadocForManagerJUnit", Javadoc) {
         title = "Android Device Connect Manager Unit Test"
         description = "Generates Javadoc for JUnit"
         source = android.sourceSets.androidTest.java.sourceFiles

@@ -124,7 +124,9 @@
         <!-- プラグイン本体サービス -->
         <service
             android:name=".HostDevicePlugin"
-            android:exported="true">
+            android:exported="true"
+
+            android:foregroundServiceType="location">
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/org_deviceconnect_android_deviceplugin_host" />

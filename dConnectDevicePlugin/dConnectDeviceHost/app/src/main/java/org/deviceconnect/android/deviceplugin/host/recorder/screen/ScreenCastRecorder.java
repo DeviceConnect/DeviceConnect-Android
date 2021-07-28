@@ -11,7 +11,9 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Insets;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.media.ImageReader;
 import android.os.Build;
 import android.os.Handler;
@@ -20,7 +22,9 @@ import android.util.DisplayMetrics;
 import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
+import android.view.WindowInsets;
 import android.view.WindowManager;
+import android.view.WindowMetrics;
 
 import androidx.annotation.NonNull;
 
@@ -171,10 +175,28 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
                 isSwap = true;
                 break;
         }
-        // 画面が回転している場合には、縦横をスワップしておく。
-        int width = isSwap ? metrics.heightPixels : metrics.widthPixels;
-        int height = isSwap ? metrics.widthPixels : metrics.heightPixels;
-        return new Size(width, height);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            WindowMetrics windowMetrics = wm.getCurrentWindowMetrics();
+            final WindowInsets windowInsets = windowMetrics.getWindowInsets();
+            Insets insets = windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.navigationBars()
+                    | WindowInsets.Type.displayCutout());
+
+            int width = isSwap ? windowMetrics.getBounds().height() :windowMetrics.getBounds().width();
+            int height = isSwap ? windowMetrics.getBounds().width() :windowMetrics.getBounds().height();
+            int insetsWidth = insets.right + insets.left;
+            int insetsHeight = insets.top + insets.bottom;
+
+            // Legacy size that Display#getSize reports
+            final Size legacySize = new Size(width - insetsWidth,
+                    height - insetsHeight);
+
+            return legacySize;
+        } else {
+            // 画面が回転している場合には、縦横をスワップしておく。
+            int width = isSwap ? metrics.heightPixels : metrics.widthPixels;
+            int height = isSwap ? metrics.widthPixels : metrics.heightPixels;
+            return new Size(width, height);
+        }
     }
 
     @Override

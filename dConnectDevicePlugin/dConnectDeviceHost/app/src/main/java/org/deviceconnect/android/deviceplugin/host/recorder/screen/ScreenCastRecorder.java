@@ -13,7 +13,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Insets;
 import android.graphics.PixelFormat;
-import android.graphics.Rect;
 import android.media.ImageReader;
 import android.os.Build;
 import android.os.Handler;
@@ -21,6 +20,7 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Range;
 import android.util.Size;
+import android.view.Display;
 import android.view.Surface;
 import android.view.WindowInsets;
 import android.view.WindowManager;
@@ -100,7 +100,6 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         Size maxSize = CapabilityUtil.getSupportedMaxSize("video/avc");
 
         Size originalSize = getDisplaySize();
-
         List<Size> supportPictureSizes = new ArrayList<>();
         List<Size> supportPreviewSizes = new ArrayList<>();
         final int num = 4;
@@ -175,6 +174,9 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
                 isSwap = true;
                 break;
         }
+        int insetsWidth = 0;
+        int insetsHeight = 0;
+        Size displaySize;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
             WindowMetrics windowMetrics = wm.getCurrentWindowMetrics();
             final WindowInsets windowInsets = windowMetrics.getWindowInsets();
@@ -183,20 +185,29 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
             int width = isSwap ? windowMetrics.getBounds().height() :windowMetrics.getBounds().width();
             int height = isSwap ? windowMetrics.getBounds().width() :windowMetrics.getBounds().height();
-            int insetsWidth = insets.right + insets.left;
-            int insetsHeight = insets.top + insets.bottom;
+            insetsWidth = insets.right + insets.left;
+            insetsHeight = insets.top + insets.bottom;
 
             // Legacy size that Display#getSize reports
-            final Size legacySize = new Size(width - insetsWidth,
+            displaySize = new Size(width - insetsWidth,
                     height - insetsHeight);
-
-            return legacySize;
         } else {
             // 画面が回転している場合には、縦横をスワップしておく。
             int width = isSwap ? metrics.heightPixels : metrics.widthPixels;
             int height = isSwap ? metrics.widthPixels : metrics.heightPixels;
-            return new Size(width, height);
+            displaySize =  new Size(width, height);
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Display.Mode[] modes = wm.getDefaultDisplay().getSupportedModes();
+            if(modes.length > 0){
+                Display.Mode mode = modes[modes.length - 1];
+                int width = isSwap ? mode.getPhysicalHeight() : mode.getPhysicalWidth();
+                int height = isSwap ? mode.getPhysicalWidth() : mode.getPhysicalHeight();
+                // 4Kサイズの解像度がある場合はそちらを優先する
+                displaySize  = new Size(width - insetsWidth, height - insetsHeight);
+            }
+        }
+        return displaySize;
     }
 
     @Override

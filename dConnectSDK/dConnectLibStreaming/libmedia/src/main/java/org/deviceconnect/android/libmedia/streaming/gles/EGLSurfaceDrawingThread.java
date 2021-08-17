@@ -51,11 +51,6 @@ public class EGLSurfaceDrawingThread {
     private DrawingThread mDrawingThread;
 
     /**
-     * 描画範囲.
-     */
-    private Rect mDrawingRange;
-
-    /**
      * イベントを通知するリスナーを追加します.
      *
      * @param listener リスナー
@@ -101,24 +96,6 @@ public class EGLSurfaceDrawingThread {
      */
     public int getTimeout() {
         return mTimeout;
-    }
-
-    /**
-     * 描画範囲を設定します.
-     *
-     * @param rect 描画範囲
-     */
-    public void setDrawingRange(Rect rect) {
-        mDrawingRange = rect;
-    }
-
-    /**
-     * 描画範囲設定を取得します.
-     *
-     * @return 描画範囲
-     */
-    public Rect getDrawingRange() {
-        return mDrawingRange;
     }
 
     /**
@@ -196,7 +173,22 @@ public class EGLSurfaceDrawingThread {
      * @param surface 追加する EGLSurfaceBase に設定する Surface
      */
     public void addEGLSurfaceBase(Surface surface) {
-        addEGLSurfaceBase(surface, surface);
+        addEGLSurfaceBase(surface, surface, null);
+    }
+
+    /**
+     * 描画先の EGLSurfaceBase を追加します.
+     *
+     * 引数に設定した Surface の EGLSurfaceBase を作成します。
+     * また、タグには、引数に指定された surface を設定します。
+     *
+     * 作成した EGLSurfaceBase に引数で指定された drawingRange を描画範囲に設定します。
+     *
+     * @param surface 追加する EGLSurfaceBase に設定する Surface
+     * @param drawingRange 描画範囲
+     */
+    public void addEGLSurfaceBase(Surface surface, Rect drawingRange) {
+        addEGLSurfaceBase(surface, surface, drawingRange);
     }
 
     /**
@@ -206,9 +198,10 @@ public class EGLSurfaceDrawingThread {
      *
      * @param surface 追加する EGLSurfaceBase に設定する Surface
      */
-    public void addEGLSurfaceBase(Surface surface, Object tag) {
+    public void addEGLSurfaceBase(Surface surface, Object tag, Rect drawingRange) {
         EGLSurfaceBase eglSurfaceBase = createEGLSurfaceBase(surface);
         eglSurfaceBase.setTag(tag);
+        eglSurfaceBase.setDrawingRange(drawingRange);
         addEGLSurfaceBase(eglSurfaceBase);
     }
 
@@ -224,6 +217,22 @@ public class EGLSurfaceDrawingThread {
     public void addEGLSurfaceBase(int width, int height, Object tag) {
         EGLSurfaceBase eglSurfaceBase = createEGLSurfaceBase(width, height);
         eglSurfaceBase.setTag(tag);
+        addEGLSurfaceBase(width, height, tag, null);
+    }
+
+    /**
+     * 描画先の EGLSurfaceBase を追加します.
+     *
+     * 引数に指定された width と height でオフスクリーンの EGLSurfaceBase を作成します。
+     *
+     * @param width 横幅
+     * @param height 縦幅
+     * @param tag タグ
+     */
+    public void addEGLSurfaceBase(int width, int height, Object tag, Rect drawingRange) {
+        EGLSurfaceBase eglSurfaceBase = createEGLSurfaceBase(width, height);
+        eglSurfaceBase.setTag(tag);
+        eglSurfaceBase.setDrawingRange(drawingRange);
         addEGLSurfaceBase(eglSurfaceBase);
     }
 
@@ -371,9 +380,6 @@ public class EGLSurfaceDrawingThread {
         SurfaceTextureManager manager = new SurfaceTextureManager();
         SurfaceTexture st = manager.getSurfaceTexture();
         st.setDefaultBufferSize(mWidth, mHeight);
-        if (mDrawingRange != null) {
-            manager.setDrawingRange(mDrawingRange, mWidth, mHeight);
-        }
         return manager;
     }
 
@@ -543,6 +549,12 @@ public class EGLSurfaceDrawingThread {
                     synchronized (mEGLSurfaceBases) {
                         for (EGLSurfaceBase eglSurfaceBase : mEGLSurfaceBases) {
                             eglSurfaceBase.makeCurrent();
+                            Rect drawingRange = eglSurfaceBase.getDrawingRange();
+                            if (drawingRange != null) {
+                                mStManager.setDrawingRange(drawingRange, mWidth, mHeight);
+                            } else {
+                                mStManager.clearDrawingRange();
+                            }
                             mStManager.setViewport(0, 0, eglSurfaceBase.getWidth(), eglSurfaceBase.getHeight());
                             mStManager.drawImage(getDisplayRotation());
                             eglSurfaceBase.setPresentationTime(st.getTimestamp());

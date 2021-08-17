@@ -220,6 +220,11 @@ public class SurfaceTextureRenderer {
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
     }
 
+    public void clearDrawingRange() {
+        mTriangleVertices.clear();
+        mTriangleVertices.put(TRIANGLE_VERTICES_DATA).position(0);
+    }
+
     public void setDrawingRange(Rect rect, int width, int height) {
         setDrawingRange(rect.left, rect.top, rect.right, rect.bottom, width, height);
     }

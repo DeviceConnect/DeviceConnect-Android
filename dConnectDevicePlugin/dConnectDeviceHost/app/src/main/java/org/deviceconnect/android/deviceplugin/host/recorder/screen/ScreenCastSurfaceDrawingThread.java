@@ -65,7 +65,6 @@ public class ScreenCastSurfaceDrawingThread extends EGLSurfaceDrawingThread {
             int width = isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
             int height = isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
             setSize(width, height);
-            setDrawingRange(settings.getDrawingRange());
             super.start();
         }
     }

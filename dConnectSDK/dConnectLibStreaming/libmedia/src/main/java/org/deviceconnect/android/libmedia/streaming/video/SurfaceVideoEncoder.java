@@ -107,7 +107,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
         }
 
         mSurfaceDrawingThread.setSize(quality.getVideoWidth(), quality.getVideoHeight());
-        mSurfaceDrawingThread.addEGLSurfaceBase(mMediaCodecSurface);
+        mSurfaceDrawingThread.addEGLSurfaceBase(mMediaCodecSurface, quality.getDrawingRange());
         mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
         mSurfaceDrawingThread.start();
     }

@@ -1,7 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.content.Context;
-import android.graphics.Rect;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioPlaybackCaptureConfiguration;
@@ -192,18 +191,13 @@ public abstract class AbstractPreviewServer implements PreviewServer {
         HostMediaRecorder recorder = getRecorder();
         HostMediaRecorder.Settings settings = recorder.getSettings();
 
-        Rect rect = settings.getDrawingRange();
-        if (rect != null) {
-            videoQuality.setVideoWidth(rect.width());
-            videoQuality.setVideoHeight(rect.height());
-        } else {
-            EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
-            Size previewSize = settings.getPreviewSize();
-            int w = d.isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
-            int h = d.isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
-            videoQuality.setVideoWidth(w);
-            videoQuality.setVideoHeight(h);
-        }
+        EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
+        Size previewSize = settings.getPreviewSize();
+        int w = d.isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
+        int h = d.isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
+        videoQuality.setVideoWidth(w);
+        videoQuality.setVideoHeight(h);
+        videoQuality.setDrawingRange(settings.getDrawingRange());
         videoQuality.setBitRate(settings.getPreviewBitRate());
         videoQuality.setFrameRate(settings.getPreviewMaxFrameRate());
         videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());

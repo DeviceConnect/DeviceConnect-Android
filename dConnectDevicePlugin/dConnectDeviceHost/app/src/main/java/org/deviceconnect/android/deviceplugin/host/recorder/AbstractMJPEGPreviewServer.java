@@ -132,20 +132,15 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
         HostMediaRecorder recorder = getRecorder();
         HostMediaRecorder.Settings settings = recorder.getSettings();
 
-        Rect rect = settings.getDrawingRange();
-        if (rect != null) {
-            quality.setWidth(rect.width());
-            quality.setHeight(rect.height());
-        } else {
-            EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
-            Size previewSize = settings.getPreviewSize();
-            int w = d.isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
-            int h = d.isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
-            quality.setWidth(w);
-            quality.setHeight(h);
-        }
+        EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
+        Size previewSize = settings.getPreviewSize();
+        int w = d.isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
+        int h = d.isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
+        quality.setWidth(w);
+        quality.setHeight(h);
         quality.setFrameRate(settings.getPreviewMaxFrameRate());
         quality.setQuality(settings.getPreviewQuality());
+        quality.setDrawingRange(settings.getDrawingRange());
     }
 
     /**

@@ -1,5 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.video;
 
+import android.graphics.Rect;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
@@ -36,6 +37,11 @@ public abstract class VideoEncoder extends MediaEncoder {
         VideoQuality videoQuality = getVideoQuality();
         int w = videoQuality.getVideoWidth();
         int h = videoQuality.getVideoHeight();
+        Rect drawingRange = videoQuality.getDrawingRange();
+        if (drawingRange != null) {
+            w = drawingRange.width();
+            h = drawingRange.height();
+        }
         mMediaCodec = createMediaCodec(getColorFormat(), w, h);
     }
 

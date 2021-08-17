@@ -1,5 +1,7 @@
 package org.deviceconnect.android.libmedia.streaming.video;
 
+import android.graphics.Rect;
+
 public class VideoQuality {
     private static final int DEFAULT_FRAME_RATE = 30;
     private static final int DEFAULT_IFRAME_INTERVAL = 3;
@@ -26,6 +28,12 @@ public class VideoQuality {
     private boolean mUseSoftwareEncoder;
 
     /**
+     * 描画範囲.
+     * null の場合は範囲してい無し。
+     */
+    private Rect mDrawingRange;
+
+    /**
      * コンストラクタ.
      * @param mimeType エンコードのマイムタイプ
      */
@@ -50,6 +58,9 @@ public class VideoQuality {
         mUseSoftwareEncoder = quality.isUseSoftwareEncoder();
         mProfile = quality.getProfile();
         mLevel = quality.getLevel();
+        if (quality.mDrawingRange != null) {
+            mDrawingRange = new Rect(quality.mDrawingRange);
+        }
     }
 
     /**
@@ -281,6 +292,14 @@ public class VideoQuality {
          * 固定品質ビットレート.
          */
         CQ
+    }
+
+    public Rect getDrawingRange() {
+        return mDrawingRange;
+    }
+
+    public void setDrawingRange(Rect drawingRange) {
+        mDrawingRange = drawingRange;
     }
 
     @Override

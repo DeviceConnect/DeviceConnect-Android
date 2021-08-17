@@ -71,24 +71,19 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
     public void start() {
         HostMediaRecorder.Settings settings = mRecorder.getSettings();
         Size previewSize = settings.getPreviewSize();
-        if (previewSize != null) {
-            setSize(previewSize.getWidth(), previewSize.getHeight());
-            setDrawingRange(settings.getDrawingRange());
-            super.start();
-        }
+        int w = isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
+        int h = isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
+        setSize(w, h);
+        super.start();
     }
 
     @Override
     protected SurfaceTextureManager createStManager() {
+        HostMediaRecorder.Settings settings = mRecorder.getSettings();
+        Size previewSize = settings.getPreviewSize();
         SurfaceTextureManager manager = new SurfaceTextureManager();
         SurfaceTexture st = manager.getSurfaceTexture();
-        st.setDefaultBufferSize(getWidth(), getHeight());
-        if (getDrawingRange() != null) {
-            // カメラは描画時に端末の向きによって回転するので、ここでは描画範囲の計算も回転してから行う
-            int w = isSwappedDimensions() ? getHeight() : getWidth();
-            int h = isSwappedDimensions() ? getWidth() : getHeight();
-            manager.setDrawingRange(getDrawingRange(), w, h);
-        }
+        st.setDefaultBufferSize(previewSize.getWidth(), previewSize.getHeight());
         return manager;
     }
 

@@ -1,5 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.mjpeg;
 
+import android.graphics.Rect;
 import android.hardware.camera2.CameraCharacteristics;
 
 public class MJPEGQuality {
@@ -8,6 +9,7 @@ public class MJPEGQuality {
     private int mHeight = 640;
     private int mQuality = 60;
     private int mFrameRate = 30;
+    private Rect mDrawingRange;
 
     /**
      * Motion JPEG の横幅を取得します.
@@ -95,5 +97,13 @@ public class MJPEGQuality {
 
     public void setFacing(int facing) {
         mFacing = facing;
+    }
+
+    public void setDrawingRange(Rect drawingRange) {
+        mDrawingRange = drawingRange;
+    }
+
+    public Rect getDrawingRange() {
+        return mDrawingRange;
     }
 }

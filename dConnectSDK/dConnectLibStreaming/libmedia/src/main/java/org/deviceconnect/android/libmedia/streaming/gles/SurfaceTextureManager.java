@@ -161,6 +161,13 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
     }
 
     /**
+     * 描画範囲を解除します.
+     */
+    public void clearDrawingRange() {
+        mTextureRenderer.clearDrawingRange();
+    }
+
+    /**
      * Draws the data from SurfaceTexture onto the current EGL surface.
      */
     public void drawImage(int displayRotation) {

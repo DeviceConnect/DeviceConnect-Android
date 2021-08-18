@@ -10,7 +10,7 @@ import android.content.Context;
 
 public final class OriginValidator {
     /** fileスキームのオリジン. */
-    private static final String ORIGIN_FILE = "file://";
+    private static final String ORIGIN_FILE = "null";
 
     /** 常に許可するオリジン一覧. */
     private static final String[] IGNORED_ORIGINS = {ORIGIN_FILE};

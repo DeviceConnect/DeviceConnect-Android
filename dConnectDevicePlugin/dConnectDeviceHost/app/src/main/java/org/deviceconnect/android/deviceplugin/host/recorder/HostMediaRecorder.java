@@ -19,7 +19,9 @@ import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.SSLContext;
 
@@ -460,10 +462,15 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
      * HostMediaRecorder の設定を保持するクラス.
      */
     abstract class Settings {
-        private final PropertyUtil mPref;
+        private final PropertyUtil mProperty;
+        private final Map<String, PropertyUtil> mPropertyMap = new HashMap<>();
 
         public Settings(Context context, HostMediaRecorder recorder) {
-            mPref = new PropertyUtil(context, recorder.getId());
+            mProperty = new PropertyUtil(context, recorder.getId());
+            mPropertyMap.put("video/x-mjpeg", new PropertyUtil(context, recorder.getId() + "-mjpeg"));
+            mPropertyMap.put("video/x-rtp", new PropertyUtil(context, recorder.getId() + "-rtsp"));
+            mPropertyMap.put("video/MP2T", new PropertyUtil(context, recorder.getId() + "-srt"));
+            mPropertyMap.put("video/x-rtmp", new PropertyUtil(context, recorder.getId() + "-rtmp"));
         }
 
         /**
@@ -472,21 +479,78 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return 初期化されている場合はtrue、それ以外はfalse
          */
         public boolean isInitialized() {
-            return mPref.getString("test", null) != null;
+            return mProperty.getString("initialization", null) != null;
         }
 
         /**
          * 初期化完了を書き込みます.
          */
         public void finishInitialization() {
-            mPref.put("test", "test");
+            mProperty.put("initialization", "completion");
         }
 
         /**
          * 保存データを初期化します.
          */
         public void clear() {
-            mPref.clear();
+            mProperty.clear();
+            for (String key : mPropertyMap.keySet()) {
+                PropertyUtil prof = mPropertyMap.get(key);
+                if (prof != null) {
+                    prof.clear();
+                }
+            }
+        }
+
+        // カメラ設定
+
+        /**
+         * 写真サイズを取得します.
+         *
+         * @return 写真サイズ
+         */
+        public Size getPictureSize() {
+            return mProperty.getSize("picture_size_width", "picture_size_height");
+        }
+
+        /**
+         * 写真サイズを設定します.
+         *
+         * サポートされていない写真サイズの場合は IllegalArgumentException を発生させます。
+         *
+         * @param pictureSize 写真サイズ
+         */
+        public void setPictureSize(Size pictureSize) {
+            if (!isSupportedPictureSize(pictureSize)) {
+                throw new IllegalArgumentException("pictureSize is not supported.");
+            }
+            mProperty.put(
+                    "picture_size_width",
+                    "picture_size_height",
+                    pictureSize);
+        }
+
+        /**
+         * プレビューサイズを取得します.
+         *
+         * @return プレビューサイズ
+         */
+        public Size getPreviewSize() {
+            return mProperty.getSize("preview_size_width", "preview_size_height");
+        }
+
+        /**
+         * プレビューサイズを設定します.
+         *
+         * サポートされていないプレビューサイズの場合は IllegalArgumentException を発生させます。
+         *
+         * @param previewSize プレビューサイズ
+         */
+        public void setPreviewSize(Size previewSize) {
+            if (!isSupportedPreviewSize(previewSize)) {
+                throw new IllegalArgumentException("previewSize is not supported.");
+            }
+            mProperty.put("preview_size_width", "preview_size_height", previewSize);
         }
 
         /**
@@ -497,7 +561,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return 自動フォーカスモード
          */
         public Integer getPreviewAutoFocusMode() {
-            return mPref.getInteger("preview_auto_focus", null);
+            return mProperty.getInteger("preview_auto_focus", null);
         }
 
         /**
@@ -511,12 +575,316 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public void setPreviewAutoFocusMode(Integer mode) {
             if (mode == null) {
-                mPref.remove("preview_auto_focus");
+                mProperty.remove("preview_auto_focus");
             } else {
                 if (!isSupportedAutoFocusMode(mode)) {
                     throw new IllegalArgumentException("focus mode is not supported.");
                 }
-                mPref.put("preview_auto_focus", mode);
+                mProperty.put("preview_auto_focus", mode);
+            }
+        }
+
+        /**
+         * ホワイトバランスの設定を取得します.
+         *
+         * @return ホワイトバランス
+         */
+        public Integer getPreviewWhiteBalance() {
+            return mProperty.getInteger("preview_white_balance", null);
+        }
+
+        /**
+         * ホワイトバランスを設定します.
+         *
+         * @param whiteBalance ホワイトバランス
+         */
+        public void setPreviewWhiteBalance(Integer whiteBalance) {
+            if (whiteBalance == null) {
+                mProperty.remove("preview_white_balance");
+            } else {
+                if (!isSupportedWhiteBalanceMode(whiteBalance)) {
+                    throw new IllegalArgumentException("WhiteBalance is unsupported value.");
+                }
+                mProperty.put("preview_white_balance", whiteBalance);
+            }
+        }
+
+        public Integer getPreviewAutoExposureMode() {
+            return mProperty.getInteger("preview_auto_exposure_mode", null);
+        }
+
+        public void setPreviewAutoExposureMode(Integer mode) {
+            if (mode == null) {
+                mProperty.remove("preview_auto_exposure_mode");
+            } else {
+                if (!isSupportedAutoExposureMode(mode)) {
+                    throw new IllegalArgumentException("Exposure mode is unsupported value.");
+                }
+                mProperty.put("preview_auto_exposure_mode", mode);
+            }
+        }
+
+        /**
+         * 手ぶれ補正モードを取得します.
+         *
+         * @return 手ぶれ補正モード
+         */
+        public Integer getStabilizationMode() {
+            return mProperty.getInteger("preview_stabilization_mode", null);
+        }
+
+        /**
+         * 手ぶれ補正モードを設定します.
+         *
+         * @param mode 手ぶれ補正モード
+         */
+        public void setStabilizationMode(Integer mode) {
+            if (mode == null) {
+                mProperty.remove("preview_stabilization_mode");
+            } else {
+                if (!isSupportedStabilization(mode)) {
+                    throw new IllegalArgumentException("Stabilization Mode is unsupported value.");
+                }
+                mProperty.put("preview_stabilization_mode", mode);
+            }
+        }
+
+        /**
+         * 光学手ぶれ補正モードを取得します.
+         *
+         * @return 光学手ぶれ補正モード
+         */
+        public Integer getOpticalStabilizationMode() {
+            return mProperty.getInteger("preview_optical_stabilization_mode", null);
+        }
+
+        /**
+         * 光学手ぶれ補正モードを設定します.
+         *
+         * @param mode 光学手ぶれ補正モード
+         */
+        public void setOpticalStabilizationMode(Integer mode) {
+            if (mode == null) {
+                mProperty.remove("preview_optical_stabilization_mode");
+            } else {
+                if (!isSupportedOpticalStabilization(mode)) {
+                    throw new IllegalArgumentException("Optical Stabilization Mode is unsupported value.");
+                }
+                mProperty.put("preview_optical_stabilization_mode", mode);
+            }
+        }
+
+        /**
+         * デジタルズームを取得します.
+         *
+         * @return デジタルズーム
+         */
+        public Float getDigitalZoom() {
+            return mProperty.getFloat("preview_digital_zoom", null);
+        }
+
+        /**
+         * デジタルズームを設定します.
+         *
+         * @param zoom デジタルズーム
+         */
+        public void setDigitalZoom(Float zoom) {
+            if (zoom == null) {
+                mProperty.remove("preview_digital_zoom");
+            } else {
+                if (!isSupportedDigitalZoom(zoom)) {
+                    throw new IllegalArgumentException("Digital zoom is unsupported value.");
+                }
+                mProperty.put("preview_digital_zoom", zoom);
+            }
+        }
+
+        public Float getFocalLength() {
+            Float value = mProperty.getFloat("preview_focal_length", null);
+            if (value == null) {
+                return null;
+            }
+            List<Float> focalLengthList = getSupportedFocalLengthList();
+            for (Float focalLength : focalLengthList) {
+                if (Math.abs(focalLength - value) < 0.01f) {
+                    return focalLength;
+                }
+            }
+            return null;
+        }
+
+        public void setFocalLength(Float focalLength) {
+            if (focalLength == null) {
+                mProperty.remove("preview_focal_length");
+            } else {
+                if (!isSupportedFocalLength(focalLength)) {
+                    throw new IllegalArgumentException("focalLength cannot set.");
+                }
+                mProperty.put("preview_focal_length", focalLength);
+            }
+        }
+
+        public Integer getNoiseReduction() {
+            return mProperty.getInteger("preview_reduction_noise", null);
+        }
+
+        public void setNoiseReduction(Integer mode) {
+            if (mode == null) {
+                mProperty.remove("preview_reduction_noise");
+            } else {
+                if (!isSupportedNoiseReduction(mode)) {
+                    throw new IllegalArgumentException("mode cannot set.");
+                }
+                mProperty.put("preview_reduction_noise", mode);
+            }
+        }
+
+        public Integer getAutoExposureMode() {
+            return mProperty.getInteger("preview_auto_exposure_mode", null);
+        }
+
+        public void setAutoExposureMode(Integer mode) {
+            if (mode == null) {
+                mProperty.remove("preview_auto_exposure_mode");
+            } else {
+                if (!isSupportedAutoExposureMode(mode)) {
+                    throw new IllegalArgumentException("mode cannot set.");
+                }
+                mProperty.put("preview_auto_exposure_mode", mode);
+            }
+        }
+
+        public Long getSensorExposureTime() {
+            return mProperty.getLong("preview_sensor_exposure_time", null);
+        }
+
+        public void setSensorExposureTime(Long exposureTime) {
+            if (exposureTime == null) {
+                mProperty.remove("preview_sensor_exposure_time");
+            } else {
+                if (!isSupportedSensorExposureTime(exposureTime)) {
+                    throw new IllegalArgumentException("exposureTime cannot set.");
+                }
+                mProperty.put("preview_sensor_exposure_time", exposureTime);
+            }
+        }
+
+        public Integer getSensorSensitivity() {
+            return mProperty.getInteger("preview_sensor_sensitivity", null);
+        }
+
+        public void setSensorSensitivity(Integer sensitivity) {
+            if (sensitivity == null) {
+                mProperty.remove("preview_sensor_sensitivity");
+            } else {
+                if (!isSupportedSensorSensorSensitivity(sensitivity)) {
+                    throw new IllegalArgumentException("sensitivity cannot set.");
+                }
+                mProperty.put("preview_sensor_sensitivity", sensitivity);
+            }
+        }
+
+        public Long getSensorFrameDuration() {
+            return mProperty.getLong("preview_sensor_frame_duration", null);
+        }
+
+        public void setSensorFrameDuration(Long frameDuration) {
+            if (frameDuration == null) {
+                mProperty.remove("preview_sensor_frame_duration");
+            } else {
+                if (!isSupportedSensorFrameDuration(frameDuration)) {
+                    throw new IllegalArgumentException("frameDuration cannot set.");
+                }
+                mProperty.put("preview_sensor_frame_duration", frameDuration);
+            }
+        }
+
+        public Integer getPreviewWhiteBalanceTemperature() {
+            return mProperty.getInteger("preview_sensor_white_balance_temperature", null);
+        }
+
+        public void setPreviewWhiteBalanceTemperature(Integer temperature) {
+            if (temperature == null) {
+                mProperty.remove("preview_sensor_white_balance_temperature");
+            } else {
+                if (!isSupportedWhiteBalanceTemperature(temperature)) {
+                    throw new IllegalArgumentException("whiteBalanceTemperature cannot set.");
+                }
+                mProperty.put("preview_sensor_white_balance_temperature", temperature);
+            }
+        }
+
+
+        /// ポート番号
+
+        /**
+         * サーバ用のポート番号を取得します.
+         *
+         * @return サーバ用のポート番号
+         */
+        public Integer getPort(String mimeType) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                return prof.getInteger("port", 0);
+            }
+            return 0;
+        }
+
+        /**
+         * サーバ用のポート番号を設定します.
+         *
+         * @param mimeType マイムタイプ
+         * @param port サーバ用のポート番号
+         */
+        public void setPort(String mimeType, int port) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                prof.put("port", port);
+            }
+        }
+
+        //// MediaCodec
+
+        public Size getPreviewSize(String mimeType) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                return prof.getSize("preview_size_width", "preview_size_height");
+            }
+            return null;
+        }
+
+        public void setPreviewSize(String mimeType, Size previewSize) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                prof.put("preview_size_width", "preview_size_height", previewSize);
+            }
+        }
+
+        private static final String DEFAULT_PREVIEW_ENCODER = VideoEncoderName.H264.mName;
+
+        public VideoEncoderName getPreviewEncoderName(String mimeType) {
+            return VideoEncoderName.nameOf(getPreviewEncoder(mimeType));
+        }
+
+        public String getPreviewEncoder(String mimeType) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                return prof.getString("preview_encoder", DEFAULT_PREVIEW_ENCODER);
+            }
+            return DEFAULT_PREVIEW_ENCODER;
+        }
+
+        public void setPreviewEncoder(String mimeType, String encoder) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                if (encoder == null) {
+                    prof.remove("preview_encoder");
+                } else {
+                    if (!isSupportedVideoEncoder(encoder)) {
+                        throw new IllegalArgumentException("encoder is not supported.");
+                    }
+                    prof.put("preview_encoder", encoder);
+                }
             }
         }
 
@@ -537,7 +905,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return プレビューの配信エンコードの名前
          */
         public String getPreviewEncoder() {
-            return mPref.getString("preview_encoder", "h264");
+            return mProperty.getString("preview_encoder", DEFAULT_PREVIEW_ENCODER);
         }
 
         /**
@@ -547,12 +915,40 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public void setPreviewEncoder(String encoder) {
             if (encoder == null) {
-                mPref.remove("preview_encoder");
+                mProperty.remove("preview_encoder");
             } else {
                 if (!isSupportedVideoEncoder(encoder)) {
                     throw new IllegalArgumentException("encoder is not supported.");
                 }
-                mPref.put("preview_encoder", encoder);
+                mProperty.put("preview_encoder", encoder);
+            }
+        }
+
+        public ProfileLevel getProfileLevel(String mimeType) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                Integer profile = prof.getInteger("preview_profile", null);
+                Integer level = prof.getInteger("preview_level", null);
+                if (profile != null && level != null) {
+                    return new ProfileLevel(profile, level);
+                }
+            }
+            return null;
+        }
+
+        public void setProfileLevel(String mimeType, ProfileLevel pl) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                if (pl == null) {
+                    prof.remove("preview_profile");
+                    prof.remove("preview_level");
+                } else {
+                    if (!isSupportedProfileLevel(pl.getProfile(), pl.getLevel())) {
+                        throw new IllegalArgumentException("profile and level are not supported.");
+                    }
+                    prof.put("preview_profile", pl.getProfile());
+                    prof.put("preview_level", pl.getLevel());
+                }
             }
         }
 
@@ -564,8 +960,8 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return プロファイルとレベル
          */
         public ProfileLevel getProfileLevel() {
-            Integer profile = mPref.getInteger("preview_profile", null);
-            Integer level = mPref.getInteger("preview_level", null);
+            Integer profile = mProperty.getInteger("preview_profile", null);
+            Integer level = mProperty.getInteger("preview_level", null);
             if (profile != null && level != null) {
                 return new ProfileLevel(profile, level);
             }
@@ -575,7 +971,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         /**
          * プロファイルとレベルを設定します.
          *
-         * null が設定された場合には、未設定にします。
+         * null が設定された場合には、値を削除して未設定にします。
          *
          * サポートされていないプロファイルとレベルが設定された場合には例外を発生します。
          *
@@ -583,15 +979,23 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public void setProfileLevel(ProfileLevel pl) {
             if (pl == null) {
-                mPref.remove("preview_profile");
-                mPref.remove("preview_level");
+                mProperty.remove("preview_profile");
+                mProperty.remove("preview_level");
             } else {
                 if (!isSupportedProfileLevel(pl.getProfile(), pl.getLevel())) {
                     throw new IllegalArgumentException("profile and level are not supported.");
                 }
-                mPref.put("preview_profile", pl.getProfile());
-                mPref.put("preview_level", pl.getLevel());
+                mProperty.put("preview_profile", pl.getProfile());
+                mProperty.put("preview_level", pl.getLevel());
             }
+        }
+
+        public Integer getProfile(String mimeType) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                return prof.getInteger("preview_profile", 0);
+            }
+            return 0;
         }
 
         /**
@@ -600,7 +1004,15 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return プロファイル
          */
         public Integer getProfile() {
-            return mPref.getInteger("preview_profile", 0);
+            return mProperty.getInteger("preview_profile", 0);
+        }
+
+        public Integer getLevel(String mimeType) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                prof.getInteger("preview_level", 0);
+            }
+            return 0;
         }
 
         /**
@@ -609,56 +1021,28 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return レベル
          */
         public Integer getLevel() {
-            return mPref.getInteger("preview_level", 0);
+            return mProperty.getInteger("preview_level", 0);
         }
 
-        /**
-         * 写真サイズを取得します.
-         *
-         * @return 写真サイズ
-         */
-        public Size getPictureSize() {
-            return mPref.getSize("picture_size_width", "picture_size_height");
-        }
+        private static final int DEFAULT_PREVIEW_MAX_FRAME_RATE = 30;
 
-        /**
-         * 写真サイズを設定します.
-         *
-         * サポートされていない写真サイズの場合は IllegalArgumentException を発生させます。
-         *
-         * @param pictureSize 写真サイズ
-         */
-        public void setPictureSize(Size pictureSize) {
-            if (!isSupportedPictureSize(pictureSize)) {
-                throw new IllegalArgumentException("pictureSize is not supported.");
+        public int getPreviewMaxFrameRate(String mimeType) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                return prof.getInteger("preview_framerate", DEFAULT_PREVIEW_MAX_FRAME_RATE);
             }
-            mPref.put(
-                    "picture_size_width",
-                    "picture_size_height",
-                    pictureSize);
+            return DEFAULT_PREVIEW_MAX_FRAME_RATE;
         }
 
-        /**
-         * プレビューサイズを取得します.
-         *
-         * @return プレビューサイズ
-         */
-        public Size getPreviewSize() {
-            return mPref.getSize("preview_size_width", "preview_size_height");
-        }
-
-        /**
-         * プレビューサイズを設定します.
-         *
-         * サポートされていないプレビューサイズの場合は IllegalArgumentException を発生させます。
-         *
-         * @param previewSize プレビューサイズ
-         */
-        public void setPreviewSize(Size previewSize) {
-            if (!isSupportedPreviewSize(previewSize)) {
-                throw new IllegalArgumentException("previewSize is not supported.");
+        public void setPreviewMaxFrameRate(String mimeType, Integer previewMaxFrameRate) {
+            if (previewMaxFrameRate <= 0) {
+                throw new IllegalArgumentException("previewMaxFrameRate is zero or negative.");
             }
-            mPref.put("preview_size_width", "preview_size_height", previewSize);
+
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                mProperty.put("preview_framerate", previewMaxFrameRate);
+            }
         }
 
         /**
@@ -667,7 +1051,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return フレームレート
          */
         public int getPreviewMaxFrameRate() {
-            return mPref.getInteger("preview_framerate", 30);
+            return mProperty.getInteger("preview_framerate", DEFAULT_PREVIEW_MAX_FRAME_RATE);
         }
 
         /**
@@ -679,7 +1063,27 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             if (previewMaxFrameRate <= 0) {
                 throw new IllegalArgumentException("previewMaxFrameRate is zero or negative.");
             }
-            mPref.put("preview_framerate", previewMaxFrameRate);
+            mProperty.put("preview_framerate", previewMaxFrameRate);
+        }
+
+        private static final int DEFAULT_PREVIEW_BITRATE = 2 * 1024 * 1024;
+
+        public int getPreviewBitRate(String mimeType) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                return prof.getInteger("preview_bitrate", DEFAULT_PREVIEW_BITRATE);
+            }
+            return DEFAULT_PREVIEW_BITRATE;
+        }
+
+        public void setPreviewBitRate(String mimeType, int previewBitRate) {
+            if (previewBitRate <= 0) {
+                throw new IllegalArgumentException("previewBitRate is zero or negative.");
+            }
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                prof.put("preview_bitrate", String.valueOf(previewBitRate));
+            }
         }
 
         /**
@@ -688,7 +1092,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return ビットレート(byte)
          */
         public int getPreviewBitRate() {
-            return mPref.getInteger("preview_bitrate", 2 * 1024 * 1024);
+            return mProperty.getInteger("preview_bitrate", DEFAULT_PREVIEW_BITRATE);
         }
 
         /**
@@ -700,7 +1104,58 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             if (previewBitRate <= 0) {
                 throw new IllegalArgumentException("previewBitRate is zero or negative.");
             }
-            mPref.put("preview_bitrate", String.valueOf(previewBitRate));
+            mProperty.put("preview_bitrate", String.valueOf(previewBitRate));
+        }
+
+        public BitRateMode getPreviewBitRateMode(String mimeType) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                return BitRateMode.nameOf(prof.getString("preview_bitrate_mode", null));
+            }
+            return null;
+        }
+
+        public void setPreviewBitRateMode(String mimeType, BitRateMode mode) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                if (mode == null) {
+                    prof.remove("preview_bitrate_mode");
+                } else {
+                    prof.put("preview_bitrate_mode", mode.getName());
+                }
+            }
+        }
+
+        public BitRateMode getPreviewBitRateMode() {
+            return BitRateMode.nameOf(mProperty.getString("preview_bitrate_mode", null));
+        }
+
+        public void setPreviewBitRateMode(BitRateMode mode) {
+            if (mode == null) {
+                mProperty.remove("preview_bitrate_mode");
+            } else {
+                mProperty.put("preview_bitrate_mode", mode.getName());
+            }
+        }
+
+        private static final int DEFAULT_PREVIEW_KEY_FRAME_INTERVAL = 1;
+
+        public int getPreviewKeyFrameInterval(String mimeType) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                return prof.getInteger("preview_i_frame_interval", DEFAULT_PREVIEW_KEY_FRAME_INTERVAL);
+            }
+            return DEFAULT_PREVIEW_KEY_FRAME_INTERVAL;
+        }
+
+        public void setPreviewKeyFrameInterval(String mimeType, int previewKeyFrameInterval) {
+            if (previewKeyFrameInterval <= 0) {
+                throw new IllegalArgumentException("previewKeyFrameInterval is zero or negative.");
+            }
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                prof.put("preview_i_frame_interval", previewKeyFrameInterval);
+            }
         }
 
         /**
@@ -709,7 +1164,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return キーフレームを発行する間隔(ミリ秒)
          */
         public int getPreviewKeyFrameInterval() {
-            return mPref.getInteger("preview_i_frame_interval", 1);
+            return mProperty.getInteger("preview_i_frame_interval", DEFAULT_PREVIEW_KEY_FRAME_INTERVAL);
         }
 
         /**
@@ -721,7 +1176,169 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             if (previewKeyFrameInterval <= 0) {
                 throw new IllegalArgumentException("previewKeyFrameInterval is zero or negative.");
             }
-            mPref.put("preview_i_frame_interval", previewKeyFrameInterval);
+            mProperty.put("preview_i_frame_interval", previewKeyFrameInterval);
+        }
+
+        public boolean isUseSoftwareEncoder(String mimeType) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                return prof.getBoolean("preview_use_software_encoder", false);
+            }
+            return false;
+        }
+
+        public void setUseSoftwareEncoder(String mimeType, boolean used) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                prof.put("preview_use_software_encoder", used);
+            }
+        }
+
+        /**
+         * ソフトウェアエンコーダを優先的に使用するフラグを確認します.
+         *
+         * @return ソフトウェアエンコーダを優先的に使用する場合は true、それ以外は false
+         */
+        public boolean isUseSoftwareEncoder() {
+            return mProperty.getBoolean("preview_use_software_encoder", false);
+        }
+
+        /**
+         * ソフトウェアエンコーダを優先的に使用するフラグを設定します.
+         *
+         * @param used ソフトウェアエンコーダを優先的に使用する場合は true、それ以外は false
+         */
+        public void setUseSoftwareEncoder(boolean used) {
+            mProperty.put("preview_use_software_encoder", used);
+        }
+
+        public Integer getIntraRefresh(String mimeType) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                return prof.getInteger("preview_intra_refresh", 0);
+            }
+            return 0;
+        }
+
+        public void setIntraRefresh(String mimeType, Integer refresh) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                if (refresh == null) {
+                    prof.remove("preview_intra_refresh");
+                } else {
+                    prof.put("preview_intra_refresh", refresh);
+                }
+            }
+        }
+
+        /**
+         * イントラリフレッシュのフレーム数を取得します.
+         *
+         * @return イントラリフレッシュのフレーム数
+         */
+        public Integer getIntraRefresh() {
+            return mProperty.getInteger("preview_intra_refresh", 0);
+        }
+
+        /**
+         * イントラリフレッシュのフレーム数を設定します.
+         *
+         * @param refresh イントラリフレッシュのフレーム数
+         */
+        public void setIntraRefresh(Integer refresh) {
+            if (refresh == null) {
+                mProperty.remove("preview_intra_refresh");
+            } else {
+                mProperty.put("preview_intra_refresh", refresh);
+            }
+        }
+
+        public Rect getDrawingRange(String mimeType) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                return prof.getRect("preview_clip_left",
+                        "preview_clip_top",
+                        "preview_clip_right",
+                        "preview_clip_bottom");
+            }
+            return null;
+        }
+
+        public void setDrawingRange(String mimeType, Rect rect) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                if (rect == null) {
+                    prof.remove("preview_clip_left");
+                    prof.remove("preview_clip_top");
+                    prof.remove("preview_clip_right");
+                    prof.remove("preview_clip_bottom");
+                } else {
+                    prof.put(
+                            "preview_clip_left",
+                            "preview_clip_top",
+                            "preview_clip_right",
+                            "preview_clip_bottom",
+                            rect);
+                }
+            }
+        }
+
+        /**
+         * 切り抜き範囲を取得します.
+         *
+         * 範囲ば設定されていない場合には、null を返却します.
+         *
+         * @return 切り抜き範囲
+         */
+        public Rect getDrawingRange() {
+            return mProperty.getRect("preview_clip_left",
+                    "preview_clip_top",
+                    "preview_clip_right",
+                    "preview_clip_bottom");
+        }
+
+        /**
+         * 切り抜き範囲を設定します.
+         *
+         * 引数に null が指定された場合には、切り抜き範囲を削除します。
+         *
+         * @param rect 切り抜き範囲
+         */
+        public void setDrawingRange(Rect rect) {
+            if (rect == null) {
+                mProperty.remove("preview_clip_left");
+                mProperty.remove("preview_clip_top");
+                mProperty.remove("preview_clip_right");
+                mProperty.remove("preview_clip_bottom");
+            } else {
+                mProperty.put(
+                        "preview_clip_left",
+                        "preview_clip_top",
+                        "preview_clip_right",
+                        "preview_clip_bottom",
+                        rect);
+            }
+        }
+
+        public int getPreviewQuality(String mimeType) {
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                return prof.getInteger("preview_jpeg_quality", 80);
+            }
+            return 80;
+        }
+
+        public void setPreviewQuality(String mimeType, int quality) {
+            if (quality < 0) {
+                throw new IllegalArgumentException("quality is negative value.");
+            }
+            if (quality > 100) {
+                throw new IllegalArgumentException("quality is over 100.");
+            }
+            PropertyUtil prof = mPropertyMap.get(mimeType);
+            if (prof != null) {
+                prof.put("preview_jpeg_quality", quality);
+            }
         }
 
         /**
@@ -730,7 +1347,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return プレビューの品質
          */
         public int getPreviewQuality() {
-            return mPref.getInteger("preview_jpeg_quality", 80);
+            return mProperty.getInteger("preview_jpeg_quality", 80);
         }
 
         /**
@@ -748,327 +1365,10 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             if (quality > 100) {
                 throw new IllegalArgumentException("quality is over 100.");
             }
-            mPref.put("preview_jpeg_quality", quality);
+            mProperty.put("preview_jpeg_quality", quality);
         }
 
-        /**
-         * ホワイトバランスの設定を取得します.
-         *
-         * @return ホワイトバランス
-         */
-        public Integer getPreviewWhiteBalance() {
-            return mPref.getInteger("preview_white_balance", null);
-        }
-
-        /**
-         * ホワイトバランスを設定します.
-         *
-         * @param whiteBalance ホワイトバランス
-         */
-        public void setPreviewWhiteBalance(Integer whiteBalance) {
-            if (whiteBalance == null) {
-                mPref.remove("preview_white_balance");
-            } else {
-                if (!isSupportedWhiteBalanceMode(whiteBalance)) {
-                    throw new IllegalArgumentException("WhiteBalance is unsupported value.");
-                }
-                mPref.put("preview_white_balance", whiteBalance);
-            }
-        }
-
-        public Integer getPreviewAutoExposureMode() {
-            return mPref.getInteger("preview_auto_exposure_mode", null);
-        }
-
-        public void setPreviewAutoExposureMode(Integer mode) {
-            if (mode == null) {
-                mPref.remove("preview_auto_exposure_mode");
-            } else {
-                if (!isSupportedAutoExposureMode(mode)) {
-                    throw new IllegalArgumentException("Exposure mode is unsupported value.");
-                }
-                mPref.put("preview_auto_exposure_mode", mode);
-            }
-        }
-
-        /**
-         * ソフトウェアエンコーダを優先的に使用するフラグを確認します.
-         *
-         * @return ソフトウェアエンコーダを優先的に使用する場合は true、それ以外は false
-         */
-        public boolean isUseSoftwareEncoder() {
-            return mPref.getBoolean("preview_use_software_encoder", false);
-        }
-
-        /**
-         * ソフトウェアエンコーダを優先的に使用するフラグを設定します.
-         *
-         * @param used ソフトウェアエンコーダを優先的に使用する場合は true、それ以外は false
-         */
-        public void setUseSoftwareEncoder(boolean used) {
-            mPref.put("preview_use_software_encoder", used);
-        }
-
-        /**
-         * イントラリフレッシュのフレーム数を取得します.
-         *
-         * @return イントラリフレッシュのフレーム数
-         */
-        public Integer getIntraRefresh() {
-            return mPref.getInteger("preview_intra_refresh", 0);
-        }
-
-        /**
-         * イントラリフレッシュのフレーム数を設定します.
-         *
-         * @param refresh イントラリフレッシュのフレーム数
-         */
-        public void setIntraRefresh(Integer refresh) {
-            if (refresh == null) {
-                mPref.remove("preview_intra_refresh");
-            } else {
-                mPref.put("preview_intra_refresh", refresh);
-            }
-        }
-
-        /**
-         * 手ぶれ補正モードを取得します.
-         *
-         * @return 手ぶれ補正モード
-         */
-        public Integer getStabilizationMode() {
-            return mPref.getInteger("preview_stabilization_mode", null);
-        }
-
-        /**
-         * 手ぶれ補正モードを設定します.
-         *
-         * @param mode 手ぶれ補正モード
-         */
-        public void setStabilizationMode(Integer mode) {
-            if (mode == null) {
-                mPref.remove("preview_stabilization_mode");
-            } else {
-                if (!isSupportedStabilization(mode)) {
-                    throw new IllegalArgumentException("Stabilization Mode is unsupported value.");
-                }
-                mPref.put("preview_stabilization_mode", mode);
-            }
-        }
-
-        /**
-         * 光学手ぶれ補正モードを取得します.
-         *
-         * @return 光学手ぶれ補正モード
-         */
-        public Integer getOpticalStabilizationMode() {
-            return mPref.getInteger("preview_optical_stabilization_mode", null);
-        }
-
-        /**
-         * 光学手ぶれ補正モードを設定します.
-         *
-         * @param mode 光学手ぶれ補正モード
-         */
-        public void setOpticalStabilizationMode(Integer mode) {
-            if (mode == null) {
-                mPref.remove("preview_optical_stabilization_mode");
-            } else {
-                if (!isSupportedOpticalStabilization(mode)) {
-                    throw new IllegalArgumentException("Optical Stabilization Mode is unsupported value.");
-                }
-                mPref.put("preview_optical_stabilization_mode", mode);
-            }
-        }
-
-        /**
-         * デジタルズームを取得します.
-         *
-         * @return デジタルズーム
-         */
-        public Float getDigitalZoom() {
-            return mPref.getFloat("preview_digital_zoom", null);
-        }
-
-        /**
-         * デジタルズームを設定します.
-         *
-         * @param zoom デジタルズーム
-         */
-        public void setDigitalZoom(Float zoom) {
-            if (zoom == null) {
-                mPref.remove("preview_digital_zoom");
-            } else {
-                if (!isSupportedDigitalZoom(zoom)) {
-                    throw new IllegalArgumentException("Digital zoom is unsupported value.");
-                }
-                mPref.put("preview_digital_zoom", zoom);
-            }
-        }
-
-        public Float getFocalLength() {
-            Float value = mPref.getFloat("preview_focal_length", null);
-            if (value == null) {
-                return null;
-            }
-            List<Float> focalLengthList = getSupportedFocalLengthList();
-            for (Float focalLength : focalLengthList) {
-                if (Math.abs(focalLength - value) < 0.01f) {
-                    return focalLength;
-                }
-            }
-            return null;
-        }
-
-        public void setFocalLength(Float focalLength) {
-            if (focalLength == null) {
-                mPref.remove("preview_focal_length");
-            } else {
-                if (!isSupportedFocalLength(focalLength)) {
-                    throw new IllegalArgumentException("focalLength cannot set.");
-                }
-                mPref.put("preview_focal_length", focalLength);
-            }
-        }
-
-        public Integer getNoiseReduction() {
-            return mPref.getInteger("preview_reduction_noise", null);
-        }
-
-        public void setNoiseReduction(Integer mode) {
-            if (mode == null) {
-                mPref.remove("preview_reduction_noise");
-            } else {
-                if (!isSupportedNoiseReduction(mode)) {
-                    throw new IllegalArgumentException("mode cannot set.");
-                }
-                mPref.put("preview_reduction_noise", mode);
-            }
-        }
-
-        public BitRateMode getPreviewBitRateMode() {
-            return BitRateMode.nameOf(mPref.getString("preview_bitrate_mode", null));
-        }
-
-        public void setPreviewBitRateMode(BitRateMode mode) {
-            if (mode == null) {
-                mPref.remove("preview_bitrate_mode");
-            } else {
-                mPref.put("preview_bitrate_mode", mode.getName());
-            }
-        }
-
-        public Integer getAutoExposureMode() {
-            return mPref.getInteger("preview_auto_exposure_mode", null);
-        }
-
-        public void setAutoExposureMode(Integer mode) {
-            if (mode == null) {
-                mPref.remove("preview_auto_exposure_mode");
-            } else {
-                if (!isSupportedAutoExposureMode(mode)) {
-                    throw new IllegalArgumentException("mode cannot set.");
-                }
-                mPref.put("preview_auto_exposure_mode", mode);
-            }
-        }
-
-        public Long getSensorExposureTime() {
-            return mPref.getLong("preview_sensor_exposure_time", null);
-        }
-
-        public void setSensorExposureTime(Long exposureTime) {
-            if (exposureTime == null) {
-                mPref.remove("preview_sensor_exposure_time");
-            } else {
-                if (!isSupportedSensorExposureTime(exposureTime)) {
-                    throw new IllegalArgumentException("exposureTime cannot set.");
-                }
-                mPref.put("preview_sensor_exposure_time", exposureTime);
-            }
-        }
-
-        public Integer getSensorSensitivity() {
-            return mPref.getInteger("preview_sensor_sensitivity", null);
-        }
-
-        public void setSensorSensitivity(Integer sensitivity) {
-            if (sensitivity == null) {
-                mPref.remove("preview_sensor_sensitivity");
-            } else {
-                if (!isSupportedSensorSensorSensitivity(sensitivity)) {
-                    throw new IllegalArgumentException("sensitivity cannot set.");
-                }
-                mPref.put("preview_sensor_sensitivity", sensitivity);
-            }
-        }
-
-        public Long getSensorFrameDuration() {
-            return mPref.getLong("preview_sensor_frame_duration", null);
-        }
-
-        public void setSensorFrameDuration(Long frameDuration) {
-            if (frameDuration == null) {
-                mPref.remove("preview_sensor_frame_duration");
-            } else {
-                if (!isSupportedSensorFrameDuration(frameDuration)) {
-                    throw new IllegalArgumentException("frameDuration cannot set.");
-                }
-                mPref.put("preview_sensor_frame_duration", frameDuration);
-            }
-        }
-
-        public Integer getPreviewWhiteBalanceTemperature() {
-            return mPref.getInteger("preview_sensor_white_balance_temperature", null);
-        }
-
-        public void setPreviewWhiteBalanceTemperature(Integer temperature) {
-            if (temperature == null) {
-                mPref.remove("preview_sensor_white_balance_temperature");
-            } else {
-                if (!isSupportedWhiteBalanceTemperature(temperature)) {
-                    throw new IllegalArgumentException("whiteBalanceTemperature cannot set.");
-                }
-                mPref.put("preview_sensor_white_balance_temperature", temperature);
-            }
-        }
-
-        /**
-         * 切り抜き範囲を取得します.
-         *
-         * 範囲ば設定されていない場合には、null を返却します.
-         *
-         * @return 切り抜き範囲
-         */
-        public Rect getDrawingRange() {
-            return mPref.getRect("preview_clip_left",
-                    "preview_clip_top",
-                    "preview_clip_right",
-                    "preview_clip_bottom");
-        }
-
-        /**
-         * 切り抜き範囲を設定します.
-         *
-         * 引数に null が指定された場合には、切り抜き範囲を削除します。
-         *
-         * @param rect 切り抜き範囲
-         */
-        public void setDrawingRange(Rect rect) {
-            if (rect == null) {
-                mPref.remove("preview_clip_left");
-                mPref.remove("preview_clip_top");
-                mPref.remove("preview_clip_right");
-                mPref.remove("preview_clip_bottom");
-            } else {
-                mPref.put(
-                        "preview_clip_left",
-                        "preview_clip_top",
-                        "preview_clip_right",
-                        "preview_clip_bottom",
-                        rect);
-            }
-        }
+        /// サポートしているデータサイズ
 
         /**
          * サポートしている写真サイズを取得します.
@@ -1180,6 +1480,13 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             return null;
         }
 
+        /**
+         * サポートしている色温度の範囲を取得します.
+         *
+         * サポートしていない場合は null を返却します。
+         *
+         * @return 色温度の範囲
+         */
         public Range<Integer> getSupportedWhiteBalanceTemperature() {
             return null;
         }
@@ -1200,6 +1507,11 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             return list;
         }
 
+        /**
+         * サポートしているプロファイル・レベルの一覧を取得します.
+         *
+         * @return サポートしているプロファイル・レベルの一覧
+         */
         public List<ProfileLevel> getSupportedProfileLevel() {
             VideoEncoderName encoderName = getPreviewEncoderName();
             return CapabilityUtil.getSupportedProfileLevel(encoderName.getMimeType());
@@ -1302,6 +1614,12 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             return false;
         }
 
+        /**
+         * 指定されたフォーカスモードがサポートされているか確認します.
+         *
+         * @param mode 確認するフォーカスモード
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
         public boolean isSupportedAutoFocusMode(int mode) {
             List<Integer> modeList = getSupportedAutoFocusModeList();
             if (modeList != null) {
@@ -1513,7 +1831,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return 音声タイプ
          */
         public AudioSource getPreviewAudioSource() {
-            return AudioSource.typeOf(mPref.getString("preview_audio_source", "none"));
+            return AudioSource.typeOf(mProperty.getString("preview_audio_source", "none"));
         }
 
         /**
@@ -1523,9 +1841,9 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public void setPreviewAudioSource(AudioSource audioSource) {
             if (audioSource == null) {
-                mPref.put("preview_audio_source", "none");
+                mProperty.put("preview_audio_source", "none");
             } else {
-                mPref.put("preview_audio_source", audioSource.mSource);
+                mProperty.put("preview_audio_source", audioSource.mSource);
             }
         }
 
@@ -1535,7 +1853,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return プレビュー音声のビットレート
          */
         public int getPreviewAudioBitRate() {
-            return mPref.getInteger("preview_audio_bitrate", 64 * 1024);
+            return mProperty.getInteger("preview_audio_bitrate", 64 * 1024);
         }
 
         /**
@@ -1547,7 +1865,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             if (bitRate <= 0) {
                 throw new IllegalArgumentException("previewAudioBitRate is zero or negative value.");
             }
-            mPref.put("preview_audio_bitrate", bitRate);
+            mProperty.put("preview_audio_bitrate", bitRate);
         }
 
         /**
@@ -1556,7 +1874,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return プレビュー音声のサンプルレート
          */
         public int getPreviewSampleRate() {
-            return mPref.getInteger("preview_audio_sample_rate", 16000);
+            return mProperty.getInteger("preview_audio_sample_rate", 16000);
         }
 
         /**
@@ -1566,12 +1884,12 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public void setPreviewSampleRate(Integer sampleRate) {
             if (sampleRate == null) {
-                mPref.remove("preview_audio_sample_rate");
+                mProperty.remove("preview_audio_sample_rate");
             } else {
                 if (!isSupportedSampleRate(sampleRate)) {
                     throw new IllegalArgumentException("preivewSampleRate is invalid.");
                 }
-                mPref.put("preview_audio_sample_rate", sampleRate);
+                mProperty.put("preview_audio_sample_rate", sampleRate);
             }
         }
 
@@ -1581,7 +1899,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return プレビュー音声のチャンネル数
          */
         public int getPreviewChannel() {
-            return mPref.getInteger("preview_audio_channel", 1);
+            return mProperty.getInteger("preview_audio_channel", 1);
         }
 
         /**
@@ -1590,7 +1908,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param channel プレビュー音声のチャンネル数
          */
         public void setPreviewChannel(int channel) {
-            mPref.put("preview_audio_channel", channel);
+            mProperty.put("preview_audio_channel", channel);
         }
 
         /**
@@ -1599,7 +1917,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return プレビュー配信のエコーキャンセラー
          */
         public boolean isUseAEC() {
-            return mPref.getBoolean("preview_audio_aec", true);
+            return mProperty.getBoolean("preview_audio_aec", true);
         }
 
         /**
@@ -1608,7 +1926,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param used プレビュー配信のエコーキャンセラー
          */
         public void setUseAEC(boolean used) {
-            mPref.put("preview_audio_aec", used);
+            mProperty.put("preview_audio_aec", used);
         }
 
         /**
@@ -1617,7 +1935,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return ミュートの場合はtrue、それ以外の場合はfalse
          */
         public boolean isMute() {
-            return mPref.getBoolean("preview_audio_mute", false);
+            return mProperty.getBoolean("preview_audio_mute", false);
         }
 
         /**
@@ -1626,27 +1944,27 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param mute ミュートにする場合はtrue、それ以外はfalse
          */
         public void setMute(boolean mute) {
-            mPref.put("preview_audio_mute", mute);
+            mProperty.put("preview_audio_mute", mute);
         }
 
         public AudioFilter getAudioFilter() {
-            return AudioFilter.nameOf(mPref.getString("preview_audio_filter", "none"));
+            return AudioFilter.nameOf(mProperty.getString("preview_audio_filter", "none"));
         }
 
         public void setAudioFilter(AudioFilter filter) {
             if (filter == null) {
-                mPref.remove("preview_audio_filter");
+                mProperty.remove("preview_audio_filter");
             } else {
-                mPref.put("preview_audio_filter", filter.mName);
+                mProperty.put("preview_audio_filter", filter.mName);
             }
         }
 
         public float getAudioCoefficient() {
-            return mPref.getInteger("preview_audio_coefficient", 10) / 100.0f;
+            return mProperty.getInteger("preview_audio_coefficient", 10) / 100.0f;
         }
 
         public void setAudioCoefficient(float coefficient) {
-            mPref.put("preview_audio_coefficient", (int) (coefficient * 100));
+            mProperty.put("preview_audio_coefficient", (int) (coefficient * 100));
         }
 
         public boolean isSupportedAudioSource(AudioSource source) {
@@ -1717,7 +2035,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return 配信先の URI
          */
         public String getBroadcastURI() {
-            return mPref.getString("broadcast_uri", null);
+            return mProperty.getString("broadcast_uri", null);
         }
 
         /**
@@ -1726,7 +2044,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param broadcastURI 配信先の URI
          */
         public void setBroadcastURI(String broadcastURI) {
-            mPref.put("broadcast_uri", broadcastURI);
+            mProperty.put("broadcast_uri", broadcastURI);
         }
 
         /**
@@ -1735,7 +2053,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return リトライ回数
          */
         public int getRetryCount() {
-            return mPref.getInteger("broadcast_retry_count", 0);
+            return mProperty.getInteger("broadcast_retry_count", 0);
         }
 
         /**
@@ -1745,9 +2063,9 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public void setRetryCount(int count) {
             if (count < 0) {
-                mPref.remove("broadcast_retry_count");
+                mProperty.remove("broadcast_retry_count");
             } else {
-                mPref.put("broadcast_retry_count", count);
+                mProperty.put("broadcast_retry_count", count);
             }
         }
 
@@ -1757,7 +2075,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return リトライのインターバル
          */
         public int getRetryInterval() {
-            return mPref.getInteger("broadcast_retry_interval", 3000);
+            return mProperty.getInteger("broadcast_retry_interval", 3000);
         }
 
         /**
@@ -1767,9 +2085,9 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public void setRetryInterval(int interval) {
             if (interval < 0) {
-                mPref.remove("broadcast_retry_interval");
+                mProperty.remove("broadcast_retry_interval");
             } else {
-                mPref.put("broadcast_retry_interval", interval);
+                mProperty.put("broadcast_retry_interval", interval);
             }
         }
 
@@ -1781,7 +2099,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return Motion JPEG サーバ用のポート番号
          */
         public Integer getMjpegPort() {
-            return mPref.getInteger("mjpeg_port", 0);
+            return mProperty.getInteger("mjpeg_port", 0);
         }
 
         /**
@@ -1790,7 +2108,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param port Motion JPEG サーバ用のポート番号
          */
         public void setMjpegPort(int port) {
-            mPref.put("mjpeg_port", port);
+            mProperty.put("mjpeg_port", port);
         }
 
         /**
@@ -1799,7 +2117,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return Motion JPEG サーバ用のポート番号
          */
         public Integer getMjpegSSLPort() {
-            return mPref.getInteger("mjpeg_ssl_port", 0);
+            return mProperty.getInteger("mjpeg_ssl_port", 0);
         }
 
         /**
@@ -1808,7 +2126,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param port Motion JPEG サーバ用のポート番号
          */
         public void setMjpegSSLPort(int port) {
-            mPref.put("mjpeg_ssl_port", port);
+            mProperty.put("mjpeg_ssl_port", port);
         }
 
         /**
@@ -1817,7 +2135,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return RTSP サーバ用のポート番号
          */
         public Integer getRtspPort() {
-            return mPref.getInteger("rtsp_port", 0);
+            return mProperty.getInteger("rtsp_port", 0);
         }
 
         /**
@@ -1826,7 +2144,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param port RTSP サーバ用のポート番号
          */
         public void setRtspPort(int port) {
-            mPref.put("rtsp_port", port);
+            mProperty.put("rtsp_port", port);
         }
 
         /**
@@ -1835,7 +2153,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return SRT サーバ用のポート番号
          */
         public Integer getSrtPort() {
-            return mPref.getInteger("srt_port", 0);
+            return mProperty.getInteger("srt_port", 0);
         }
 
         /**
@@ -1844,7 +2162,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param port SRT サーバ用のポート番号
          */
         public void setSrtPort(int port) {
-            mPref.put("srt_port", port);
+            mProperty.put("srt_port", port);
         }
     }
 }

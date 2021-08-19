@@ -23,18 +23,18 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class SettingsBroadcastFragment extends SettingsParameterFragment {
+public class SettingsRTSPFragment extends SettingsParameterFragment {
     /**
      * マイムタイプを定義します.
      */
-    private static final String MIME_TYPE = "video/x-rtmp";
+    private static final String MIME_TYPE = "video/x-rtp";
 
     private HostMediaRecorder mMediaRecorder;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        getPreferenceManager().setSharedPreferencesName(getRecorderId() + "-rtmp");
-        setPreferencesFromResource(R.xml.settings_host_recorder_broadcast, rootKey);
+        getPreferenceManager().setSharedPreferencesName(getRecorderId() + "-rtsp");
+        setPreferencesFromResource(R.xml.settings_host_recorder_rtsp, rootKey);
     }
 
     @Override

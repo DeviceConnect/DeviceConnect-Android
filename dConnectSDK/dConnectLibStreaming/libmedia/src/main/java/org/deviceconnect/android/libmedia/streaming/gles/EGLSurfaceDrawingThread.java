@@ -2,6 +2,7 @@ package org.deviceconnect.android.libmedia.streaming.gles;
 
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
+import android.util.Log;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;

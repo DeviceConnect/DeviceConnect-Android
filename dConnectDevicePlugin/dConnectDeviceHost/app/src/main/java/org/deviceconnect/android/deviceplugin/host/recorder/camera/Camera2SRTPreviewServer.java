@@ -7,16 +7,16 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 
 public class Camera2SRTPreviewServer extends AbstractSRTPreviewServer {
-    Camera2SRTPreviewServer(final Context context, final Camera2Recorder recorder, final int port) {
+    Camera2SRTPreviewServer(final Context context, final Camera2Recorder recorder) {
         super(context, recorder);
-        setPort(port);
+        setPort(recorder.getSettings().getPort(getMimeType()));
     }
 
     @Override
     protected VideoEncoder createVideoEncoder() {
         Camera2Recorder recorder = (Camera2Recorder) getRecorder();
         HostMediaRecorder.Settings settings = recorder.getSettings();
-        switch (settings.getPreviewEncoderName()) {
+        switch (settings.getPreviewEncoderName(getMimeType())) {
             case H264:
             default:
                 return new CameraVideoEncoder(recorder);

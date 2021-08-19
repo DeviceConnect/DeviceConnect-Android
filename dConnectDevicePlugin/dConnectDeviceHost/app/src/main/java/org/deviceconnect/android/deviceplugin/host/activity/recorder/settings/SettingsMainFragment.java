@@ -26,6 +26,10 @@ public class SettingsMainFragment extends SettingsBaseFragment {
             findNavController(this).navigate(R.id.action_main_to_video);
         } else if ("recorder_settings_audio".equals(preference.getKey())) {
             findNavController(this).navigate(R.id.action_main_to_audio);
+        } else if ("recorder_settings_mjpeg".equals(preference.getKey())) {
+            findNavController(this).navigate(R.id.action_main_to_mjpeg);
+        } else if ("recorder_settings_rtsp".equals(preference.getKey())) {
+            findNavController(this).navigate(R.id.action_main_to_rtsp);
         } else if ("recorder_settings_srt".equals(preference.getKey())) {
             findNavController(this).navigate(R.id.action_main_to_srt);
         } else if ("recorder_settings_broadcast".equals(preference.getKey())) {

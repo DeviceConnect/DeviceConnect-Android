@@ -294,10 +294,24 @@ public class VideoQuality {
         CQ
     }
 
+    /**
+     * 描画範囲を取得します.
+     *
+     * 描画範囲指定されていない場合は null を返却します。
+     *
+     * @return 描画範囲
+     */
     public Rect getDrawingRange() {
         return mDrawingRange;
     }
 
+    /**
+     * 描画範囲を設定します.
+     *
+     * null が指定された場合には、描画範囲を削除します。
+     *
+     * @param drawingRange 描画範囲
+     */
     public void setDrawingRange(Rect drawingRange) {
         mDrawingRange = drawingRange;
     }

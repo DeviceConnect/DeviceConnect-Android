@@ -5,25 +5,18 @@ import android.util.Range;
 import android.util.Size;
 
 import androidx.annotation.NonNull;
-import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
-import androidx.preference.PreferenceScreen;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.AutoExposure;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.AutoFocus;
-import org.deviceconnect.android.deviceplugin.host.profile.utils.H264Level;
-import org.deviceconnect.android.deviceplugin.host.profile.utils.H264Profile;
-import org.deviceconnect.android.deviceplugin.host.profile.utils.H265Level;
-import org.deviceconnect.android.deviceplugin.host.profile.utils.H265Profile;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.NoiseReduction;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.OpticalStabilization;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.Stabilization;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.WhiteBalance;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,8 +40,6 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
 
         setPictureSizePreference(settings);
         setPreviewSizePreference(settings);
-        setPreviewVideoEncoderPreference(settings);
-        setPreviewProfileLevelPreference(settings, settings.getPreviewEncoderName(), false);
         setPreviewAutoFocusPreference(settings);
         setPreviewWhiteBalancePreference(settings);
         setPreviewWhiteBalanceTemperaturePreference(settings);
@@ -61,52 +52,10 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         setPreviewNoiseReduction(settings);
         setPreviewFocalLength(settings);
 
-        setPreviewJpegQuality();
-        setPreviewCutOutReset();
-
         setInputTypeNumber("preview_framerate");
         setInputTypeNumber("preview_bitrate");
         setInputTypeNumber("preview_i_frame_interval");
         setInputTypeNumber("preview_intra_refresh");
-
-        setPreviewClipPreference("preview_clip_left");
-        setPreviewClipPreference("preview_clip_top");
-        setPreviewClipPreference("preview_clip_right");
-        setPreviewClipPreference("preview_clip_bottom");
-    }
-
-    /**
-     * 切り抜き範囲の設定にリスナーを設定します.
-     *
-     * @param key キー
-     */
-    public void setPreviewClipPreference(String key) {
-        EditTextPreference pref = findPreference(key);
-        if (pref != null) {
-            pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
-            setInputTypeNumber(key);
-        }
-    }
-
-    /**
-     * 切り抜き範囲のリセットボタンのリスナーを設定します.
-     */
-    private void setPreviewCutOutReset() {
-        PreferenceScreen pref = findPreference("preview_clip_reset");
-        if (pref != null) {
-            pref.setOnPreferenceClickListener(preference -> {
-                EditTextPreference left = findPreference("preview_clip_left");
-                left.setText(null);
-                EditTextPreference top = findPreference("preview_clip_top");
-                top.setText(null);
-                EditTextPreference right = findPreference("preview_clip_right");
-                right.setText(null);
-                EditTextPreference bottom = findPreference("preview_clip_bottom");
-                bottom.setText(null);
-                mMediaRecorder.getSettings().setDrawingRange(null);
-                return false;
-            });
-        }
     }
 
     /**
@@ -161,69 +110,6 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
                 if (previewSize != null) {
                     pref.setValue(getValueFromSize(previewSize));
                 }
-                pref.setVisible(true);
-            } else {
-                pref.setEnabled(false);
-            }
-        }
-    }
-
-    /**
-     * エンコーダの設定を行います.
-     *
-     * @param settings レコーダ設定
-     */
-    private void setPreviewVideoEncoderPreference(HostMediaRecorder.Settings settings) {
-        ListPreference pref = findPreference("preview_encoder");
-        if (pref != null) {
-            List<String> list = settings.getSupportedVideoEncoders();
-            if (!list.isEmpty()) {
-                List<String> entryValues = new ArrayList<>(list);
-                pref.setEntries(entryValues.toArray(new String[0]));
-                pref.setEntryValues(entryValues.toArray(new String[0]));
-                pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
-                pref.setVisible(true);
-            } else {
-                pref.setEnabled(false);
-            }
-        }
-    }
-
-    /**
-     * エンコーダのプロファイルとレベルを設定します.
-     *
-     * @param settings レコーダ設定
-     * @param encoderName エンコーダ
-     * @param reset リセットフラグ
-     */
-    private void setPreviewProfileLevelPreference(HostMediaRecorder.Settings settings, HostMediaRecorder.VideoEncoderName encoderName, boolean reset) {
-        ListPreference pref = findPreference("preview_profile_level");
-        if (pref != null) {
-            List<HostMediaRecorder.ProfileLevel> list = CapabilityUtil.getSupportedProfileLevel(encoderName.getMimeType());
-            if (!list.isEmpty()) {
-                List<String> entryValues = new ArrayList<>();
-                entryValues.add("none");
-
-                for (HostMediaRecorder.ProfileLevel pl : list) {
-                    String value = getProfileLevel(encoderName, pl);
-                    if (value != null) {
-                        entryValues.add(value);
-                    }
-                }
-
-                pref.setEntries(entryValues.toArray(new String[0]));
-                pref.setEntryValues(entryValues.toArray(new String[0]));
-                pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
-
-                if (reset) {
-                    pref.setValue("none");
-                } else {
-                    HostMediaRecorder.ProfileLevel pl = settings.getProfileLevel();
-                    if (pl != null) {
-                        pref.setValue(getProfileLevel(encoderName, pl));
-                    }
-                }
-
                 pref.setVisible(true);
             } else {
                 pref.setEnabled(false);
@@ -522,18 +408,6 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
     }
 
     /**
-     * JPEG クオリティを設定します.
-     */
-    private void setPreviewJpegQuality() {
-        SeekBarDialogPreference pref = findPreference("preview_jpeg_quality");
-        if (pref != null) {
-            pref.setMinValue(0);
-            pref.setMaxValue(100);
-            pref.setEnabled(true);
-        }
-    }
-
-    /**
      * サイズの小さい方からソートを行うための比較演算子.
      */
     private static final Comparator<Size> SIZE_COMPARATOR = (lhs, rhs) -> {
@@ -607,87 +481,6 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
     }
 
     /**
-     * プロファイルとレベルを文字列に変換します.
-     *
-     * @param encoderName エンコーダ
-     * @param pl プロファイルとレベル
-     * @return 文字列
-     */
-    private String getProfileLevel(HostMediaRecorder.VideoEncoderName encoderName, HostMediaRecorder.ProfileLevel pl) {
-        switch (encoderName) {
-            case H264: {
-                H264Profile p = H264Profile.valueOf(pl.getProfile());
-                H264Level l = H264Level.valueOf(pl.getLevel());
-                if (p != null && l != null) {
-                    return p.getName() + " - " + l.getName();
-                }
-            }
-            case H265: {
-                H265Profile p = H265Profile.valueOf(pl.getProfile());
-                H265Level l = H265Level.valueOf(pl.getLevel());
-                if (p != null && l != null) {
-                    return p.getName() + " - " + l.getName();
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 文字列をプロファイルとレベルに変換します.
-     *
-     * プロファイルとレベルに変換できなかった場合には、null を返却します。
-     *
-     * @param encoderName エンコーダ
-     * @param value 変換する文字列
-     * @return プロファイルとレベル
-     */
-    private HostMediaRecorder.ProfileLevel getProfileLevel(HostMediaRecorder.VideoEncoderName encoderName, String value) {
-        String[] t = value.split("-");
-        if (t.length == 2) {
-            try {
-                String profile = t[0].trim();
-                String level = t[1].trim();
-                switch (encoderName) {
-                    case H264: {
-                        H264Profile p = H264Profile.nameOf(profile);
-                        H264Level l = H264Level.nameOf(level);
-                        return new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue());
-                    }
-                    case H265: {
-                        H265Profile p = H265Profile.nameOf(profile);
-                        H265Level l = H265Level.nameOf(level);
-                        return new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue());
-                    }
-                }
-            } catch (Exception e) {
-                return null;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 切り抜き範囲の値を取得します.
-     *
-     * 未設定の場合には null を返却します。
-     *
-     * @param key キー
-     * @return 切り抜き範囲
-     */
-    private Integer getDrawingRange(String key) {
-        EditTextPreference pref = findPreference(key);
-        if (pref != null) {
-            try {
-                return Integer.parseInt(pref.getText());
-            } catch (NumberFormatException e) {
-                // ignore.
-            }
-        }
-        return null;
-    }
-
-    /**
      * 設定が変更された時に呼び出されるリスナー.
      */
     private final Preference.OnPreferenceChangeListener mOnPreferenceChangeListener = (preference, newValue) -> {
@@ -707,54 +500,6 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             Size size = getSizeFromValue((String) newValue);
             if (size != null) {
                 settings.setPreviewSize(size);
-            }
-        } else if ("preview_encoder".equals(key)) {
-            // エンコーダが切り替えられたので、プロファイル・レベルは一旦削除しておく
-            settings.setProfileLevel(null);
-            HostMediaRecorder.VideoEncoderName encoderName =
-                    HostMediaRecorder.VideoEncoderName.nameOf((String) newValue);
-            setPreviewProfileLevelPreference(settings, encoderName, true);
-        } else if ("preview_profile_level".equalsIgnoreCase(key)) {
-            settings.setProfileLevel(getProfileLevel(settings.getPreviewEncoderName(), (String) newValue));
-        } else if ("preview_clip_left".equalsIgnoreCase(key)) {
-            try {
-                int clipLeft = Integer.parseInt((String) newValue);
-                Integer clipRight = getDrawingRange("preview_clip_right");
-                if (clipRight != null && clipRight <= clipLeft) {
-                    return false;
-                }
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        } else if ("preview_clip_top".equalsIgnoreCase(key)) {
-            try {
-                int clipTop = Integer.parseInt((String) newValue);
-                Integer clipBottom = getDrawingRange("preview_clip_bottom");
-                if (clipBottom != null && clipBottom <= clipTop) {
-                    return false;
-                }
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        } else if ("preview_clip_right".equalsIgnoreCase(key)) {
-            try {
-                int clipRight = Integer.parseInt((String) newValue);
-                Integer clipLeft = getDrawingRange("preview_clip_left");
-                if (clipLeft != null && clipRight <= clipLeft) {
-                    return false;
-                }
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        } else if ("preview_clip_bottom".equalsIgnoreCase(key)) {
-            try {
-                int clipBottom = Integer.parseInt((String) newValue);
-                Integer clipTop = getDrawingRange("preview_clip_top");
-                if (clipTop != null && clipBottom <= clipTop) {
-                    return false;
-                }
-            } catch (NumberFormatException e) {
-                return false;
             }
         }
         return true;

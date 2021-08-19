@@ -34,7 +34,7 @@ public abstract class AbstractBroadcaster implements Broadcaster {
 
     @Override
     public String getMimeType() {
-        return "";
+        return "video/x-rtmp";
     }
 
     @Override
@@ -98,27 +98,25 @@ public abstract class AbstractBroadcaster implements Broadcaster {
         HostMediaRecorder recorder = getRecorder();
         HostMediaRecorder.Settings settings = recorder.getSettings();
 
-        Rect rect = settings.getDrawingRange();
-        if (rect != null) {
-            videoQuality.setVideoWidth(rect.width());
-            videoQuality.setVideoHeight(rect.height());
-        } else {
-            EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
-            Size previewSize = settings.getPreviewSize();
-            int w = d.isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
-            int h = d.isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
-            videoQuality.setVideoWidth(w);
-            videoQuality.setVideoHeight(h);
+        EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
+        Size previewSize = settings.getPreviewSize(getMimeType());
+        if (previewSize == null) {
+            previewSize = settings.getPreviewSize();
         }
-        videoQuality.setBitRate(settings.getPreviewBitRate());
-        videoQuality.setFrameRate(settings.getPreviewMaxFrameRate());
-        videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());
-        videoQuality.setUseSoftwareEncoder(settings.isUseSoftwareEncoder());
-        videoQuality.setIntraRefresh(settings.getIntraRefresh());
-        videoQuality.setProfile(settings.getProfile());
-        videoQuality.setLevel(settings.getLevel());
-        if (settings.getPreviewBitRateMode() != null) {
-            switch (settings.getPreviewBitRateMode()) {
+        int w = d.isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
+        int h = d.isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
+        videoQuality.setVideoWidth(w);
+        videoQuality.setVideoHeight(h);
+        videoQuality.setDrawingRange(settings.getDrawingRange(getMimeType()));
+        videoQuality.setBitRate(settings.getPreviewBitRate(getMimeType()));
+        videoQuality.setFrameRate(settings.getPreviewMaxFrameRate(getMimeType()));
+        videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval(getMimeType()));
+        videoQuality.setUseSoftwareEncoder(settings.isUseSoftwareEncoder(getMimeType()));
+        videoQuality.setIntraRefresh(settings.getIntraRefresh(getMimeType()));
+        videoQuality.setProfile(settings.getProfile(getMimeType()));
+        videoQuality.setLevel(settings.getLevel(getMimeType()));
+        if (settings.getPreviewBitRateMode(getMimeType()) != null) {
+            switch (settings.getPreviewBitRateMode(getMimeType())) {
                 case VBR:
                     videoQuality.setBitRateMode(VideoQuality.BitRateMode.VBR);
                     break;

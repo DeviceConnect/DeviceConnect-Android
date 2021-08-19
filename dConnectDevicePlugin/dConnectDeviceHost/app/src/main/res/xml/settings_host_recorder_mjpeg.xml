@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="@string/host_recorder_settings_server"
+        app:iconSpaceReserved="false">
+
+        <EditTextPreference
+            android:key="url"
+            android:singleLine="true"
+            android:title="@string/host_recorder_settings_server_url"
+            android:enabled="false"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            android:defaultValue="0"
+            android:key="port"
+            android:singleLine="true"
+            android:title="@string/host_recorder_settings_port_number"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+
+    <PreferenceCategory
+        android:title="@string/host_recorder_settings_video"
+        app:iconSpaceReserved="false">
+
+        <ListPreference
+            app:key="camera_preview_size"
+            app:title="@string/host_recorder_settings_preview_resolution"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <org.deviceconnect.android.deviceplugin.host.activity.fragment.SeekBarDialogPreference
+            android:defaultValue="80"
+            android:key="preview_jpeg_quality"
+            android:singleLine="true"
+            android:title="@string/host_recorder_settings_jpeg_quality"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/host_recorder_settings_range_to_cut_out"
+        app:iconSpaceReserved="false">
+
+        <EditTextPreference
+            app:key="preview_clip_left"
+            app:title="@string/host_recorder_settings_cut_out_left"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_clip_top"
+            app:title="@string/host_recorder_settings_cut_out_top"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_clip_right"
+            app:title="@string/host_recorder_settings_cut_out_right"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="preview_clip_bottom"
+            app:title="@string/host_recorder_settings_cut_out_bottom"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <PreferenceScreen
+            app:key="preview_clip_reset"
+            app:title="@string/host_recorder_settings_cut_out_reset"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+</PreferenceScreen>

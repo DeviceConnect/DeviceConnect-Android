@@ -7,6 +7,7 @@ import android.view.Surface;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
+import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.gles.SurfaceTextureManager;
@@ -59,12 +60,20 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
 
     @Override
     protected void onStarted() {
-        startCamera(getSurfaceTexture());
+        try {
+            startCamera(getSurfaceTexture());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     protected void onStopped() {
-        stopCamera();
+        try {
+            stopCamera();
+        } catch (Exception e) {
+            // ignore.
+        }
     }
 
     @Override
@@ -87,36 +96,28 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
         return manager;
     }
 
-    private void startCamera(SurfaceTexture surfaceTexture) {
-        try {
-            HostMediaRecorder.Settings settings = mRecorder.getSettings();
-            CameraWrapper cameraWrapper = mRecorder.getCameraWrapper();
-            cameraWrapper.getOptions().setPictureSize(settings.getPictureSize());
-            cameraWrapper.getOptions().setPreviewSize(settings.getPreviewSize());
-            cameraWrapper.getOptions().setFps(settings.getPreviewMaxFrameRate());
-            cameraWrapper.getOptions().setAutoFocusMode(settings.getPreviewAutoFocusMode());
-            cameraWrapper.getOptions().setAutoWhiteBalanceMode(settings.getPreviewWhiteBalance());
-            cameraWrapper.getOptions().setWhiteBalanceTemperature(settings.getPreviewWhiteBalanceTemperature());
-            cameraWrapper.getOptions().setAutoExposureMode(settings.getAutoExposureMode());
-            cameraWrapper.getOptions().setSensorExposureTime(settings.getSensorExposureTime());
-            cameraWrapper.getOptions().setSensorSensitivity(settings.getSensorSensitivity());
-            cameraWrapper.getOptions().setSensorFrameDuration(settings.getSensorFrameDuration());
-            cameraWrapper.getOptions().setStabilizationMode(settings.getStabilizationMode());
-            cameraWrapper.getOptions().setOpticalStabilizationMode(settings.getOpticalStabilizationMode());
-            cameraWrapper.getOptions().setDigitalZoom(settings.getDigitalZoom());
-            cameraWrapper.getOptions().setNoiseReductionMode(settings.getNoiseReduction());
-            cameraWrapper.getOptions().setFocalLength(settings.getFocalLength());
-            cameraWrapper.startPreview(new Surface(surfaceTexture));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    private void startCamera(SurfaceTexture surfaceTexture) throws CameraWrapperException {
+        HostMediaRecorder.Settings settings = mRecorder.getSettings();
+        CameraWrapper cameraWrapper = mRecorder.getCameraWrapper();
+        cameraWrapper.getOptions().setPictureSize(settings.getPictureSize());
+        cameraWrapper.getOptions().setPreviewSize(settings.getPreviewSize());
+        cameraWrapper.getOptions().setFps(settings.getPreviewMaxFrameRate());
+        cameraWrapper.getOptions().setAutoFocusMode(settings.getPreviewAutoFocusMode());
+        cameraWrapper.getOptions().setAutoWhiteBalanceMode(settings.getPreviewWhiteBalance());
+        cameraWrapper.getOptions().setWhiteBalanceTemperature(settings.getPreviewWhiteBalanceTemperature());
+        cameraWrapper.getOptions().setAutoExposureMode(settings.getAutoExposureMode());
+        cameraWrapper.getOptions().setSensorExposureTime(settings.getSensorExposureTime());
+        cameraWrapper.getOptions().setSensorSensitivity(settings.getSensorSensitivity());
+        cameraWrapper.getOptions().setSensorFrameDuration(settings.getSensorFrameDuration());
+        cameraWrapper.getOptions().setStabilizationMode(settings.getStabilizationMode());
+        cameraWrapper.getOptions().setOpticalStabilizationMode(settings.getOpticalStabilizationMode());
+        cameraWrapper.getOptions().setDigitalZoom(settings.getDigitalZoom());
+        cameraWrapper.getOptions().setNoiseReductionMode(settings.getNoiseReduction());
+        cameraWrapper.getOptions().setFocalLength(settings.getFocalLength());
+        cameraWrapper.startPreview(new Surface(surfaceTexture));
     }
 
     private void stopCamera() {
-        try {
-            mRecorder.getCameraWrapper().stopPreview();
-        } catch (Exception e) {
-            // ignore.
-        }
+        mRecorder.getCameraWrapper().stopPreview();
     }
 }

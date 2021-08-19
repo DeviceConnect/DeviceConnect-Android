@@ -41,7 +41,6 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
         mSettings = new SRTSettings(context);
     }
 
-
     @Override
     public String getUri() {
         return "srt://localhost:" + getPort();

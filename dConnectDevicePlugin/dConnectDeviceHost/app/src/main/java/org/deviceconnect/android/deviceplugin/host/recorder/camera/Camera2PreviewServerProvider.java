@@ -37,12 +37,10 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
 
         mOverlayManager = new OverlayManager(context, recorder);
 
-        HostMediaRecorder.Settings settings = recorder.getSettings();
-
-        addServer(new Camera2MJPEGPreviewServer(context, recorder, settings.getMjpegPort(), false));
-        addServer(new Camera2MJPEGPreviewServer(context, recorder, settings.getMjpegSSLPort(), true));
-        addServer(new Camera2RTSPPreviewServer(context, recorder, settings.getRtspPort()));
-        addServer(new Camera2SRTPreviewServer(context, recorder, settings.getSrtPort()));
+        addServer(new Camera2MJPEGPreviewServer(context, recorder, false));
+        addServer(new Camera2MJPEGPreviewServer(context, recorder, true));
+        addServer(new Camera2RTSPPreviewServer(context, recorder));
+        addServer(new Camera2SRTPreviewServer(context, recorder));
     }
 
     @Override

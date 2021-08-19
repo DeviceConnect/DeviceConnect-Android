@@ -192,20 +192,23 @@ public abstract class AbstractPreviewServer implements PreviewServer {
         HostMediaRecorder.Settings settings = recorder.getSettings();
 
         EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
-        Size previewSize = settings.getPreviewSize();
+        Size previewSize = settings.getPreviewSize(getMimeType());
+        if (previewSize == null) {
+            previewSize = settings.getPreviewSize();
+        }
         int w = d.isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
         int h = d.isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
         videoQuality.setVideoWidth(w);
         videoQuality.setVideoHeight(h);
-        videoQuality.setDrawingRange(settings.getDrawingRange());
-        videoQuality.setBitRate(settings.getPreviewBitRate());
-        videoQuality.setFrameRate(settings.getPreviewMaxFrameRate());
-        videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());
-        videoQuality.setUseSoftwareEncoder(settings.isUseSoftwareEncoder());
-        videoQuality.setIntraRefresh(settings.getIntraRefresh());
-        videoQuality.setProfile(settings.getProfile());
-        videoQuality.setLevel(settings.getLevel());
-        if (settings.getPreviewBitRateMode() != null) {
+        videoQuality.setDrawingRange(settings.getDrawingRange(getMimeType()));
+        videoQuality.setBitRate(settings.getPreviewBitRate(getMimeType()));
+        videoQuality.setFrameRate(settings.getPreviewMaxFrameRate(getMimeType()));
+        videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval(getMimeType()));
+        videoQuality.setUseSoftwareEncoder(settings.isUseSoftwareEncoder(getMimeType()));
+        videoQuality.setIntraRefresh(settings.getIntraRefresh(getMimeType()));
+        videoQuality.setProfile(settings.getProfile(getMimeType()));
+        videoQuality.setLevel(settings.getLevel(getMimeType()));
+        if (settings.getPreviewBitRateMode(getMimeType()) != null) {
             switch (settings.getPreviewBitRateMode()) {
                 default:
                 case VBR:

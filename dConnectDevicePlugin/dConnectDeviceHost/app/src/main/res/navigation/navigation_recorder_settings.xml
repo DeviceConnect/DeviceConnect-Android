@@ -25,6 +25,22 @@
             app:popExitAnim="@anim/nav_slide_pop_exit_anim"/>
 
         <action
+            android:id="@+id/action_main_to_mjpeg"
+            app:destination="@+id/host_settings_mjpeg"
+            app:enterAnim="@anim/nav_slide_enter_anim"
+            app:exitAnim="@anim/nav_slide_exit_anim"
+            app:popEnterAnim="@anim/nav_slide_pop_enter_anim"
+            app:popExitAnim="@anim/nav_slide_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_main_to_rtsp"
+            app:destination="@+id/host_settings_rtsp"
+            app:enterAnim="@anim/nav_slide_enter_anim"
+            app:exitAnim="@anim/nav_slide_exit_anim"
+            app:popEnterAnim="@anim/nav_slide_pop_enter_anim"
+            app:popExitAnim="@anim/nav_slide_pop_exit_anim" />
+
+        <action
             android:id="@+id/action_main_to_srt"
             app:destination="@+id/host_settings_srt"
             app:enterAnim="@anim/nav_slide_enter_anim"
@@ -60,6 +76,18 @@
     <fragment
         android:id="@+id/host_settings_audio"
         android:name="org.deviceconnect.android.deviceplugin.host.activity.recorder.settings.SettingsAudioFragment">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/host_settings_mjpeg"
+        android:name="org.deviceconnect.android.deviceplugin.host.activity.recorder.settings.SettingsMJPEGFragment">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/host_settings_rtsp"
+        android:name="org.deviceconnect.android.deviceplugin.host.activity.recorder.settings.SettingsRTSPFragment">
 
     </fragment>
 

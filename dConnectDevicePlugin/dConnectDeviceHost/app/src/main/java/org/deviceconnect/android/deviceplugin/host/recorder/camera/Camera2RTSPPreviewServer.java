@@ -12,16 +12,16 @@ import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStre
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer {
 
-    Camera2RTSPPreviewServer(Context context, Camera2Recorder recorder, int port) {
+    Camera2RTSPPreviewServer(Context context, Camera2Recorder recorder) {
         super(context, recorder);
-        setPort(port);
+        setPort(recorder.getSettings().getPort(getMimeType()));
     }
 
     @Override
     protected VideoStream createVideoStream() {
         Camera2Recorder recorder = (Camera2Recorder) getRecorder();
         HostMediaRecorder.Settings settings = recorder.getSettings();
-        switch (settings.getPreviewEncoderName()) {
+        switch (settings.getPreviewEncoderName(getMimeType())) {
             case H264:
             default:
                 return new CameraH264VideoStream(recorder, 5006);

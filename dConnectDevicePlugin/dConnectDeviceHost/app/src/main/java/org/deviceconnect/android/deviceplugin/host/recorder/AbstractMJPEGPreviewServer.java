@@ -1,7 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.content.Context;
-import android.graphics.Rect;
 import android.util.Log;
 import android.util.Size;
 
@@ -10,7 +9,6 @@ import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGQuality;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
 
-import java.io.IOException;
 import java.net.Socket;
 
 import javax.net.ssl.SSLContext;
@@ -19,7 +17,7 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
     /**
      * Motion JPEG のマイムタイプを定義します.
      */
-    protected static final String MIME_TYPE = "video/x-mjpeg";
+    public static final String MIME_TYPE = "video/x-mjpeg";
 
     /**
      * サーバー名を定義します.
@@ -133,14 +131,16 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
         HostMediaRecorder.Settings settings = recorder.getSettings();
 
         EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
-        Size previewSize = settings.getPreviewSize();
+        Size previewSize = settings.getPreviewSize(getMimeType());
+        if (previewSize == null) {
+            previewSize = settings.getPreviewSize();
+        }
         int w = d.isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
         int h = d.isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
         quality.setWidth(w);
         quality.setHeight(h);
-        quality.setFrameRate(settings.getPreviewMaxFrameRate());
-        quality.setQuality(settings.getPreviewQuality());
-        quality.setDrawingRange(settings.getDrawingRange());
+        quality.setQuality(settings.getPreviewQuality(getMimeType()));
+        quality.setDrawingRange(settings.getDrawingRange(getMimeType()));
     }
 
     /**

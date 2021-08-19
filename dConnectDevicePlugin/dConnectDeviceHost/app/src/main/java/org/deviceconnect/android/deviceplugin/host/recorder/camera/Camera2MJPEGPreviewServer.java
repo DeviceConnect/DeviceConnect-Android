@@ -18,9 +18,9 @@ import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
  * {@link SurfaceTexture} をもとに実装.
  */
 class Camera2MJPEGPreviewServer extends AbstractMJPEGPreviewServer {
-    Camera2MJPEGPreviewServer(Context context, Camera2Recorder recorder, int port, boolean useSSL) {
+    Camera2MJPEGPreviewServer(Context context, Camera2Recorder recorder, boolean useSSL) {
         super(context, recorder, useSSL);
-        setPort(port);
+        setPort(recorder.getSettings().getPort(getMimeType()) + (useSSL ?  1 : 0));
     }
 
     @Override

@@ -79,8 +79,11 @@
     <string name="host_recorder_settings_video">映像設定</string>
     <string name="host_recorder_settings_audio">音声設定</string>
     <string name="host_recorder_settings_broadcast">配信設定</string>
-    <string name="host_recorder_settings_srt">SRT 設定</string>
+    <string name="host_recorder_settings_mjpeg">MJPEG</string>
+    <string name="host_recorder_settings_rtsp">RTSP</string>
+    <string name="host_recorder_settings_srt">SRT</string>
     <string name="host_recorder_settings_port">ポート設定</string>
+    <string name="host_recorder_settings_server">サーバ設定</string>
 
     <!-- 映像設定画面 -->
     <string name="host_recorder_settings_still_image_resolution">静止画解像度</string>
@@ -142,6 +145,7 @@
     <string name="host_recorder_settings_port_rtsp">RTSP 設定</string>
     <string name="host_recorder_settings_port_srt">SRT 設定</string>
     <string name="host_recorder_settings_port_number">ポート番号</string>
+    <string name="host_recorder_settings_server_url">URL</string>
 
     <!-- SRT設定 -->
     <string name="host_setting_srt_option_auto">自動</string>

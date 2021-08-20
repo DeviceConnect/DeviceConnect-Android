@@ -140,6 +140,7 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
         quality.setWidth(w);
         quality.setHeight(h);
         quality.setQuality(settings.getPreviewQuality(getMimeType()));
+        quality.setFrameRate(settings.getPreviewMaxFrameRate(getMimeType()));
         quality.setDrawingRange(settings.getDrawingRange(getMimeType()));
     }
 

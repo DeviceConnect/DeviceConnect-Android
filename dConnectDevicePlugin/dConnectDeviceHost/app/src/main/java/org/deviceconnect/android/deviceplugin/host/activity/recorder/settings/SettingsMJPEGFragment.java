@@ -45,6 +45,8 @@ public class SettingsMJPEGFragment extends SettingsParameterFragment {
         setPreviewJpegQuality();
         setPreviewCutOutReset();
 
+        setInputTypeNumber("preview_framerate");
+
         setPreviewClipPreference("preview_clip_left");
         setPreviewClipPreference("preview_clip_top");
         setPreviewClipPreference("preview_clip_right");

@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.host.recorder.audio;
 import android.Manifest;
 import android.content.Context;
 import android.os.Handler;
+import android.util.Log;
 import android.util.Size;
 
 import androidx.annotation.NonNull;
@@ -79,13 +80,10 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
             mSettings.setPreviewKeyFrameInterval(1);
 
             mSettings.setPreviewAudioSource(AudioSource.DEFAULT);
-            mSettings.setPreviewAudioBitRate(64 * 1024);
-            mSettings.setPreviewSampleRate(16000);
+            mSettings.setPreviewAudioBitRate(128 * 1024);
+            mSettings.setPreviewSampleRate(48000);
             mSettings.setPreviewChannel(1);
             mSettings.setUseAEC(true);
-
-            mSettings.setRtspPort(32000);
-            mSettings.setSrtPort(33000);
 
             mSettings.finishInitialization();
         }

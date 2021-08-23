@@ -6,8 +6,8 @@ import org.deviceconnect.android.deviceplugin.host.recorder.AbstractRTSPPreviewS
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 
 public class AudioRTSPPreviewServer extends AbstractRTSPPreviewServer {
-    AudioRTSPPreviewServer(Context context, HostMediaRecorder recorder, int port) {
+    AudioRTSPPreviewServer(Context context, HostMediaRecorder recorder) {
         super(context, recorder);
-        setPort(port);
+        setPort(recorder.getSettings().getPort(getMimeType()));
     }
 }

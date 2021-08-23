@@ -134,15 +134,33 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
             mSettings.setPreviewKeyFrameInterval(1);
             mSettings.setPreviewQuality(80);
 
-            mSettings.setPreviewAudioBitRate(64 * 1024);
-            mSettings.setPreviewSampleRate(16000);
+            mSettings.setPreviewAudioSource(null);
+            mSettings.setPreviewAudioBitRate(128 * 1024);
+            mSettings.setPreviewSampleRate(48000);
             mSettings.setPreviewChannel(1);
             mSettings.setUseAEC(true);
 
-            mSettings.setMjpegPort(21000);
-            mSettings.setMjpegSSLPort(21100);
-            mSettings.setRtspPort(22000);
-            mSettings.setSrtPort(23000);
+            mSettings.setPort(MIME_TYPE_MJPEG, 21000);
+            mSettings.setPreviewSize(MIME_TYPE_MJPEG, mSettings.getSupportedPreviewSizes().get(0));
+            mSettings.setPreviewQuality(MIME_TYPE_MJPEG, 80);
+            mSettings.setPreviewMaxFrameRate(MIME_TYPE_MJPEG, 30);
+
+            mSettings.setPort(MIME_TYPE_RTSP, 22000);
+            mSettings.setPreviewSize(MIME_TYPE_RTSP, mSettings.getSupportedPreviewSizes().get(0));
+            mSettings.setPreviewBitRate(MIME_TYPE_RTSP, 2 * 1024 * 1024);
+            mSettings.setPreviewMaxFrameRate(MIME_TYPE_RTSP, 30);
+            mSettings.setPreviewKeyFrameInterval(MIME_TYPE_RTSP, 5);
+
+            mSettings.setPort(MIME_TYPE_SRT, 23000);
+            mSettings.setPreviewSize(MIME_TYPE_SRT, mSettings.getSupportedPreviewSizes().get(0));
+            mSettings.setPreviewBitRate(MIME_TYPE_SRT, 2 * 1024 * 1024);
+            mSettings.setPreviewMaxFrameRate(MIME_TYPE_SRT, 30);
+            mSettings.setPreviewKeyFrameInterval(MIME_TYPE_SRT, 5);
+
+            mSettings.setPreviewSize(MIME_TYPE_RTMP, mSettings.getSupportedPreviewSizes().get(0));
+            mSettings.setPreviewBitRate(MIME_TYPE_RTMP, 2 * 1024 * 1024);
+            mSettings.setPreviewMaxFrameRate(MIME_TYPE_RTMP, 30);
+            mSettings.setPreviewKeyFrameInterval(MIME_TYPE_RTMP, 5);
 
             mSettings.finishInitialization();
         }

@@ -14,7 +14,7 @@ public class ScreenCastSRTBroadcaster extends AbstractSRTBroadcaster {
     protected VideoEncoder createVideoEncoder() {
         ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
         HostMediaRecorder.Settings settings = recorder.getSettings();
-        switch (settings.getPreviewEncoderName()) {
+        switch (settings.getPreviewEncoderName(getMimeType())) {
             case H264:
             default:
                 return new ScreenCastVideoEncoder(recorder);

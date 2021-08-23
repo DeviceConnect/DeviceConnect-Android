@@ -82,6 +82,7 @@
     <string name="host_recorder_settings_mjpeg">MJPEG</string>
     <string name="host_recorder_settings_rtsp">RTSP</string>
     <string name="host_recorder_settings_srt">SRT</string>
+    <string name="host_recorder_settings_rtmp">RTMP</string>
     <string name="host_recorder_settings_port">ポート設定</string>
     <string name="host_recorder_settings_server">サーバ設定</string>
 

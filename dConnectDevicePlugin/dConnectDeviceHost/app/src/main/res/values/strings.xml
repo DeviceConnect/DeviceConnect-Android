@@ -78,9 +78,10 @@
     <string name="host_recorder_settings_video">Video Settings</string>
     <string name="host_recorder_settings_audio">Audio Settings</string>
     <string name="host_recorder_settings_broadcast">Broadcast Settings</string>
-    <string name="host_recorder_settings_mjpeg">MJPEG Settings</string>
-    <string name="host_recorder_settings_rtsp">RTSP Settings</string>
-    <string name="host_recorder_settings_srt">SRT Settings</string>
+    <string name="host_recorder_settings_mjpeg">MJPEG</string>
+    <string name="host_recorder_settings_rtsp">RTSP</string>
+    <string name="host_recorder_settings_srt">SRT</string>
+    <string name="host_recorder_settings_rtmp">RTMP</string>
     <string name="host_recorder_settings_port">Port Settings</string>
     <string name="host_recorder_settings_server">Server Settings</string>
 

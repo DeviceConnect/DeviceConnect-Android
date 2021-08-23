@@ -117,6 +117,7 @@ public abstract class AbstractBroadcaster implements Broadcaster {
         videoQuality.setLevel(settings.getLevel(getMimeType()));
         if (settings.getPreviewBitRateMode(getMimeType()) != null) {
             switch (settings.getPreviewBitRateMode(getMimeType())) {
+                default:
                 case VBR:
                     videoQuality.setBitRateMode(VideoQuality.BitRateMode.VBR);
                     break;

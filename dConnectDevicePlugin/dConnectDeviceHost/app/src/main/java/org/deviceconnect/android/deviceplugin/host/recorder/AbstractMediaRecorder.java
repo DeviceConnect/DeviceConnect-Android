@@ -25,6 +25,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceMP4Recorder;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
@@ -43,6 +44,11 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
      * デバッグフラグ.
      */
     private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    public static final String MIME_TYPE_MJPEG = "video/x-mjpeg";
+    public static final String MIME_TYPE_RTSP = "video/x-rtp";
+    public static final String MIME_TYPE_SRT = "video/MP2T";
+    public static final String MIME_TYPE_RTMP = "video/x-rtmp";
 
     /**
      * コンテキスト.
@@ -165,6 +171,12 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
     @Override
     public void onDisplayRotation(int rotation) {
+        // 画面が回転した場合には、一度描画用のスレッドを停止しておく
+        EGLSurfaceDrawingThread drawingThread = getSurfaceDrawingThread();
+        if (drawingThread != null && drawingThread.isRunning()) {
+            drawingThread.stop(true);
+        }
+
         PreviewServerProvider previewServerProvider = getServerProvider();
         if (previewServerProvider != null) {
             previewServerProvider.onConfigChange();
@@ -178,6 +190,12 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
     @Override
     public void onConfigChange() {
+        // 設定が変更された場合には、一度描画用のスレッドを停止しておく
+        EGLSurfaceDrawingThread drawingThread = getSurfaceDrawingThread();
+        if (drawingThread != null && drawingThread.isRunning()) {
+            drawingThread.stop(true);
+        }
+
         PreviewServerProvider previewServerProvider = getServerProvider();
         if (previewServerProvider != null) {
             previewServerProvider.onConfigChange();

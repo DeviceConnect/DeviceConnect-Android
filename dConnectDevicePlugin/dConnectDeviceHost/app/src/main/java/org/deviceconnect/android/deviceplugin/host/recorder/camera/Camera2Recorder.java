@@ -184,15 +184,32 @@ public class Camera2Recorder extends AbstractMediaRecorder {
             mSettings.setPreviewWhiteBalanceTemperature(5600);
 
             mSettings.setPreviewAudioSource(null);
-            mSettings.setPreviewAudioBitRate(64 * 1024);
-            mSettings.setPreviewSampleRate(16000);
+            mSettings.setPreviewAudioBitRate(128 * 1024);
+            mSettings.setPreviewSampleRate(48000);
             mSettings.setPreviewChannel(1);
             mSettings.setUseAEC(true);
 
-            mSettings.setMjpegPort(11000 + mFacing.mValue);
-            mSettings.setMjpegSSLPort(11100 + mFacing.mValue);
-            mSettings.setRtspPort(12000 + mFacing.mValue);
-            mSettings.setSrtPort(13000 + mFacing.mValue);
+            mSettings.setPort(MIME_TYPE_MJPEG, 11000 + mFacing.mValue);
+            mSettings.setPreviewSize(MIME_TYPE_MJPEG, options.getDefaultPreviewSize());
+            mSettings.setPreviewQuality(MIME_TYPE_MJPEG, 80);
+            mSettings.setPreviewMaxFrameRate(MIME_TYPE_MJPEG, 30);
+
+            mSettings.setPort(MIME_TYPE_RTSP, 12000 + mFacing.mValue);
+            mSettings.setPreviewSize(MIME_TYPE_RTSP, options.getDefaultPreviewSize());
+            mSettings.setPreviewBitRate(MIME_TYPE_RTSP, 2 * 1024 * 1024);
+            mSettings.setPreviewMaxFrameRate(MIME_TYPE_RTSP, 30);
+            mSettings.setPreviewKeyFrameInterval(MIME_TYPE_RTSP, 5);
+
+            mSettings.setPort(MIME_TYPE_SRT, 13000 + mFacing.mValue);
+            mSettings.setPreviewSize(MIME_TYPE_SRT, options.getDefaultPreviewSize());
+            mSettings.setPreviewBitRate(MIME_TYPE_SRT, 2 * 1024 * 1024);
+            mSettings.setPreviewMaxFrameRate(MIME_TYPE_SRT, 30);
+            mSettings.setPreviewKeyFrameInterval(MIME_TYPE_SRT, 5);
+
+            mSettings.setPreviewSize(MIME_TYPE_RTMP, options.getDefaultPreviewSize());
+            mSettings.setPreviewBitRate(MIME_TYPE_RTMP, 2 * 1024 * 1024);
+            mSettings.setPreviewMaxFrameRate(MIME_TYPE_RTMP, 30);
+            mSettings.setPreviewKeyFrameInterval(MIME_TYPE_RTMP, 5);
 
             mSettings.finishInitialization();
         }

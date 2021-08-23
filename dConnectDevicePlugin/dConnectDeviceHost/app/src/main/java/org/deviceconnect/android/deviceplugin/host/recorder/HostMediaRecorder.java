@@ -465,6 +465,10 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         private final PropertyUtil mProperty;
         private final Map<String, PropertyUtil> mPropertyMap = new HashMap<>();
 
+        private static final int DEFAULT_PREVIEW_MAX_FRAME_RATE = 30;
+        private static final int DEFAULT_PREVIEW_BITRATE = 2 * 1024 * 1024;
+        private static final String DEFAULT_PREVIEW_ENCODER = VideoEncoderName.H264.mName;
+
         public Settings(Context context, HostMediaRecorder recorder) {
             mProperty = new PropertyUtil(context, recorder.getId());
             mPropertyMap.put("video/x-mjpeg", new PropertyUtil(context, recorder.getId() + "-mjpeg"));
@@ -609,10 +613,22 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             }
         }
 
+        /**
+         * 自動露出モードを取得します.
+         *
+         * @return 自動露出モード
+         */
         public Integer getPreviewAutoExposureMode() {
             return mProperty.getInteger("preview_auto_exposure_mode", null);
         }
 
+        /**
+         * 自動露出モードを設定します.
+         *
+         * mode に null が指定された場合は設定を削除します。
+         *
+         * @param mode 自動露出モード
+         */
         public void setPreviewAutoExposureMode(Integer mode) {
             if (mode == null) {
                 mProperty.remove("preview_auto_exposure_mode");
@@ -814,7 +830,6 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             }
         }
 
-
         /// ポート番号
 
         /**
@@ -859,8 +874,6 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
                 prof.put("preview_size_width", "preview_size_height", previewSize);
             }
         }
-
-        private static final String DEFAULT_PREVIEW_ENCODER = VideoEncoderName.H264.mName;
 
         public VideoEncoderName getPreviewEncoderName(String mimeType) {
             return VideoEncoderName.nameOf(getPreviewEncoder(mimeType));
@@ -1024,8 +1037,6 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             return mProperty.getInteger("preview_level", 0);
         }
 
-        private static final int DEFAULT_PREVIEW_MAX_FRAME_RATE = 30;
-
         public int getPreviewMaxFrameRate(String mimeType) {
             PropertyUtil prof = mPropertyMap.get(mimeType);
             if (prof != null) {
@@ -1041,7 +1052,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
 
             PropertyUtil prof = mPropertyMap.get(mimeType);
             if (prof != null) {
-                mProperty.put("preview_framerate", previewMaxFrameRate);
+                prof.put("preview_framerate", previewMaxFrameRate);
             }
         }
 
@@ -1065,8 +1076,6 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             }
             mProperty.put("preview_framerate", previewMaxFrameRate);
         }
-
-        private static final int DEFAULT_PREVIEW_BITRATE = 2 * 1024 * 1024;
 
         public int getPreviewBitRate(String mimeType) {
             PropertyUtil prof = mPropertyMap.get(mimeType);
@@ -2035,6 +2044,10 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return 配信先の URI
          */
         public String getBroadcastURI() {
+            PropertyUtil prof = mPropertyMap.get("video/x-rtmp");
+            if (prof != null) {
+                return prof.getString("broadcast_uri", null);
+            }
             return mProperty.getString("broadcast_uri", null);
         }
 
@@ -2089,80 +2102,6 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             } else {
                 mProperty.put("broadcast_retry_interval", interval);
             }
-        }
-
-        // ポート番号
-
-        /**
-         * Motion JPEG サーバ用のポート番号を取得します.
-         *
-         * @return Motion JPEG サーバ用のポート番号
-         */
-        public Integer getMjpegPort() {
-            return mProperty.getInteger("mjpeg_port", 0);
-        }
-
-        /**
-         * Motion JPEG サーバ用のポート番号を設定します.
-         *
-         * @param port Motion JPEG サーバ用のポート番号
-         */
-        public void setMjpegPort(int port) {
-            mProperty.put("mjpeg_port", port);
-        }
-
-        /**
-         * SSL で暗号化された Motion JPEG サーバ用のポート番号を取得します.
-         *
-         * @return Motion JPEG サーバ用のポート番号
-         */
-        public Integer getMjpegSSLPort() {
-            return mProperty.getInteger("mjpeg_ssl_port", 0);
-        }
-
-        /**
-         * SSL で暗号化された Motion JPEG サーバ用のポート番号を取得します.
-         *
-         * @param port Motion JPEG サーバ用のポート番号
-         */
-        public void setMjpegSSLPort(int port) {
-            mProperty.put("mjpeg_ssl_port", port);
-        }
-
-        /**
-         * RTSP サーバ用のポート番号を取得します.
-         *
-         * @return RTSP サーバ用のポート番号
-         */
-        public Integer getRtspPort() {
-            return mProperty.getInteger("rtsp_port", 0);
-        }
-
-        /**
-         * RTSP サーバ用のポート番号を設定します.
-         *
-         * @param port RTSP サーバ用のポート番号
-         */
-        public void setRtspPort(int port) {
-            mProperty.put("rtsp_port", port);
-        }
-
-        /**
-         * SRT サーバ用のポート番号を取得します.
-         *
-         * @return SRT サーバ用のポート番号
-         */
-        public Integer getSrtPort() {
-            return mProperty.getInteger("srt_port", 0);
-        }
-
-        /**
-         * SRT サーバ用のポート番号を設定します.
-         *
-         * @param port SRT サーバ用のポート番号
-         */
-        public void setSrtPort(int port) {
-            mProperty.put("srt_port", port);
         }
     }
 }

@@ -370,12 +370,20 @@ public class SettingsBroadcastFragment extends SettingsParameterFragment {
             setPreviewServerUrl(Integer.parseInt((String) newValue));
         } else if ("preview_encoder".equals(key)) {
             // エンコーダが切り替えられたので、プロファイル・レベルは一旦削除しておく
-            settings.setProfileLevel(MIME_TYPE, null);
+            try {
+                settings.setProfileLevel(MIME_TYPE, null);
+            } catch (Exception e) {
+                return false;
+            }
             HostMediaRecorder.VideoEncoderName encoderName =
                     HostMediaRecorder.VideoEncoderName.nameOf((String) newValue);
             setPreviewProfileLevelPreference(settings, encoderName, true);
         } else if ("preview_profile_level".equalsIgnoreCase(key)) {
-            settings.setProfileLevel(MIME_TYPE, getProfileLevel(settings.getPreviewEncoderName(), (String) newValue));
+            try {
+                settings.setProfileLevel(MIME_TYPE, getProfileLevel(settings.getPreviewEncoderName(), (String) newValue));
+            } catch (Exception e) {
+                return false;
+            }
         } else if ("preview_clip_left".equalsIgnoreCase(key)) {
             try {
                 int clipLeft = Integer.parseInt((String) newValue);

@@ -1,6 +1,5 @@
 package org.deviceconnect.android.libmedia.streaming.video;
 
-import android.graphics.Rect;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
@@ -20,16 +19,6 @@ public abstract class VideoEncoder extends MediaEncoder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "VIDEO-ENCODER";
 
-    /**
-     * キーフレームの同期フラグ.
-     */
-    private boolean mSyncKeyFrame;
-
-    /**
-     * 映像のビットレート変更要求フラグ.
-     */
-    private boolean mRequestChangeBitRate;
-
     // MediaEncoder
 
     @Override
@@ -37,11 +26,6 @@ public abstract class VideoEncoder extends MediaEncoder {
         VideoQuality videoQuality = getVideoQuality();
         int w = videoQuality.getVideoWidth();
         int h = videoQuality.getVideoHeight();
-        Rect drawingRange = videoQuality.getDrawingRange();
-        if (drawingRange != null) {
-            w = drawingRange.width();
-            h = drawingRange.height();
-        }
         mMediaCodec = createMediaCodec(getColorFormat(), w, h);
     }
 
@@ -81,7 +65,15 @@ public abstract class VideoEncoder extends MediaEncoder {
      * キーフレームを要求します.
      */
     public void requestSyncKeyFrame() {
-        mSyncKeyFrame = true;
+        if (mMediaCodec != null) {
+            Bundle b = new Bundle();
+            b.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
+            try {
+                mMediaCodec.setParameters(b);
+            } catch (Exception e) {
+                // ignore.
+            }
+        }
     }
 
     /**
@@ -93,39 +85,14 @@ public abstract class VideoEncoder extends MediaEncoder {
      * </p>
      */
     public void requestBitRate() {
-        mRequestChangeBitRate = true;
-    }
-
-    /**
-     * MediaCodec にキーフレームの作成を行います.
-     */
-    private void syncKeyFrame() {
-        Bundle b = new Bundle();
-        b.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
-        mMediaCodec.setParameters(b);
-        mSyncKeyFrame = false;
-    }
-
-    /**
-     * MediaCodec にビットレートの変更を行います.
-     */
-    private void changeBitRate() {
-        Bundle b = new Bundle();
-        b.putInt(MediaCodec.PARAMETER_KEY_VIDEO_BITRATE, getVideoQuality().getBitRate());
-        mMediaCodec.setParameters(b);
-        mRequestChangeBitRate = false;
-    }
-
-    /**
-     * MediaCodec へのリクエスト処理を行います.
-     */
-    protected void executeRequest() {
-        if (mSyncKeyFrame) {
-            syncKeyFrame();
-        }
-
-        if (mRequestChangeBitRate) {
-            changeBitRate();
+        if (mMediaCodec != null) {
+            Bundle b = new Bundle();
+            b.putInt(MediaCodec.PARAMETER_KEY_VIDEO_BITRATE, getVideoQuality().getBitRate());
+            try {
+                mMediaCodec.setParameters(b);
+            } catch (Exception e) {
+                // ignore.
+            }
         }
     }
 

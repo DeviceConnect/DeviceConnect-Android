@@ -12,10 +12,12 @@ import android.os.Build;
 import android.util.Range;
 import android.util.Size;
 
+import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.PropertyUtil;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
+import org.deviceconnect.android.libsrt.SRT;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -464,12 +466,14 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
     abstract class Settings {
         private final PropertyUtil mProperty;
         private final Map<String, PropertyUtil> mPropertyMap = new HashMap<>();
+        private final Context mContext;
 
         private static final int DEFAULT_PREVIEW_MAX_FRAME_RATE = 30;
         private static final int DEFAULT_PREVIEW_BITRATE = 2 * 1024 * 1024;
         private static final String DEFAULT_PREVIEW_ENCODER = VideoEncoderName.H264.mName;
 
         public Settings(Context context, HostMediaRecorder recorder) {
+            mContext = context;
             mProperty = new PropertyUtil(context, recorder.getId());
             mPropertyMap.put("video/x-mjpeg", new PropertyUtil(context, recorder.getId() + "-mjpeg"));
             mPropertyMap.put("video/x-rtp", new PropertyUtil(context, recorder.getId() + "-rtsp"));
@@ -2101,6 +2105,80 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
                 mProperty.remove("broadcast_retry_interval");
             } else {
                 mProperty.put("broadcast_retry_interval", interval);
+            }
+        }
+
+        // SRT
+
+        /**
+         * SRT サーバに対して設定するオプションの一覧を作成します.
+         *
+         * @return オプションの一覧
+         */
+        public Map<Integer, Object> getSRTSocketOptions() {
+            PropertyUtil prof = mPropertyMap.get("video/MP2T");
+            if (prof != null) {
+                Map<Integer, Object> options = new HashMap<>();
+                for (SRTOptionItem item : SRT_OPTION_ITEMS) {
+                    String key = mContext.getString(item.getPrefKey());
+                    String value = prof.getString(key, null);
+                    if (value == null || "".equals(value)) {
+                        continue;
+                    }
+
+                    try {
+                        if (item.getValueClass() == Long.class) {
+                            options.put(item.getOptionEnum(), Long.parseLong(value));
+                        } else if (item.getValueClass() == Integer.class) {
+                            options.put(item.getOptionEnum(), Integer.parseInt(value));
+                        } else {
+                            options.put(item.getOptionEnum(), value);
+                        }
+                    } catch (Exception ignored) {}
+                }
+                return options;
+            }
+            return null;
+        }
+
+        /**
+         * 設定画面でサポートする SRT オプションの定義.
+         */
+        private static final List<SRTOptionItem> SRT_OPTION_ITEMS = Arrays.asList(
+                new SRTOptionItem(SRT.SRTO_PEERLATENCY, Integer.class, R.string.pref_key_settings_srt_peerlatency),
+                new SRTOptionItem(SRT.SRTO_LOSSMAXTTL, Integer.class, R.string.pref_key_settings_srt_lossmaxttl),
+                new SRTOptionItem(SRT.SRTO_INPUTBW, Long.class, R.string.pref_key_settings_srt_inputbw),
+                new SRTOptionItem(SRT.SRTO_OHEADBW, Integer.class, R.string.pref_key_settings_srt_oheadbw),
+                new SRTOptionItem(SRT.SRTO_CONNTIMEO, Integer.class, R.string.pref_key_settings_srt_conntimeo),
+                new SRTOptionItem(SRT.SRTO_PEERIDLETIMEO, Integer.class, R.string.pref_key_settings_srt_peeridletimeo),
+                new SRTOptionItem(SRT.SRTO_PACKETFILTER, String.class, R.string.pref_key_settings_srt_packetfilter));
+
+        /**
+         * SRT オプション設定項目の定義.
+         *
+         * SRT オプションの列挙子 ({@link SRT} で定義されているもの) に対して、値の型とプリファレンスキーを対応づける.
+         */
+        private static class SRTOptionItem {
+            final int mOptionEnum;
+            final Class<?> mValueClass;
+            final int mPrefKey;
+
+            SRTOptionItem(int optionEnum, Class<?> valueClass, int prefKey) {
+                mOptionEnum = optionEnum;
+                mValueClass = valueClass;
+                mPrefKey = prefKey;
+            }
+
+            int getOptionEnum() {
+                return mOptionEnum;
+            }
+
+            int getPrefKey() {
+                return mPrefKey;
+            }
+
+            Class<?> getValueClass() {
+                return mValueClass;
             }
         }
     }

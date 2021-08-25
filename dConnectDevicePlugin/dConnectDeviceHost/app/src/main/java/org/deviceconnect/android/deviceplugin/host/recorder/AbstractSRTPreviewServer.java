@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.SRTSettings;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
@@ -23,11 +22,6 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
     private static final String MIME_TYPE = "video/MP2T";
 
     /**
-     * SRTの設定.
-     */
-    private final SRTSettings mSettings;
-
-    /**
      * SRT サーバ.
      */
     private SRTServer mSRTServer;
@@ -38,7 +32,6 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
 
     public AbstractSRTPreviewServer(Context context, HostMediaRecorder recorder, boolean useSSL) {
         super(context, recorder, useSSL);
-        mSettings = new SRTSettings(context);
     }
 
     @Override
@@ -55,11 +48,12 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
     public void startWebServer(final OnWebServerStartCallback callback) {
         if (mSRTServer == null) {
             try {
+                HostMediaRecorder.Settings settings = getRecorder().getSettings();
                 mSRTServer = new SRTServer(getPort());
                 mSRTServer.setStatsInterval(BuildConfig.STATS_INTERVAL);
                 mSRTServer.setShowStats(DEBUG);
                 mSRTServer.setCallback(mCallback);
-                mSRTServer.setSocketOptions(mSettings.loadSRTSocketOptions());
+                mSRTServer.setSocketOptions(settings.getSRTSocketOptions());
                 mSRTServer.start();
             } catch (Exception e) {
                 callback.onFail();

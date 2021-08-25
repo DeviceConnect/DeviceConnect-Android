@@ -277,7 +277,6 @@ public class HostConnectionProfile extends ConnectionProfile {
 
     // GET /gotapi/connection/network
     private final DConnectApi mGetNetworkApi = new GetApi() {
-
         @Override
         public String getAttribute() {
             return "network";
@@ -289,7 +288,8 @@ public class HostConnectionProfile extends ConnectionProfile {
                 @Override
                 public void onAllowed() {
                     setResult(response, DConnectMessage.RESULT_OK);
-                    response.putExtra("network", mHostConnectionManager.getActivityNetworkString());
+
+                    response.putExtra("network", createNetworkCaps());
                     sendResponse(response);
                 }
 
@@ -396,14 +396,13 @@ public class HostConnectionProfile extends ConnectionProfile {
                             traffic.getNetworkType()), createNetworkBitrate(traffic));
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
-                return true;
             } else {
                 HostConnectionManager.openUsageAccessSettings(getContext());
 
                 // 使用履歴が有効になるのをポーリングしながら待機
-                for (int i = 0; i < 10; i++) {
+                for (int i = 0; i < 30; i++) {
                     try {
-                        Thread.sleep(3000);
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         break;
                     }
@@ -422,9 +421,8 @@ public class HostConnectionProfile extends ConnectionProfile {
                 } else {
                     MessageUtils.setIllegalServerStateError(response, "Failed to start collecting a traffic.");
                 }
-
-                return true;
             }
+            return true;
         }
     };
 
@@ -585,6 +583,16 @@ public class HostConnectionProfile extends ConnectionProfile {
         return data;
     }
 
+    private Bundle createNetworkCaps() {
+        HostConnectionManager.NetworkCaps networkCaps = mHostConnectionManager.getNetworkCaps();
+        Bundle network = new Bundle();
+        network.putString("network", networkCaps.getTypeString());
+        network.putInt("strengthLevel", networkCaps.getStrengthLevel());
+        network.putInt("upstream", networkCaps.getUpstreamBW());
+        network.putInt("downstream", networkCaps.getDownstreamBW());
+        return network;
+    }
+
     /**
      * ネットワークが変更されたことを通知します.
      */
@@ -592,10 +600,11 @@ public class HostConnectionProfile extends ConnectionProfile {
         List<Event> events = EventManager.INSTANCE.getEventList(HostDevicePlugin.SERVICE_ID,
                 HostConnectionProfile.PROFILE_NAME, "network", "onChange");
 
+        Bundle network = createNetworkCaps();
         for (int i = 0; i < events.size(); i++) {
             Event event = events.get(i);
             Intent intent = EventManager.createEventMessage(event);
-            intent.putExtra("network", mHostConnectionManager.getActivityNetworkString());
+            intent.putExtra("network", network);
             sendEvent(intent, event.getAccessToken());
         }
     }

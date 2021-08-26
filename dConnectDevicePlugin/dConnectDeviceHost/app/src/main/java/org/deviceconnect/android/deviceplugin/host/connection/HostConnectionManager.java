@@ -193,6 +193,14 @@ public class HostConnectionManager {
      */
     public String getActivityNetworkString(NetworkType networkType) {
         Context context = mPluginContext.getContext();
+        if (context == null) {
+            return "No Connect";
+        }
+
+        if (networkType == null) {
+            return context.getString(R.string.host_connection_network_type_no_connect);
+        }
+
         switch (networkType) {
             case TYPE_MOBILE:
                 return context.getString(R.string.host_connection_network_type_mobile);
@@ -574,7 +582,20 @@ public class HostConnectionManager {
     }
 
     /**
-     * ネットワーク通信量のリストを取得します.
+     * 指定されたネットワークの通信量履歴を取得します.
+     *
+     * @param networkType ネットワークタイプ
+     * @return ネットワークの通信量履歴
+     */
+    public synchronized List<HostTraffic> getTrafficList(int networkType) {
+        if (mTrafficMonitor != null) {
+            return mTrafficMonitor.getTrafficList(networkType);
+        }
+        return new ArrayList<>();
+    }
+
+    /**
+     * ネットワーク毎の最新の通信量をリストにして取得します.
      *
      * リストには、各ネットワークの通信量が格納されています。
      *
@@ -582,8 +603,8 @@ public class HostConnectionManager {
      *
      * @return ネットワーク通信量のリスト
      */
-    public synchronized List<HostTraffic> getTrafficList() {
-        return mTrafficMonitor != null ? mTrafficMonitor.getTrafficList() : new ArrayList<>();
+    public synchronized List<HostTraffic> getLastTrafficForAllNetwork() {
+        return mTrafficMonitor != null ? mTrafficMonitor.getLastTrafficForAllNetwork() : new ArrayList<>();
     }
 
     /**

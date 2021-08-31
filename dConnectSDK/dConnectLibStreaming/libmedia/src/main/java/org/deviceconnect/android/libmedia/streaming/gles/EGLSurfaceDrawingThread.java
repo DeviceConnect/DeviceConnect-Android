@@ -2,7 +2,6 @@ package org.deviceconnect.android.libmedia.streaming.gles;
 
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
-import android.util.Log;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
@@ -39,7 +38,7 @@ public class EGLSurfaceDrawingThread {
     /**
      * レンダリングのタイムアウト(ミリ秒).
      */
-    private int mTimeout = 10 * 1000;
+    private int mRenderingTimeout = 10 * 1000;
 
     /**
      * イベントを通知するリスナー.
@@ -83,11 +82,11 @@ public class EGLSurfaceDrawingThread {
      *
      * @param timeout タイムアウト
      */
-    public void setTimeout(int timeout) {
+    public void setRenderingTimeout(int timeout) {
         if (timeout < 0) {
             throw new IllegalArgumentException("timeout cannot set negative value.");
         }
-        mTimeout = timeout;
+        mRenderingTimeout = timeout;
     }
 
     /**
@@ -95,8 +94,8 @@ public class EGLSurfaceDrawingThread {
      *
      * @return タイムアウト
      */
-    public int getTimeout() {
-        return mTimeout;
+    public int getRenderingTimeout() {
+        return mRenderingTimeout;
     }
 
     /**
@@ -530,7 +529,7 @@ public class EGLSurfaceDrawingThread {
                 mEGLCore.makeCurrent();
 
                 mStManager = createStManager();
-                mStManager.setTimeout(mTimeout);
+                mStManager.setTimeout(mRenderingTimeout);
 
                 synchronized (mEGLSurfaceBases) {
                     for (EGLSurfaceBase surfaceBase : mEGLSurfaceBases) {
@@ -599,6 +598,9 @@ public class EGLSurfaceDrawingThread {
         }
     }
 
+    /**
+     * 描画イベントを通知するリスナー.
+     */
     public interface OnDrawingEventListener {
         /**
          * 描画の開始を通知します.

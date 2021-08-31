@@ -460,6 +460,409 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         void onError(Exception e);
     }
 
+    public class StreamingSettings {
+        private static final int DEFAULT_PREVIEW_MAX_FRAME_RATE = 30;
+        private static final int DEFAULT_PREVIEW_BITRATE = 2 * 1024 * 1024;
+        private static final String DEFAULT_PREVIEW_ENCODER = VideoEncoderName.H264.mName;
+        private static final int DEFAULT_PREVIEW_KEY_FRAME_INTERVAL = 1;
+
+        private final PropertyUtil mProperty;
+
+        public StreamingSettings(Context context, String name) {
+            mProperty = new PropertyUtil(context, name);
+        }
+
+        public String getMimeType() {
+            return mProperty.getString("mimeType", null);
+        }
+
+        public void setMimeType(String mimeType) {
+            mProperty.put("mimeType", mimeType);
+        }
+
+        /**
+         * サーバ用のポート番号を取得します.
+         *
+         * @return サーバ用のポート番号
+         */
+        public Integer getPort() {
+            return mProperty.getInteger("port", 0);
+        }
+
+        /**
+         * サーバ用のポート番号を設定します.
+         *
+         * @param port サーバ用のポート番号
+         */
+        public void setPort(int port) {
+            mProperty.put("port", port);
+        }
+
+        //// MediaCodec
+
+        /**
+         * プレビューサイズを取得します.
+         *
+         * @return プレビューサイズ
+         */
+        public Size getPreviewSize() {
+            return mProperty.getSize("preview_size_width", "preview_size_height");
+        }
+
+        /**
+         * プレビューサイズを設定します.
+         *
+         * @param previewSize プレビューサイズ
+         */
+        public void setPreviewSize(Size previewSize) {
+            mProperty.put("preview_size_width", "preview_size_height", previewSize);
+        }
+
+        /**
+         * プレビュー配信エンコード名を取得します.
+         *
+         * @return エンコード名
+         */
+        public VideoEncoderName getPreviewEncoderName() {
+            return VideoEncoderName.nameOf(getPreviewEncoder());
+        }
+
+        /**
+         * プレビューの配信エンコードの名前を取得します.
+         *
+         * 未設定の場合は h264 を返却します。
+         *
+         * @return プレビューの配信エンコードの名前
+         */
+        public String getPreviewEncoder() {
+            return mProperty.getString("preview_encoder", DEFAULT_PREVIEW_ENCODER);
+        }
+
+        /**
+         * プレビューの配信エンコードの名前を設定します.
+         *
+         * @param encoder プレビューの配信エンコードの名前
+         */
+        public void setPreviewEncoder(String encoder) {
+            if (encoder == null) {
+                mProperty.remove("preview_encoder");
+            } else {
+                if (!isSupportedVideoEncoder(encoder)) {
+                    throw new IllegalArgumentException("encoder is not supported.");
+                }
+                mProperty.put("preview_encoder", encoder);
+            }
+        }
+
+        /**
+         * プロファイルとレベルを取得します.
+         *
+         * 未設定の場合には、null を返却します。
+         *
+         * @return プロファイルとレベル
+         */
+        public ProfileLevel getProfileLevel() {
+            Integer profile = mProperty.getInteger("preview_profile", null);
+            Integer level = mProperty.getInteger("preview_level", null);
+            if (profile != null && level != null) {
+                return new ProfileLevel(profile, level);
+            }
+            return null;
+        }
+
+        /**
+         * プロファイルとレベルを設定します.
+         *
+         * null が設定された場合には、値を削除して未設定にします。
+         *
+         * サポートされていないプロファイルとレベルが設定された場合には例外を発生します。
+         *
+         * @param pl プロファイルとレベル
+         */
+        public void setProfileLevel(ProfileLevel pl) {
+            if (pl == null) {
+                mProperty.remove("preview_profile");
+                mProperty.remove("preview_level");
+            } else {
+                if (!isSupportedProfileLevel(pl.getProfile(), pl.getLevel())) {
+                    throw new IllegalArgumentException("profile and level are not supported.");
+                }
+                mProperty.put("preview_profile", pl.getProfile());
+                mProperty.put("preview_level", pl.getLevel());
+            }
+        }
+
+        /**
+         * 設定されているプロファイルを取得します.
+         *
+         * @return プロファイル
+         */
+        public Integer getProfile() {
+            return mProperty.getInteger("preview_profile", 0);
+        }
+
+        /**
+         * 設定されているレベルを取得します.
+         *
+         * @return レベル
+         */
+        public Integer getLevel() {
+            return mProperty.getInteger("preview_level", 0);
+        }
+
+        /**
+         * フレームレートを取得します.
+         *
+         * @return フレームレート
+         */
+        public int getPreviewMaxFrameRate() {
+            return mProperty.getInteger("preview_framerate", DEFAULT_PREVIEW_MAX_FRAME_RATE);
+        }
+
+        /**
+         * フレームレートを設定します.
+         *
+         * @param previewMaxFrameRate フレームレート
+         */
+        public void setPreviewMaxFrameRate(Integer previewMaxFrameRate) {
+            if (previewMaxFrameRate <= 0) {
+                throw new IllegalArgumentException("previewMaxFrameRate is zero or negative.");
+            }
+            mProperty.put("preview_framerate", previewMaxFrameRate);
+        }
+
+        /**
+         * ビットレートを取得します.
+         *
+         * @return ビットレート(byte)
+         */
+        public int getPreviewBitRate() {
+            return mProperty.getInteger("preview_bitrate", DEFAULT_PREVIEW_BITRATE);
+        }
+
+        /**
+         * ビットレートを設定します.
+         *
+         * @param previewBitRate ビットレート(byte)
+         */
+        public void setPreviewBitRate(int previewBitRate) {
+            if (previewBitRate <= 0) {
+                throw new IllegalArgumentException("previewBitRate is zero or negative.");
+            }
+            mProperty.put("preview_bitrate", String.valueOf(previewBitRate));
+        }
+
+        /**
+         * ビットレートモードを取得します.
+         *
+         * @return ビットレートモード
+         */
+        public BitRateMode getPreviewBitRateMode() {
+            return BitRateMode.nameOf(mProperty.getString("preview_bitrate_mode", null));
+        }
+
+        /**
+         * ビットレートモードを設定します.
+         *
+         * @param mode ビットレートモード
+         */
+        public void setPreviewBitRateMode(BitRateMode mode) {
+            if (mode == null) {
+                mProperty.remove("preview_bitrate_mode");
+            } else {
+                mProperty.put("preview_bitrate_mode", mode.getName());
+            }
+        }
+
+        /**
+         * キーフレームインターバルを取得します.
+         *
+         * @return キーフレームを発行する間隔(ミリ秒)
+         */
+        public int getPreviewKeyFrameInterval() {
+            return mProperty.getInteger("preview_i_frame_interval", DEFAULT_PREVIEW_KEY_FRAME_INTERVAL);
+        }
+
+        /**
+         * キーフレームインターバルを設定します.
+         *
+         * @param previewKeyFrameInterval キーフレームを発行する間隔(ミリ秒)
+         */
+        public void setPreviewKeyFrameInterval(int previewKeyFrameInterval) {
+            if (previewKeyFrameInterval <= 0) {
+                throw new IllegalArgumentException("previewKeyFrameInterval is zero or negative.");
+            }
+            mProperty.put("preview_i_frame_interval", previewKeyFrameInterval);
+        }
+
+        /**
+         * ソフトウェアエンコーダを優先的に使用するフラグを確認します.
+         *
+         * @return ソフトウェアエンコーダを優先的に使用する場合は true、それ以外は false
+         */
+        public boolean isUseSoftwareEncoder() {
+            return mProperty.getBoolean("preview_use_software_encoder", false);
+        }
+
+        /**
+         * ソフトウェアエンコーダを優先的に使用するフラグを設定します.
+         *
+         * @param used ソフトウェアエンコーダを優先的に使用する場合は true、それ以外は false
+         */
+        public void setUseSoftwareEncoder(boolean used) {
+            mProperty.put("preview_use_software_encoder", used);
+        }
+
+        /**
+         * イントラリフレッシュのフレーム数を取得します.
+         *
+         * @return イントラリフレッシュのフレーム数
+         */
+        public Integer getIntraRefresh() {
+            return mProperty.getInteger("preview_intra_refresh", 0);
+        }
+
+        /**
+         * イントラリフレッシュのフレーム数を設定します.
+         *
+         * @param refresh イントラリフレッシュのフレーム数
+         */
+        public void setIntraRefresh(Integer refresh) {
+            if (refresh == null) {
+                mProperty.remove("preview_intra_refresh");
+            } else {
+                mProperty.put("preview_intra_refresh", refresh);
+            }
+        }
+
+        /**
+         * 切り抜き範囲を取得します.
+         *
+         * 範囲ば設定されていない場合には、null を返却します.
+         *
+         * @return 切り抜き範囲
+         */
+        public Rect getCropRect() {
+            return mProperty.getRect("preview_clip_left",
+                    "preview_clip_top",
+                    "preview_clip_right",
+                    "preview_clip_bottom");
+        }
+
+        /**
+         * 切り抜き範囲を設定します.
+         *
+         * 引数に null が指定された場合には、切り抜き範囲を削除します。
+         *
+         * @param rect 切り抜き範囲
+         */
+        public void setCropRect(Rect rect) {
+            if (rect == null) {
+                mProperty.remove("preview_clip_left");
+                mProperty.remove("preview_clip_top");
+                mProperty.remove("preview_clip_right");
+                mProperty.remove("preview_clip_bottom");
+            } else {
+                mProperty.put(
+                        "preview_clip_left",
+                        "preview_clip_top",
+                        "preview_clip_right",
+                        "preview_clip_bottom",
+                        rect);
+            }
+        }
+
+        /**
+         * プレビューの品質を取得します.
+         *
+         * @return プレビューの品質
+         */
+        public int getPreviewQuality() {
+            return mProperty.getInteger("preview_jpeg_quality", 80);
+        }
+
+        /**
+         * プレビューの品質を設定します.
+         *
+         * 0 から 100 の間で設定することができます。
+         * それ以外は例外が発生します。
+         *
+         * @param quality プレビューの品質
+         */
+        public void setPreviewQuality(int quality) {
+            if (quality < 0) {
+                throw new IllegalArgumentException("quality is negative value.");
+            }
+            if (quality > 100) {
+                throw new IllegalArgumentException("quality is over 100.");
+            }
+            mProperty.put("preview_jpeg_quality", quality);
+        }
+
+        /**
+         * サポートしているエンコーダのリストを取得します.
+         *
+         * @return サポートしているエンコーダのリスト
+         */
+        public List<String> getSupportedVideoEncoders() {
+            List<String> list = new ArrayList<>();
+            List<String> supported = CapabilityUtil.getSupportedVideoEncoders();
+            for (VideoEncoderName encoderName : VideoEncoderName.values()) {
+                if (supported.contains(encoderName.getMimeType())) {
+                    list.add(encoderName.getName());
+                }
+            }
+            return list;
+        }
+
+        /**
+         * サポートしているプロファイル・レベルの一覧を取得します.
+         *
+         * @return サポートしているプロファイル・レベルの一覧
+         */
+        public List<ProfileLevel> getSupportedProfileLevel() {
+            VideoEncoderName encoderName = getPreviewEncoderName();
+            return CapabilityUtil.getSupportedProfileLevel(encoderName.getMimeType());
+        }
+
+        /**
+         * 指定されたエンコーダがサポートされているか確認します.
+         *
+         * @param encoder エンコーダ名
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
+        public boolean isSupportedVideoEncoder(String encoder) {
+            List<String> encoderList = getSupportedVideoEncoders();
+            if (encoderList != null) {
+                for (String e : encoderList) {
+                    if (e.equalsIgnoreCase(encoder)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        /**
+         * 指定されたプロファイルとレベルがサポートされているか確認します.
+         *
+         * @param profile プロファイル
+         * @param level レベル
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
+        public boolean isSupportedProfileLevel(int profile, int level) {
+            List<ProfileLevel> list = getSupportedProfileLevel();
+            if (list != null) {
+                for (ProfileLevel pl : list) {
+                    if (profile == pl.getProfile() && level == pl.getLevel()) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
     /**
      * HostMediaRecorder の設定を保持するクラス.
      */
@@ -509,6 +912,61 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
                 }
             }
         }
+
+        public List<String> getPreviewServerList() {
+            return mProperty.getArrayString("preview_server_list");
+        }
+
+        public StreamingSettings getPreviewServer(String name) {
+            List<String> previewServerList = getPreviewServerList();
+            if (previewServerList.contains(name)) {
+                return new StreamingSettings(mContext, name);
+            }
+            return null;
+        }
+
+        public void addPreviewServer(String name) {
+            List<String> previewServerList = getPreviewServerList();
+            if (previewServerList.contains(name)) {
+                return;
+            }
+            previewServerList.add(name);
+            mProperty.put("preview_server_list", previewServerList);
+        }
+
+        public void removePreviewServer(String name) {
+            List<String> previewServerList = getPreviewServerList();
+            previewServerList.remove(name);
+            mProperty.put("preview_server_list", previewServerList);
+        }
+
+        public List<String> getBroadcasterList() {
+            return mProperty.getArrayString("broadcaster_list");
+        }
+
+        public StreamingSettings getBroadcaster(String name) {
+            List<String> broadcasterList = getBroadcasterList();
+            if (broadcasterList.contains(name)) {
+                return new StreamingSettings(mContext, name);
+            }
+            return null;
+        }
+
+        public void addBroadcaster(String name) {
+            List<String> broadcasterList = getBroadcasterList();
+            if (broadcasterList.contains(name)) {
+                return;
+            }
+            broadcasterList.add(name);
+            mProperty.put("broadcaster_list", broadcasterList);
+        }
+
+        public void removeBroadcaster(String name) {
+            List<String> broadcasterList = getBroadcasterList();
+            broadcasterList.remove(name);
+            mProperty.put("broadcaster_list", broadcasterList);
+        }
+
 
         // カメラ設定
 
@@ -1266,7 +1724,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             }
         }
 
-        public Rect getDrawingRange(String mimeType) {
+        public Rect getCropRect(String mimeType) {
             PropertyUtil prof = mPropertyMap.get(mimeType);
             if (prof != null) {
                 return prof.getRect("preview_clip_left",
@@ -1277,7 +1735,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             return null;
         }
 
-        public void setDrawingRange(String mimeType, Rect rect) {
+        public void setCropRect(String mimeType, Rect rect) {
             PropertyUtil prof = mPropertyMap.get(mimeType);
             if (prof != null) {
                 if (rect == null) {
@@ -1303,7 +1761,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          *
          * @return 切り抜き範囲
          */
-        public Rect getDrawingRange() {
+        public Rect getCropRect() {
             return mProperty.getRect("preview_clip_left",
                     "preview_clip_top",
                     "preview_clip_right",
@@ -1317,7 +1775,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          *
          * @param rect 切り抜き範囲
          */
-        public void setDrawingRange(Rect rect) {
+        public void setCropRect(Rect rect) {
             if (rect == null) {
                 mProperty.remove("preview_clip_left");
                 mProperty.remove("preview_clip_top");

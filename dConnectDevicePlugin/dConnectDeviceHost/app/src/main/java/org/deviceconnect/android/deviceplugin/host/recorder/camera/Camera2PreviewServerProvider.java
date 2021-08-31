@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.content.Context;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
@@ -37,10 +38,20 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
 
         mOverlayManager = new OverlayManager(context, recorder);
 
-        addServer(new Camera2MJPEGPreviewServer(context, recorder, false));
-        addServer(new Camera2MJPEGPreviewServer(context, recorder, true));
-        addServer(new Camera2RTSPPreviewServer(context, recorder));
-        addServer(new Camera2SRTPreviewServer(context, recorder));
+        List<String> previewList = recorder.getSettings().getPreviewServerList();
+        for (String name : previewList) {
+            HostMediaRecorder.StreamingSettings s = recorder.getSettings().getPreviewServer(name);
+            if (s != null) {
+                String mimeType = s.getMimeType();
+                if ("video/x-mjpeg".equalsIgnoreCase(mimeType)) {
+                    addServer(new Camera2MJPEGPreviewServer(context, recorder, false));
+                } else if ("video/x-rtp".equalsIgnoreCase(mimeType)) {
+                    addServer(new Camera2RTSPPreviewServer(context, recorder));
+                } else if ("video/MP2T".equalsIgnoreCase(mimeType)) {
+                    addServer(new Camera2SRTPreviewServer(context, recorder));
+                }
+            }
+        }
     }
 
     @Override

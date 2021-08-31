@@ -31,7 +31,7 @@ public class VideoQuality {
      * 描画範囲.
      * null の場合は範囲してい無し。
      */
-    private Rect mDrawingRange;
+    private Rect mCropRect;
 
     /**
      * コンストラクタ.
@@ -58,8 +58,8 @@ public class VideoQuality {
         mUseSoftwareEncoder = quality.isUseSoftwareEncoder();
         mProfile = quality.getProfile();
         mLevel = quality.getLevel();
-        if (quality.mDrawingRange != null) {
-            mDrawingRange = new Rect(quality.mDrawingRange);
+        if (quality.mCropRect != null) {
+            mCropRect = new Rect(quality.mCropRect);
         }
     }
 
@@ -301,8 +301,8 @@ public class VideoQuality {
      *
      * @return 描画範囲
      */
-    public Rect getDrawingRange() {
-        return mDrawingRange;
+    public Rect getCropRect() {
+        return mCropRect;
     }
 
     /**
@@ -310,10 +310,10 @@ public class VideoQuality {
      *
      * null が指定された場合には、描画範囲を削除します。
      *
-     * @param drawingRange 描画範囲
+     * @param cropRect 描画範囲
      */
-    public void setDrawingRange(Rect drawingRange) {
-        mDrawingRange = drawingRange;
+    public void setCropRect(Rect cropRect) {
+        mCropRect = cropRect;
     }
 
     @Override

@@ -6,12 +6,12 @@
         android:title="@string/host_recorder_settings_title"
         app:iconSpaceReserved="false">
 
-        <PreferenceScreen
+        <Preference
             app:iconSpaceReserved="false"
             app:key="recorder_settings_video"
             app:title="@string/host_recorder_settings_video" />
 
-        <PreferenceScreen
+        <Preference
             app:iconSpaceReserved="false"
             app:key="recorder_settings_audio"
             app:title="@string/host_recorder_settings_audio" />
@@ -19,20 +19,21 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        app:key="recorder_settings_preview_server"
         android:title="@string/host_recorder_settings_server"
         app:iconSpaceReserved="false">
 
-        <PreferenceScreen
+        <Preference
             app:iconSpaceReserved="false"
             app:key="recorder_settings_mjpeg"
             app:title="@string/host_recorder_settings_mjpeg" />
 
-        <PreferenceScreen
+        <Preference
             app:iconSpaceReserved="false"
             app:key="recorder_settings_rtsp"
             app:title="@string/host_recorder_settings_rtsp" />
 
-        <PreferenceScreen
+        <Preference
             app:iconSpaceReserved="false"
             app:key="recorder_settings_srt"
             app:title="@string/host_recorder_settings_srt" />
@@ -40,10 +41,11 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        app:key="recorder_settings_broadcaster"
         android:title="@string/host_recorder_settings_broadcast"
         app:iconSpaceReserved="false">
 
-        <PreferenceScreen
+        <Preference
             app:iconSpaceReserved="false"
             app:key="recorder_settings_broadcast"
             app:title="@string/host_recorder_settings_rtmp" />

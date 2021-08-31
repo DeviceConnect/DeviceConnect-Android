@@ -31,7 +31,7 @@ public class ScreenCastSurfaceDrawingThread extends EGLSurfaceDrawingThread {
 
         // 画面の更新が発生しない場合は、MediaCodec に更新イベントが発生しないので
         // ここでは、画面更新のタイムアウトを 0 にして、タイムアウトが発生しないように設定
-        setTimeout(0);
+        setRenderingTimeout(0);
     }
 
     // EGLSurfaceDrawingThread

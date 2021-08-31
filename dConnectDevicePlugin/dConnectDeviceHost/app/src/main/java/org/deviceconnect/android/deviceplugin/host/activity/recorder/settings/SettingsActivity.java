@@ -8,6 +8,7 @@ import android.view.MenuItem;
 
 import androidx.appcompat.app.ActionBar;
 
+import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.HostDevicePluginBindActivity;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
@@ -60,17 +61,20 @@ public class SettingsActivity extends HostDevicePluginBindActivity {
         return ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
     }
 
-    public HostMediaRecorder getRecorder() {
-        String recorderId = null;
+    public String getRecorderId() {
         Intent intent = getIntent();
         if (intent != null) {
-            recorderId = intent.getStringExtra("recorder_id");
+            return intent.getStringExtra("recorder_id");
         }
-        return getHostDevicePlugin().getHostMediaRecorderManager().getRecorder(recorderId);
+        return null;
     }
 
-    public String getRecorderId() {
-        return getRecorder().getId();
+    public HostMediaRecorder getRecorder() {
+        HostDevicePlugin plugin = getHostDevicePlugin();
+        if (plugin != null) {
+            return plugin.getHostMediaRecorderManager().getRecorder(getRecorderId());
+        }
+        return null;
     }
 
     public static Intent createSettingsActivityIntent(Context context, String recorderId, Integer rotationFlag) {

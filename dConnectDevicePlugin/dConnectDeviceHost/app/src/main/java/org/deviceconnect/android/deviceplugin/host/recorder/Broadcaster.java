@@ -2,6 +2,13 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 public interface Broadcaster {
     /**
+     * 名前を取得します.
+     *
+     * @return 名前
+     */
+    String getName();
+
+    /**
      * マイムタイプを取得します.
      *
      * @return マイムタイプ
@@ -57,6 +64,11 @@ public interface Broadcaster {
      * 設定が変更されたことを通知します.
      */
     void onConfigChange();
+
+    /**
+     * 配信先を解放します.
+     */
+    void release();
 
     /**
      * ブロードキャストの開始結果を通知するコールバック.

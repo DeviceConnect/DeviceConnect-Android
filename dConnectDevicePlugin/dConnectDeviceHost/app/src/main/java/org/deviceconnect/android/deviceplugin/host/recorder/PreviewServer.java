@@ -13,6 +13,13 @@ import javax.net.ssl.SSLContext;
  */
 public interface PreviewServer {
     /**
+     * サーバ名を取得します.
+     *
+     * @return サーバ名
+     */
+    String getName();
+
+    /**
      * サーバが配信するプレビューのマイムタイプを取得します.
      *
      * @return マイムタイプ
@@ -102,6 +109,11 @@ public interface PreviewServer {
      * @return プレビューサーバから配信したデータの BPS
      */
     long getBPS();
+
+    /**
+     * サーバを解放します.
+     */
+    void release();
 
     /**
      * Callback interface used to receive the result of starting a web server.

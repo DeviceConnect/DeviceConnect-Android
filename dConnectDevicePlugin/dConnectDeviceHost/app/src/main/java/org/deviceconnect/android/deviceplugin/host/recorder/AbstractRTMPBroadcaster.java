@@ -21,7 +21,7 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
     private OnEventListener mOnBroadcasterEventListener;
 
     public AbstractRTMPBroadcaster(HostMediaRecorder recorder, String broadcastURI) {
-        super(recorder, broadcastURI);
+        super(recorder, recorder.getId() + "-rtmp", broadcastURI);
     }
 
     /**

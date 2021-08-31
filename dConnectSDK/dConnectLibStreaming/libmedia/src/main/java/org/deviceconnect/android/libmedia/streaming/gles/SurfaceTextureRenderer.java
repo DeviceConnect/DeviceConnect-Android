@@ -39,6 +39,7 @@ public class SurfaceTextureRenderer {
     };
 
     private final FloatBuffer mTriangleVertices;
+    private boolean mInverse;
 
     private static final String VERTEX_SHADER =
             "uniform mat4 uMVPMatrix;\n" +
@@ -77,6 +78,7 @@ public class SurfaceTextureRenderer {
      * @param inverse テクスチャの反転フラグ
      */
     SurfaceTextureRenderer(boolean inverse) {
+        mInverse = inverse;
         mTriangleVertices = ByteBuffer.allocateDirect(
                 TRIANGLE_VERTICES_DATA.length * FLOAT_SIZE_BYTES)
                 .order(ByteOrder.nativeOrder()).asFloatBuffer();
@@ -220,11 +222,25 @@ public class SurfaceTextureRenderer {
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
     }
 
+    /**
+     * 描画範囲を削除します.
+     */
     public void clearDrawingRange() {
         mTriangleVertices.clear();
-        mTriangleVertices.put(TRIANGLE_VERTICES_DATA).position(0);
+        if (mInverse) {
+            mTriangleVertices.put(TRIANGLE_VERTICES_DATA_2).position(0);
+        } else {
+            mTriangleVertices.put(TRIANGLE_VERTICES_DATA).position(0);
+        }
     }
 
+    /**
+     * 描画範囲を設定します.
+     *
+     * @param rect 範囲
+     * @param width 描画元の横幅
+     * @param height 描画元の縦幅
+     */
     public void setDrawingRange(Rect rect, int width, int height) {
         setDrawingRange(rect.left, rect.top, rect.right, rect.bottom, width, height);
     }

@@ -30,7 +30,7 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
     private MJPEGServer mMJPEGServer;
 
     public AbstractMJPEGPreviewServer(Context context, HostMediaRecorder recorder, boolean useSSL) {
-        super(context, recorder, useSSL);
+        super(context, recorder, recorder.getId() + "-mjpeg", useSSL);
     }
 
     // PreviewServer
@@ -141,7 +141,7 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
         quality.setHeight(h);
         quality.setQuality(settings.getPreviewQuality(getMimeType()));
         quality.setFrameRate(settings.getPreviewMaxFrameRate(getMimeType()));
-        quality.setDrawingRange(settings.getDrawingRange(getMimeType()));
+        quality.setDrawingRange(settings.getCropRect(getMimeType()));
     }
 
     /**

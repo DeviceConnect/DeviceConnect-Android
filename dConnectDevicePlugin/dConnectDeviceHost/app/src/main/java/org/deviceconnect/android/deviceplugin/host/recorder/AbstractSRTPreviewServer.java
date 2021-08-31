@@ -31,7 +31,7 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
     }
 
     public AbstractSRTPreviewServer(Context context, HostMediaRecorder recorder, boolean useSSL) {
-        super(context, recorder, useSSL);
+        super(context, recorder, recorder.getId() + "-srt", useSSL);
     }
 
     @Override
@@ -169,12 +169,26 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
     /**
      * SRT 用の映像エンコーダを作成します.
      *
+     * null を返却した場合には、映像は配信しません。
+     *
+     * このメソッドを実装することでエンコーダを切り替えます。
+     *
      * @return SRT 用の映像エンコーダ
      */
     protected VideoEncoder createVideoEncoder() {
         return null;
     }
 
+    /**
+     * SRT 用の音声エンコーダを作成します.
+     *
+     * null を返却した場合には、音声は配信しません。
+     *
+     * デフォルトで、 aac のエンコーダを作成して返却します。
+     * aac 以外のエンコーダを実装する場合には、このメソッドをオーバーライドします。
+     *
+     * @return SRT 用の音声エンコーダ
+     */
     protected AudioEncoder createAudioEncoder() {
         HostMediaRecorder recorder = getRecorder();
         HostMediaRecorder.Settings settings = recorder.getSettings();

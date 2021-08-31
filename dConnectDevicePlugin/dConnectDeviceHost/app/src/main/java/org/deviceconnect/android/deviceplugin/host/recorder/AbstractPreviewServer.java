@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioPlaybackCaptureConfiguration;
@@ -10,11 +11,13 @@ import android.util.Size;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MovingRectThread;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.filter.HighPassFilter;
 import org.deviceconnect.android.libmedia.streaming.audio.filter.LowPassFilter;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
+import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import javax.net.ssl.SSLContext;
@@ -22,7 +25,7 @@ import javax.net.ssl.SSLContext;
 /**
  * プレビュー配信サーバ.
  */
-public abstract class AbstractPreviewServer implements PreviewServer {
+public abstract class AbstractPreviewServer implements PreviewServer, CropInterface {
     protected static final boolean DEBUG = BuildConfig.DEBUG;
     protected static final String TAG = "host.dplugin";
 
@@ -57,39 +60,70 @@ public abstract class AbstractPreviewServer implements PreviewServer {
     private final boolean mUseSSL;
 
     /**
+     * 名前.
+     */
+    private final String mName;
+
+    /**
+     * 描画スレッド.å
+     */
+    private MovingRectThread mMovingRectThread;
+
+    private final MovingRectThread.OnEventListener mMovingRectThreadOnEventListener = new MovingRectThread.OnEventListener() {
+        @Override
+        public void onMoved(Rect rect) {
+            VideoQuality videoQuality = getVideoQuality();
+            if (videoQuality != null) {
+                videoQuality.setCropRect(new Rect(rect));
+            }
+            mHostMediaRecorder.getSettings().setCropRect(getMimeType(), new Rect(rect));
+            postOnMoved(rect);
+        }
+    };
+
+    /**
      * コンストラクタ.
      *
      * <p>
-     * デフォルトでは、mute は true に設定しています。
+     * デフォルトでは、ミュート設定は true に設定しています。
      * デフォルトでは、mUseSSL は false に設定します。
      * </p>
      *
      * @param context コンテキスト
      * @param recorder プレビューで表示するレコーダ
+     * @param name サーバ名
      */
-    public AbstractPreviewServer(Context context, HostMediaRecorder recorder) {
-        this(context, recorder, false);
+    public AbstractPreviewServer(Context context, HostMediaRecorder recorder, String name) {
+        this(context, recorder, name, false);
     }
 
     /**
      * コンストラクタ.
      *
      * <p>
-     * デフォルトでは、mute は true に設定しています。
+     * デフォルトでは、ミュート設定は true に設定しています。
      * </p>
      *
      * @param context コンテキスト
      * @param recorder プレビューで表示するレコーダ
+     * @param name 名前
      * @param useSSL SSL使用フラグ
      */
-    public AbstractPreviewServer(Context context, HostMediaRecorder recorder, boolean useSSL) {
+    public AbstractPreviewServer(Context context, HostMediaRecorder recorder, String name, boolean useSSL) {
         mContext = context;
         mHostMediaRecorder = recorder;
         mUseSSL = useSSL;
         mMute = true;
+        mName = name;
+        startMovingRectThread();
     }
 
     // Implements PreviewServer methods.
+
+    @Override
+    public String getName() {
+        return mName;
+    }
 
     @Override
     public int getPort() {
@@ -142,6 +176,114 @@ public abstract class AbstractPreviewServer implements PreviewServer {
         return mSSLContext;
     }
 
+    @Override
+    public void release() {
+        stopMovingRectThread();
+    }
+
+    // CropInterface implements
+
+    private final WeakReferenceList<OnEventListener> mOnEventListeners = new WeakReferenceList<>();
+
+    @Override
+    public void moveCropRect(Rect start, Rect end, int duration) {
+        if (end != null) {
+            HostMediaRecorder.Settings settings = getRecorder().getSettings();
+            if (settings.getCropRect(getMimeType()) == null) {
+                postOnAdded(end);
+            }
+        } else {
+            postOnRemove();
+        }
+
+        if (mMovingRectThread != null) {
+            mMovingRectThread.move(start, end, duration);
+        } else {
+            HostMediaRecorder.Settings settings = getRecorder().getSettings();
+            settings.setCropRect(getMimeType(), end);
+
+            VideoQuality videoQuality = getVideoQuality();
+            if (videoQuality != null) {
+                videoQuality.setCropRect(end);
+            }
+        }
+    }
+
+    @Override
+    public void setCropRect(Rect rect) {
+        if (rect != null) {
+            HostMediaRecorder.Settings settings = getRecorder().getSettings();
+            if (settings.getCropRect(getMimeType()) == null) {
+                postOnAdded(rect);
+            }
+        } else {
+            postOnRemove();
+        }
+
+        if (rect == null || mMovingRectThread == null) {
+            HostMediaRecorder.Settings settings = getRecorder().getSettings();
+            settings.setCropRect(getMimeType(), rect);
+
+            VideoQuality videoQuality = getVideoQuality();
+            if (videoQuality != null) {
+                videoQuality.setCropRect(rect);
+            }
+        } else {
+            mMovingRectThread.set(rect);
+        }
+    }
+
+    @Override
+    public Rect getCropRect() {
+        HostMediaRecorder.Settings settings = getRecorder().getSettings();
+        return settings.getCropRect(getMimeType());
+    }
+
+    @Override
+    public void addOnEventListener(OnEventListener listener) {
+        mOnEventListeners.add(listener);
+    }
+
+    @Override
+    public void removeOnEventListener(OnEventListener listener) {
+        mOnEventListeners.remove(listener);
+    }
+
+    private void postOnAdded(Rect rect) {
+        for (OnEventListener l : mOnEventListeners.get()) {
+            l.onAdded(this, rect);
+        }
+    }
+
+    private void postOnRemove() {
+        for (OnEventListener l : mOnEventListeners.get()) {
+            l.onRemoved(this);
+        }
+    }
+
+    private void postOnMoved(Rect rect) {
+        for (OnEventListener l : mOnEventListeners.get()) {
+            l.onMoved(this, rect);
+        }
+    }
+
+    private void startMovingRectThread() {
+        if (mMovingRectThread != null) {
+            return;
+        }
+
+        mMovingRectThread = new MovingRectThread();
+        mMovingRectThread.addOnEventListener(mMovingRectThreadOnEventListener);
+        mMovingRectThread.start();
+    }
+
+    private void stopMovingRectThread() {
+        if (mMovingRectThread != null) {
+            mMovingRectThread.stop();
+            mMovingRectThread = null;
+        }
+    }
+
     /**
      * コンテキストを取得します.
      *
@@ -158,6 +300,15 @@ public abstract class AbstractPreviewServer implements PreviewServer {
      */
     public HostMediaRecorder getRecorder() {
         return mHostMediaRecorder;
+    }
+
+    /**
+     * プレビューの設定を取得します.
+     *
+     * @return プレビュー設定
+     */
+    public HostMediaRecorder.StreamingSettings getStreamingSettings() {
+        return mHostMediaRecorder.getSettings().getPreviewServer(getName());
     }
 
     /**
@@ -189,26 +340,23 @@ public abstract class AbstractPreviewServer implements PreviewServer {
      */
     public void setVideoQuality(VideoQuality videoQuality) {
         HostMediaRecorder recorder = getRecorder();
-        HostMediaRecorder.Settings settings = recorder.getSettings();
+        HostMediaRecorder.StreamingSettings settings = getStreamingSettings();
 
         EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
-        Size previewSize = settings.getPreviewSize(getMimeType());
-        if (previewSize == null) {
-            previewSize = settings.getPreviewSize();
-        }
+        Size previewSize = settings.getPreviewSize();
         int w = d.isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
         int h = d.isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
         videoQuality.setVideoWidth(w);
         videoQuality.setVideoHeight(h);
-        videoQuality.setDrawingRange(settings.getDrawingRange(getMimeType()));
-        videoQuality.setBitRate(settings.getPreviewBitRate(getMimeType()));
-        videoQuality.setFrameRate(settings.getPreviewMaxFrameRate(getMimeType()));
-        videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval(getMimeType()));
-        videoQuality.setUseSoftwareEncoder(settings.isUseSoftwareEncoder(getMimeType()));
-        videoQuality.setIntraRefresh(settings.getIntraRefresh(getMimeType()));
-        videoQuality.setProfile(settings.getProfile(getMimeType()));
-        videoQuality.setLevel(settings.getLevel(getMimeType()));
-        if (settings.getPreviewBitRateMode(getMimeType()) != null) {
+        videoQuality.setCropRect(settings.getCropRect());
+        videoQuality.setBitRate(settings.getPreviewBitRate());
+        videoQuality.setFrameRate(settings.getPreviewMaxFrameRate());
+        videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());
+        videoQuality.setUseSoftwareEncoder(settings.isUseSoftwareEncoder());
+        videoQuality.setIntraRefresh(settings.getIntraRefresh());
+        videoQuality.setProfile(settings.getProfile());
+        videoQuality.setLevel(settings.getLevel());
+        if (settings.getPreviewBitRateMode() != null) {
             switch (settings.getPreviewBitRateMode()) {
                 default:
                 case VBR:

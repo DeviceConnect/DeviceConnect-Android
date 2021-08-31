@@ -1,6 +1,5 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
-import android.graphics.Rect;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioPlaybackCaptureConfiguration;
@@ -27,9 +26,20 @@ public abstract class AbstractBroadcaster implements Broadcaster {
      */
     private final HostMediaRecorder mRecorder;
 
-    public AbstractBroadcaster(HostMediaRecorder recorder, String broadcastURI) {
+    /**
+     * 配信名.
+     */
+    private final String mName;
+
+    public AbstractBroadcaster(HostMediaRecorder recorder, String broadcastURI, String name) {
         mRecorder = recorder;
         mBroadcastURI = broadcastURI;
+        mName = name;
+    }
+
+    @Override
+    public String getName() {
+        return mName;
     }
 
     @Override
@@ -56,6 +66,10 @@ public abstract class AbstractBroadcaster implements Broadcaster {
             HostMediaRecorder.Settings settings = getRecorder().getSettings();
             setMute(settings.isMute());
         }
+    }
+
+    @Override
+    public void release() {
     }
 
     /**
@@ -90,6 +104,15 @@ public abstract class AbstractBroadcaster implements Broadcaster {
     }
 
     /**
+     * Broadcaster の設定を取得します.
+     *
+     * @return 設定
+     */
+    public HostMediaRecorder.StreamingSettings getStreamingSettings() {
+        return mRecorder.getSettings().getBroadcaster(getName());
+    }
+
+    /**
      * VideoEncoder の設定に、HostMediaRecorder の設定を反映します.
      *
      * @param videoQuality 設定を行う VideoEncoder の VideoQuality
@@ -107,7 +130,7 @@ public abstract class AbstractBroadcaster implements Broadcaster {
         int h = d.isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
         videoQuality.setVideoWidth(w);
         videoQuality.setVideoHeight(h);
-        videoQuality.setDrawingRange(settings.getDrawingRange(getMimeType()));
+        videoQuality.setCropRect(settings.getCropRect(getMimeType()));
         videoQuality.setBitRate(settings.getPreviewBitRate(getMimeType()));
         videoQuality.setFrameRate(settings.getPreviewMaxFrameRate(getMimeType()));
         videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval(getMimeType()));

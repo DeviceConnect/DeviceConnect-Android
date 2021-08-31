@@ -1,5 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.video;
 
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.media.MediaCodecInfo;
 import android.view.Surface;
@@ -30,6 +31,11 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
     private final boolean mInternalCreateSurfaceDrawingThread;
 
     /**
+     * 描画先の EGLSurfaceBase.
+     */
+    private EGLSurfaceBase mEGLSurfaceBase;
+
+    /**
      * EGLSurfaceDrawingThread からのイベントを受け取るためのリスナー.
      */
     private final EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
@@ -50,7 +56,13 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
 
         @Override
         public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
-            // ignore.
+            if (mEGLSurfaceBase == eglSurfaceBase) {
+                VideoQuality videoQuality = getVideoQuality();
+                if (videoQuality != null) {
+                    eglSurfaceBase.setDrawingRange(videoQuality.getCropRect());
+                }
+                onDrawnSurface();
+            }
         }
     };
 
@@ -61,6 +73,17 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
     public SurfaceVideoEncoder(EGLSurfaceDrawingThread thread) {
         mSurfaceDrawingThread = thread;
         mInternalCreateSurfaceDrawingThread = false;
+    }
+
+    /**
+     * 描画先の EGLSurfaceBase を取得します.
+     *
+     * エンコードが開始されていない場合には null を返却します。
+     *
+     * @return 描画先の EGLSurfaceBase
+     */
+    public EGLSurfaceBase getEGLSurfaceBase() {
+        return mEGLSurfaceBase;
     }
 
     // MediaEncoder
@@ -107,9 +130,11 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
         }
 
         mSurfaceDrawingThread.setSize(quality.getVideoWidth(), quality.getVideoHeight());
-        mSurfaceDrawingThread.addEGLSurfaceBase(mMediaCodecSurface, quality.getDrawingRange());
+        mSurfaceDrawingThread.addEGLSurfaceBase(mMediaCodecSurface, quality.getCropRect());
         mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
         mSurfaceDrawingThread.start();
+
+        mEGLSurfaceBase = mSurfaceDrawingThread.findEGLSurfaceBaseByTag(mMediaCodecSurface);
     }
 
     /**
@@ -123,6 +148,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
             if (mInternalCreateSurfaceDrawingThread) {
                 mSurfaceDrawingThread = null;
             }
+            mEGLSurfaceBase = null;
         }
     }
 
@@ -160,5 +186,11 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
      * Surface への描画が終了したことを通知します.
      */
     protected void onStopSurfaceDrawing() {
+    }
+
+    /**
+     * Surface への描画を行ったことを通知します.
+     */
+    protected void onDrawnSurface() {
     }
 }

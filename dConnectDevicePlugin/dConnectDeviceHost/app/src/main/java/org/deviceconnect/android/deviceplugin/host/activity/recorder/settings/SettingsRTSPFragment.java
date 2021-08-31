@@ -24,16 +24,11 @@ import java.util.Comparator;
 import java.util.List;
 
 public class SettingsRTSPFragment extends SettingsParameterFragment {
-    /**
-     * マイムタイプを定義します.
-     */
-    private static final String MIME_TYPE = "video/x-rtp";
-
     private HostMediaRecorder mMediaRecorder;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        getPreferenceManager().setSharedPreferencesName(getRecorderId() + "-rtsp");
+        getPreferenceManager().setSharedPreferencesName(getSettingName());
         setPreferencesFromResource(R.xml.settings_host_recorder_rtsp, rootKey);
     }
 
@@ -41,13 +36,13 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
     public void onBindService() {
         mMediaRecorder = getRecorder();
 
-        HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
+        HostMediaRecorder.StreamingSettings settings = getStreamingSetting();
 
         setPreviewServerPort();
-        setPreviewServerUrl(settings.getPort(MIME_TYPE));
+        setPreviewServerUrl(settings.getPort());
         setPreviewSizePreference(settings);
         setPreviewVideoEncoderPreference(settings);
-        setPreviewProfileLevelPreference(settings, settings.getPreviewEncoderName(MIME_TYPE), false);
+        setPreviewProfileLevelPreference(settings, settings.getPreviewEncoderName(), false);
 
         setPreviewCutOutReset();
 
@@ -60,6 +55,11 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
         setPreviewClipPreference("preview_clip_top");
         setPreviewClipPreference("preview_clip_right");
         setPreviewClipPreference("preview_clip_bottom");
+    }
+
+    private HostMediaRecorder.StreamingSettings getStreamingSetting() {
+        HostMediaRecorder.Settings s = mMediaRecorder.getSettings();
+        return s.getPreviewServer(getSettingName());
     }
 
     private void setPreviewServerPort() {
@@ -109,7 +109,7 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
                 setEmptyText("preview_clip_top");
                 setEmptyText("preview_clip_right");
                 setEmptyText("preview_clip_bottom");
-                mMediaRecorder.getSettings().setDrawingRange(null);
+                mMediaRecorder.getSettings().setCropRect(null);
                 return false;
             });
         }
@@ -120,10 +120,10 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
      *
      * @param settings レコーダの設定
      */
-    private void setPreviewSizePreference(HostMediaRecorder.Settings settings) {
+    private void setPreviewSizePreference(HostMediaRecorder.StreamingSettings settings) {
         ListPreference pref = findPreference("camera_preview_size");
         if (pref != null) {
-            List<Size> previewSizes = getSupportedPreviewSizes(settings);
+            List<Size> previewSizes = getSupportedPreviewSizes();
             if (!previewSizes.isEmpty()) {
                 List<String> entryValues = new ArrayList<>();
                 for (Size preview : previewSizes) {
@@ -134,7 +134,7 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
                 pref.setEntryValues(entryValues.toArray(new String[0]));
                 pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
 
-                Size previewSize = settings.getPreviewSize(MIME_TYPE);
+                Size previewSize = settings.getPreviewSize();
                 if (previewSize != null) {
                     pref.setValue(getValueFromSize(previewSize));
                 }
@@ -150,7 +150,7 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
      *
      * @param settings レコーダ設定
      */
-    private void setPreviewVideoEncoderPreference(HostMediaRecorder.Settings settings) {
+    private void setPreviewVideoEncoderPreference(HostMediaRecorder.StreamingSettings settings) {
         ListPreference pref = findPreference("preview_encoder");
         if (pref != null) {
             List<String> list = settings.getSupportedVideoEncoders();
@@ -173,7 +173,7 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
      * @param encoderName エンコーダ
      * @param reset リセットフラグ
      */
-    private void setPreviewProfileLevelPreference(HostMediaRecorder.Settings settings, HostMediaRecorder.VideoEncoderName encoderName, boolean reset) {
+    private void setPreviewProfileLevelPreference(HostMediaRecorder.StreamingSettings settings, HostMediaRecorder.VideoEncoderName encoderName, boolean reset) {
         ListPreference pref = findPreference("preview_profile_level");
         if (pref != null) {
             List<HostMediaRecorder.ProfileLevel> list = CapabilityUtil.getSupportedProfileLevel(encoderName.getMimeType());
@@ -195,7 +195,7 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
                 if (reset) {
                     pref.setValue("none");
                 } else {
-                    HostMediaRecorder.ProfileLevel pl = settings.getProfileLevel(MIME_TYPE);
+                    HostMediaRecorder.ProfileLevel pl = settings.getProfileLevel();
                     if (pl != null) {
                         pref.setValue(getProfileLevel(encoderName, pl));
                     }
@@ -220,11 +220,11 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
     /**
      * カメラID に対応したカメラデバイスがサポートしているプレビューサイズのリストを取得します.
      *
-     * @param settings レコーダ
      * @return サポートしているプレビューサイズのリスト
      */
     @NonNull
-    private static List<Size> getSupportedPreviewSizes(HostMediaRecorder.Settings settings) {
+    private List<Size> getSupportedPreviewSizes() {
+        HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
         List<Size> previewSizes = new ArrayList<>();
         if (settings != null) {
             previewSizes.addAll(settings.getSupportedPreviewSizes());
@@ -358,20 +358,20 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
             return false;
         }
 
-        HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
+        HostMediaRecorder.StreamingSettings settings = getStreamingSetting();
 
         String key = preference.getKey();
         if ("camera_preview_size".equals(key)) {
             Size size = getSizeFromValue((String) newValue);
             if (size != null) {
-                settings.setPreviewSize(MIME_TYPE, size);
+                settings.setPreviewSize(size);
             }
         } else if ("port".equalsIgnoreCase(key)) {
             setPreviewServerUrl(Integer.parseInt((String) newValue));
         } else if ("preview_encoder".equals(key)) {
             // エンコーダが切り替えられたので、プロファイル・レベルは一旦削除しておく
             try {
-                settings.setProfileLevel(MIME_TYPE, null);
+                settings.setProfileLevel(null);
             } catch (Exception e) {
                 return false;
             }
@@ -380,7 +380,7 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
             setPreviewProfileLevelPreference(settings, encoderName, true);
         } else if ("preview_profile_level".equalsIgnoreCase(key)) {
             try {
-                settings.setProfileLevel(MIME_TYPE, getProfileLevel(settings.getPreviewEncoderName(), (String) newValue));
+                settings.setProfileLevel(getProfileLevel(settings.getPreviewEncoderName(), (String) newValue));
             } catch (Exception e) {
                 return false;
             }

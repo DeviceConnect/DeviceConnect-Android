@@ -45,6 +45,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.sql.ConnectionEventListener;
+
 public class HostConnectionManager {
     private static final int NOTIFICATION_ID = 3527;
 
@@ -674,10 +676,14 @@ public class HostConnectionManager {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return true;
         }
-        AppOpsManager appOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
-        int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
-                android.os.Process.myUid(), context.getPackageName());
-        return mode == AppOpsManager.MODE_ALLOWED;
+        try {
+            AppOpsManager appOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
+            int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
+                    android.os.Process.myUid(), context.getPackageName());
+            return mode == AppOpsManager.MODE_ALLOWED;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**

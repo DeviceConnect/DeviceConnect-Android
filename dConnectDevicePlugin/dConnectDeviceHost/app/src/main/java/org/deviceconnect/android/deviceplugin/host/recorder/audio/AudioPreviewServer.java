@@ -13,7 +13,7 @@ public class AudioPreviewServer extends AbstractPreviewServer {
      * @param recorder プレビューで表示するレコーダ
      */
     public AudioPreviewServer(Context context, HostMediaRecorder recorder) {
-        super(context, recorder);
+        super(context, recorder, recorder.getId() + "-audio");
     }
 
     @Override

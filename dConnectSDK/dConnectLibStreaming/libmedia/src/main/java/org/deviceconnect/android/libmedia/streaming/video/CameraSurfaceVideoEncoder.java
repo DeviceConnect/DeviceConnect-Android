@@ -62,14 +62,4 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     public VideoQuality getVideoQuality() {
         return mVideoQuality;
     }
-
-    // SurfaceVideoEncoder
-
-    @Override
-    protected void onStartSurfaceDrawing() {
-    }
-
-    @Override
-    protected void onStopSurfaceDrawing() {
-    }
 }

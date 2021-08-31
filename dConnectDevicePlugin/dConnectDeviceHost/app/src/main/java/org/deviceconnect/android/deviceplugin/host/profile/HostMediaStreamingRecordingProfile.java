@@ -18,6 +18,7 @@ import org.deviceconnect.android.deviceplugin.host.profile.utils.H264Profile;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.H265Level;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.H265Profile;
 import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
+import org.deviceconnect.android.deviceplugin.host.recorder.CropInterface;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
@@ -135,7 +136,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             }
 
                             // 切り抜き設定
-                            Rect rect = settings.getDrawingRange();
+                            Rect rect = settings.getCropRect();
                             if (rect != null) {
                                 Bundle drawingRect = new Bundle();
                                 drawingRect.putInt("left", rect.left);
@@ -165,6 +166,101 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             return false;
         }
     };
+
+    private final DConnectApi mPutCropApi = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return "crop";
+        }
+
+        @Override
+        public boolean onRequest(Intent request, Intent response) {
+            String target = getTarget(request);
+            String mimeType = getMIMEType(request);
+            Integer previewClipLeft = parseInteger(request, "left");
+            Integer previewClipTop = parseInteger(request, "top");
+            Integer previewClipRight = parseInteger(request, "right");
+            Integer previewClipBottom = parseInteger(request, "bottom");
+            Integer previewClipDuration = parseInteger(request, "duration");
+
+            final HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
+            if (recorder == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+                return true;
+            }
+
+            recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
+                @Override
+                public void onAllowed() {
+                    int duration = previewClipDuration != null ? previewClipDuration : 0;
+                    Rect start = recorder.getSettings().getCropRect("video/x-rtp");
+                    if (start == null) {
+                        int width = recorder.getSettings().getPreviewSize().getWidth();
+                        int height = recorder.getSettings().getPreviewSize().getHeight();
+                        start = new Rect(0, 0, width, height);
+                    }
+                    Rect end = new Rect(previewClipLeft, previewClipTop, previewClipRight, previewClipBottom);
+
+                    PreviewServer ps = recorder.getServerProvider().getServerByMimeType("video/x-rtp");
+                    if (ps instanceof CropInterface) {
+                        ((CropInterface) ps).moveCropRect(start, end, duration);
+                    }
+
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onDisallowed() {
+                    MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                    sendResponse(response);
+                }
+            });
+
+            return false;
+        }
+    };
+
+    private final DConnectApi mDeleteCropApi = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return "crop";
+        }
+
+        @Override
+        public boolean onRequest(Intent request, Intent response) {
+            String target = getTarget(request);
+            String mimeType = getMIMEType(request);
+
+            final HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
+            if (recorder == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+                return true;
+            }
+
+            recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
+                @Override
+                public void onAllowed() {
+                    PreviewServer ps = recorder.getServerProvider().getServerByMimeType("video/x-rtp");
+                    if (ps instanceof CropInterface) {
+                        ((CropInterface) ps).setCropRect(null);
+                    }
+
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    sendResponse(response);
+                }
+
+                @Override
+                public void onDisallowed() {
+                    MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                    sendResponse(response);
+                }
+            });
+
+            return false;
+        }
+    };
+
 
     // GET /gotapi/mediaStreamRecording/options
     private final DConnectApi mGetOptionsApi = new GetApi() {
@@ -436,9 +532,9 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             }
 
             if (previewClipReset != null && previewClipReset) {
-                settings.setDrawingRange(null);
+                settings.setCropRect(null);
             } else if (previewClipLeft != null) {
-                settings.setDrawingRange(new Rect(previewClipLeft, previewClipTop, previewClipRight, previewClipBottom));
+                settings.setCropRect(new Rect(previewClipLeft, previewClipTop, previewClipRight, previewClipBottom));
             }
 
             try {
@@ -1124,6 +1220,9 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         mRecorderMgr.addOnEventListener(mOnEventListener);
 
         addApi(mGetMediaRecorderApi);
+
+        addApi(mPutCropApi);
+        addApi(mDeleteCropApi);
 
         addApi(mGetOptionsApi);
         addApi(mPutOptionsApi);

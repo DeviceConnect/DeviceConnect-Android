@@ -49,4 +49,12 @@ public abstract class SettingsBaseFragment extends HostDevicePluginBindPreferenc
         }
         return null;
     }
+
+    public String getSettingName() {
+        Bundle args = getArguments();
+        if (args != null) {
+            return args.getString("setting_name");
+        }
+        return null;
+    }
 }

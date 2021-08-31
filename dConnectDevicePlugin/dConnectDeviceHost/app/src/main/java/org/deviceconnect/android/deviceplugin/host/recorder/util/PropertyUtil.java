@@ -5,6 +5,11 @@ import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.util.Size;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -57,6 +62,38 @@ public final class PropertyUtil {
                 .putString(rightKey, String.valueOf(rect.right))
                 .putString(bottomKey, String.valueOf(rect.bottom))
                 .apply();
+    }
+
+    public void put(String key, List<String> values) {
+        StringBuilder value = new StringBuilder();
+        for (String v : values) {
+            if (value.length() > 0) {
+                value.append(",");
+            }
+            try {
+                value.append(URLEncoder.encode(v, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                // ignore.
+            }
+        }
+        mPref.edit().putString(key, value.toString()).apply();
+    }
+
+    public List<String> getArrayString(String key) {
+        String string = mPref.getString(key, null);
+        if (string == null) {
+            return new ArrayList<>();
+        }
+        List<String> array = new ArrayList<>();
+        String[] split = string.split(",");
+        for (String v : split) {
+            try {
+                array.add(URLDecoder.decode(v, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                // ignore.
+            }
+        }
+        return array;
     }
 
     public Integer getInteger(String key, Integer defaultValue) {

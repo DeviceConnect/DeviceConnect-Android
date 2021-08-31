@@ -34,7 +34,7 @@ public abstract class AbstractRTSPPreviewServer extends AbstractPreviewServer {
     }
 
     public AbstractRTSPPreviewServer(Context context, HostMediaRecorder recorder, boolean useSSL) {
-        super(context, recorder, useSSL);
+        super(context, recorder, recorder.getId() + "-rtsp", useSSL);
     }
 
     @Override

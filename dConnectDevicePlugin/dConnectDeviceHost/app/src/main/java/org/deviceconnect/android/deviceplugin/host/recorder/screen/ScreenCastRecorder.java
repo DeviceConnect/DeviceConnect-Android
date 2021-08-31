@@ -162,6 +162,41 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
             mSettings.setPreviewMaxFrameRate(MIME_TYPE_RTMP, 30);
             mSettings.setPreviewKeyFrameInterval(MIME_TYPE_RTMP, 5);
 
+            mSettings.addPreviewServer(getId() + "-mjpeg");
+            StreamingSettings mjpeg = mSettings.getPreviewServer(getId() + "-mjpeg");
+            mjpeg.setMimeType(MIME_TYPE_MJPEG);
+            mjpeg.setPort(21000);
+            mjpeg.setPreviewSize(mSettings.getSupportedPreviewSizes().get(0));
+            mjpeg.setPreviewQuality(80);
+            mjpeg.setPreviewMaxFrameRate(30);
+
+            mSettings.addPreviewServer(getId() + "-rtsp");
+            StreamingSettings rtsp = mSettings.getPreviewServer(getId() + "-rtsp");
+            rtsp.setMimeType(MIME_TYPE_RTSP);
+            rtsp.setPort(22000);
+            rtsp.setPreviewSize(mSettings.getSupportedPreviewSizes().get(0));
+            rtsp.setPreviewBitRate(2 * 1024 * 1024);
+            rtsp.setPreviewMaxFrameRate(30);
+            rtsp.setPreviewKeyFrameInterval(5);
+
+            mSettings.addPreviewServer(getId() + "-srt");
+            StreamingSettings srt = mSettings.getPreviewServer(getId() + "-srt");
+            srt.setMimeType(MIME_TYPE_SRT);
+            srt.setPort(23000);
+            srt.setPreviewSize(mSettings.getSupportedPreviewSizes().get(0));
+            srt.setPreviewBitRate(2 * 1024 * 1024);
+            srt.setPreviewMaxFrameRate(30);
+            srt.setPreviewKeyFrameInterval(5);
+
+            mSettings.addBroadcaster(getId() + "-rtmp");
+            StreamingSettings rtmp = mSettings.getBroadcaster(getId() + "-rtmp");
+            rtmp.setMimeType(MIME_TYPE_RTMP);
+            rtmp.setPreviewSize(mSettings.getSupportedPreviewSizes().get(0));
+            rtmp.setPreviewBitRate(2 * 1024 * 1024);
+            rtmp.setPreviewMaxFrameRate(30);
+            rtmp.setPreviewKeyFrameInterval(5);
+
+
             mSettings.finishInitialization();
         }
     }

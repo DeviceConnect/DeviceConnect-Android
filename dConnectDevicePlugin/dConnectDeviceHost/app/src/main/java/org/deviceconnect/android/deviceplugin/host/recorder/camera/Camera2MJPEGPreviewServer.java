@@ -14,8 +14,6 @@ import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
 
 /**
  * カメラのプレビューをMJPEG形式で配信するサーバー.
- *
- * {@link SurfaceTexture} をもとに実装.
  */
 class Camera2MJPEGPreviewServer extends AbstractMJPEGPreviewServer {
     Camera2MJPEGPreviewServer(Context context, Camera2Recorder recorder, boolean useSSL) {

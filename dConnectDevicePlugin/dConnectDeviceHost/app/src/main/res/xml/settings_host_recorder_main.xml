@@ -23,32 +23,12 @@
         android:title="@string/host_recorder_settings_server"
         app:iconSpaceReserved="false">
 
-        <Preference
-            app:iconSpaceReserved="false"
-            app:key="recorder_settings_mjpeg"
-            app:title="@string/host_recorder_settings_mjpeg" />
-
-        <Preference
-            app:iconSpaceReserved="false"
-            app:key="recorder_settings_rtsp"
-            app:title="@string/host_recorder_settings_rtsp" />
-
-        <Preference
-            app:iconSpaceReserved="false"
-            app:key="recorder_settings_srt"
-            app:title="@string/host_recorder_settings_srt" />
-
     </PreferenceCategory>
 
     <PreferenceCategory
         app:key="recorder_settings_broadcaster"
         android:title="@string/host_recorder_settings_broadcast"
         app:iconSpaceReserved="false">
-
-        <Preference
-            app:iconSpaceReserved="false"
-            app:key="recorder_settings_broadcast"
-            app:title="@string/host_recorder_settings_rtmp" />
 
     </PreferenceCategory>
 

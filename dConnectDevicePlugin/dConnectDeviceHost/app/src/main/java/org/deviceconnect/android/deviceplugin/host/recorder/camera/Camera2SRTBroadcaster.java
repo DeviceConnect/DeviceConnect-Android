@@ -6,15 +6,14 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 
 public class Camera2SRTBroadcaster extends AbstractSRTBroadcaster {
 
-    public Camera2SRTBroadcaster(Camera2Recorder recorder, String broadcastURI) {
-        super(recorder, broadcastURI);
+    public Camera2SRTBroadcaster(Camera2Recorder recorder, String broadcastURI, String name) {
+        super(recorder, broadcastURI, name);
     }
 
     @Override
     protected VideoEncoder createVideoEncoder() {
         Camera2Recorder recorder = (Camera2Recorder) getRecorder();
-        HostMediaRecorder.Settings settings = recorder.getSettings();
-        switch (settings.getPreviewEncoderName()) {
+        switch (getStreamingSettings().getPreviewEncoderName()) {
             case H264:
             default:
                 return new CameraVideoEncoder(recorder);

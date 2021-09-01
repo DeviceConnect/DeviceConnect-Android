@@ -2,6 +2,7 @@ package org.deviceconnect.android.libmedia.streaming.gles;
 
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
+import android.util.Size;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
@@ -201,7 +202,7 @@ public class EGLSurfaceDrawingThread {
     public void addEGLSurfaceBase(Surface surface, Object tag, Rect drawingRange) {
         EGLSurfaceBase eglSurfaceBase = createEGLSurfaceBase(surface);
         eglSurfaceBase.setTag(tag);
-        eglSurfaceBase.setDrawingRange(drawingRange);
+        eglSurfaceBase.setCropRect(drawingRange);
         addEGLSurfaceBase(eglSurfaceBase);
     }
 
@@ -232,7 +233,7 @@ public class EGLSurfaceDrawingThread {
     public void addEGLSurfaceBase(int width, int height, Object tag, Rect drawingRange) {
         EGLSurfaceBase eglSurfaceBase = createEGLSurfaceBase(width, height);
         eglSurfaceBase.setTag(tag);
-        eglSurfaceBase.setDrawingRange(drawingRange);
+        eglSurfaceBase.setCropRect(drawingRange);
         addEGLSurfaceBase(eglSurfaceBase);
     }
 
@@ -471,7 +472,11 @@ public class EGLSurfaceDrawingThread {
 
     private void postOnDrawn(EGLSurfaceBase eglSurfaceBase) {
         for (OnDrawingEventListener l : mOnDrawingEventListeners) {
-            l.onDrawn(eglSurfaceBase);
+            try {
+                l.onDrawn(eglSurfaceBase);
+            } catch (Exception e) {
+                // ignore.
+            }
         }
     }
 
@@ -549,13 +554,37 @@ public class EGLSurfaceDrawingThread {
                     synchronized (mEGLSurfaceBases) {
                         for (EGLSurfaceBase eglSurfaceBase : mEGLSurfaceBases) {
                             eglSurfaceBase.makeCurrent();
-                            Rect drawingRange = eglSurfaceBase.getDrawingRange();
-                            if (drawingRange != null) {
-                                mStManager.setDrawingRange(drawingRange, mWidth, mHeight);
+                            int viewportX = 0;
+                            int viewportY = 0;
+                            int viewportW = eglSurfaceBase.getWidth();
+                            int viewportH = eglSurfaceBase.getHeight();
+                            Rect cropRect = eglSurfaceBase.getCropRect();
+                            if (cropRect != null) {
+                                mStManager.setCropRect(cropRect, mWidth, mHeight);
+
+                                // 出力先のアスペクト比に合わせて計算を行う
+                                Size size = calculateViewSize(cropRect.width(), cropRect.height(), viewportW, viewportH);
+                                if (viewportW > size.getWidth()) {
+                                    viewportX = (viewportW - size.getWidth()) / 2;
+                                    viewportW = size.getWidth();
+                                } else if (viewportH > size.getHeight()) {
+                                    viewportY = (viewportH - size.getHeight()) / 2;
+                                    viewportH = size.getHeight();
+                                }
                             } else {
-                                mStManager.clearDrawingRange();
+                                mStManager.clearCropRect();
+
+                                // 出力先のアスペクト比に合わせて計算を行う
+                                Size size = calculateViewSize(mWidth, mHeight, viewportW, viewportH);
+                                if (viewportW > size.getWidth()) {
+                                    viewportX = (viewportW - size.getWidth()) / 2;
+                                    viewportW = size.getWidth();
+                                } else if (viewportH > size.getHeight()) {
+                                    viewportY = (viewportH - size.getHeight()) / 2;
+                                    viewportH = size.getHeight();
+                                }
                             }
-                            mStManager.setViewport(0, 0, eglSurfaceBase.getWidth(), eglSurfaceBase.getHeight());
+                            mStManager.setViewport(viewportX, viewportY,viewportW, viewportH);
                             mStManager.drawImage(getDisplayRotation());
                             eglSurfaceBase.setPresentationTime(st.getTimestamp());
                             eglSurfaceBase.swapBuffers();
@@ -596,6 +625,27 @@ public class EGLSurfaceDrawingThread {
                 }
             }
         }
+    }
+
+    /**
+     * 指定された View のサイズにフィットするサイズを計算します.
+     *
+     * @param width 横幅
+     * @param height 縦幅
+     * @param viewWidth View のサイズ
+     * @param viewHeight View のサイズ
+     * @return View にフィットするサイズ
+     */
+    private Size calculateViewSize(int width, int height, int viewWidth, int viewHeight) {
+        int h =  (int) (height * (viewWidth / (float) width));
+        if (viewHeight < h) {
+            int w = (int) (width * (viewHeight / (float) height));
+            if (w % 2 != 0) {
+                w--;
+            }
+            return new Size(w, viewHeight);
+        }
+        return new Size(viewWidth, h);
     }
 
     /**

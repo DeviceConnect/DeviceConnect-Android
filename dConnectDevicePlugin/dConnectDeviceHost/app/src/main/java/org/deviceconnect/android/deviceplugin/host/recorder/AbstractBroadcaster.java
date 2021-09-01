@@ -1,5 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
+import android.graphics.Rect;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioPlaybackCaptureConfiguration;
@@ -8,14 +9,19 @@ import android.os.Build;
 import android.util.Size;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MovingRectThread;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
+import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.filter.HighPassFilter;
 import org.deviceconnect.android.libmedia.streaming.audio.filter.LowPassFilter;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
+import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
+import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
-public abstract class AbstractBroadcaster implements Broadcaster {
+public abstract class AbstractBroadcaster implements Broadcaster, CropInterface {
     /**
      * 配信先の URI.
      */
@@ -31,10 +37,28 @@ public abstract class AbstractBroadcaster implements Broadcaster {
      */
     private final String mName;
 
+    /**
+     * 切り抜き範囲移動用スレッド.
+     */
+    private MovingRectThread mMovingRectThread;
+
+    /**
+     * 切り抜き範囲移動用スレッドからのイベントを受け取るリスナー.
+     */
+    private final MovingRectThread.OnEventListener mMovingRectThreadOnEventListener = (rect) -> {
+        VideoQuality videoQuality = getVideoQuality();
+        if (videoQuality != null) {
+            videoQuality.setCropRect(new Rect(rect));
+        }
+        getStreamingSettings().setCropRect(rect);
+        postOnMoved(rect);
+    };
+
     public AbstractBroadcaster(HostMediaRecorder recorder, String broadcastURI, String name) {
         mRecorder = recorder;
         mBroadcastURI = broadcastURI;
         mName = name;
+        startMovingRectThread();
     }
 
     @Override
@@ -70,28 +94,105 @@ public abstract class AbstractBroadcaster implements Broadcaster {
 
     @Override
     public void release() {
+        stopMovingRectThread();
     }
 
-    /**
-     * 映像の設定を取得します.
-     *
-     * 映像が使用されていない場合は null を返却すること。
-     *
-     * @return 映像の設定
-     */
-    protected VideoQuality getVideoQuality() {
-        return null;
+    // CropInterface implements
+
+    private final WeakReferenceList<CropInterface.OnEventListener> mOnEventListeners = new WeakReferenceList<>();
+
+    @Override
+    public void moveCropRect(Rect start, Rect end, int duration) {
+        if (end != null) {
+            if (getStreamingSettings().getCropRect() == null) {
+                postOnAdded(end);
+            }
+        } else {
+            postOnRemove();
+        }
+
+        if (mMovingRectThread != null) {
+            mMovingRectThread.move(start, end, duration);
+        } else {
+            getStreamingSettings().setCropRect(end);
+
+            VideoQuality videoQuality = getVideoQuality();
+            if (videoQuality != null) {
+                videoQuality.setCropRect(end);
+            }
+        }
     }
 
-    /**
-     * 音声の設定を取得します.
-     *
-     * 音声が使用されていない場合は null を返却すること。
-     *
-     * @return 音声の設定
-     */
-    protected AudioQuality getAudioQuality() {
-        return null;
+    @Override
+    public void setCropRect(Rect rect) {
+        if (rect != null) {
+            if (getStreamingSettings().getCropRect() == null) {
+                postOnAdded(rect);
+            }
+        } else {
+            postOnRemove();
+        }
+
+        if (rect == null || mMovingRectThread == null) {
+            getStreamingSettings().setCropRect(rect);
+
+            VideoQuality videoQuality = getVideoQuality();
+            if (videoQuality != null) {
+                videoQuality.setCropRect(rect);
+            }
+        } else {
+            mMovingRectThread.set(rect);
+        }
+    }
+
+    @Override
+    public Rect getCropRect() {
+        return getStreamingSettings().getCropRect();
+    }
+
+    @Override
+    public void addOnEventListener(CropInterface.OnEventListener listener) {
+        mOnEventListeners.add(listener);
+    }
+
+    @Override
+    public void removeOnEventListener(CropInterface.OnEventListener listener) {
+        mOnEventListeners.remove(listener);
+    }
+
+    private void postOnAdded(Rect rect) {
+        for (CropInterface.OnEventListener l : mOnEventListeners.get()) {
+            l.onAdded(this, rect);
+        }
+    }
+
+    private void postOnRemove() {
+        for (CropInterface.OnEventListener l : mOnEventListeners.get()) {
+            l.onRemoved(this);
+        }
+    }
+
+    private void postOnMoved(Rect rect) {
+        for (CropInterface.OnEventListener l : mOnEventListeners.get()) {
+            l.onMoved(this, rect);
+        }
+    }
+
+    private void startMovingRectThread() {
+        if (mMovingRectThread != null) {
+            return;
+        }
+
+        mMovingRectThread = new MovingRectThread();
+        mMovingRectThread.addOnEventListener(mMovingRectThreadOnEventListener);
+        mMovingRectThread.start();
+    }
+
+    private void stopMovingRectThread() {
+        if (mMovingRectThread != null) {
+            mMovingRectThread.stop();
+            mMovingRectThread = null;
+        }
     }
 
     /**
@@ -113,33 +214,74 @@ public abstract class AbstractBroadcaster implements Broadcaster {
     }
 
     /**
+     * 配信するための映像用エンコーダを取得します.
+     *
+     * @return 配信するための映像用エンコーダ
+     */
+    protected VideoEncoder createVideoEncoder() {
+        return null;
+    }
+
+    /**
+     * 配信するための音声用エンコーダを取得します.
+     *
+     * @return 配信するための音声用エンコーダ
+     */
+    protected AudioEncoder createAudioEncoder() {
+        HostMediaRecorder.Settings settings = getRecorder().getSettings();
+        if (settings.isAudioEnabled()) {
+            return new MicAACLATMEncoder();
+        }
+        return null;
+    }
+
+    /**
+     * 映像の設定を取得します.
+     *
+     * 映像が使用しない場合は null を返却すること。
+     *
+     * @return 映像の設定
+     */
+    protected VideoQuality getVideoQuality() {
+        return null;
+    }
+
+    /**
+     * 音声の設定を取得します.
+     *
+     * 音声が使用しない場合は null を返却すること。
+     *
+     * @return 音声の設定
+     */
+    protected AudioQuality getAudioQuality() {
+        return null;
+    }
+
+    /**
      * VideoEncoder の設定に、HostMediaRecorder の設定を反映します.
      *
      * @param videoQuality 設定を行う VideoEncoder の VideoQuality
      */
     public void setVideoQuality(VideoQuality videoQuality) {
         HostMediaRecorder recorder = getRecorder();
-        HostMediaRecorder.Settings settings = recorder.getSettings();
+        HostMediaRecorder.StreamingSettings settings = getStreamingSettings();
 
         EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
-        Size previewSize = settings.getPreviewSize(getMimeType());
-        if (previewSize == null) {
-            previewSize = settings.getPreviewSize();
-        }
+        Size previewSize = settings.getPreviewSize();
         int w = d.isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
         int h = d.isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
         videoQuality.setVideoWidth(w);
         videoQuality.setVideoHeight(h);
-        videoQuality.setCropRect(settings.getCropRect(getMimeType()));
-        videoQuality.setBitRate(settings.getPreviewBitRate(getMimeType()));
-        videoQuality.setFrameRate(settings.getPreviewMaxFrameRate(getMimeType()));
-        videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval(getMimeType()));
-        videoQuality.setUseSoftwareEncoder(settings.isUseSoftwareEncoder(getMimeType()));
-        videoQuality.setIntraRefresh(settings.getIntraRefresh(getMimeType()));
-        videoQuality.setProfile(settings.getProfile(getMimeType()));
-        videoQuality.setLevel(settings.getLevel(getMimeType()));
-        if (settings.getPreviewBitRateMode(getMimeType()) != null) {
-            switch (settings.getPreviewBitRateMode(getMimeType())) {
+        videoQuality.setCropRect(settings.getCropRect());
+        videoQuality.setBitRate(settings.getPreviewBitRate());
+        videoQuality.setFrameRate(settings.getPreviewMaxFrameRate());
+        videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());
+        videoQuality.setUseSoftwareEncoder(settings.isUseSoftwareEncoder());
+        videoQuality.setIntraRefresh(settings.getIntraRefresh());
+        videoQuality.setProfile(settings.getProfile());
+        videoQuality.setLevel(settings.getLevel());
+        if (settings.getPreviewBitRateMode() != null) {
+            switch (settings.getPreviewBitRateMode()) {
                 default:
                 case VBR:
                     videoQuality.setBitRateMode(VideoQuality.BitRateMode.VBR);

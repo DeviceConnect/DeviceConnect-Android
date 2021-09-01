@@ -9,7 +9,7 @@ import android.view.Surface;
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 class SurfaceScreenCast extends AbstractScreenCast {
 
-    private Surface mOutputSurface;
+    private final Surface mOutputSurface;
 
     SurfaceScreenCast(Context context, MediaProjection mediaProjection,
                       Surface outputSurface, int width, int height) {

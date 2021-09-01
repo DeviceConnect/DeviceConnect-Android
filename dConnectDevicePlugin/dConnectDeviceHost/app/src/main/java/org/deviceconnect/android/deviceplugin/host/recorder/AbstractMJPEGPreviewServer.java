@@ -128,10 +128,10 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
      */
     private void setMJPEGQuality(MJPEGQuality quality) {
         HostMediaRecorder recorder = getRecorder();
-        HostMediaRecorder.Settings settings = recorder.getSettings();
+        HostMediaRecorder.StreamingSettings settings = getStreamingSettings();
 
         EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
-        Size previewSize = settings.getPreviewSize(getMimeType());
+        Size previewSize = settings.getPreviewSize();
         if (previewSize == null) {
             previewSize = settings.getPreviewSize();
         }
@@ -139,9 +139,9 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
         int h = d.isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
         quality.setWidth(w);
         quality.setHeight(h);
-        quality.setQuality(settings.getPreviewQuality(getMimeType()));
-        quality.setFrameRate(settings.getPreviewMaxFrameRate(getMimeType()));
-        quality.setDrawingRange(settings.getCropRect(getMimeType()));
+        quality.setQuality(settings.getPreviewQuality());
+        quality.setFrameRate(settings.getPreviewMaxFrameRate());
+        quality.setDrawingRange(settings.getCropRect());
     }
 
     /**

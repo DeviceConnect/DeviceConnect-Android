@@ -1,6 +1,5 @@
 package org.deviceconnect.android.libmedia.streaming.video;
 
-import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.media.MediaCodecInfo;
 import android.view.Surface;
@@ -59,7 +58,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
             if (mEGLSurfaceBase == eglSurfaceBase) {
                 VideoQuality videoQuality = getVideoQuality();
                 if (videoQuality != null) {
-                    eglSurfaceBase.setDrawingRange(videoQuality.getCropRect());
+                    eglSurfaceBase.setCropRect(videoQuality.getCropRect());
                 }
                 onDrawnSurface();
             }

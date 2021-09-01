@@ -162,9 +162,9 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                         settings.setPreviewSize(new Size(width, height));
                     }
 
-                    if (bitrate != null) {
-                        settings.setPreviewBitRate(bitrate);
-                    }
+//                    if (bitrate != null) {
+//                        settings.setPreviewBitRate(bitrate);
+//                    }
 
                     if (frameRate != null) {
                         settings.setPreviewMaxFrameRate(frameRate);
@@ -409,7 +409,7 @@ public class HostLiveStreamingProfile extends DConnectProfile {
             video.putString(PARAM_KEY_URI, mHostMediaRecorder.getId());
             video.putInt(PARAM_KEY_WIDTH, settings.getPreviewSize().getWidth());
             video.putInt(PARAM_KEY_HEIGHT, settings.getPreviewSize().getHeight());
-            video.putInt(PARAM_KEY_BITRATE, settings.getPreviewBitRate());
+//            video.putInt(PARAM_KEY_BITRATE, settings.getPreviewBitRate());
             video.putInt(PARAM_KEY_FRAME_RATE, settings.getPreviewMaxFrameRate());
             video.putString(PARAM_KEY_MIME_TYPE, broadcaster.getMimeType());
             streaming.putParcelable(PARAM_KEY_VIDEO, video);

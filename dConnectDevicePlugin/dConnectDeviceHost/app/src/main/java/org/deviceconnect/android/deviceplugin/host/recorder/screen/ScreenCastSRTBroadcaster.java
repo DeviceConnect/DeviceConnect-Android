@@ -6,15 +6,14 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 
 public class ScreenCastSRTBroadcaster extends AbstractSRTBroadcaster {
 
-    public ScreenCastSRTBroadcaster(ScreenCastRecorder recorder, String broadcastURI) {
-        super(recorder, broadcastURI);
+    public ScreenCastSRTBroadcaster(ScreenCastRecorder recorder, String broadcastURI, String name) {
+        super(recorder, broadcastURI, name);
     }
 
     @Override
     protected VideoEncoder createVideoEncoder() {
         ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
-        HostMediaRecorder.Settings settings = recorder.getSettings();
-        switch (settings.getPreviewEncoderName(getMimeType())) {
+        switch (getStreamingSettings().getPreviewEncoderName()) {
             case H264:
             default:
                 return new ScreenCastVideoEncoder(recorder);

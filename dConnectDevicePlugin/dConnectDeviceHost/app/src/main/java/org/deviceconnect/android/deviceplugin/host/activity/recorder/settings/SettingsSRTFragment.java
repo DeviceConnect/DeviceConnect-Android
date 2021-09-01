@@ -136,7 +136,7 @@ public class SettingsSRTFragment extends SettingsParameterFragment {
                 setEmptyText("preview_clip_top");
                 setEmptyText("preview_clip_right");
                 setEmptyText("preview_clip_bottom");
-                mMediaRecorder.getSettings().setCropRect(null);
+                getStreamingSetting().setCropRect(null);
                 return false;
             });
         }

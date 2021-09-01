@@ -145,8 +145,8 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
      * @param width 映像の横幅
      * @param height 映像の縦幅
      */
-    public void setDrawingRange(int l, int t, int r, int b, int width, int height) {
-        mTextureRenderer.setDrawingRange(l, t, r, b, width, height);
+    public void setCropRect(int l, int t, int r, int b, int width, int height) {
+        mTextureRenderer.setCropRect(l, t, r, b, width, height);
     }
 
     /**
@@ -156,15 +156,15 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
      * @param width 映像の横幅
      * @param height 映像の縦幅
      */
-    public void setDrawingRange(Rect rect, int width, int height) {
-        mTextureRenderer.setDrawingRange(rect, width, height);
+    public void setCropRect(Rect rect, int width, int height) {
+        mTextureRenderer.setCropRect(rect, width, height);
     }
 
     /**
      * 描画範囲を解除します.
      */
-    public void clearDrawingRange() {
-        mTextureRenderer.clearDrawingRange();
+    public void clearCropRect() {
+        mTextureRenderer.clearCropRect();
     }
 
     /**

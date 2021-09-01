@@ -13,14 +13,13 @@ import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStre
 class ScreenCastRTSPPreviewServer extends AbstractRTSPPreviewServer {
     ScreenCastRTSPPreviewServer(Context context, ScreenCastRecorder recorder) {
         super(context, recorder);
-        setPort(recorder.getSettings().getPort(getMimeType()));
+        setPort(getStreamingSettings().getPort());
     }
 
     @Override
     protected VideoStream createVideoStream() {
         ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
-        HostMediaRecorder.Settings settings = recorder.getSettings();
-        switch (settings.getPreviewEncoderName(getMimeType())) {
+        switch (getStreamingSettings().getPreviewEncoderName()) {
             case H264:
             default:
                 return new ScreenCastH264VideoStream(recorder, 5006);

@@ -3,7 +3,6 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
-import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.rtmp.RtmpClient;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
@@ -18,36 +17,14 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
     /**
      * イベントを通知するためのリスナー.
      */
-    private OnEventListener mOnBroadcasterEventListener;
+    private Broadcaster.OnEventListener mOnBroadcasterEventListener;
 
-    public AbstractRTMPBroadcaster(HostMediaRecorder recorder, String broadcastURI) {
-        super(recorder, recorder.getId() + "-rtmp", broadcastURI);
-    }
-
-    /**
-     * RTMP で配信するための映像用エンコーダを取得します.
-     *
-     * @return RTMP で配信するための映像用エンコーダ
-     */
-    protected VideoEncoder createVideoEncoder() {
-        return null;
-    }
-
-    /**
-     * RTMP で配信するための音声用エンコーダを取得します.
-     *
-     * @return RTMP で配信するための音声用エンコーダ
-     */
-    protected AudioEncoder createAudioEncoder() {
-        HostMediaRecorder.Settings settings = getRecorder().getSettings();
-        if (settings.isAudioEnabled()) {
-            return new MicAACLATMEncoder();
-        }
-        return null;
+    public AbstractRTMPBroadcaster(HostMediaRecorder recorder, String broadcastURI, String name) {
+        super(recorder, broadcastURI, name);
     }
 
     @Override
-    public void setOnEventListener(OnEventListener listener) {
+    public void setOnEventListener(Broadcaster.OnEventListener listener) {
         mOnBroadcasterEventListener = listener;
     }
 
@@ -68,7 +45,7 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
             setAudioQuality(audioEncoder.getAudioQuality());
         }
 
-        HostMediaRecorder.Settings settings = getRecorder().getSettings();
+        HostMediaRecorder.StreamingSettings settings = getStreamingSettings();
 
         mRtmpClient = new RtmpClient(getBroadcastURI());
         mRtmpClient.setMaxRetryCount(settings.getRetryCount());

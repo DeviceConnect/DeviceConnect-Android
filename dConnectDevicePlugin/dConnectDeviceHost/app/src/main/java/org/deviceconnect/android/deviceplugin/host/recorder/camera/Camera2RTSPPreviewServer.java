@@ -6,7 +6,6 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractRTSPPreviewServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStream;
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
@@ -14,14 +13,13 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer {
 
     Camera2RTSPPreviewServer(Context context, Camera2Recorder recorder) {
         super(context, recorder);
-        setPort(recorder.getSettings().getPort(getMimeType()));
+        setPort(getStreamingSettings().getPort());
     }
 
     @Override
     protected VideoStream createVideoStream() {
         Camera2Recorder recorder = (Camera2Recorder) getRecorder();
-        HostMediaRecorder.Settings settings = recorder.getSettings();
-        switch (settings.getPreviewEncoderName(getMimeType())) {
+        switch (getStreamingSettings().getPreviewEncoderName()) {
             case H264:
             default:
                 return new CameraH264VideoStream(recorder, 5006);

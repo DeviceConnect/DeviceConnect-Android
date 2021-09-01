@@ -60,25 +60,25 @@ public abstract class AbstractPreviewServer implements PreviewServer, CropInterf
     private final boolean mUseSSL;
 
     /**
-     * 名前.
+     * プレビュー配信サーバ名.
      */
     private final String mName;
 
     /**
-     * 描画スレッド.å
+     * 切り抜き範囲移動用スレッド.
      */
     private MovingRectThread mMovingRectThread;
 
-    private final MovingRectThread.OnEventListener mMovingRectThreadOnEventListener = new MovingRectThread.OnEventListener() {
-        @Override
-        public void onMoved(Rect rect) {
-            VideoQuality videoQuality = getVideoQuality();
-            if (videoQuality != null) {
-                videoQuality.setCropRect(new Rect(rect));
-            }
-            mHostMediaRecorder.getSettings().setCropRect(getMimeType(), new Rect(rect));
-            postOnMoved(rect);
+    /**
+     * 切り抜き範囲移動用スレッドからのイベントを受け取るリスナー.
+     */
+    private final MovingRectThread.OnEventListener mMovingRectThreadOnEventListener = (rect) -> {
+        VideoQuality videoQuality = getVideoQuality();
+        if (videoQuality != null) {
+            videoQuality.setCropRect(new Rect(rect));
         }
+        getStreamingSettings().setCropRect(rect);
+        postOnMoved(rect);
     };
 
     /**
@@ -188,8 +188,7 @@ public abstract class AbstractPreviewServer implements PreviewServer, CropInterf
     @Override
     public void moveCropRect(Rect start, Rect end, int duration) {
         if (end != null) {
-            HostMediaRecorder.Settings settings = getRecorder().getSettings();
-            if (settings.getCropRect(getMimeType()) == null) {
+            if (getStreamingSettings().getCropRect() == null) {
                 postOnAdded(end);
             }
         } else {
@@ -199,8 +198,7 @@ public abstract class AbstractPreviewServer implements PreviewServer, CropInterf
         if (mMovingRectThread != null) {
             mMovingRectThread.move(start, end, duration);
         } else {
-            HostMediaRecorder.Settings settings = getRecorder().getSettings();
-            settings.setCropRect(getMimeType(), end);
+            getStreamingSettings().setCropRect(end);
 
             VideoQuality videoQuality = getVideoQuality();
             if (videoQuality != null) {
@@ -212,8 +210,7 @@ public abstract class AbstractPreviewServer implements PreviewServer, CropInterf
     @Override
     public void setCropRect(Rect rect) {
         if (rect != null) {
-            HostMediaRecorder.Settings settings = getRecorder().getSettings();
-            if (settings.getCropRect(getMimeType()) == null) {
+            if (getStreamingSettings().getCropRect() == null) {
                 postOnAdded(rect);
             }
         } else {
@@ -221,8 +218,7 @@ public abstract class AbstractPreviewServer implements PreviewServer, CropInterf
         }
 
         if (rect == null || mMovingRectThread == null) {
-            HostMediaRecorder.Settings settings = getRecorder().getSettings();
-            settings.setCropRect(getMimeType(), rect);
+            getStreamingSettings().setCropRect(rect);
 
             VideoQuality videoQuality = getVideoQuality();
             if (videoQuality != null) {
@@ -235,8 +231,7 @@ public abstract class AbstractPreviewServer implements PreviewServer, CropInterf
 
     @Override
     public Rect getCropRect() {
-        HostMediaRecorder.Settings settings = getRecorder().getSettings();
-        return settings.getCropRect(getMimeType());
+        return getStreamingSettings().getCropRect();
     }
 
     @Override

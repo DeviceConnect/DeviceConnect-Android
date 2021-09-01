@@ -9,7 +9,6 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.broadcast.SRTClient;
 
 public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
-
     /**
      * RTMP 配信クライアント.
      */
@@ -18,36 +17,14 @@ public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
     /**
      * イベントを通知するためのリスナー.
      */
-    private OnEventListener mOnBroadcasterEventListener;
+    private Broadcaster.OnEventListener mOnBroadcasterEventListener;
 
-    public AbstractSRTBroadcaster(HostMediaRecorder recorder, String broadcastURI) {
-       super(recorder, broadcastURI, recorder.getId() + "-rtmp");
-    }
-
-    /**
-     * SRT 配信に使用する VideoEncoder のインスタンスを作成します.
-     *
-     * @return SRT 配信に使用する VideoEncoder
-     */
-    protected VideoEncoder createVideoEncoder() {
-        return null;
-    }
-
-    /**
-     * SRT 配信に使用する AudioEncoder のインスタンスを作成します.
-     *
-     * @return SRT 配信に使用する AudioEncoder
-     */
-    protected AudioEncoder createAudioEncoder() {
-        HostMediaRecorder.Settings settings = getRecorder().getSettings();
-        if (settings.isAudioEnabled()) {
-            return new MicAACLATMEncoder();
-        }
-        return null;
+    public AbstractSRTBroadcaster(HostMediaRecorder recorder, String broadcastURI, String name) {
+       super(recorder, broadcastURI, name);
     }
 
     @Override
-    public void setOnEventListener(OnEventListener listener) {
+    public void setOnEventListener(Broadcaster.OnEventListener listener) {
         mOnBroadcasterEventListener = listener;
     }
 
@@ -68,7 +45,7 @@ public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
             setAudioQuality(audioEncoder.getAudioQuality());
         }
 
-        HostMediaRecorder.Settings settings = getRecorder().getSettings();
+        HostMediaRecorder.StreamingSettings settings = getStreamingSettings();
 
         mSrtClient = new SRTClient(getBroadcastURI());
         mSrtClient.setMaxRetryCount(settings.getRetryCount());

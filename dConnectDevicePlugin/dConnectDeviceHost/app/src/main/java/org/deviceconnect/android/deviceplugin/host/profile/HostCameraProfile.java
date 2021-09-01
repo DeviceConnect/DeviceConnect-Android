@@ -322,7 +322,7 @@ public class HostCameraProfile extends DConnectProfile {
                 }
 
                 if (sensorSensitivity != null) {
-                    if (!settings.isSupportedSensorSensorSensitivity(sensorSensitivity)) {
+                    if (!settings.isSupportedSensorSensitivity(sensorSensitivity)) {
                         MessageUtils.setInvalidRequestParameterError(response, "sensorSensitivity is invalid.");
                         return true;
                     }

@@ -12,7 +12,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractMJPEGPreviewServer {
 
     ScreenCastMJPEGPreviewServer(Context context, ScreenCastRecorder recorder, boolean useSSL) {
         super(context, recorder, useSSL);
-        setPort(recorder.getSettings().getPort(getMimeType()) + (useSSL ? 1 : 0));
+        setPort(getStreamingSettings().getPort() + (useSSL ? 1 : 0));
     }
 
     @Override

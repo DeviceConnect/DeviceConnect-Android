@@ -48,7 +48,7 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
     public void startWebServer(final OnWebServerStartCallback callback) {
         if (mSRTServer == null) {
             try {
-                HostMediaRecorder.Settings settings = getRecorder().getSettings();
+                HostMediaRecorder.StreamingSettings settings = getStreamingSettings();
                 mSRTServer = new SRTServer(getPort());
                 mSRTServer.setStatsInterval(BuildConfig.STATS_INTERVAL);
                 mSRTServer.setShowStats(DEBUG);

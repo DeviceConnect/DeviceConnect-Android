@@ -75,9 +75,9 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     private void initSettings() {
         if (!mSettings.isInitialized()) {
             mSettings.setPreviewSize(new Size(320, 240));
-            mSettings.setPreviewBitRate(512 * 1024);
+//            mSettings.setPreviewBitRate(512 * 1024);
             mSettings.setPreviewMaxFrameRate(30);
-            mSettings.setPreviewKeyFrameInterval(1);
+//            mSettings.setPreviewKeyFrameInterval(1);
 
             mSettings.setPreviewAudioSource(AudioSource.DEFAULT);
             mSettings.setPreviewAudioBitRate(128 * 1024);

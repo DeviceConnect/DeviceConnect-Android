@@ -183,7 +183,6 @@ public abstract class AbstractRTSPPreviewServer extends AbstractPreviewServer {
     protected AudioStream createAudioStream() {
         HostMediaRecorder recorder = getRecorder();
         HostMediaRecorder.Settings settings = recorder.getSettings();
-
         if (settings.isAudioEnabled()) {
             return new MicAACLATMStream(5004);
         }

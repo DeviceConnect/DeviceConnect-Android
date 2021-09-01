@@ -50,6 +50,11 @@ public abstract class SettingsBaseFragment extends HostDevicePluginBindPreferenc
         return null;
     }
 
+    /**
+     * プレビューサーバ、配信設定ファイル名を取得します.
+     *
+     * @return 設定のファイル名
+     */
     public String getSettingName() {
         Bundle args = getArguments();
         if (args != null) {

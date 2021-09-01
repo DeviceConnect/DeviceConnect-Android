@@ -16,7 +16,6 @@ import org.deviceconnect.android.deviceplugin.host.profile.utils.H265Level;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.H265Profile;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
-import org.deviceconnect.android.deviceplugin.host.util.NetworkUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,8 +37,6 @@ public class SettingsBroadcastFragment extends SettingsParameterFragment {
 
         HostMediaRecorder.StreamingSettings settings = getStreamingSetting();
 
-        setPreviewServerPort();
-        setPreviewServerUrl(settings.getPort());
         setPreviewSizePreference(settings);
         setPreviewVideoEncoderPreference(settings);
         setPreviewProfileLevelPreference(settings, settings.getPreviewEncoderName(), false);
@@ -57,26 +54,9 @@ public class SettingsBroadcastFragment extends SettingsParameterFragment {
         setPreviewClipPreference("preview_clip_bottom");
     }
 
-
     private HostMediaRecorder.StreamingSettings getStreamingSetting() {
         HostMediaRecorder.Settings s = mMediaRecorder.getSettings();
         return s.getBroadcaster(getSettingName());
-    }
-
-    private void setPreviewServerPort() {
-        setInputTypeNumber("port");
-        EditTextPreference pref = findPreference("port");
-        if (pref != null) {
-            pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
-        }
-    }
-
-    private void setPreviewServerUrl(int port) {
-        EditTextPreference pref = findPreference("url");
-        if (pref != null) {
-            String ipAddress = NetworkUtil.getIPAddress(requireContext());
-            pref.setText("rtsp://" + ipAddress + ":" + port);
-        }
     }
 
     /**
@@ -110,7 +90,7 @@ public class SettingsBroadcastFragment extends SettingsParameterFragment {
                 setEmptyText("preview_clip_top");
                 setEmptyText("preview_clip_right");
                 setEmptyText("preview_clip_bottom");
-                mMediaRecorder.getSettings().setCropRect(null);
+                getStreamingSetting().setCropRect(null);
                 return false;
             });
         }
@@ -339,7 +319,7 @@ public class SettingsBroadcastFragment extends SettingsParameterFragment {
      * @param key キー
      * @return 切り抜き範囲
      */
-    private Integer getDrawingRange(String key) {
+    private Integer getCropRect(String key) {
         EditTextPreference pref = findPreference(key);
         if (pref != null) {
             try {
@@ -367,8 +347,6 @@ public class SettingsBroadcastFragment extends SettingsParameterFragment {
             if (size != null) {
                 settings.setPreviewSize(size);
             }
-        } else if ("port".equalsIgnoreCase(key)) {
-            setPreviewServerUrl(Integer.parseInt((String) newValue));
         } else if ("preview_encoder".equals(key)) {
             // エンコーダが切り替えられたので、プロファイル・レベルは一旦削除しておく
             try {
@@ -388,7 +366,7 @@ public class SettingsBroadcastFragment extends SettingsParameterFragment {
         } else if ("preview_clip_left".equalsIgnoreCase(key)) {
             try {
                 int clipLeft = Integer.parseInt((String) newValue);
-                Integer clipRight = getDrawingRange("preview_clip_right");
+                Integer clipRight = getCropRect("preview_clip_right");
                 if (clipRight != null && clipRight <= clipLeft) {
                     return false;
                 }
@@ -398,7 +376,7 @@ public class SettingsBroadcastFragment extends SettingsParameterFragment {
         } else if ("preview_clip_top".equalsIgnoreCase(key)) {
             try {
                 int clipTop = Integer.parseInt((String) newValue);
-                Integer clipBottom = getDrawingRange("preview_clip_bottom");
+                Integer clipBottom = getCropRect("preview_clip_bottom");
                 if (clipBottom != null && clipBottom <= clipTop) {
                     return false;
                 }
@@ -408,7 +386,7 @@ public class SettingsBroadcastFragment extends SettingsParameterFragment {
         } else if ("preview_clip_right".equalsIgnoreCase(key)) {
             try {
                 int clipRight = Integer.parseInt((String) newValue);
-                Integer clipLeft = getDrawingRange("preview_clip_left");
+                Integer clipLeft = getCropRect("preview_clip_left");
                 if (clipLeft != null && clipRight <= clipLeft) {
                     return false;
                 }
@@ -418,7 +396,7 @@ public class SettingsBroadcastFragment extends SettingsParameterFragment {
         } else if ("preview_clip_bottom".equalsIgnoreCase(key)) {
             try {
                 int clipBottom = Integer.parseInt((String) newValue);
-                Integer clipTop = getDrawingRange("preview_clip_top");
+                Integer clipTop = getCropRect("preview_clip_top");
                 if (clipTop != null && clipBottom <= clipTop) {
                     return false;
                 }

@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.host.activity.recorder.settings;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
@@ -30,14 +31,6 @@ public class SettingsMainFragment extends SettingsBaseFragment {
             findNavController(this).navigate(R.id.action_main_to_video);
         } else if ("recorder_settings_audio".equals(preference.getKey())) {
             findNavController(this).navigate(R.id.action_main_to_audio);
-        } else if ("recorder_settings_mjpeg".equals(preference.getKey())) {
-            findNavController(this).navigate(R.id.action_main_to_mjpeg);
-        } else if ("recorder_settings_rtsp".equals(preference.getKey())) {
-            findNavController(this).navigate(R.id.action_main_to_rtsp);
-        } else if ("recorder_settings_srt".equals(preference.getKey())) {
-            findNavController(this).navigate(R.id.action_main_to_srt);
-        } else if ("recorder_settings_broadcast".equals(preference.getKey())) {
-            findNavController(this).navigate(R.id.action_main_to_broadcast);
         } else {
             Bundle params = new Bundle();
             params.putString("setting_name", preference.getKey());
@@ -70,8 +63,8 @@ public class SettingsMainFragment extends SettingsBaseFragment {
         addBroadcasterList();
     }
 
-    private boolean isNotExistPreference(String name) {
-        return findPreference(name) == null;
+    private boolean isNotExistPreference(String key) {
+        return findPreference(key) == null;
     }
 
     private void addPreviewServerList() {
@@ -80,12 +73,12 @@ public class SettingsMainFragment extends SettingsBaseFragment {
         List<String> previewServerList = settings.getPreviewServerList();
 
         PreferenceCategory preferenceCategory = findPreference("recorder_settings_preview_server");
-        for (String name : previewServerList) {
-            HostMediaRecorder.StreamingSettings s = settings.getPreviewServer(name);
-            if (isNotExistPreference(name)) {
+        for (String previewServerId : previewServerList) {
+            HostMediaRecorder.StreamingSettings s = settings.getPreviewServer(previewServerId);
+            if (isNotExistPreference(previewServerId)) {
                 Preference preference = new Preference(requireContext());
-                preference.setTitle(s.getMimeType());
-                preference.setKey(name);
+                preference.setTitle(s.getName());
+                preference.setKey(previewServerId);
                 preference.setIconSpaceReserved(false);
                 preferenceCategory.addPreference(preference);
             }
@@ -98,12 +91,12 @@ public class SettingsMainFragment extends SettingsBaseFragment {
         List<String> broadcasterList = settings.getBroadcasterList();
 
         PreferenceCategory preferenceCategory = findPreference("recorder_settings_broadcaster");
-        for (String name : broadcasterList) {
-            HostMediaRecorder.StreamingSettings s = settings.getBroadcaster(name);
-            if (isNotExistPreference(name)) {
+        for (String broadcasterId : broadcasterList) {
+            HostMediaRecorder.StreamingSettings s = settings.getBroadcaster(broadcasterId);
+            if (isNotExistPreference(broadcasterId)) {
                 Preference preference = new Preference(requireContext());
-                preference.setTitle(s.getMimeType());
-                preference.setKey(name);
+                preference.setTitle(s.getName());
+                preference.setKey(broadcasterId);
                 preference.setIconSpaceReserved(false);
                 preferenceCategory.addPreference(preference);
             }

@@ -10,9 +10,17 @@ public class MovingRectThread {
     private WorkThread mWorkThread;
     private int mFrameRate = 30;
 
+    /**
+     * スレッドを動作させるフレームレートを設定します.
+     *
+     * @param frameRate フレームレート
+     */
     public void setFrameRate(int frameRate) {
         if (frameRate <= 0) {
             throw new IllegalArgumentException("frameRate is negative or zero.");
+        }
+        if (frameRate >= 1000) {
+            throw new IllegalArgumentException("frameRate is over 1000.");
         }
         mFrameRate = frameRate;
     }
@@ -118,7 +126,11 @@ public class MovingRectThread {
 
     private void postOnMoved(Rect rect) {
         for (OnEventListener cb : mOnEventListeners) {
-            cb.onMoved(rect);
+            try {
+                cb.onMoved(rect);
+            } catch (Exception e) {
+                // ignore.
+            }
         }
     }
 

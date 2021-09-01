@@ -118,7 +118,7 @@ public class SettingsMJPEGFragment extends SettingsParameterFragment {
                 if (bottom != null) {
                     bottom.setText(null);
                 }
-                mMediaRecorder.getSettings().setCropRect(null);
+                getStreamingSetting().setCropRect(null);
                 return false;
             });
         }

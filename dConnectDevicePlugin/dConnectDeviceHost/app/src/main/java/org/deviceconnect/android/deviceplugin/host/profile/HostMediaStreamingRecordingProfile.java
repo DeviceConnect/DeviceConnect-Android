@@ -98,53 +98,53 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
                         if (recorder.getMimeType().startsWith("image/") || recorder.getMimeType().startsWith("video/")) {
                             // 静止画の設定
-                            Size pictureSize = settings.getPictureSize();
-                            if (pictureSize != null) {
-                                setRecorderImageWidth(info, pictureSize.getWidth());
-                                setRecorderImageHeight(info, pictureSize.getHeight());
-                            }
-
-                            // プレビュー設定
-                            Size previewSize = settings.getPreviewSize();
-                            if (previewSize != null) {
-                                setRecorderPreviewWidth(info, previewSize.getWidth());
-                                setRecorderPreviewHeight(info, previewSize.getHeight());
-                                setRecorderPreviewMaxFrameRate(info, settings.getPreviewMaxFrameRate());
-                                info.putInt("previewBitRate", settings.getPreviewBitRate() / 1024);
-                                info.putInt("previewKeyFrameInterval", settings.getPreviewKeyFrameInterval());
-                                info.putString("previewEncoder", settings.getPreviewEncoder());
-                                HostMediaRecorder.ProfileLevel pl = settings.getProfileLevel();
-                                if (pl != null) {
-                                    switch (HostMediaRecorder.VideoEncoderName.nameOf(settings.getPreviewEncoder())) {
-                                        case H264:
-                                            info.putString("previewProfile", H264Profile.valueOf(pl.getProfile()).getName());
-                                            info.putString("previewLevel", H264Level.valueOf(pl.getLevel()).getName());
-                                            break;
-                                        case H265:
-                                            info.putString("previewProfile", H265Profile.valueOf(pl.getProfile()).getName());
-                                            info.putString("previewLevel", H265Level.valueOf(pl.getLevel()).getName());
-                                            break;
-                                    }
-                                }
-                                info.putFloat("previewJpegQuality", settings.getPreviewQuality() / 100.0f);
-
-                                Bundle status = new Bundle();
-                                status.putBoolean("preview", recorder.isPreviewRunning());
-                                status.putBoolean("broadcast", recorder.isBroadcasterRunning());
-                                status.putBoolean("recording", recorder.getState() == HostMediaRecorder.State.RECORDING);
-                                info.putParcelable("status", status);
-                            }
-
-                            // 切り抜き設定
-                            Rect rect = settings.getCropRect();
-                            if (rect != null) {
-                                Bundle drawingRect = new Bundle();
-                                drawingRect.putInt("left", rect.left);
-                                drawingRect.putInt("top", rect.top);
-                                drawingRect.putInt("right", rect.right);
-                                drawingRect.putInt("bottom", rect.bottom);
-                                info.putBundle("previewClip", drawingRect);
-                            }
+//                            Size pictureSize = settings.getPictureSize();
+//                            if (pictureSize != null) {
+//                                setRecorderImageWidth(info, pictureSize.getWidth());
+//                                setRecorderImageHeight(info, pictureSize.getHeight());
+//                            }
+//
+//                            // プレビュー設定
+//                            Size previewSize = settings.getPreviewSize();
+//                            if (previewSize != null) {
+//                                setRecorderPreviewWidth(info, previewSize.getWidth());
+//                                setRecorderPreviewHeight(info, previewSize.getHeight());
+//                                setRecorderPreviewMaxFrameRate(info, settings.getPreviewMaxFrameRate());
+//                                info.putInt("previewBitRate", settings.getPreviewBitRate() / 1024);
+//                                info.putInt("previewKeyFrameInterval", settings.getPreviewKeyFrameInterval());
+//                                info.putString("previewEncoder", settings.getPreviewEncoder());
+//                                HostMediaRecorder.ProfileLevel pl = settings.getProfileLevel();
+//                                if (pl != null) {
+//                                    switch (HostMediaRecorder.VideoEncoderName.nameOf(settings.getPreviewEncoder())) {
+//                                        case H264:
+//                                            info.putString("previewProfile", H264Profile.valueOf(pl.getProfile()).getName());
+//                                            info.putString("previewLevel", H264Level.valueOf(pl.getLevel()).getName());
+//                                            break;
+//                                        case H265:
+//                                            info.putString("previewProfile", H265Profile.valueOf(pl.getProfile()).getName());
+//                                            info.putString("previewLevel", H265Level.valueOf(pl.getLevel()).getName());
+//                                            break;
+//                                    }
+//                                }
+//                                info.putFloat("previewJpegQuality", settings.getPreviewQuality() / 100.0f);
+//
+//                                Bundle status = new Bundle();
+//                                status.putBoolean("preview", recorder.isPreviewRunning());
+//                                status.putBoolean("broadcast", recorder.isBroadcasterRunning());
+//                                status.putBoolean("recording", recorder.getState() == HostMediaRecorder.State.RECORDING);
+//                                info.putParcelable("status", status);
+//                            }
+//
+//                            // 切り抜き設定
+//                            Rect rect = settings.getCropRect();
+//                            if (rect != null) {
+//                                Bundle drawingRect = new Bundle();
+//                                drawingRect.putInt("left", rect.left);
+//                                drawingRect.putInt("top", rect.top);
+//                                drawingRect.putInt("right", rect.right);
+//                                drawingRect.putInt("bottom", rect.bottom);
+//                                info.putBundle("previewClip", drawingRect);
+//                            }
                         } else if (recorder.getMimeType().startsWith("audio/")) {
                             // 音声の設定
                         }
@@ -167,6 +167,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    // PUT /gotapi/mediaStreamRecording/crop
     private final DConnectApi mPutCropApi = new PutApi() {
         @Override
         public String getAttribute() {
@@ -192,19 +193,21 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                 @Override
                 public void onAllowed() {
-                    int duration = previewClipDuration != null ? previewClipDuration : 0;
-                    Rect start = recorder.getSettings().getCropRect("video/x-rtp");
-                    if (start == null) {
-                        int width = recorder.getSettings().getPreviewSize().getWidth();
-                        int height = recorder.getSettings().getPreviewSize().getHeight();
-                        start = new Rect(0, 0, width, height);
-                    }
-                    Rect end = new Rect(previewClipLeft, previewClipTop, previewClipRight, previewClipBottom);
-
-                    PreviewServer ps = recorder.getServerProvider().getServerByMimeType("video/x-rtp");
-                    if (ps instanceof CropInterface) {
-                        ((CropInterface) ps).moveCropRect(start, end, duration);
-                    }
+//                    HostMediaRecorder.StreamingSettings settings = recorder.getSettings().getPreviewServer(mimeType);
+//
+//                    int duration = previewClipDuration != null ? previewClipDuration : 0;
+//                    Rect start = settings.getCropRect();
+//                    if (start == null) {
+//                        int width = recorder.getSettings().getPreviewSize().getWidth();
+//                        int height = recorder.getSettings().getPreviewSize().getHeight();
+//                        start = new Rect(0, 0, width, height);
+//                    }
+//                    Rect end = new Rect(previewClipLeft, previewClipTop, previewClipRight, previewClipBottom);
+//
+//                    PreviewServer ps = recorder.getServerProvider().getServerByMimeType("video/x-rtp");
+//                    if (ps instanceof CropInterface) {
+//                        ((CropInterface) ps).moveCropRect(start, end, duration);
+//                    }
 
                     setResult(response, DConnectMessage.RESULT_OK);
                     sendResponse(response);
@@ -221,6 +224,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    // DELETE /gotapi/mediaStreamRecording/crop
     private final DConnectApi mDeleteCropApi = new DeleteApi() {
         @Override
         public String getAttribute() {
@@ -241,11 +245,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                 @Override
                 public void onAllowed() {
-                    PreviewServer ps = recorder.getServerProvider().getServerByMimeType("video/x-rtp");
+                    PreviewServer ps = recorder.getServerProvider().getServerByMimeType(mimeType);
                     if (ps instanceof CropInterface) {
                         ((CropInterface) ps).setCropRect(null);
                     }
-
                     setResult(response, DConnectMessage.RESULT_OK);
                     sendResponse(response);
                 }
@@ -412,28 +415,28 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     return;
                 }
 
-                switch (settings.getPreviewEncoderName()) {
-                    case H264: {
-                        H264Profile p = H264Profile.nameOf(previewProfile);
-                        H264Level l = H264Level.nameOf(previewLevel);
-                        if (p == null || l == null || !settings.isSupportedProfileLevel(p.getValue(), l.getValue())) {
-                            MessageUtils.setInvalidRequestParameterError(response,
-                                    "Unsupported preview profile and level: " + previewProfile + " - " + previewLevel);
-                            return;
-                        }
-                        profileLevel = new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue());
-                    }   break;
-                    case H265: {
-                        H265Profile p = H265Profile.nameOf(previewProfile);
-                        H265Level l = H265Level.nameOf(previewLevel);
-                        if (p == null || l == null || !settings.isSupportedProfileLevel(p.getValue(), l.getValue())) {
-                            MessageUtils.setInvalidRequestParameterError(response,
-                                    "Unsupported preview profile and level: " + previewProfile + " - " + previewLevel);
-                            return;
-                        }
-                        profileLevel = new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue());
-                    }   break;
-                }
+//                switch (settings.getPreviewEncoderName()) {
+//                    case H264: {
+//                        H264Profile p = H264Profile.nameOf(previewProfile);
+//                        H264Level l = H264Level.nameOf(previewLevel);
+//                        if (p == null || l == null || !settings.isSupportedProfileLevel(p.getValue(), l.getValue())) {
+//                            MessageUtils.setInvalidRequestParameterError(response,
+//                                    "Unsupported preview profile and level: " + previewProfile + " - " + previewLevel);
+//                            return;
+//                        }
+//                        profileLevel = new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue());
+//                    }   break;
+//                    case H265: {
+//                        H265Profile p = H265Profile.nameOf(previewProfile);
+//                        H265Level l = H265Level.nameOf(previewLevel);
+//                        if (p == null || l == null || !settings.isSupportedProfileLevel(p.getValue(), l.getValue())) {
+//                            MessageUtils.setInvalidRequestParameterError(response,
+//                                    "Unsupported preview profile and level: " + previewProfile + " - " + previewLevel);
+//                            return;
+//                        }
+//                        profileLevel = new HostMediaRecorder.ProfileLevel(p.getValue(), l.getValue());
+//                    }   break;
+//                }
             }
 
             if (previewJpegQuality != null) {
@@ -505,37 +508,37 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 settings.setPreviewMaxFrameRate(previewMaxFrameRate.intValue());
             }
 
-            if (previewBitRate != null) {
-                settings.setPreviewBitRate(previewBitRate * 1024);
-            }
-
-            if (previewKeyFrameInterval != null) {
-                settings.setPreviewKeyFrameInterval(previewKeyFrameInterval);
-            }
-
-            if (previewEncoder != null) {
-                settings.setPreviewEncoder(previewEncoder);
-                // エンコーダが切り替えられた場合は、プロファイル・レベルは設定無しにする
-                settings.setProfileLevel(null);
-            }
-
-            if (profileLevel != null) {
-                settings.setProfileLevel(profileLevel);
-            }
-
-            if (previewIntraRefresh != null) {
-                settings.setIntraRefresh(previewIntraRefresh);
-            }
-
-            if (previewJpegQuality != null) {
-                settings.setPreviewQuality((int) (previewJpegQuality * 100));
-            }
-
-            if (previewClipReset != null && previewClipReset) {
-                settings.setCropRect(null);
-            } else if (previewClipLeft != null) {
-                settings.setCropRect(new Rect(previewClipLeft, previewClipTop, previewClipRight, previewClipBottom));
-            }
+//            if (previewBitRate != null) {
+//                settings.setPreviewBitRate(previewBitRate * 1024);
+//            }
+//
+//            if (previewKeyFrameInterval != null) {
+//                settings.setPreviewKeyFrameInterval(previewKeyFrameInterval);
+//            }
+//
+//            if (previewEncoder != null) {
+//                settings.setPreviewEncoder(previewEncoder);
+//                // エンコーダが切り替えられた場合は、プロファイル・レベルは設定無しにする
+//                settings.setProfileLevel(null);
+//            }
+//
+//            if (profileLevel != null) {
+//                settings.setProfileLevel(profileLevel);
+//            }
+//
+//            if (previewIntraRefresh != null) {
+//                settings.setIntraRefresh(previewIntraRefresh);
+//            }
+//
+//            if (previewJpegQuality != null) {
+//                settings.setPreviewQuality((int) (previewJpegQuality * 100));
+//            }
+//
+//            if (previewClipReset != null && previewClipReset) {
+//                settings.setCropRect(null);
+//            } else if (previewClipLeft != null) {
+//                settings.setCropRect(new Rect(previewClipLeft, previewClipTop, previewClipRight, previewClipBottom));
+//            }
 
             try {
                 recorder.onConfigChange();

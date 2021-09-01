@@ -16,7 +16,7 @@ public abstract class EGLSurfaceBase {
     private int mWidth = -1;
     private int mHeight = -1;
     private Object mTag;
-    private Rect mDrawingRange;
+    private Rect mCropRect;
 
     EGLSurfaceBase() {
     }
@@ -90,8 +90,8 @@ public abstract class EGLSurfaceBase {
      *
      * @param rect 描画範囲
      */
-    public void setDrawingRange(Rect rect) {
-        mDrawingRange = rect;
+    public void setCropRect(Rect rect) {
+        mCropRect = rect;
     }
 
     /**
@@ -101,8 +101,8 @@ public abstract class EGLSurfaceBase {
      *
      * @return 描画範囲
      */
-    public Rect getDrawingRange() {
-        return mDrawingRange;
+    public Rect getCropRect() {
+        return mCropRect;
     }
 
     /**

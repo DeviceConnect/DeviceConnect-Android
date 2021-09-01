@@ -4,8 +4,8 @@ import org.deviceconnect.android.deviceplugin.host.recorder.AbstractRTMPBroadcas
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 
 public class ScreenCastRTMPBroadcaster extends AbstractRTMPBroadcaster {
-    public ScreenCastRTMPBroadcaster(ScreenCastRecorder recorder, String broadcastURI) {
-        super(recorder, broadcastURI);
+    public ScreenCastRTMPBroadcaster(ScreenCastRecorder recorder, String broadcastURI, String name) {
+        super(recorder, broadcastURI, name);
     }
 
     @Override

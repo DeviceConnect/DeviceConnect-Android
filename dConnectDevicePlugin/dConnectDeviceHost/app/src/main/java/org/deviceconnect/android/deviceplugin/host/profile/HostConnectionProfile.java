@@ -29,6 +29,7 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -394,6 +395,27 @@ public class HostConnectionProfile extends ConnectionProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
+            String sinceString = request.getStringExtra("since");
+            String untilString = request.getStringExtra("until");
+            Long since = null;
+            Long until = null;
+
+            if (sinceString != null) {
+                try {
+                    since = df.parse(sinceString).getTime();
+                } catch (ParseException e) {
+                    // ignore.
+                }
+            }
+
+            if (untilString != null) {
+                try {
+                    until = df.parse(untilString).getTime();
+                } catch (ParseException e) {
+                    // ignore.
+                }
+            }
+
             if (!HostConnectionManager.checkUsageAccessSettings(getContext())) {
                 HostConnectionManager.openUsageAccessSettings(getContext());
 
@@ -421,6 +443,18 @@ public class HostConnectionProfile extends ConnectionProfile {
                     List<HostTraffic> trafficList = mHostConnectionManager.getTrafficList(networkType);
                     ArrayList<Bundle> trafficArray = new ArrayList<>();
                     for (HostTraffic traffic : trafficList) {
+                        if (until != null) {
+                            if (until < traffic.getStartTime()) {
+                                continue;
+                            }
+                        }
+
+                        if (since != null) {
+                            if (traffic.getEndTime() < since) {
+                                continue;
+                            }
+                        }
+
                         trafficArray.add(createNetworkBitrate(traffic));
                     }
                     response.putExtra(convertNetworkTypeToString(networkType), trafficArray);

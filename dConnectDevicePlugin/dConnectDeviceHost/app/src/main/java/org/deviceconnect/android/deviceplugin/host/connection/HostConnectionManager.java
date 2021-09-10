@@ -295,7 +295,7 @@ public class HostConnectionManager {
      * ネットワークの情報を格納するクラス.
      */
     public class NetworkCaps {
-        private NetworkType mType;
+        private NetworkType mType = NetworkType.TYPE_NONE;
         private int mUpstreamBW;
         private int mDownstreamBW;
         private int mStrengthLevel;

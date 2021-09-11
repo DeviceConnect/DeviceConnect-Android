@@ -16,6 +16,7 @@ public class VideoQuality {
     private int mIntraRefresh = 0;
     private int mProfile = 0;
     private int mLevel = 0;
+    private Integer mLowLatency;
 
     /**
      * ビットレートのモード.
@@ -32,6 +33,11 @@ public class VideoQuality {
      * null の場合は範囲してい無し。
      */
     private Rect mCropRect;
+
+    /**
+     * 画面の向き.
+     */
+    private int mOrientation;
 
     /**
      * コンストラクタ.
@@ -275,26 +281,6 @@ public class VideoQuality {
     }
 
     /**
-     * ビットレートモード.
-     */
-    public enum BitRateMode {
-        /**
-         * 可変ビットレート.
-         */
-        VBR,
-
-        /**
-         * 固定ビットレート.
-         */
-        CBR,
-
-        /**
-         * 固定品質ビットレート.
-         */
-        CQ
-    }
-
-    /**
      * 描画範囲を取得します.
      *
      * 描画範囲指定されていない場合は null を返却します。
@@ -314,6 +300,48 @@ public class VideoQuality {
      */
     public void setCropRect(Rect cropRect) {
         mCropRect = cropRect;
+    }
+
+    /**
+     * Low Latency フラグを設定します.
+     *
+     * 1: 有効
+     * 0: 無効
+     * null: デフォルト設定
+     *
+     * @param lowLatency Low Latency フラグ
+     */
+    public void setLowLatency(Integer lowLatency) {
+        mLowLatency = lowLatency;
+    }
+
+    /**
+     * Low Latency フラグを取得します.
+     *
+     * @return Low Latency フラグ
+     */
+    public Integer getLowLatency() {
+        return mLowLatency;
+    }
+
+    /**
+     * ビットレートモード.
+     */
+    public enum BitRateMode {
+        /**
+         * 可変ビットレート.
+         */
+        VBR,
+
+        /**
+         * 固定ビットレート.
+         */
+        CBR,
+
+        /**
+         * 固定品質ビットレート.
+         */
+        CQ
     }
 
     @Override

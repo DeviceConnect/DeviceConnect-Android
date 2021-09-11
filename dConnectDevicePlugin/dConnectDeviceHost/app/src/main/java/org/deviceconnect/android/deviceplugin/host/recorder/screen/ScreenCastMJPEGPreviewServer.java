@@ -9,10 +9,8 @@ import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 class ScreenCastMJPEGPreviewServer extends AbstractMJPEGPreviewServer {
-
-    ScreenCastMJPEGPreviewServer(Context context, ScreenCastRecorder recorder, boolean useSSL) {
-        super(context, recorder, useSSL);
-        setPort(getStreamingSettings().getPort() + (useSSL ? 1 : 0));
+    ScreenCastMJPEGPreviewServer(ScreenCastRecorder recorder, String encoderId) {
+        super(recorder, encoderId);
     }
 
     @Override

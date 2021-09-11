@@ -55,10 +55,10 @@ public abstract class SettingsBaseFragment extends HostDevicePluginBindPreferenc
      *
      * @return 設定のファイル名
      */
-    public String getSettingName() {
+    public String getEncoderId() {
         Bundle args = getArguments();
         if (args != null) {
-            return args.getString("setting_name");
+            return args.getString("encoder_id");
         }
         return null;
     }

@@ -13,156 +13,44 @@ import androidx.core.app.NotificationCompat;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
-    /**
-     * 映像を配信するクラス.
-     */
-    private Broadcaster mBroadcaster;
-
-    /**
-     * イベントを通知するリスナー.
-     */
-    private OnEventListener mOnEventListener;
-
-    private final Context mContext;
-    private final HostMediaRecorder mRecorder;
+public abstract class AbstractBroadcastProvider extends AbstractLiveStreamingProvider implements BroadcasterProvider {
 
     public AbstractBroadcastProvider(Context context, HostMediaRecorder recorder) {
-        mContext = context;
-        mRecorder = recorder;
+        super(context, recorder);
     }
 
     @Override
-    public void setOnEventListener(OnEventListener listener) {
-        mOnEventListener = listener;
-    }
-
-    @Override
-    public Broadcaster getBroadcaster() {
-        return mBroadcaster;
-    }
-
-    @Override
-    public boolean isRunning() {
-        return mBroadcaster != null && mBroadcaster.isRunning();
-    }
-
-    @Override
-    public Broadcaster startBroadcaster(String broadcastURI) {
-        if (broadcastURI == null) {
-            return null;
+    protected void hideNotification(String id) {
+        NotificationManager manager = (NotificationManager) getContext()
+                .getSystemService(Service.NOTIFICATION_SERVICE);
+        if (manager != null) {
+            manager.cancel(id, getNotificationId());
         }
+    }
 
-        if (mBroadcaster != null && mBroadcaster.isRunning()) {
-            return mBroadcaster;
-        }
-
-        CountDownLatch latch = new CountDownLatch(1);
-        AtomicBoolean result = new AtomicBoolean(false);
-
-        mBroadcaster = createBroadcaster(broadcastURI);
-        if (mBroadcaster == null) {
-            return null;
-        }
-        mBroadcaster.setOnEventListener(new Broadcaster.OnEventListener() {
-            @Override
-            public void onStarted() {
-                postBroadcastStarted(mBroadcaster);
+    @Override
+    protected void sendNotification(String id, String name) {
+        PendingIntent contentIntent = createPendingIntent(id);
+        Notification notification = createNotification(contentIntent, null, name);
+        NotificationManager manager = (NotificationManager) getContext()
+                .getSystemService(Service.NOTIFICATION_SERVICE);
+        if (manager != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                String channelId = getContext().getResources().getString(R.string.overlay_preview_channel_id);
+                NotificationChannel channel = new NotificationChannel(
+                        channelId,
+                        getContext().getResources().getString(R.string.host_notification_recorder_broadcast),
+                        NotificationManager.IMPORTANCE_LOW);
+                channel.setDescription(getContext().getResources().getString(R.string.host_notification_recorder_broadcast_content));
+                manager.createNotificationChannel(channel);
+                notification = createNotification(contentIntent, channelId, name);
             }
-
-            @Override
-            public void onStopped() {
-                hideNotification(mRecorder.getId());
-                postBroadcastStopped(mBroadcaster);
-            }
-
-            @Override
-            public void onError(Exception e) {
-                postBroadcastError(mBroadcaster, e);
-            }
-        });
-
-        mBroadcaster.start(new Broadcaster.OnStartCallback() {
-            @Override
-            public void onSuccess() {
-                result.set(true);
-                latch.countDown();
-            }
-
-            @Override
-            public void onFailed(Exception e) {
-                result.set(false);
-                latch.countDown();
-            }
-        });
-
-        try {
-            latch.await(10, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            return null;
-        }
-
-        if (!result.get()) {
-            mBroadcaster.stop();
-            mBroadcaster = null;
-        } else {
-            sendNotification(mRecorder.getId(), mRecorder.getName());
-        }
-
-        return mBroadcaster;
-    }
-
-    @Override
-    public void stopBroadcaster() {
-        hideNotification(mRecorder.getId());
-
-        if (mBroadcaster != null) {
-            mBroadcaster.stop();
-            mBroadcaster = null;
-        }
-    }
-
-    @Override
-    public void onConfigChange() {
-        if (mBroadcaster != null) {
-            mBroadcaster.onConfigChange();
-        }
-    }
-
-    @Override
-    public void setMute(boolean mute) {
-        if (mBroadcaster != null) {
-            mBroadcaster.setMute(mute);
-        }
-    }
-
-    /**
-     * Broadcaster のインスタンスを作成します.
-     *
-     * @param broadcastURI 配信先の URI
-     * @return Broadcaster のインスタンス
-     */
-    public abstract Broadcaster createBroadcaster(String broadcastURI);
-
-    private void postBroadcastStarted(Broadcaster broadcaster) {
-        if (mOnEventListener != null) {
-            mOnEventListener.onStarted(broadcaster);
-        }
-    }
-
-    private void postBroadcastStopped(Broadcaster broadcaster) {
-        if (mOnEventListener != null) {
-            mOnEventListener.onStopped(broadcaster);
-        }
-    }
-
-    private void postBroadcastError(Broadcaster broadcaster, Exception e) {
-        if (mOnEventListener != null) {
-            mOnEventListener.onError(broadcaster, e);
+            manager.notify(id, getNotificationId(), notification);
         }
     }
 
@@ -172,46 +60,7 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
      * @return Notification の Id
      */
     private int getNotificationId() {
-        return 1000 + mRecorder.getId().hashCode();
-    }
-
-    /**
-     * プレビュー配信サーバ停止用の Notification を削除します.
-     *
-     * @param id notification を識別する ID
-     */
-    private void hideNotification(String id) {
-        NotificationManager manager = (NotificationManager) mContext
-                .getSystemService(Service.NOTIFICATION_SERVICE);
-        if (manager != null) {
-            manager.cancel(id, getNotificationId());
-        }
-    }
-
-    /**
-     * プレビュー配信サーバ停止用の Notification を送信します.
-     *
-     * @param id notification を識別する ID
-     * @param name 名前
-     */
-    private void sendNotification(String id, String name) {
-        PendingIntent contentIntent = createPendingIntent(id);
-        Notification notification = createNotification(contentIntent, null, name);
-        NotificationManager manager = (NotificationManager) mContext
-                .getSystemService(Service.NOTIFICATION_SERVICE);
-        if (manager != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                String channelId = mContext.getResources().getString(R.string.overlay_preview_channel_id);
-                NotificationChannel channel = new NotificationChannel(
-                        channelId,
-                        mContext.getResources().getString(R.string.host_notification_recorder_broadcast),
-                        NotificationManager.IMPORTANCE_LOW);
-                channel.setDescription(mContext.getResources().getString(R.string.host_notification_recorder_broadcast_content));
-                manager.createNotificationChannel(channel);
-                notification = createNotification(contentIntent, channelId, name);
-            }
-            manager.notify(id, getNotificationId(), notification);
-        }
+        return 1000 + getRecorder().getId().hashCode();
     }
 
     /**
@@ -224,25 +73,25 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
      */
     private Notification createNotification(final PendingIntent pendingIntent, final String channelId, String name) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext());
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext().getApplicationContext());
             builder.setContentIntent(pendingIntent);
-            builder.setTicker(mContext.getString(R.string.host_notification_recorder_broadcast_ticker));
+            builder.setTicker(getContext().getString(R.string.host_notification_recorder_broadcast_ticker));
             builder.setSmallIcon(R.drawable.dconnect_icon);
-            builder.setContentTitle(mContext.getString(R.string.host_notification_recorder_broadcast, name));
-            builder.setContentText(mContext.getString(R.string.host_notification_recorder_broadcast_content));
+            builder.setContentTitle(getContext().getString(R.string.host_notification_recorder_broadcast, name));
+            builder.setContentText(getContext().getString(R.string.host_notification_recorder_broadcast_content));
             builder.setWhen(System.currentTimeMillis());
             builder.setAutoCancel(true);
             builder.setOngoing(true);
             return builder.build();
         } else {
-            Notification.Builder builder = new Notification.Builder(mContext.getApplicationContext());
+            Notification.Builder builder = new Notification.Builder(getContext().getApplicationContext());
             builder.setContentIntent(pendingIntent);
-            builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
+            builder.setTicker(getContext().getString(R.string.overlay_preview_ticker));
             int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
                     R.drawable.dconnect_icon : R.drawable.dconnect_icon_lollipop;
             builder.setSmallIcon(iconType);
-            builder.setContentTitle(mContext.getString(R.string.host_notification_recorder_broadcast, name));
-            builder.setContentText(mContext.getString(R.string.host_notification_recorder_broadcast_content));
+            builder.setContentTitle(getContext().getString(R.string.host_notification_recorder_broadcast, name));
+            builder.setContentText(getContext().getString(R.string.host_notification_recorder_broadcast_content));
             builder.setWhen(System.currentTimeMillis());
             builder.setAutoCancel(true);
             builder.setOngoing(true);
@@ -264,6 +113,6 @@ public abstract class AbstractBroadcastProvider implements BroadcasterProvider {
         Intent intent = new Intent();
         intent.setAction(HostMediaRecorderManager.ACTION_STOP_BROADCAST);
         intent.putExtra(HostMediaRecorderManager.KEY_RECORDER_ID, id);
-        return PendingIntent.getBroadcast(mContext, getNotificationId(), intent, 0);
+        return PendingIntent.getBroadcast(getContext(), getNotificationId(), intent, 0);
     }
 }

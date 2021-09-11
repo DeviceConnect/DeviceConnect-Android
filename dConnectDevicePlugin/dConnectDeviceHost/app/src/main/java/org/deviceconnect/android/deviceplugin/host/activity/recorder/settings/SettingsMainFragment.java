@@ -1,7 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.activity.recorder.settings;
 
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
@@ -33,24 +32,24 @@ public class SettingsMainFragment extends SettingsBaseFragment {
             findNavController(this).navigate(R.id.action_main_to_audio);
         } else {
             Bundle params = new Bundle();
-            params.putString("setting_name", preference.getKey());
-
+            params.putString("encoder_id", preference.getKey());
             HostMediaRecorder recorder = getRecorder();
             HostMediaRecorder.Settings settings = recorder.getSettings();
-            HostMediaRecorder.StreamingSettings s = settings.getPreviewServer(preference.getKey());
+            HostMediaRecorder.EncoderSettings s = settings.getEncoderSetting(preference.getKey());
             if (s != null) {
-                String mimeType = s.getMimeType();
-                if ("video/x-mjpeg".equalsIgnoreCase(mimeType)) {
-                    findNavController(this).navigate(R.id.action_main_to_mjpeg, params);
-                } else if ("video/x-rtp".equalsIgnoreCase(mimeType)) {
-                    findNavController(this).navigate(R.id.action_main_to_rtsp, params);
-                } else if ("video/MP2T".equalsIgnoreCase(mimeType)) {
-                    findNavController(this).navigate(R.id.action_main_to_srt, params);
-                }
-            } else {
-                s = settings.getBroadcaster(preference.getKey());
-                if (s != null) {
-                    findNavController(this).navigate(R.id.action_main_to_broadcast, params);
+                switch (s.getMimeType()) {
+                    case MJPEG:
+                        findNavController(this).navigate(R.id.action_main_to_mjpeg, params);
+                        break;
+                    case RTSP:
+                        findNavController(this).navigate(R.id.action_main_to_rtsp, params);
+                        break;
+                    case SRT:
+                        findNavController(this).navigate(R.id.action_main_to_srt, params);
+                        break;
+                    case RTMP:
+                        findNavController(this).navigate(R.id.action_main_to_broadcast, params);
+                        break;
                 }
             }
         }
@@ -59,48 +58,37 @@ public class SettingsMainFragment extends SettingsBaseFragment {
 
     @Override
     public void onBindService() {
-        addPreviewServerList();
-        addBroadcasterList();
+        addEncoderList();
     }
 
     private boolean isNotExistPreference(String key) {
         return findPreference(key) == null;
     }
 
-    private void addPreviewServerList() {
+    private void addEncoderList() {
         HostMediaRecorder recorder = getRecorder();
         HostMediaRecorder.Settings settings = recorder.getSettings();
-        List<String> previewServerList = settings.getPreviewServerList();
+        List<String> encoderList = settings.getEncoderIdList();
 
-        PreferenceCategory preferenceCategory = findPreference("recorder_settings_preview_server");
-        for (String previewServerId : previewServerList) {
-            HostMediaRecorder.StreamingSettings s = settings.getPreviewServer(previewServerId);
-            if (isNotExistPreference(previewServerId)) {
+        PreferenceCategory previewCategory = findPreference("recorder_settings_preview_server");
+        PreferenceCategory broadcasterCategory = findPreference("recorder_settings_broadcaster");
+        for (String encoderId : encoderList) {
+            HostMediaRecorder.EncoderSettings encoderSetting = settings.getEncoderSetting(encoderId);
+            if (isNotExistPreference(encoderId)) {
                 Preference preference = new Preference(requireContext());
-                preference.setTitle(s.getName());
-                preference.setKey(previewServerId);
+                preference.setTitle(encoderSetting.getName());
+                preference.setKey(encoderId);
                 preference.setIconSpaceReserved(false);
-                preferenceCategory.addPreference(preference);
+                if (encoderSetting.getMimeType() == HostMediaRecorder.MimeType.RTMP) {
+                    broadcasterCategory.addPreference(preference);
+                } else {
+                    previewCategory.addPreference(preference);
+                }
             }
         }
-    }
 
-    private void addBroadcasterList() {
-        HostMediaRecorder recorder = getRecorder();
-        HostMediaRecorder.Settings settings = recorder.getSettings();
-        List<String> broadcasterList = settings.getBroadcasterList();
-
-        PreferenceCategory preferenceCategory = findPreference("recorder_settings_broadcaster");
-        for (String broadcasterId : broadcasterList) {
-            HostMediaRecorder.StreamingSettings s = settings.getBroadcaster(broadcasterId);
-            if (isNotExistPreference(broadcasterId)) {
-                Preference preference = new Preference(requireContext());
-                preference.setTitle(s.getName());
-                preference.setKey(broadcasterId);
-                preference.setIconSpaceReserved(false);
-                preferenceCategory.addPreference(preference);
-            }
-        }
+        previewCategory.setVisible(true);
+        broadcasterCategory.setVisible(true);
     }
 
     private void startManager() {

@@ -10,8 +10,9 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 
 public class AudioRTMPBroadcaster extends AbstractRTMPBroadcaster {
     private final HostAudioRecorder mRecorder;
-    public AudioRTMPBroadcaster(HostAudioRecorder recorder, String broadcastURI, String name) {
-        super(recorder, broadcastURI, name);
+
+    public AudioRTMPBroadcaster(HostAudioRecorder recorder, String encoderId) {
+        super(recorder, encoderId);
         mRecorder = recorder;
     }
 

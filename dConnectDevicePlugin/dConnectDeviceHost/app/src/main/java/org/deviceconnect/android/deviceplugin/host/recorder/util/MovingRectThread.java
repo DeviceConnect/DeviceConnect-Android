@@ -179,8 +179,10 @@ public class MovingRectThread {
                 }
             }
 
-            mRect.set(mEndRect);
-            postOnMoved(mRect);
+            if (count == 0) {
+                mRect.set(mEndRect);
+                postOnMoved(mRect);
+            }
         }
     }
 

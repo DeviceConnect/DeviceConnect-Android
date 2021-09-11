@@ -40,6 +40,7 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
 
         setPictureSizePreference(settings);
         setPreviewSizePreference(settings);
+        setPreviewFps(settings);
         setPreviewAutoFocusPreference(settings);
         setPreviewWhiteBalancePreference(settings);
         setPreviewWhiteBalanceTemperaturePreference(settings);
@@ -110,6 +111,35 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
                 if (previewSize != null) {
                     pref.setValue(getValueFromSize(previewSize));
                 }
+                pref.setVisible(true);
+            } else {
+                pref.setEnabled(false);
+            }
+        }
+    }
+
+    private void setPreviewFps(HostMediaRecorder.Settings settings) {
+        ListPreference pref = findPreference("camera_fps");
+        if (pref != null) {
+            List<Range<Integer>> fpsList = settings.getSupportedFps();
+            if (!fpsList.isEmpty()) {
+                List<String> entryValues = new ArrayList<>();
+                for (Range<Integer> fps : fpsList) {
+                    entryValues.add(fps.getLower() + "-" + fps.getUpper());
+                }
+
+                pref.setEntries(entryValues.toArray(new String[0]));
+                pref.setEntryValues(entryValues.toArray(new String[0]));
+                pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
+
+                Range<Integer> previewFps = settings.getPreviewFps();
+                if (previewFps != null) {
+                    pref.setValue(previewFps.getLower() + "-" + previewFps.getUpper());
+                }
+//                int previewSize = settings.getPreviewMaxFrameRate();
+//                if (previewSize != null) {
+//                    pref.setValue(getValueFromSize(previewSize));
+//                }
                 pref.setVisible(true);
             } else {
                 pref.setEnabled(false);
@@ -480,6 +510,20 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
         return null;
     }
 
+    private Range<Integer> getRangeFromValue(String value) {
+        String[] t = value.split("-");
+        if (t.length == 2) {
+            try {
+                int w = Integer.parseInt(t[0].trim());
+                int h = Integer.parseInt(t[1].trim());
+                return new Range<>(w, h);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
     /**
      * 設定が変更された時に呼び出されるリスナー.
      */
@@ -500,6 +544,11 @@ public class SettingsVideoFragment extends SettingsParameterFragment {
             Size size = getSizeFromValue((String) newValue);
             if (size != null) {
                 settings.setPreviewSize(size);
+            }
+        } else if ("camera_fps".equals(key)) {
+            Range<Integer> fps = getRangeFromValue((String) newValue);
+            if (fps != null) {
+                settings.setPreviewFps(fps);
             }
         }
         return true;

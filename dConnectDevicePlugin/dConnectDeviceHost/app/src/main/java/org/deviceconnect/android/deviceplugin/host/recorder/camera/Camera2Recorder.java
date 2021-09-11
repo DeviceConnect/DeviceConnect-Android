@@ -28,7 +28,6 @@ import org.deviceconnect.android.deviceplugin.host.recorder.AbstractMediaRecorde
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.ImageUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
@@ -156,33 +155,20 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     private void initSupportedSettings() {
         CameraWrapper.Options options = mCameraWrapper.getOptions();
 
-        // MediaCodec でエンコードできる最大解像度を取得
-        // TODO h264, h265 で最大解像度が違う場合はどうするべきか？
-        // TODO ハードウェアエンコーダとソフトウェアエンコーダで最大解像度が違うのはどうするべきか？
-        Size maxSize = CapabilityUtil.getSupportedMaxSize("video/avc");
-        List<Size> supportPreviewSizes = new ArrayList<>();
-        for (Size size : options.getSupportedPreviewSizeList()) {
-            if (maxSize != null) {
-                if (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight()) {
-                    supportPreviewSizes.add(size);
-                }
-            }
-        }
-
+        List<Range<Integer>> supportedFpsList = options.getSupportedFpsList();
         mSettings.mSupportedPictureSize = new ArrayList<>(options.getSupportedPictureSizeList());
-        mSettings.mSupportedPreviewSize = supportPreviewSizes;
+        mSettings.mSupportedPreviewSize = new ArrayList<>(options.getSupportedPreviewSizeList());
 
         if (!mSettings.isInitialized()) {
             // カメラ設定
             mSettings.setPictureSize(options.getDefaultPictureSize());
             mSettings.setPreviewSize(options.getDefaultPreviewSize());
-//            mSettings.setPreviewBitRate(2 * 1024 * 1024);
-            mSettings.setPreviewMaxFrameRate(30);
-//            mSettings.setPreviewKeyFrameInterval(1);
-//            mSettings.setPreviewQuality(80);
             mSettings.setPreviewAutoFocusMode(options.getAutoFocusMode());
             mSettings.setPreviewWhiteBalance(options.getAutoWhiteBalanceMode());
             mSettings.setPreviewWhiteBalanceTemperature(5600);
+            if (supportedFpsList.size() > 0) {
+                mSettings.setPreviewFps(supportedFpsList.get(supportedFpsList.size() - 1));
+            }
 
             // 音声設定
             mSettings.setPreviewAudioSource(null);
@@ -191,66 +177,45 @@ public class Camera2Recorder extends AbstractMediaRecorder {
             mSettings.setPreviewChannel(1);
             mSettings.setUseAEC(true);
 
-//            mSettings.setPort(MIME_TYPE_MJPEG, 11000 + mFacing.mValue);
-//            mSettings.setPreviewSize(MIME_TYPE_MJPEG, options.getDefaultPreviewSize());
-//            mSettings.setPreviewQuality(MIME_TYPE_MJPEG, 80);
-//            mSettings.setPreviewMaxFrameRate(MIME_TYPE_MJPEG, 30);
-//
-//            mSettings.setPort(MIME_TYPE_RTSP, 12000 + mFacing.mValue);
-//            mSettings.setPreviewSize(MIME_TYPE_RTSP, options.getDefaultPreviewSize());
-//            mSettings.setPreviewBitRate(MIME_TYPE_RTSP, 2 * 1024 * 1024);
-//            mSettings.setPreviewMaxFrameRate(MIME_TYPE_RTSP, 30);
-//            mSettings.setPreviewKeyFrameInterval(MIME_TYPE_RTSP, 5);
-//
-//            mSettings.setPort(MIME_TYPE_SRT, 13000 + mFacing.mValue);
-//            mSettings.setPreviewSize(MIME_TYPE_SRT, options.getDefaultPreviewSize());
-//            mSettings.setPreviewBitRate(MIME_TYPE_SRT, 2 * 1024 * 1024);
-//            mSettings.setPreviewMaxFrameRate(MIME_TYPE_SRT, 30);
-//            mSettings.setPreviewKeyFrameInterval(MIME_TYPE_SRT, 5);
-//
-//            mSettings.setPreviewSize(MIME_TYPE_RTMP, options.getDefaultPreviewSize());
-//            mSettings.setPreviewBitRate(MIME_TYPE_RTMP, 2 * 1024 * 1024);
-//            mSettings.setPreviewMaxFrameRate(MIME_TYPE_RTMP, 30);
-//            mSettings.setPreviewKeyFrameInterval(MIME_TYPE_RTMP, 5);
-
             // 各サーバ設定
-            mSettings.addPreviewServer(getId() + "-mjpeg");
-            StreamingSettings mjpeg = mSettings.getPreviewServer(getId() + "-mjpeg");
+            mSettings.addEncoder(getId() + "-MJPEG");
+            EncoderSettings mjpeg = mSettings.getEncoderSetting(getId() + "-MJPEG");
             mjpeg.setName("MJPEG");
-            mjpeg.setMimeType(MIME_TYPE_MJPEG);
+            mjpeg.setMimeType(MimeType.MJPEG);
             mjpeg.setPort(11000 + mFacing.mValue);
             mjpeg.setPreviewSize(options.getDefaultPreviewSize());
             mjpeg.setPreviewQuality(80);
             mjpeg.setPreviewMaxFrameRate(30);
 
-            mSettings.addPreviewServer(getId() + "-rtsp");
-            StreamingSettings rtsp = mSettings.getPreviewServer(getId() + "-rtsp");
+            mSettings.addEncoder(getId() + "-RTSP");
+            EncoderSettings rtsp = mSettings.getEncoderSetting(getId() + "-RTSP");
             rtsp.setName("RTSP");
-            rtsp.setMimeType(MIME_TYPE_RTSP);
+            rtsp.setMimeType(MimeType.RTSP);
             rtsp.setPort(12000 + mFacing.mValue);
             rtsp.setPreviewSize(options.getDefaultPreviewSize());
             rtsp.setPreviewBitRate(2 * 1024 * 1024);
             rtsp.setPreviewMaxFrameRate(30);
             rtsp.setPreviewKeyFrameInterval(5);
 
-            mSettings.addPreviewServer(getId() + "-srt");
-            StreamingSettings srt = mSettings.getPreviewServer(getId() + "-srt");
+            mSettings.addEncoder(getId() + "-SRT");
+            EncoderSettings srt = mSettings.getEncoderSetting(getId() + "-SRT");
             srt.setName("SRT");
-            srt.setMimeType(MIME_TYPE_SRT);
+            srt.setMimeType(MimeType.SRT);
             srt.setPort(13000 + mFacing.mValue);
             srt.setPreviewSize(options.getDefaultPreviewSize());
             srt.setPreviewBitRate(2 * 1024 * 1024);
             srt.setPreviewMaxFrameRate(30);
             srt.setPreviewKeyFrameInterval(5);
 
-            mSettings.addBroadcaster(getId() + "-rtmp");
-            StreamingSettings rtmp = mSettings.getBroadcaster(getId() + "-rtmp");
+            mSettings.addEncoder(getId() + "-RTMP");
+            EncoderSettings rtmp = mSettings.getEncoderSetting(getId() + "-RTMP");
             rtmp.setName("RTMP");
-            rtmp.setMimeType(MIME_TYPE_RTMP);
+            rtmp.setMimeType(MimeType.RTMP);
             rtmp.setPreviewSize(options.getDefaultPreviewSize());
             rtmp.setPreviewBitRate(2 * 1024 * 1024);
             rtmp.setPreviewMaxFrameRate(30);
             rtmp.setPreviewKeyFrameInterval(5);
+            rtmp.setBroadcastURI("rtmp://localhost:1935");
 
             mSettings.finishInitialization();
         }
@@ -265,8 +230,8 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     @Override
     public synchronized void clean() {
         super.clean();
-        mCamera2BroadcasterProvider.stopBroadcaster();
-        mCamera2PreviewServerProvider.stopServers();
+        mCamera2BroadcasterProvider.stop();
+        mCamera2PreviewServerProvider.stop();
         mCameraSurfaceDrawingThread.stop(true);
     }
 
@@ -551,7 +516,6 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     }
 
     private class CameraSettings extends Settings {
-
         private List<Size> mSupportedPictureSize = new ArrayList<>();
         private List<Size> mSupportedPreviewSize = new ArrayList<>();
 

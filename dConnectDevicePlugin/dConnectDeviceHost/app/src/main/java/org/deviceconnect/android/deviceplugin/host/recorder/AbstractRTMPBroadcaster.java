@@ -2,13 +2,10 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
-import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.rtmp.RtmpClient;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
-import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
-
     /**
      * RTMP 配信クライアント.
      */
@@ -19,8 +16,13 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
      */
     private Broadcaster.OnEventListener mOnBroadcasterEventListener;
 
-    public AbstractRTMPBroadcaster(HostMediaRecorder recorder, String broadcastURI, String name) {
-        super(recorder, broadcastURI, name);
+    public AbstractRTMPBroadcaster(HostMediaRecorder recorder, String encoderId) {
+        super(recorder, encoderId);
+    }
+
+    @Override
+    public String getMimeType() {
+        return "video/x-rtmp";
     }
 
     @Override
@@ -35,6 +37,12 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
 
     @Override
     public void start(OnStartCallback callback) {
+        String broadcastURI = getBroadcastURI();
+        if (broadcastURI == null) {
+            callback.onFailed(new RuntimeException("broadcastURI is not set."));
+            return;
+        }
+
         VideoEncoder videoEncoder = createVideoEncoder();
         if (videoEncoder != null) {
             setVideoQuality(videoEncoder.getVideoQuality());
@@ -45,9 +53,9 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
             setAudioQuality(audioEncoder.getAudioQuality());
         }
 
-        HostMediaRecorder.StreamingSettings settings = getStreamingSettings();
+        HostMediaRecorder.EncoderSettings settings = getEncoderSettings();
 
-        mRtmpClient = new RtmpClient(getBroadcastURI());
+        mRtmpClient = new RtmpClient(broadcastURI);
         mRtmpClient.setMaxRetryCount(settings.getRetryCount());
         mRtmpClient.setRetryInterval(settings.getRetryInterval());
         mRtmpClient.setVideoEncoder(videoEncoder);
@@ -109,13 +117,15 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
 
     @Override
     public void setMute(boolean mute) {
+        super.setMute(mute);
+
         if (mRtmpClient != null) {
             mRtmpClient.setMute(mute);
         }
     }
 
     @Override
-    public boolean isMute() {
+    public boolean isMuted() {
         return mRtmpClient != null && mRtmpClient.isMute();
     }
 
@@ -129,24 +139,12 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
     }
 
     @Override
-    protected VideoQuality getVideoQuality() {
-        if (mRtmpClient != null) {
-            VideoEncoder videoEncoder = mRtmpClient.getVideoEncoder();
-            if (videoEncoder != null) {
-                return videoEncoder.getVideoQuality();
-            }
-        }
-        return null;
+    protected VideoEncoder getVideoEncoder() {
+        return mRtmpClient != null ? mRtmpClient.getVideoEncoder() : null;
     }
 
     @Override
-    protected AudioQuality getAudioQuality() {
-        if (mRtmpClient != null) {
-            AudioEncoder audioEncoder = mRtmpClient.getAudioEncoder();
-            if (audioEncoder != null) {
-                return audioEncoder.getAudioQuality();
-            }
-        }
-        return null;
+    protected AudioEncoder getAudioEncoder() {
+        return mRtmpClient != null ? mRtmpClient.getAudioEncoder() : null;
     }
 }

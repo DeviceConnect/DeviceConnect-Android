@@ -2,10 +2,7 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
-import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
-import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
-import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.broadcast.SRTClient;
 
 public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
@@ -19,8 +16,13 @@ public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
      */
     private Broadcaster.OnEventListener mOnBroadcasterEventListener;
 
-    public AbstractSRTBroadcaster(HostMediaRecorder recorder, String broadcastURI, String name) {
-       super(recorder, broadcastURI, name);
+    public AbstractSRTBroadcaster(HostMediaRecorder recorder, String id) {
+       super(recorder, id);
+    }
+
+    @Override
+    public String getMimeType() {
+        return "video/MP2T";
     }
 
     @Override
@@ -35,6 +37,12 @@ public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
 
     @Override
     public void start(OnStartCallback callback) {
+        String broadcastURI = getBroadcastURI();
+        if (broadcastURI == null) {
+            callback.onFailed(new RuntimeException("broadcastURI is not set."));
+            return;
+        }
+
         VideoEncoder videoEncoder = createVideoEncoder();
         if (videoEncoder != null) {
             setVideoQuality(videoEncoder.getVideoQuality());
@@ -45,7 +53,7 @@ public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
             setAudioQuality(audioEncoder.getAudioQuality());
         }
 
-        HostMediaRecorder.StreamingSettings settings = getStreamingSettings();
+        HostMediaRecorder.EncoderSettings settings = getEncoderSettings();
 
         mSrtClient = new SRTClient(getBroadcastURI());
         mSrtClient.setMaxRetryCount(settings.getRetryCount());
@@ -109,13 +117,15 @@ public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
 
     @Override
     public void setMute(boolean mute) {
+        super.setMute(mute);
+
         if (mSrtClient != null) {
             mSrtClient.setMute(mute);
         }
     }
 
     @Override
-    public boolean isMute() {
+    public boolean isMuted() {
         return mSrtClient != null && mSrtClient.isMute();
     }
 
@@ -129,24 +139,12 @@ public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
     }
 
     @Override
-    protected VideoQuality getVideoQuality() {
-        if (mSrtClient != null) {
-            VideoEncoder videoEncoder = mSrtClient.getVideoEncoder();
-            if (videoEncoder != null) {
-                return videoEncoder.getVideoQuality();
-            }
-        }
-        return null;
+    protected VideoEncoder getVideoEncoder() {
+        return mSrtClient != null ? mSrtClient.getVideoEncoder() : null;
     }
 
     @Override
-    protected AudioQuality getAudioQuality() {
-        if (mSrtClient != null) {
-            AudioEncoder audioEncoder = mSrtClient.getAudioEncoder();
-            if (audioEncoder != null) {
-                return audioEncoder.getAudioQuality();
-            }
-        }
-        return null;
+    protected AudioEncoder getAudioEncoder() {
+        return mSrtClient != null ? mSrtClient.getAudioEncoder() : null;
     }
 }

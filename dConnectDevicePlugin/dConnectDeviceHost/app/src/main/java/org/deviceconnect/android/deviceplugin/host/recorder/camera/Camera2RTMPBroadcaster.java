@@ -5,8 +5,8 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 
 public class Camera2RTMPBroadcaster extends AbstractRTMPBroadcaster {
 
-    public Camera2RTMPBroadcaster(Camera2Recorder recorder, String broadcastURI, String name) {
-        super(recorder, broadcastURI, name);
+    public Camera2RTMPBroadcaster(Camera2Recorder recorder, String encoderId) {
+        super(recorder, encoderId);
     }
 
     @Override

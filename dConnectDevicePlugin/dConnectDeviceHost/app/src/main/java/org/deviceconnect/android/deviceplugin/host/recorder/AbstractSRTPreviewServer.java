@@ -5,10 +5,8 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
-import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
-import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
 
@@ -26,17 +24,13 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
      */
     private SRTServer mSRTServer;
 
-    public AbstractSRTPreviewServer(Context context, HostMediaRecorder recorder) {
-        this(context, recorder, false);
-    }
-
-    public AbstractSRTPreviewServer(Context context, HostMediaRecorder recorder, boolean useSSL) {
-        super(context, recorder, recorder.getId() + "-srt", useSSL);
+    public AbstractSRTPreviewServer(HostMediaRecorder recorder, String encoderId) {
+        super(recorder, encoderId);
     }
 
     @Override
     public String getUri() {
-        return "srt://localhost:" + getPort();
+        return "srt://localhost:" + getEncoderSettings().getPort();
     }
 
     @Override
@@ -45,46 +39,35 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
     }
 
     @Override
-    public void startWebServer(final OnWebServerStartCallback callback) {
+    public boolean isRunning() {
+        return mSRTServer != null;
+    }
+
+    @Override
+    public void start(final OnStartCallback callback) {
         if (mSRTServer == null) {
             try {
-                HostMediaRecorder.StreamingSettings settings = getStreamingSettings();
-                mSRTServer = new SRTServer(getPort());
+                HostMediaRecorder.EncoderSettings settings = getEncoderSettings();
+                mSRTServer = new SRTServer(getEncoderSettings().getPort());
                 mSRTServer.setStatsInterval(BuildConfig.STATS_INTERVAL);
                 mSRTServer.setShowStats(DEBUG);
                 mSRTServer.setCallback(mCallback);
                 mSRTServer.setSocketOptions(settings.getSRTSocketOptions());
                 mSRTServer.start();
             } catch (Exception e) {
-                callback.onFail();
+                callback.onFailed(e);
                 return;
             }
         }
-        callback.onStart(getUri());
+        callback.onSuccess();
     }
 
     @Override
-    public void stopWebServer() {
+    public void stop() {
         if (mSRTServer != null) {
             mSRTServer.stop();
             mSRTServer = null;
         }
-    }
-
-    @Override
-    public boolean requestSyncFrame() {
-        SRTServer server = mSRTServer;
-        if (server != null) {
-            SRTSession session = server.getSRTSession();
-            if (session != null) {
-                VideoEncoder videoEncoder = session.getVideoEncoder();
-                if (videoEncoder != null) {
-                    videoEncoder.requestSyncKeyFrame();
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     @Override
@@ -115,28 +98,22 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
     }
 
     @Override
-    protected VideoQuality getVideoQuality() {
+    protected VideoEncoder getVideoEncoder() {
         if (mSRTServer != null) {
             SRTSession session = mSRTServer.getSRTSession();
             if (session != null) {
-                VideoEncoder videoEncoder = session.getVideoEncoder();
-                if (videoEncoder != null) {
-                    return videoEncoder.getVideoQuality();
-                }
+                return session.getVideoEncoder();
             }
         }
         return null;
     }
 
     @Override
-    protected AudioQuality getAudioQuality() {
+    protected AudioEncoder getAudioEncoder() {
         if (mSRTServer != null) {
             SRTSession session = mSRTServer.getSRTSession();
             if (session != null) {
-                AudioEncoder audioEncoder = session.getAudioEncoder();
-                if (audioEncoder != null) {
-                    return audioEncoder.getAudioQuality();
-                }
+                return session.getAudioEncoder();
             }
         }
         return null;

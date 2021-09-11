@@ -21,6 +21,7 @@
     <PreferenceCategory
         app:key="recorder_settings_preview_server"
         android:title="@string/host_recorder_settings_server"
+        app:isPreferenceVisible="false"
         app:iconSpaceReserved="false">
 
     </PreferenceCategory>
@@ -28,6 +29,7 @@
     <PreferenceCategory
         app:key="recorder_settings_broadcaster"
         android:title="@string/host_recorder_settings_broadcast"
+        app:isPreferenceVisible="false"
         app:iconSpaceReserved="false">
 
     </PreferenceCategory>

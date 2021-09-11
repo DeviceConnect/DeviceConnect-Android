@@ -19,6 +19,12 @@
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
+            app:key="camera_fps"
+            app:title="@string/host_recorder_settings_framerate"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
             app:key="preview_auto_focus"
             app:title="@string/host_recorder_settings_auto_focus_mode"
             app:iconSpaceReserved="false"

@@ -4,6 +4,7 @@ import android.content.Context;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.LiveStreaming;
 
 import java.util.List;
 
@@ -13,20 +14,18 @@ import java.util.List;
 class ScreenCastPreviewServerProvider extends AbstractPreviewServerProvider {
     ScreenCastPreviewServerProvider(Context context, ScreenCastRecorder recorder) {
         super(context, recorder);
+    }
 
-        List<String> previewList = recorder.getSettings().getPreviewServerList();
-        for (String name : previewList) {
-            HostMediaRecorder.StreamingSettings s = recorder.getSettings().getPreviewServer(name);
-            if (s != null) {
-                String mimeType = s.getMimeType();
-                if ("video/x-mjpeg".equalsIgnoreCase(mimeType)) {
-                    addServer(new ScreenCastMJPEGPreviewServer(context, recorder, false));
-                } else if ("video/x-rtp".equalsIgnoreCase(mimeType)) {
-                    addServer(new ScreenCastRTSPPreviewServer(context, recorder));
-                } else if ("video/MP2T".equalsIgnoreCase(mimeType)) {
-                    addServer(new ScreenCastSRTPreviewServer(context, recorder));
-                }
-            }
+    @Override
+    public LiveStreaming createLiveStreaming(String encoderId, HostMediaRecorder.EncoderSettings encoderSettings) {
+        switch (encoderSettings.getMimeType()) {
+            case MJPEG:
+                return new ScreenCastMJPEGPreviewServer((ScreenCastRecorder) getRecorder(), encoderId);
+            case RTSP:
+                return new ScreenCastRTSPPreviewServer((ScreenCastRecorder) getRecorder(), encoderId);
+            case SRT:
+                return new ScreenCastSRTPreviewServer((ScreenCastRecorder) getRecorder(), encoderId);
         }
+        return null;
     }
 }

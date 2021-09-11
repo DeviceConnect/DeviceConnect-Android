@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.host.recorder.audio;
 import android.Manifest;
 import android.content.Context;
 import android.os.Handler;
-import android.util.Log;
 import android.util.Size;
 
 import androidx.annotation.NonNull;
@@ -75,15 +74,44 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     private void initSettings() {
         if (!mSettings.isInitialized()) {
             mSettings.setPreviewSize(new Size(320, 240));
-//            mSettings.setPreviewBitRate(512 * 1024);
-            mSettings.setPreviewMaxFrameRate(30);
-//            mSettings.setPreviewKeyFrameInterval(1);
 
+            // 音声設定
             mSettings.setPreviewAudioSource(AudioSource.DEFAULT);
             mSettings.setPreviewAudioBitRate(128 * 1024);
             mSettings.setPreviewSampleRate(48000);
             mSettings.setPreviewChannel(1);
             mSettings.setUseAEC(true);
+
+            // 各サーバ設定
+            mSettings.addEncoder(getId() + "-RTSP");
+            EncoderSettings rtsp = mSettings.getEncoderSetting(getId() + "-RTSP");
+            rtsp.setName("RTSP");
+            rtsp.setMimeType(MimeType.RTSP);
+            rtsp.setPort(32000);
+            rtsp.setPreviewSize(new Size(320, 240));
+            rtsp.setPreviewBitRate(2 * 1024 * 1024);
+            rtsp.setPreviewMaxFrameRate(30);
+            rtsp.setPreviewKeyFrameInterval(5);
+
+            mSettings.addEncoder(getId() + "-SRT");
+            EncoderSettings srt = mSettings.getEncoderSetting(getId() + "-SRT");
+            srt.setName("SRT");
+            srt.setMimeType(MimeType.SRT);
+            srt.setPort(33000);
+            srt.setPreviewSize(new Size(320, 240));
+            srt.setPreviewBitRate(2 * 1024 * 1024);
+            srt.setPreviewMaxFrameRate(30);
+            srt.setPreviewKeyFrameInterval(5);
+
+            mSettings.addEncoder(getId() + "-RTMP");
+            EncoderSettings rtmp = mSettings.getEncoderSetting(getId() + "-RTMP");
+            rtmp.setName("RTMP");
+            rtmp.setMimeType(MimeType.RTMP);
+            rtmp.setPreviewSize(new Size(320, 240));
+            rtmp.setPreviewBitRate(2 * 1024 * 1024);
+            rtmp.setPreviewMaxFrameRate(30);
+            rtmp.setPreviewKeyFrameInterval(5);
+            rtmp.setBroadcastURI("rtmp://localhost:1935");
 
             mSettings.finishInitialization();
         }
@@ -236,7 +264,7 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
     // private method.
 
     private String generateAudioFileName() {
-        return "android_audio_" + mSimpleDateFormat.format(new Date()) + AudioConst.FORMAT_TYPE;
+        return "android_audio_" + mSimpleDateFormat.format(new Date()) + ".aac";
     }
 
     protected MP4Recorder createMP4Recorder() {

@@ -62,6 +62,25 @@ public abstract class VideoEncoder extends MediaEncoder {
     public abstract VideoQuality getVideoQuality();
 
     /**
+     * Low Latency の設定を要求します.
+     *
+     * @param lowLatency 1 の場合は、Low Latency を有効、0 の場合は、Low Latency を無効
+     */
+    public void requestLowLatency(int lowLatency) {
+        if (mMediaCodec != null) {
+            if (lowLatency == 1 || lowLatency == 0) {
+                Bundle b = new Bundle();
+                b.putInt(MediaCodec.PARAMETER_KEY_LOW_LATENCY, lowLatency);
+                try {
+                    mMediaCodec.setParameters(b);
+                } catch (Exception e) {
+                    // ignore.
+                }
+            }
+        }
+    }
+
+    /**
      * キーフレームを要求します.
      */
     public void requestSyncKeyFrame() {
@@ -225,6 +244,15 @@ public abstract class VideoEncoder extends MediaEncoder {
             int intraRefresh = videoQuality.getIntraRefresh();
             if (intraRefresh != 0) {
                 format.setInteger(MediaFormat.KEY_INTRA_REFRESH_PERIOD, intraRefresh);
+            }
+        }
+
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
+            Integer lowLatency = videoQuality.getLowLatency();
+            if (lowLatency != null) {
+                if (lowLatency == 1 || lowLatency == 0) {
+                    format.setInteger(MediaFormat.KEY_LOW_LATENCY, lowLatency);
+                }
             }
         }
 

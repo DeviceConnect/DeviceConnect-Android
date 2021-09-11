@@ -4,16 +4,14 @@ import android.content.Context;
 import android.util.Log;
 
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
-import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.AudioStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.MicAACLATMStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStream;
-import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
+import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 
 public abstract class AbstractRTSPPreviewServer extends AbstractPreviewServer {
-
     /**
      * マイムタイプを定義します.
      */
@@ -29,17 +27,14 @@ public abstract class AbstractRTSPPreviewServer extends AbstractPreviewServer {
      */
     private RtspServer mRtspServer;
 
-    public AbstractRTSPPreviewServer(Context context, HostMediaRecorder recorder) {
-        this(context, recorder, false);
-    }
 
-    public AbstractRTSPPreviewServer(Context context, HostMediaRecorder recorder, boolean useSSL) {
-        super(context, recorder, recorder.getId() + "-rtsp", useSSL);
+    public AbstractRTSPPreviewServer(HostMediaRecorder recorder, String encoderId) {
+        super(recorder, encoderId);
     }
 
     @Override
     public String getUri() {
-        return "rtsp://localhost:" + getPort();
+        return "rtsp://localhost:" + getEncoderSettings().getPort();
     }
 
     @Override
@@ -48,44 +43,33 @@ public abstract class AbstractRTSPPreviewServer extends AbstractPreviewServer {
     }
 
     @Override
-    public void startWebServer(final OnWebServerStartCallback callback) {
+    public boolean isRunning() {
+        return mRtspServer != null;
+    }
+
+    @Override
+    public void start(final OnStartCallback callback) {
         if (mRtspServer == null) {
             mRtspServer = new RtspServer();
             mRtspServer.setServerName(SERVER_NAME);
-            mRtspServer.setServerPort(getPort());
+            mRtspServer.setServerPort(getEncoderSettings().getPort());
             mRtspServer.setCallback(mCallback);
             try {
                 mRtspServer.start();
             } catch (Exception e) {
-                callback.onFail();
+                callback.onFailed(e);
                 return;
             }
         }
-        callback.onStart(getUri());
+        callback.onSuccess();
     }
 
     @Override
-    public void stopWebServer() {
+    public void stop() {
         if (mRtspServer != null) {
             mRtspServer.stop();
             mRtspServer = null;
         }
-    }
-
-    @Override
-    public boolean requestSyncFrame() {
-        RtspServer server = mRtspServer;
-        if (server != null) {
-            RtspSession session = server.getRtspSession();
-            if (session != null) {
-                VideoStream videoStream = session.getVideoStream();
-                if (videoStream != null) {
-                    videoStream.getVideoEncoder().requestSyncKeyFrame();
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     @Override
@@ -115,13 +99,13 @@ public abstract class AbstractRTSPPreviewServer extends AbstractPreviewServer {
     }
 
     @Override
-    protected VideoQuality getVideoQuality() {
+    protected VideoEncoder getVideoEncoder() {
         if (mRtspServer != null) {
             RtspSession session = mRtspServer.getRtspSession();
             if (session != null) {
-                VideoStream videoStream = session.getVideoStream();
-                if (videoStream != null) {
-                    return videoStream.getVideoEncoder().getVideoQuality();
+                VideoStream stream = session.getVideoStream();
+                if (stream  != null) {
+                    return stream.getVideoEncoder();
                 }
             }
         }
@@ -129,13 +113,13 @@ public abstract class AbstractRTSPPreviewServer extends AbstractPreviewServer {
     }
 
     @Override
-    protected AudioQuality getAudioQuality() {
+    protected AudioEncoder getAudioEncoder() {
         if (mRtspServer != null) {
             RtspSession session = mRtspServer.getRtspSession();
             if (session != null) {
-                AudioStream audioStream = session.getAudioStream();
-                if (audioStream != null) {
-                    return audioStream.getAudioEncoder().getAudioQuality();
+                AudioStream stream = session.getAudioStream();
+                if (stream  != null) {
+                    return stream.getAudioEncoder();
                 }
             }
         }

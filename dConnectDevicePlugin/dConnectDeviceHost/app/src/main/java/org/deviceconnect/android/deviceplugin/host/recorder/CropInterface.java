@@ -3,6 +3,14 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 import android.graphics.Rect;
 
 public interface CropInterface {
+
+    /**
+     * PreviewSurfaceView で枠を表示する時に表示する名前を取得します.
+     *
+     * @return 名前
+     */
+    String getName();
+
     /**
      * start で指定された矩形から end で指定された矩形に移動します.
      *

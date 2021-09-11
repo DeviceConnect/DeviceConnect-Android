@@ -101,7 +101,7 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
         CameraWrapper cameraWrapper = mRecorder.getCameraWrapper();
         cameraWrapper.getOptions().setPictureSize(settings.getPictureSize());
         cameraWrapper.getOptions().setPreviewSize(settings.getPreviewSize());
-        cameraWrapper.getOptions().setFps(settings.getPreviewMaxFrameRate());
+        cameraWrapper.getOptions().setFps(settings.getPreviewFps());
         cameraWrapper.getOptions().setAutoFocusMode(settings.getPreviewAutoFocusMode());
         cameraWrapper.getOptions().setAutoWhiteBalanceMode(settings.getPreviewWhiteBalance());
         cameraWrapper.getOptions().setWhiteBalanceTemperature(settings.getPreviewWhiteBalanceTemperature());

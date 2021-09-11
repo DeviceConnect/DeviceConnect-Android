@@ -24,7 +24,7 @@ public class SettingsMJPEGFragment extends SettingsParameterFragment {
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        getPreferenceManager().setSharedPreferencesName(getSettingName());
+        getPreferenceManager().setSharedPreferencesName(getEncoderId());
         setPreferencesFromResource(R.xml.settings_host_recorder_mjpeg, rootKey);
     }
 
@@ -32,7 +32,7 @@ public class SettingsMJPEGFragment extends SettingsParameterFragment {
     public void onBindService() {
         mMediaRecorder = getRecorder();
 
-        HostMediaRecorder.StreamingSettings settings = getStreamingSetting();
+        HostMediaRecorder.EncoderSettings settings = getStreamingSetting();
 
         setPreviewServerPort();
         setPreviewServerUrl(settings.getPort());
@@ -49,9 +49,9 @@ public class SettingsMJPEGFragment extends SettingsParameterFragment {
         setPreviewClipPreference("preview_clip_bottom");
     }
 
-    private HostMediaRecorder.StreamingSettings getStreamingSetting() {
+    private HostMediaRecorder.EncoderSettings getStreamingSetting() {
         HostMediaRecorder.Settings s = mMediaRecorder.getSettings();
-        return s.getPreviewServer(getSettingName());
+        return s.getEncoderSetting(getEncoderId());
     }
 
     private void setPreviewServerPort() {
@@ -129,7 +129,7 @@ public class SettingsMJPEGFragment extends SettingsParameterFragment {
      *
      * @param settings レコーダの設定
      */
-    private void setPreviewSizePreference(HostMediaRecorder.StreamingSettings settings) {
+    private void setPreviewSizePreference(HostMediaRecorder.EncoderSettings settings) {
         ListPreference pref = findPreference("camera_preview_size");
         if (pref != null) {
             List<Size> previewSizes = getSupportedPreviewSizes();
@@ -239,7 +239,7 @@ public class SettingsMJPEGFragment extends SettingsParameterFragment {
             return false;
         }
 
-        HostMediaRecorder.StreamingSettings settings = getStreamingSetting();
+        HostMediaRecorder.EncoderSettings settings = getStreamingSetting();
 
         String key = preference.getKey();
         if ("camera_preview_size".equals(key)) {

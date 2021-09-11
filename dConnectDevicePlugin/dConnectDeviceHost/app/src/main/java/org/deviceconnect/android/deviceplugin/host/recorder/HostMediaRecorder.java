@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 import android.content.Context;
 import android.graphics.Rect;
 import android.os.Build;
+import android.util.Log;
 import android.util.Range;
 import android.util.Size;
 
@@ -127,7 +128,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
      *
      * @return 開始したプレビュー配信サーバのリスト
      */
-    List<PreviewServer> startPreview();
+    List<LiveStreaming> startPreview();
 
     /**
      * プレビュー配信サーバを停止します.
@@ -147,7 +148,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
      * @param broadcastURI ブロードキャスト先のURI
      * @return ブロードキャストしているクラス
      */
-    Broadcaster startBroadcaster(String broadcastURI);
+    List<LiveStreaming> startBroadcaster(String broadcastURI);
 
     /**
      * ブロードキャストを停止します.
@@ -248,7 +249,8 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         MJPEG("video/x-mjpeg"),
         RTSP("video/x-rtp"),
         SRT("video/MP2T"),
-        RTMP("video/x-rtmp");
+        RTMP("video/x-rtmp"),
+        UNKNOWN("");
 
         private final String mValue;
 
@@ -266,14 +268,15 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
                     return type;
                 }
             }
-            return null;
+            return UNKNOWN;
         }
     }
 
     enum AudioSource {
         DEFAULT("default"),
         MIC("mic"),
-        APP("app");
+        APP("app"),
+        NONE("none");
 
         private final String mSource;
 
@@ -291,18 +294,18 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
                     return audioSource;
                 }
             }
-            return null;
+            return NONE;
         }
     }
 
-    enum VideoEncoderName {
+    enum VideoCodec {
         H264("h264", "video/avc"),
         H265("h265", "video/hevc");
 
         private final String mName;
         private final String mMimeType;
 
-        VideoEncoderName(String name, String mimeType) {
+        VideoCodec(String name, String mimeType) {
             mName = name;
             mMimeType = mimeType;
         }
@@ -315,8 +318,8 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             return mMimeType;
         }
 
-        public static VideoEncoderName nameOf(String name) {
-            for (VideoEncoderName encoder : values()) {
+        public static VideoCodec nameOf(String name) {
+            for (VideoCodec encoder : values()) {
                 if (encoder.getName().equalsIgnoreCase(name)) {
                     return encoder;
                 }
@@ -442,7 +445,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          *
          * @param servers 開始したプレビュー配信サーバ
          */
-        void onPreviewStarted(List<PreviewServer> servers);
+        void onPreviewStarted(List<LiveStreaming> servers);
 
         /**
          * プレビュー配信を停止した時に呼び出されます.
@@ -459,16 +462,14 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         /**
          * ブロードキャストを開始した時に呼び出されます.
          *
-         * @param broadcaster 開始したブロードキャスト
+         * @param broadcasters 開始したブロードキャスト
          */
-        void onBroadcasterStarted(Broadcaster broadcaster);
+        void onBroadcasterStarted(List<LiveStreaming> broadcasters);
 
         /**
          * ブロードキャストを停止した時に呼び出されます.
-         *
-         * @param broadcaster 停止したブロードキャスト
          */
-        void onBroadcasterStopped(Broadcaster broadcaster);
+        void onBroadcasterStopped();
 
         /**
          * ブロードキャストでエラーが発生したときに呼び出されます.
@@ -476,7 +477,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param broadcaster エラーが発生した Broadcaster
          * @param e エラー原因の例外
          */
-        void onBroadcasterError(Broadcaster broadcaster, Exception e);
+        void onBroadcasterError(LiveStreaming broadcaster, Exception e);
 
         /**
          * レコーダで発生したエラーを通知します.
@@ -486,16 +487,16 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         void onError(Exception e);
     }
 
-    class StreamingSettings {
+    class EncoderSettings {
         private static final int DEFAULT_PREVIEW_MAX_FRAME_RATE = 30;
         private static final int DEFAULT_PREVIEW_BITRATE = 2 * 1024 * 1024;
-        private static final String DEFAULT_PREVIEW_ENCODER = VideoEncoderName.H264.mName;
+        private static final String DEFAULT_PREVIEW_ENCODER = VideoCodec.H264.mName;
         private static final int DEFAULT_PREVIEW_KEY_FRAME_INTERVAL = 1;
 
         private final PropertyUtil mProperty;
         private final Context mContext;
 
-        public StreamingSettings(Context context, String name) {
+        public EncoderSettings(Context context, String name) {
             mContext = context;
             mProperty = new PropertyUtil(context, name);
         }
@@ -530,8 +531,8 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          *
          * @return マイムタイプ
          */
-        public String getMimeType() {
-            return mProperty.getString("mimeType", null);
+        public MimeType getMimeType() {
+            return MimeType.typeOf(mProperty.getString("mime_type", null));
         }
 
         /**
@@ -539,8 +540,11 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          *
          * @param mimeType マイムタイプ
          */
-        public void setMimeType(String mimeType) {
-            mProperty.put("mimeType", mimeType);
+        public void setMimeType(MimeType mimeType) {
+            if (mimeType == null) {
+                throw new IllegalArgumentException("mimeType is null.");
+            }
+            mProperty.put("mime_type", mimeType.getValue());
         }
 
         /**
@@ -559,6 +563,24 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public void setPort(int port) {
             mProperty.put("port", port);
+        }
+
+        /**
+         * SSL を使用するか確認します.
+         *
+         * @return SSL を使用する場合はtrue、それ以外はfalse
+         */
+        public boolean isUseSSL() {
+            return mProperty.getBoolean("use_ssl", false);
+        }
+
+        /**
+         * SSL 使用フラグを設定します.
+         *
+         * @param useSSL SSL 使用フラグ
+         */
+        public void setUseSSL(boolean useSSL) {
+            mProperty.put("use_ssl", useSSL);
         }
 
         //// MediaCodec
@@ -586,8 +608,8 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          *
          * @return エンコード名
          */
-        public VideoEncoderName getPreviewEncoderName() {
-            return VideoEncoderName.nameOf(getPreviewEncoder());
+        public VideoCodec getPreviewEncoderName() {
+            return VideoCodec.nameOf(getPreviewEncoder());
         }
 
         /**
@@ -863,6 +885,28 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         }
 
         /**
+         * サポートしているエンコーダの解像度の最大値を取得します.
+         *
+         * @param mimeType マイムタイプ
+         * @return サポートしている解像度の最大値
+         */
+        public Size getSupportedPreviewSize(String mimeType) {
+            return CapabilityUtil.getSupportedMaxSize(mimeType);
+        }
+
+        /**
+         * 指定されたサイズがサポートされているか確認します.
+         *
+         * @param mimeType マイムタイプ
+         * @param size 解像度
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
+        public boolean isSupportedPreviewSize(String mimeType, Size size) {
+            Size maxSize = getSupportedPreviewSize(mimeType);
+            return maxSize != null && (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight());
+        }
+
+        /**
          * サポートしているエンコーダのリストを取得します.
          *
          * @return サポートしているエンコーダのリスト
@@ -870,7 +914,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         public List<String> getSupportedVideoEncoders() {
             List<String> list = new ArrayList<>();
             List<String> supported = CapabilityUtil.getSupportedVideoEncoders();
-            for (VideoEncoderName encoderName : VideoEncoderName.values()) {
+            for (VideoCodec encoderName : VideoCodec.values()) {
                 if (supported.contains(encoderName.getMimeType())) {
                     list.add(encoderName.getName());
                 }
@@ -884,7 +928,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return サポートしているプロファイル・レベルの一覧
          */
         public List<ProfileLevel> getSupportedProfileLevel() {
-            VideoEncoderName encoderName = getPreviewEncoderName();
+            VideoCodec encoderName = getPreviewEncoderName();
             return CapabilityUtil.getSupportedProfileLevel(encoderName.getMimeType());
         }
 
@@ -1068,11 +1112,6 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         private final PropertyUtil mProperty;
         private final Context mContext;
 
-        private static final int DEFAULT_PREVIEW_MAX_FRAME_RATE = 30;
-        private static final int DEFAULT_PREVIEW_BITRATE = 2 * 1024 * 1024;
-        private static final String DEFAULT_PREVIEW_ENCODER = VideoEncoderName.H264.mName;
-        private static final int DEFAULT_PREVIEW_KEY_FRAME_INTERVAL = 1;
-
         public Settings(Context context, HostMediaRecorder recorder) {
             mContext = context;
             mProperty = new PropertyUtil(context, recorder.getId());
@@ -1098,69 +1137,69 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * 保存データを初期化します.
          */
         public void clear() {
-            for (String name : getPreviewServerList()) {
-               getPreviewServer(name).clear();
-            }
-            for (String name : getBroadcasterList()) {
-                getBroadcaster(name).clear();
+            for (String encoderId : getEncoderIdList()) {
+                getEncoderSetting(encoderId).clear();
             }
             mProperty.clear();
         }
 
-        public List<String> getPreviewServerList() {
-            return mProperty.getArrayString("preview_server_list");
-        }
-
-        public StreamingSettings getPreviewServer(String name) {
-            List<String> previewServerList = getPreviewServerList();
-            if (previewServerList.contains(name)) {
-                return new StreamingSettings(mContext, name);
+        /**
+         * 指定された ID に対応するエンコーダの設定を取得します.
+         *
+         * @param encoderId 配信先の設定の ID
+         * @return エンコーダ設定
+         */
+        public EncoderSettings getEncoderSetting(String encoderId) {
+            List<String> encoderSettingList = getEncoderIdList();
+            if (encoderSettingList.contains(encoderId)) {
+                return new EncoderSettings(mContext, encoderId);
             }
             return null;
         }
 
-        public void addPreviewServer(String name) {
-            List<String> previewServerList = getPreviewServerList();
-            if (previewServerList.contains(name)) {
+        /**
+         * エンコーダの ID リストを取得します.
+         *
+         * @return エンコーダリスト
+         */
+        public List<String> getEncoderIdList() {
+            return mProperty.getArrayString("encoder_id_list");
+        }
+
+        /**
+         * エンコーダを追加します.
+         *
+         * 既に同じ ID が存在する場合には何も処理を行いません。
+         *
+         * @param encoderId 追加するエンコーダ ID
+         */
+        public void addEncoder(String encoderId) {
+            List<String> encoderList = getEncoderIdList();
+            if (encoderList.contains(encoderId)) {
                 return;
             }
-            previewServerList.add(name);
-            mProperty.put("preview_server_list", previewServerList);
+            encoderList.add(encoderId);
+            mProperty.put("encoder_id_list", encoderList);
         }
 
-        public void removePreviewServer(String name) {
-            List<String> previewServerList = getPreviewServerList();
-            previewServerList.remove(name);
-            mProperty.put("preview_server_list", previewServerList);
-        }
-
-        public List<String> getBroadcasterList() {
-            return mProperty.getArrayString("broadcaster_list");
-        }
-
-        public StreamingSettings getBroadcaster(String name) {
-            List<String> broadcasterList = getBroadcasterList();
-            if (broadcasterList.contains(name)) {
-                return new StreamingSettings(mContext, name);
+        /**
+         * エンコーダを削除します.
+         *
+         * @param encoderId 削除するエンコーダ ID
+         */
+        public void removeEncoder(String encoderId) {
+            EncoderSettings encoderSettings = getEncoderSetting(encoderId);
+            if (encoderId != null) {
+                encoderSettings.clear();
             }
-            return null;
-        }
 
-        public void addBroadcaster(String name) {
-            List<String> broadcasterList = getBroadcasterList();
-            if (broadcasterList.contains(name)) {
-                return;
-            }
-            broadcasterList.add(name);
-            mProperty.put("broadcaster_list", broadcasterList);
-        }
+            List<String> encoderList = getEncoderIdList();
+            Log.e("ABC", "#$$$$ " + encoderList);
+            encoderList.remove(encoderId);
+            Log.e("ABC", "#$$$$ end: " + encoderList);
 
-        public void removeBroadcaster(String name) {
-            List<String> broadcasterList = getBroadcasterList();
-            broadcasterList.remove(name);
-            mProperty.put("broadcaster_list", broadcasterList);
+            mProperty.put("encoder_id_list", encoderList);
         }
-
 
         // カメラ設定
 
@@ -1181,13 +1220,13 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param pictureSize 写真サイズ
          */
         public void setPictureSize(Size pictureSize) {
+            if (pictureSize == null) {
+                throw new IllegalArgumentException("pictureSize is not set.");
+            }
             if (!isSupportedPictureSize(pictureSize)) {
                 throw new IllegalArgumentException("pictureSize is not supported.");
             }
-            mProperty.put(
-                    "picture_size_width",
-                    "picture_size_height",
-                    pictureSize);
+            mProperty.put("picture_size_width", "picture_size_height", pictureSize);
         }
 
         /**
@@ -1207,6 +1246,9 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param previewSize プレビューサイズ
          */
         public void setPreviewSize(Size previewSize) {
+            if (previewSize == null) {
+                throw new IllegalArgumentException("previewSize is not set.");
+            }
             if (!isSupportedPreviewSize(previewSize)) {
                 throw new IllegalArgumentException("previewSize is not supported.");
             }
@@ -1214,24 +1256,70 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         }
 
         /**
+         * 設定が近い fps を取得します.
+         *
+         * @param frameRate フレームレート
+         * @return fps
+         */
+        public Range<Integer> getPreviewFpsFromFrameRate(int frameRate) {
+            List<Range<Integer>> fpsList = getSupportedFps();
+            for (Range<Integer> fps : fpsList) {
+                if (frameRate == fps.getLower() && frameRate == fps.getUpper()) {
+                    return fps;
+                }
+            }
+            Range<Integer> t = null;
+            int diff = Integer.MAX_VALUE;
+            for (Range<Integer> fps : fpsList) {
+                if (fps.getLower() < frameRate && frameRate <= fps.getUpper()) {
+                    if (t != null) {
+                        int a = fps.getUpper() - frameRate;
+                        int b = fps.getLower() - frameRate;
+                        int l = a * a + b * b;
+                        if (l < diff) {
+                            diff = l;
+                            t = fps;
+                        }
+                    } else {
+                        t = fps;
+                    }
+                }
+            }
+            return t;
+        }
+
+        /**
          * フレームレートを取得します.
          *
          * @return フレームレート
          */
-        public int getPreviewMaxFrameRate() {
-            return mProperty.getInteger("preview_framerate", DEFAULT_PREVIEW_MAX_FRAME_RATE);
+        public Range<Integer> getPreviewFps() {
+            Integer lower = mProperty.getInteger("preview_fps_lower", null);
+            Integer upper = mProperty.getInteger("preview_fps_upper", null);
+            if (lower != null && upper != null) {
+                return new Range<>(lower, upper);
+            }
+            return null;
         }
 
         /**
          * フレームレートを設定します.
          *
-         * @param previewMaxFrameRate フレームレート
+         * サポートされていないフレームレート場合は IllegalArgumentException を発生させます。
+         *
+         * @param fps フレームレート
          */
-        public void setPreviewMaxFrameRate(Integer previewMaxFrameRate) {
-            if (previewMaxFrameRate <= 0) {
-                throw new IllegalArgumentException("previewMaxFrameRate is zero or negative.");
+        public void setPreviewFps(Range<Integer> fps) {
+            if (fps == null) {
+                mProperty.remove("preview_fps_lower");
+                mProperty.remove("preview_fps_upper");
+            } else {
+                if (!isSupportedFps(fps)) {
+                    throw new IllegalArgumentException("previewFps is not supported.");
+                }
+                mProperty.put("preview_fps_lower", fps.getLower());
+                mProperty.put("preview_fps_upper", fps.getUpper());
             }
-            mProperty.put("preview_framerate", previewMaxFrameRate);
         }
 
         /**
@@ -1462,10 +1550,23 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             }
         }
 
+        /**
+         * 自動露出モードを取得します.
+         *
+         * @return 自動露出モード
+         */
         public Integer getAutoExposureMode() {
             return mProperty.getInteger("preview_auto_exposure_mode", null);
         }
 
+        /**
+         * 自動露出モードを設定します.
+         *
+         * mode に null が指定された場合には設定を削除します。
+         * サポートされていない値が指定された場合には、IllegalArgumentException が発生します。
+         *
+         * @param mode 自動露出モード
+         */
         public void setAutoExposureMode(Integer mode) {
             if (mode == null) {
                 mProperty.remove("preview_auto_exposure_mode");
@@ -1477,10 +1578,23 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             }
         }
 
+        /**
+         * 露出時間を取得します.
+         *
+         * @return 露出時間
+         */
         public Long getSensorExposureTime() {
             return mProperty.getLong("preview_sensor_exposure_time", null);
         }
 
+        /**
+         * 露出時間を設定します.
+         *
+         * mode に null が指定された場合には設定を削除します。
+         * サポートされていない値が指定された場合には、IllegalArgumentException が発生します。
+         *
+         * @param exposureTime 露出時間
+         */
         public void setSensorExposureTime(Long exposureTime) {
             if (exposureTime == null) {
                 mProperty.remove("preview_sensor_exposure_time");
@@ -1492,10 +1606,23 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             }
         }
 
+        /**
+         * ISO 感度を取得します.
+         *
+         * @return ISO 感度
+         */
         public Integer getSensorSensitivity() {
             return mProperty.getInteger("preview_sensor_sensitivity", null);
         }
 
+        /**
+         * ISO 感度を設定します.
+         *
+         * mode に null が指定された場合には設定を削除します。
+         * サポートされていない値が指定された場合には、IllegalArgumentException が発生します。
+         *
+         * @param sensitivity ISO 感度
+         */
         public void setSensorSensitivity(Integer sensitivity) {
             if (sensitivity == null) {
                 mProperty.remove("preview_sensor_sensitivity");
@@ -1560,7 +1687,6 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
                 mProperty.put("preview_sensor_white_balance_temperature", temperature);
             }
         }
-
 
         /// サポートしているデータサイズ
 
@@ -1693,7 +1819,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         public List<String> getSupportedVideoEncoders() {
             List<String> list = new ArrayList<>();
             List<String> supported = CapabilityUtil.getSupportedVideoEncoders();
-            for (VideoEncoderName encoderName : VideoEncoderName.values()) {
+            for (VideoCodec encoderName : VideoCodec.values()) {
                 if (supported.contains(encoderName.getMimeType())) {
                     list.add(encoderName.getName());
                 }
@@ -1706,22 +1832,50 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          *
          * @return サポートしているプロファイル・レベルの一覧
          */
-        public List<ProfileLevel> getSupportedProfileLevel(VideoEncoderName encoderName) {
+        public List<ProfileLevel> getSupportedProfileLevel(VideoCodec encoderName) {
             return CapabilityUtil.getSupportedProfileLevel(encoderName.getMimeType());
         }
 
+        /**
+         * サポートしている手ぶれ補正のリストを取得します.
+         *
+         * サポートしていない場合は、空のリストを返却します。
+         *
+         * @return サポートしている手ぶれ補正のリスト
+         */
         public List<Integer> getSupportedStabilizationList() {
             return new ArrayList<>();
         }
 
+        /**
+         * サポートしている光学手ぶれ補正のリストを取得します.
+         *
+         * サポートしていない場合は、空のリストを返却します。
+         *
+         * @return サポートしている光学手ぶれ補正のリスト
+         */
         public List<Integer> getSupportedOpticalStabilizationList() {
             return new ArrayList<>();
         }
 
+        /**
+         * サポートしているノイズ低減モートのリストを取得します.
+         *
+         * サポートしていない場合は、空のリストを返却します。
+         *
+         * @return サポートしているノイズ低減モートのリスト
+         */
         public List<Integer> getSupportedNoiseReductionList() {
             return new ArrayList<>();
         }
 
+        /**
+         * サポートしている焦点距離のリストを取得します.
+         *
+         * サポートしていない場合は、空のリストを返却します。
+         *
+         * @return サポートしている焦点距離のリスト
+         */
         public List<Float> getSupportedFocalLengthList() {
             return new ArrayList<>();
         }
@@ -1938,12 +2092,13 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         /**
          * 指定されたプロファイルとレベルがサポートされているか確認します.
          *
+         * @param codec コーデック
          * @param profile プロファイル
          * @param level レベル
          * @return サポートされている場合はtrue、それ以外はfalse
          */
-        public boolean isSupportedProfileLevel(VideoEncoderName encoderName, int profile, int level) {
-            List<ProfileLevel> list = getSupportedProfileLevel(encoderName);
+        public boolean isSupportedProfileLevel(VideoCodec codec, int profile, int level) {
+            List<ProfileLevel> list = getSupportedProfileLevel(codec);
             if (list != null) {
                 for (ProfileLevel pl : list) {
                     if (profile == pl.getProfile() && level == pl.getLevel()) {
@@ -2045,7 +2200,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return プレビュー音声が有効の場合はtrue、それ以外はfalse
          */
         public boolean isAudioEnabled() {
-            return getPreviewAudioSource() != null;
+            return getPreviewAudioSource() != AudioSource.NONE;
         }
 
         /**

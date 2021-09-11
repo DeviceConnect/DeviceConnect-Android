@@ -171,7 +171,7 @@ public class HostMediaRecorderManager {
                 }
 
                 @Override
-                public void onPreviewStarted(List<PreviewServer> servers) {
+                public void onPreviewStarted(List<LiveStreaming> servers) {
                     postOnPreviewStarted(recorder, servers);
                 }
 
@@ -186,17 +186,17 @@ public class HostMediaRecorderManager {
                 }
 
                 @Override
-                public void onBroadcasterStarted(Broadcaster broadcaster) {
-                    postOnBroadcasterStarted(recorder, broadcaster);
+                public void onBroadcasterStarted(List<LiveStreaming> broadcasters) {
+                    postOnBroadcasterStarted(recorder, broadcasters);
                 }
 
                 @Override
-                public void onBroadcasterStopped(Broadcaster broadcaster) {
-                    postOnBroadcasterStopped(recorder, broadcaster);
+                public void onBroadcasterStopped() {
+                    postOnBroadcasterStopped(recorder);
                 }
 
                 @Override
-                public void onBroadcasterError(Broadcaster broadcaster, Exception e) {
+                public void onBroadcasterError(LiveStreaming broadcaster, Exception e) {
                     postOnBroadcasterError(recorder, broadcaster, e);
                 }
 
@@ -584,7 +584,7 @@ public class HostMediaRecorderManager {
         }
     }
 
-    private void postOnPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers) {
+    private void postOnPreviewStarted(HostMediaRecorder recorder, List<LiveStreaming> servers) {
         for (OnEventListener l : mOnEventListeners) {
             l.onPreviewStarted(recorder, servers);
         }
@@ -602,19 +602,19 @@ public class HostMediaRecorderManager {
         }
     }
 
-    private void postOnBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster) {
+    private void postOnBroadcasterStarted(HostMediaRecorder recorder, List<LiveStreaming> broadcasters) {
         for (OnEventListener l : mOnEventListeners) {
-            l.onBroadcasterStarted(recorder, broadcaster);
+            l.onBroadcasterStarted(recorder, broadcasters);
         }
     }
 
-    private void postOnBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster) {
+    private void postOnBroadcasterStopped(HostMediaRecorder recorder) {
         for (OnEventListener l : mOnEventListeners) {
-            l.onBroadcasterStopped(recorder, broadcaster);
+            l.onBroadcasterStopped(recorder);
         }
     }
 
-    private void postOnBroadcasterError(HostMediaRecorder recorder, Broadcaster broadcaster, Exception e) {
+    private void postOnBroadcasterError(HostMediaRecorder recorder, LiveStreaming broadcaster, Exception e) {
         for (OnEventListener l : mOnEventListeners) {
             l.onBroadcasterError(recorder, broadcaster, e);
         }
@@ -660,13 +660,13 @@ public class HostMediaRecorderManager {
         void onMuteChanged(HostMediaRecorder recorder, boolean mute);
         void onConfigChanged(HostMediaRecorder recorder);
 
-        void onPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers);
+        void onPreviewStarted(HostMediaRecorder recorder, List<LiveStreaming> servers);
         void onPreviewStopped(HostMediaRecorder recorder);
         void onPreviewError(HostMediaRecorder recorder, Exception e);
 
-        void onBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster);
-        void onBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster);
-        void onBroadcasterError(HostMediaRecorder recorder, Broadcaster broadcaster, Exception e);
+        void onBroadcasterStarted(HostMediaRecorder recorder, List<LiveStreaming> broadcasters);
+        void onBroadcasterStopped(HostMediaRecorder recorder);
+        void onBroadcasterError(HostMediaRecorder recorder, LiveStreaming broadcaster, Exception e);
 
         void onTakePhoto(HostMediaRecorder recorder, String uri, String filePath, String mimeType);
 

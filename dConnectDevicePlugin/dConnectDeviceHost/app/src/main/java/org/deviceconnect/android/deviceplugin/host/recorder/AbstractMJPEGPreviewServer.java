@@ -29,8 +29,8 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
      */
     private MJPEGServer mMJPEGServer;
 
-    public AbstractMJPEGPreviewServer(Context context, HostMediaRecorder recorder, boolean useSSL) {
-        super(context, recorder, recorder.getId() + "-mjpeg", useSSL);
+    public AbstractMJPEGPreviewServer(HostMediaRecorder recorder, String encoderId) {
+        super(recorder, encoderId);
     }
 
     // PreviewServer
@@ -46,17 +46,22 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
     }
 
     @Override
-    public void startWebServer(final OnWebServerStartCallback callback) {
+    public boolean isRunning() {
+        return mMJPEGServer != null;
+    }
+
+    @Override
+    public void start(final OnStartCallback callback) {
         if (mMJPEGServer == null) {
             SSLContext sslContext = getSSLContext();
             if (useSSLContext() && sslContext == null) {
-                callback.onFail();
+                callback.onFailed(new RuntimeException("Failed to create a SSLContext."));
                 return;
             }
 
             mMJPEGServer = new MJPEGServer();
             mMJPEGServer.setServerName(SERVER_NAME);
-            mMJPEGServer.setServerPort(getPort());
+            mMJPEGServer.setServerPort(getEncoderSettings().getPort());
             mMJPEGServer.setCallback(mCallback);
             if (useSSLContext()) {
                 mMJPEGServer.setSSLContext(sslContext);
@@ -64,25 +69,19 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
             try {
                 mMJPEGServer.start();
             } catch (Exception e) {
-                callback.onFail();
+                callback.onFailed(e);
                 return;
             }
         }
-        callback.onStart(getUri());
+        callback.onSuccess();
     }
 
     @Override
-    public void stopWebServer() {
+    public void stop() {
         if (mMJPEGServer != null) {
             mMJPEGServer.stop();
             mMJPEGServer = null;
         }
-    }
-
-    @Override
-    public boolean requestSyncFrame() {
-        // 何もしない
-        return false;
     }
 
     @Override
@@ -128,7 +127,7 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
      */
     private void setMJPEGQuality(MJPEGQuality quality) {
         HostMediaRecorder recorder = getRecorder();
-        HostMediaRecorder.StreamingSettings settings = getStreamingSettings();
+        HostMediaRecorder.EncoderSettings settings = getEncoderSettings();
 
         EGLSurfaceDrawingThread d = recorder.getSurfaceDrawingThread();
         Size previewSize = settings.getPreviewSize();

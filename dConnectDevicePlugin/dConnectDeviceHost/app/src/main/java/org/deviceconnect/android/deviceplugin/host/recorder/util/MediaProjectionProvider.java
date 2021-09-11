@@ -122,7 +122,11 @@ public class MediaProjectionProvider {
         // 画面に HOST プラグイン関連の画面が表示されている場合は、Activity が起動できるので
         // そのまま Context#startActivity を実行します。
         if (getApp().isDeviceConnectClassOfTopActivity() || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            mContext.startActivity(intent);
+            try {
+                mContext.startActivity(intent);
+            } catch (Exception e) {
+                callback.onDisallowed();
+            }
         } else {
             // Android 10(Q) からは、バックグラウンドから Activity を起動できなくなったので、
             // Notification から起動するようにします。

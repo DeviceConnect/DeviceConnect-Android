@@ -13,10 +13,12 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.recorder.CropInterface;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -62,8 +64,9 @@ public class PreviewSurfaceView extends FrameLayout {
                 Rect cropRect = holder.mCropRect;
                 Object tag = holder.mTag;
 
-                float newWidth = cropRect.width() * detector.getScaleFactor();
-                float newHeight = cropRect.height() * detector.getScaleFactor();
+                float scaleFactor = Math.max(0.1f, Math.min(detector.getScaleFactor(), 5.0f));
+                float newWidth = cropRect.width() * scaleFactor;
+                float newHeight = cropRect.height() * scaleFactor;
 
                 if (mPreviewWidth < newWidth) {
                     newWidth = mPreviewWidth;
@@ -208,6 +211,11 @@ public class PreviewSurfaceView extends FrameLayout {
         }
     }
 
+    /**
+     * プレビューの表示を行う SurfaceView を取得します.
+     *
+     * @return SurfaceView
+     */
     public SurfaceView getSurfaceView() {
         View root = findViewById(R.id.preview_root);
         if (root != null) {
@@ -216,6 +224,14 @@ public class PreviewSurfaceView extends FrameLayout {
         return null;
     }
 
+    /**
+     * 切り抜き範囲の枠を追加します.
+     *
+     * 既に同じキーが登録されている場合は、切り抜き範囲を変更します。
+     *
+     * @param key 切り抜き範囲の枠を識別するキー
+     * @param cropRect 切り抜き範囲の枠
+     */
     public void addCropRect(Object key, Rect cropRect) {
         if (key == null || cropRect == null) {
             return;
@@ -227,8 +243,12 @@ public class PreviewSurfaceView extends FrameLayout {
                 holder = new CropRectHolder();
                 holder.mTag = key;
                 holder.mCropRect = cropRect;
-                holder.mView = new View(getContext());
-                holder.mView.setBackgroundResource(R.drawable.border_red);
+                holder.mView = inflate(getContext(), R.layout.item_crop_frame, null);
+
+                TextView tv = holder.mView.findViewById(R.id.textview);
+                if (tv != null && key instanceof CropInterface) {
+                    tv.setText(((CropInterface) key).getName());
+                }
 
                 ConstraintLayout constraintLayout = findViewById(R.id.preview_root);
                 constraintLayout.addView(holder.mView);
@@ -248,6 +268,13 @@ public class PreviewSurfaceView extends FrameLayout {
         });
     }
 
+    /**
+     * 切り抜き範囲の枠を削除します.
+     *
+     * 対応する切り抜き範囲の枠が存在しない場合は何も処理を行いません。
+     *
+     * @param key 切り抜き範囲の枠を識別するキー
+     */
     public void removeCropRange(Object key) {
         post(() -> {
             CropRectHolder holder = mCropRectMap.remove(key);
@@ -258,7 +285,13 @@ public class PreviewSurfaceView extends FrameLayout {
         });
     }
 
-    protected void onChangedCropRect(Object key, Rect drawingRange) {
+    /**
+     * 切り抜き範囲の枠の値が変更された時に呼び出されます.
+     *
+     * @param key キー
+     * @param cropRect 新しい値
+     */
+    protected void onChangedCropRect(Object key, Rect cropRect) {
         CropRectHolder holder = mCropRectMap.get(key);
         if (holder != null) {
             setCropRectView(holder);

@@ -28,7 +28,7 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        getPreferenceManager().setSharedPreferencesName(getSettingName());
+        getPreferenceManager().setSharedPreferencesName(getEncoderId());
         setPreferencesFromResource(R.xml.settings_host_recorder_rtsp, rootKey);
     }
 
@@ -36,7 +36,7 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
     public void onBindService() {
         mMediaRecorder = getRecorder();
 
-        HostMediaRecorder.StreamingSettings settings = getStreamingSetting();
+        HostMediaRecorder.EncoderSettings settings = getStreamingSetting();
 
         setPreviewServerPort();
         setPreviewServerUrl(settings.getPort());
@@ -57,9 +57,9 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
         setPreviewClipPreference("preview_clip_bottom");
     }
 
-    private HostMediaRecorder.StreamingSettings getStreamingSetting() {
+    private HostMediaRecorder.EncoderSettings getStreamingSetting() {
         HostMediaRecorder.Settings s = mMediaRecorder.getSettings();
-        return s.getPreviewServer(getSettingName());
+        return s.getEncoderSetting(getEncoderId());
     }
 
     private void setPreviewServerPort() {
@@ -120,7 +120,7 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
      *
      * @param settings レコーダの設定
      */
-    private void setPreviewSizePreference(HostMediaRecorder.StreamingSettings settings) {
+    private void setPreviewSizePreference(HostMediaRecorder.EncoderSettings settings) {
         ListPreference pref = findPreference("camera_preview_size");
         if (pref != null) {
             List<Size> previewSizes = getSupportedPreviewSizes();
@@ -150,7 +150,7 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
      *
      * @param settings レコーダ設定
      */
-    private void setPreviewVideoEncoderPreference(HostMediaRecorder.StreamingSettings settings) {
+    private void setPreviewVideoEncoderPreference(HostMediaRecorder.EncoderSettings settings) {
         ListPreference pref = findPreference("preview_encoder");
         if (pref != null) {
             List<String> list = settings.getSupportedVideoEncoders();
@@ -170,19 +170,19 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
      * エンコーダのプロファイルとレベルを設定します.
      *
      * @param settings レコーダ設定
-     * @param encoderName エンコーダ
+     * @param videoCodec エンコーダ
      * @param reset リセットフラグ
      */
-    private void setPreviewProfileLevelPreference(HostMediaRecorder.StreamingSettings settings, HostMediaRecorder.VideoEncoderName encoderName, boolean reset) {
+    private void setPreviewProfileLevelPreference(HostMediaRecorder.EncoderSettings settings, HostMediaRecorder.VideoCodec videoCodec, boolean reset) {
         ListPreference pref = findPreference("preview_profile_level");
         if (pref != null) {
-            List<HostMediaRecorder.ProfileLevel> list = CapabilityUtil.getSupportedProfileLevel(encoderName.getMimeType());
+            List<HostMediaRecorder.ProfileLevel> list = CapabilityUtil.getSupportedProfileLevel(videoCodec.getMimeType());
             if (!list.isEmpty()) {
                 List<String> entryValues = new ArrayList<>();
                 entryValues.add("none");
 
                 for (HostMediaRecorder.ProfileLevel pl : list) {
-                    String value = getProfileLevel(encoderName, pl);
+                    String value = getProfileLevel(videoCodec, pl);
                     if (value != null) {
                         entryValues.add(value);
                     }
@@ -197,7 +197,7 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
                 } else {
                     HostMediaRecorder.ProfileLevel pl = settings.getProfileLevel();
                     if (pl != null) {
-                        pref.setValue(getProfileLevel(encoderName, pl));
+                        pref.setValue(getProfileLevel(videoCodec, pl));
                     }
                 }
 
@@ -272,7 +272,7 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
      * @param pl プロファイルとレベル
      * @return 文字列
      */
-    private String getProfileLevel(HostMediaRecorder.VideoEncoderName encoderName, HostMediaRecorder.ProfileLevel pl) {
+    private String getProfileLevel(HostMediaRecorder.VideoCodec encoderName, HostMediaRecorder.ProfileLevel pl) {
         switch (encoderName) {
             case H264: {
                 H264Profile p = H264Profile.valueOf(pl.getProfile());
@@ -301,7 +301,7 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
      * @param value 変換する文字列
      * @return プロファイルとレベル
      */
-    private HostMediaRecorder.ProfileLevel getProfileLevel(HostMediaRecorder.VideoEncoderName encoderName, String value) {
+    private HostMediaRecorder.ProfileLevel getProfileLevel(HostMediaRecorder.VideoCodec encoderName, String value) {
         String[] t = value.split("-");
         if (t.length == 2) {
             try {
@@ -358,7 +358,7 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
             return false;
         }
 
-        HostMediaRecorder.StreamingSettings settings = getStreamingSetting();
+        HostMediaRecorder.EncoderSettings settings = getStreamingSetting();
 
         String key = preference.getKey();
         if ("camera_preview_size".equals(key)) {
@@ -375,8 +375,8 @@ public class SettingsRTSPFragment extends SettingsParameterFragment {
             } catch (Exception e) {
                 return false;
             }
-            HostMediaRecorder.VideoEncoderName encoderName =
-                    HostMediaRecorder.VideoEncoderName.nameOf((String) newValue);
+            HostMediaRecorder.VideoCodec encoderName =
+                    HostMediaRecorder.VideoCodec.nameOf((String) newValue);
             setPreviewProfileLevelPreference(settings, encoderName, true);
         } else if ("preview_profile_level".equalsIgnoreCase(key)) {
             try {

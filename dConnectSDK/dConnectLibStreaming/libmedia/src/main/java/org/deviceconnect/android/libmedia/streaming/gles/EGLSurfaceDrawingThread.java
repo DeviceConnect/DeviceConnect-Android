@@ -2,7 +2,6 @@ package org.deviceconnect.android.libmedia.streaming.gles;
 
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
-import android.util.Size;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
@@ -100,7 +99,10 @@ public class EGLSurfaceDrawingThread {
     }
 
     /**
-     * 描画を行う Surface のサイズを設定します.
+     * カメラなどの映像ソースのサイズを設定します.
+     *
+     * 映像ソースのサイズと配信先のサイズから映像が崩れないように
+     * アスペクト比を計算を行い描画を行います。
      *
      * @param width 横幅
      * @param height 縦幅
@@ -547,6 +549,7 @@ public class EGLSurfaceDrawingThread {
                 onStarted();
                 postOnStarted();
 
+                ViewSize size = new ViewSize();
                 SurfaceTexture st = mStManager.getSurfaceTexture();
                 while (mState == STATE_RUNNING) {
                     mStManager.awaitNewImage();
@@ -561,28 +564,17 @@ public class EGLSurfaceDrawingThread {
                             Rect cropRect = eglSurfaceBase.getCropRect();
                             if (cropRect != null) {
                                 mStManager.setCropRect(cropRect, mWidth, mHeight);
-
-                                // 出力先のアスペクト比に合わせて計算を行う
-                                Size size = calculateViewSize(cropRect.width(), cropRect.height(), viewportW, viewportH);
-                                if (viewportW > size.getWidth()) {
-                                    viewportX = (viewportW - size.getWidth()) / 2;
-                                    viewportW = size.getWidth();
-                                } else if (viewportH > size.getHeight()) {
-                                    viewportY = (viewportH - size.getHeight()) / 2;
-                                    viewportH = size.getHeight();
-                                }
+                                calculateViewSize(cropRect.width(), cropRect.height(), viewportW, viewportH, size);
                             } else {
                                 mStManager.clearCropRect();
-
-                                // 出力先のアスペクト比に合わせて計算を行う
-                                Size size = calculateViewSize(mWidth, mHeight, viewportW, viewportH);
-                                if (viewportW > size.getWidth()) {
-                                    viewportX = (viewportW - size.getWidth()) / 2;
-                                    viewportW = size.getWidth();
-                                } else if (viewportH > size.getHeight()) {
-                                    viewportY = (viewportH - size.getHeight()) / 2;
-                                    viewportH = size.getHeight();
-                                }
+                                calculateViewSize(mWidth, mHeight, viewportW, viewportH, size);
+                            }
+                            if (viewportW > size.getWidth()) {
+                                viewportX = (viewportW - size.getWidth()) / 2;
+                                viewportW = size.getWidth();
+                            } else if (viewportH > size.getHeight()) {
+                                viewportY = (viewportH - size.getHeight()) / 2;
+                                viewportH = size.getHeight();
                             }
                             mStManager.setViewport(viewportX, viewportY,viewportW, viewportH);
                             mStManager.drawImage(getDisplayRotation());
@@ -627,6 +619,19 @@ public class EGLSurfaceDrawingThread {
         }
     }
 
+    private static class ViewSize {
+        int mWidth;
+        int mHeight;
+
+        public int getWidth() {
+            return mWidth;
+        }
+
+        public int getHeight() {
+            return mHeight;
+        }
+    }
+
     /**
      * 指定された View のサイズにフィットするサイズを計算します.
      *
@@ -634,18 +639,21 @@ public class EGLSurfaceDrawingThread {
      * @param height 縦幅
      * @param viewWidth View のサイズ
      * @param viewHeight View のサイズ
-     * @return View にフィットするサイズ
+     * @param dest 出力先
      */
-    private Size calculateViewSize(int width, int height, int viewWidth, int viewHeight) {
+    private void calculateViewSize(int width, int height, int viewWidth, int viewHeight, ViewSize dest) {
         int h =  (int) (height * (viewWidth / (float) width));
         if (viewHeight < h) {
             int w = (int) (width * (viewHeight / (float) height));
             if (w % 2 != 0) {
                 w--;
             }
-            return new Size(w, viewHeight);
+            dest.mWidth = w;
+            dest.mHeight = viewHeight;
+        } else {
+            dest.mWidth = viewWidth;
+            dest.mHeight = h;
         }
-        return new Size(viewWidth, h);
     }
 
     /**

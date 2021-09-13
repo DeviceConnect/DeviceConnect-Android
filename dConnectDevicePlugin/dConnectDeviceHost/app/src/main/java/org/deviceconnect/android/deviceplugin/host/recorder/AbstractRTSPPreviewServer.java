@@ -77,12 +77,6 @@ public abstract class AbstractRTSPPreviewServer extends AbstractPreviewServer {
     }
 
     @Override
-    public void onConfigChange() {
-        super.onConfigChange();
-        restartVideoStream();
-    }
-
-    @Override
     public void setMute(boolean mute) {
         super.setMute(mute);
 

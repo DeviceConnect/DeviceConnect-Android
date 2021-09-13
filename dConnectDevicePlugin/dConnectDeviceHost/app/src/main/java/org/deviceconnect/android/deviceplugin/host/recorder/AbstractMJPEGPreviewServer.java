@@ -1,6 +1,5 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
-import android.content.Context;
 import android.util.Log;
 import android.util.Size;
 

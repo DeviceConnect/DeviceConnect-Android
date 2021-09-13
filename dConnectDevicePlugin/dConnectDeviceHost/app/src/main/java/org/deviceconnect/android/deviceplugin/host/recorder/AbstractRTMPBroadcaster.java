@@ -130,15 +130,6 @@ public abstract class AbstractRTMPBroadcaster extends AbstractBroadcaster {
     }
 
     @Override
-    public void onConfigChange() {
-        super.onConfigChange();
-
-        if (mRtmpClient != null) {
-            mRtmpClient.restartVideoEncoder();
-        }
-    }
-
-    @Override
     protected VideoEncoder getVideoEncoder() {
         return mRtmpClient != null ? mRtmpClient.getVideoEncoder() : null;
     }

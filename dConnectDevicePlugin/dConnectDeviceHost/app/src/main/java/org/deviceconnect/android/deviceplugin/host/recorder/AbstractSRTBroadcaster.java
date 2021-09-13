@@ -130,15 +130,6 @@ public abstract class AbstractSRTBroadcaster extends AbstractBroadcaster {
     }
 
     @Override
-    public void onConfigChange() {
-        super.onConfigChange();
-
-        if (mSrtClient != null) {
-            mSrtClient.restartVideoEncoder();
-        }
-    }
-
-    @Override
     protected VideoEncoder getVideoEncoder() {
         return mSrtClient != null ? mSrtClient.getVideoEncoder() : null;
     }

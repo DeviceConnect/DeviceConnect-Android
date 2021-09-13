@@ -76,12 +76,6 @@ public abstract class AbstractSRTPreviewServer extends AbstractPreviewServer {
     }
 
     @Override
-    public void onConfigChange() {
-        super.onConfigChange();
-        restartVideoEncoder();
-    }
-
-    @Override
     public void setMute(boolean mute) {
         super.setMute(mute);
 

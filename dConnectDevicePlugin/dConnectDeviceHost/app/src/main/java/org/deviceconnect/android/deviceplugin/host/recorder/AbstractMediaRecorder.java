@@ -176,37 +176,25 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
     @Override
     public void onDisplayRotation(int rotation) {
-        // 画面が回転した場合には、一度描画用のスレッドを停止しておく
-        EGLSurfaceDrawingThread drawingThread = getSurfaceDrawingThread();
-        if (drawingThread != null && drawingThread.isRunning()) {
-            drawingThread.stop(true);
-        }
-
-        PreviewServerProvider previewServerProvider = getServerProvider();
-        if (previewServerProvider != null) {
-            previewServerProvider.onConfigChange();
-        }
-
-        BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
-        if (broadcasterProvider != null) {
-            broadcasterProvider.onConfigChange();
-        }
+        onConfigChange();
     }
 
     @Override
     public void onConfigChange() {
+        PreviewServerProvider previewServerProvider = getServerProvider();
+        BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
+
         // 設定が変更された場合には、一度描画用のスレッドを停止しておく
         EGLSurfaceDrawingThread drawingThread = getSurfaceDrawingThread();
-        if (drawingThread != null && drawingThread.isRunning()) {
+        if (drawingThread != null && drawingThread.isRunning()
+                && (previewServerProvider.isRunning() || broadcasterProvider.isRunning())) {
             drawingThread.stop(true);
         }
 
-        PreviewServerProvider previewServerProvider = getServerProvider();
         if (previewServerProvider != null) {
             previewServerProvider.onConfigChange();
         }
 
-        BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
         if (broadcasterProvider != null) {
             broadcasterProvider.onConfigChange();
         }

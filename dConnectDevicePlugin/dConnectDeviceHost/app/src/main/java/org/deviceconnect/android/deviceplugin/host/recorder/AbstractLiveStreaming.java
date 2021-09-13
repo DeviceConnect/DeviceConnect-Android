@@ -79,14 +79,14 @@ public abstract class AbstractLiveStreaming implements LiveStreaming, CropInterf
 
     @Override
     public void setOnEventListener(LiveStreaming.OnEventListener listener) {
-
     }
 
     @Override
     public void onConfigChange() {
-        VideoQuality videoQuality = getVideoQuality();
-        if (videoQuality != null) {
-            setVideoQuality(videoQuality);
+        VideoEncoder videoEncoder = getVideoEncoder();
+        if (videoEncoder != null) {
+            setVideoQuality(videoEncoder.getVideoQuality());
+            videoEncoder.restart();
         }
 
         AudioQuality audioQuality = getAudioQuality();

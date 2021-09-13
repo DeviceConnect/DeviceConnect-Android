@@ -6,8 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
-import android.content.Context;
-
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractSRTPreviewServer;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 

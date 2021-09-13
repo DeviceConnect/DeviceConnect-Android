@@ -28,6 +28,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.AbstractMediaRecorde
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.ImageUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
@@ -38,11 +39,35 @@ import org.deviceconnect.android.provider.FileManager;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 public class Camera2Recorder extends AbstractMediaRecorder {
+    protected static final List<Size> ENCODE_SIZE_LIST = Arrays.asList(
+            new Size(128, 96),
+            new Size(320, 240),
+            new Size(640, 480),
+            new Size(800, 600),
+            new Size(1024, 768),
+            new Size(1280, 960),
+            new Size(1440, 1080),
+            new Size(1600, 1200),
+            new Size(320, 180),
+            new Size(640, 360),
+            new Size(854, 480),
+            new Size(1280, 720),
+            new Size(1366, 768),
+            new Size(1920, 1080),
+            new Size(2560, 1440),
+            new Size(3840, 2160),
+            new Size(5760, 3240),
+            new Size(7680, 4320)
+    );
+
     /**
      * カメラターゲットIDの定義.
      */
@@ -150,6 +175,27 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     }
 
     /**
+     * サイズの小さい方からソートを行うための比較演算子.
+     */
+    private static final Comparator<Size> SIZE_COMPARATOR = (lhs, rhs) -> {
+        // We cast here to ensure the multiplications won't overflow
+        return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
+                (long) rhs.getWidth() * rhs.getHeight());
+    };
+
+    private List<Size> getEncoderSizeList() {
+        Size maxSize = CapabilityUtil.getSupportedMaxSize(VideoCodec.H264.getMimeType());
+        List<Size> sizes = new ArrayList<>();
+        for (Size size : ENCODE_SIZE_LIST) {
+            if (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight()) {
+                sizes.add(size);
+            }
+        }
+        Collections.sort(sizes, SIZE_COMPARATOR);
+        return sizes;
+    }
+
+    /**
      * レコーダの設定を初期化します.
      */
     private void initSupportedSettings() {
@@ -158,6 +204,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
         List<Range<Integer>> supportedFpsList = options.getSupportedFpsList();
         mSettings.mSupportedPictureSize = new ArrayList<>(options.getSupportedPictureSizeList());
         mSettings.mSupportedPreviewSize = new ArrayList<>(options.getSupportedPreviewSizeList());
+        mSettings.mSupportedEncoderSize = getEncoderSizeList();
 
         if (!mSettings.isInitialized()) {
             // カメラ設定
@@ -518,9 +565,20 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     private class CameraSettings extends Settings {
         private List<Size> mSupportedPictureSize = new ArrayList<>();
         private List<Size> mSupportedPreviewSize = new ArrayList<>();
+        private List<Size> mSupportedEncoderSize;
 
         CameraSettings(Context context, HostMediaRecorder recorder) {
             super(context, recorder);
+        }
+
+        @Override
+        protected EncoderSettings createEncoderSettings(String encoderId) {
+            return new EncoderSettings(getContext(), encoderId) {
+                @Override
+                public List<Size> getSupportedEncoderSizes() {
+                    return mSupportedEncoderSize;
+                }
+            };
         }
 
         @Override

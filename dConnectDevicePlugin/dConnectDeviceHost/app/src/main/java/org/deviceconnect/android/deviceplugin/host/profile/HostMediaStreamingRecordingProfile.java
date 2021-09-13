@@ -659,7 +659,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 String target = getTarget(request);
 
                 HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
-
                 if (recorder == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                     return true;
@@ -729,11 +728,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 String target = getTarget(request);
 
                 final HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
-
                 if (recorder == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                     return true;
                 }
+
                 recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                     @Override
                     public void onAllowed() {
@@ -769,7 +768,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 final String target = getTarget(request);
 
                 final HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
-
                 if (recorder == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                     return true;
@@ -863,7 +861,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
                 final HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
                 if (recorder == null) {
-                    MessageUtils.setInvalidRequestParameterError(response, "name is invalid.");
+                    MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                     return true;
                 }
 
@@ -1066,7 +1064,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
                 HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
                 if (recorder == null) {
-                    MessageUtils.setInvalidRequestParameterError(response, "name is invalid.");
+                    MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                     return true;
                 }
 
@@ -1229,7 +1227,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
                 HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
                 if (recorder == null) {
-                    MessageUtils.setInvalidRequestParameterError(response, "name is invalid.");
+                    MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                     return true;
                 }
 
@@ -1291,6 +1289,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 }
 
                 String encoderId = recorder.getId() + "-" + name;
+                if (!recorder.getSettings().existEncoderId(encoderId)) {
+                    MessageUtils.setInvalidRequestParameterError(response, "name is not found.");
+                    return true;
+                }
 
                 if (left >= right || top >= bottom) {
                     MessageUtils.setInvalidRequestParameterError(response, "parameter is invalid.");
@@ -1356,6 +1358,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 }
 
                 String encoderId = recorder.getId() + "-" + name;
+                if (!recorder.getSettings().existEncoderId(encoderId)) {
+                    MessageUtils.setInvalidRequestParameterError(response, "name is not found.");
+                    return true;
+                }
 
                 recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                     @Override

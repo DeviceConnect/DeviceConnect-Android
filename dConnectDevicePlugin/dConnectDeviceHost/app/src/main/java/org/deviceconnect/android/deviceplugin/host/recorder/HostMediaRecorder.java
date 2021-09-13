@@ -887,6 +887,19 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         /**
          * サポートしているエンコーダの解像度の最大値を取得します.
          *
+         * @return サポートしている解像度の最大値
+         */
+        public Size getSupportedPreviewSize() {
+            VideoCodec codec = getPreviewEncoderName();
+            if (codec != null) {
+                return CapabilityUtil.getSupportedMaxSize(codec.getMimeType());
+            }
+            return CapabilityUtil.getSupportedMaxSize(VideoCodec.H264.getMimeType());
+        }
+
+        /**
+         * サポートしているエンコーダの解像度の最大値を取得します.
+         *
          * @param mimeType マイムタイプ
          * @return サポートしている解像度の最大値
          */
@@ -904,6 +917,15 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         public boolean isSupportedPreviewSize(String mimeType, Size size) {
             Size maxSize = getSupportedPreviewSize(mimeType);
             return maxSize != null && (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight());
+        }
+
+        /**
+         * 画面に表示するプレビューのリストを取得します.
+         *
+         * @return プレビューリスト
+         */
+        public List<Size> getSupportedEncoderSizes() {
+            return new ArrayList<>();
         }
 
         /**
@@ -1117,6 +1139,10 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             mProperty = new PropertyUtil(context, recorder.getId());
         }
 
+        protected EncoderSettings createEncoderSettings(String encoderId) {
+            return new EncoderSettings(mContext, encoderId);
+        }
+
         /**
          * 初期化されているか確認します.
          *
@@ -1152,7 +1178,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         public EncoderSettings getEncoderSetting(String encoderId) {
             List<String> encoderSettingList = getEncoderIdList();
             if (encoderSettingList.contains(encoderId)) {
-                return new EncoderSettings(mContext, encoderId);
+                return createEncoderSettings(encoderId);
             }
             return null;
         }
@@ -1164,6 +1190,17 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public List<String> getEncoderIdList() {
             return mProperty.getArrayString("encoder_id_list");
+        }
+
+        /**
+         * エンコーダ ID が存在するか確認します.
+         *
+         * @param encoderId エンコーダID
+         * @return 存在する場合はtrue、それ以外はfalse
+         */
+        public boolean existEncoderId(String encoderId) {
+            List<String> encorderIdList = getEncoderIdList();
+            return encorderIdList.contains(encoderId);
         }
 
         /**
@@ -1194,10 +1231,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
             }
 
             List<String> encoderList = getEncoderIdList();
-            Log.e("ABC", "#$$$$ " + encoderList);
             encoderList.remove(encoderId);
-            Log.e("ABC", "#$$$$ end: " + encoderList);
-
             mProperty.put("encoder_id_list", encoderList);
         }
 

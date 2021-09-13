@@ -28,6 +28,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.AbstractMediaRecorde
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceMP4Recorder;
@@ -85,6 +86,18 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         mScreenCastBroadcasterProvider = new ScreenCastBroadcasterProvider(context, this);
     }
 
+    private List<Size> getEncoderSizeList(List<Size> supportPreviewSizes) {
+        List<Size> sizes = new ArrayList<>();
+        Size maxSize = CapabilityUtil.getSupportedMaxSize(VideoCodec.H264.getMimeType());
+        for (Size size : supportPreviewSizes) {
+            if (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight()
+                    || size.getWidth() <= maxSize.getHeight() && size.getHeight() <= maxSize.getWidth()) {
+                sizes.add(size);
+            }
+        }
+        return sizes;
+    }
+
     /**
      * レコーダの設定を初期化します.
      */
@@ -111,6 +124,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         }
         mSettings.mSupportedPreviewSize = supportPreviewSizes;
         mSettings.mSupportedPictureSize = supportPictureSizes;
+        mSettings.mSupportEncoderSizeList = getEncoderSizeList(supportPreviewSizes);
 
         List<Range<Integer>> supportFps = new ArrayList<>();
         supportFps.add(new Range<>(30, 30));
@@ -370,13 +384,24 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         }
     }
 
-    private static class ScreenCastSettings extends Settings {
+    private class ScreenCastSettings extends Settings {
         private List<Size> mSupportedPictureSize = new ArrayList<>();
         private List<Size> mSupportedPreviewSize = new ArrayList<>();
         private List<Range<Integer>> mSupportedFps = new ArrayList<>();
+        private List<Size> mSupportEncoderSizeList = new ArrayList<>();
 
         ScreenCastSettings(Context context, HostMediaRecorder recorder) {
             super(context, recorder);
+        }
+
+        @Override
+        protected EncoderSettings createEncoderSettings(String encoderId) {
+            return new EncoderSettings(getContext(), encoderId) {
+                @Override
+                public List<Size> getSupportedEncoderSizes() {
+                    return mSupportEncoderSizeList;
+                }
+            };
         }
 
         @Override

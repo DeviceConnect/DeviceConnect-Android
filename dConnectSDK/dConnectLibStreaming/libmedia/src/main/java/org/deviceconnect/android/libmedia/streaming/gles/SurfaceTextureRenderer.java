@@ -277,6 +277,14 @@ public class SurfaceTextureRenderer {
             ey = -2.0f / b + 1.0f;
             b = 1.0f;
         }
+        if (l < 0.0f) {
+            sx = sx - l;
+            l = 0.0f;
+        }
+        if (t < 0.0f) {
+            sy = sy - t;
+            t = 0.0f;
+        }
         float[] triangleVerticesData = {
                 // X, Y, Z, U, V
                 sx, sy, 0.f, l, (1 - t),

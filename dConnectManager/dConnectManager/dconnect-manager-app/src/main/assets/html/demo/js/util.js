@@ -58,7 +58,7 @@ var util = (function(parent, global) {
         dConnect.setHost(mHost);
         dConnect.setPort(mPort);
         dConnect.setSSLEnabled(mSSLEnabled);
-        dConnect.setExtendedOrigin("file://");
+        dConnect.setExtendedOrigin("null");
         checkDeviceConnect(callback);
     }
     parent.init = init;

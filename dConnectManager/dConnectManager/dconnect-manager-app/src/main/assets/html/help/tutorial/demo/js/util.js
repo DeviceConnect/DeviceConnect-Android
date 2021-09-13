@@ -7,7 +7,7 @@ var util = (function(parent, global) {
 
     function init(callback) {
         dConnect.setHost("localhost");
-        dConnect.setExtendedOrigin("file://");
+        dConnect.setExtendedOrigin("null");
         dConnect.setSSLEnabled(mSSLEnabled);
         checkDeviceConnect(callback);
     }

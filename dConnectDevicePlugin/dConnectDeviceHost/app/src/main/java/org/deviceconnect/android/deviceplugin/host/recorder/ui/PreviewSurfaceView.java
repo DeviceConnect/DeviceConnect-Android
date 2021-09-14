@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -126,7 +125,7 @@ public class PreviewSurfaceView extends FrameLayout {
         surfaceView.setOnTouchListener((view, event) -> {
             mScaleGestureDetector.onTouchEvent(event);
 
-            if (mScaleFlag) {
+            if (mScaleFlag || event.getPointerCount() > 1) {
                 return true;
             }
 
@@ -142,11 +141,10 @@ public class PreviewSurfaceView extends FrameLayout {
             switch(event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
                 {
-                    clearFocusCropRect();
-
                     for (CropRectHolder holder : mCropRectMap.values()) {
                         Rect cropRect = holder.mCropRect;
                         if (cropRect.contains(orgX, orgY)) {
+                            clearFocusCropRect();
                             mDragStartX = x;
                             mDragStartY = y;
                             mDragFlag = true;

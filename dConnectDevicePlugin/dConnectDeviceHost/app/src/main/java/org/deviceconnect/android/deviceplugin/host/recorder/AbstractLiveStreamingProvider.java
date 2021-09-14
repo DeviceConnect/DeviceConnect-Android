@@ -85,7 +85,11 @@ public abstract class AbstractLiveStreamingProvider implements LiveStreamingProv
 
                 @Override
                 public void onError(Exception e) {
-                    postPreviewError(streaming, e);
+                    postOnError(streaming, e);
+
+                    if (isAllStreamingStopped()) {
+                        stop();
+                    }
                 }
             });
             streaming.start(new LiveStreaming.OnStartCallback() {
@@ -107,7 +111,7 @@ public abstract class AbstractLiveStreamingProvider implements LiveStreamingProv
             if (results.size() > 0) {
                 mIsRunning = true;
                 sendNotification(mRecorder.getId(), mRecorder.getName());
-                postPreviewStarted(results);
+                postOnStarted(results);
             }
         } catch (InterruptedException e) {
             // ignore.
@@ -125,7 +129,7 @@ public abstract class AbstractLiveStreamingProvider implements LiveStreamingProv
 
         if (mIsRunning) {
             mIsRunning = false;
-            postPreviewStopped();
+            postOnStopped();
         }
     }
 
@@ -181,6 +185,14 @@ public abstract class AbstractLiveStreamingProvider implements LiveStreamingProv
      */
     protected abstract void hideNotification(String id);
 
+    public Context getContext() {
+        return mContext;
+    }
+
+    public HostMediaRecorder getRecorder() {
+        return mRecorder;
+    }
+
     private void init() {
         HostMediaRecorder.Settings settings = getRecorder().getSettings();
         for (String encoderId : settings.getEncoderIdList()) {
@@ -194,27 +206,28 @@ public abstract class AbstractLiveStreamingProvider implements LiveStreamingProv
         }
     }
 
-    public Context getContext() {
-        return mContext;
+    private boolean isAllStreamingStopped() {
+        for (LiveStreaming streaming : mLiveStreamingList) {
+            if (streaming.isRunning()) {
+                return true;
+            }
+        }
+        return true;
     }
 
-    public HostMediaRecorder getRecorder() {
-        return mRecorder;
-    }
-
-    protected void postPreviewStarted(List<LiveStreaming> servers) {
+    private void postOnStarted(List<LiveStreaming> servers) {
         if (mOnEventListener != null) {
             mOnEventListener.onStarted(servers);
         }
     }
 
-    protected void postPreviewStopped() {
+    private void postOnStopped() {
         if (mOnEventListener != null) {
             mOnEventListener.onStopped();
         }
     }
 
-    protected void postPreviewError(LiveStreaming server, Exception e) {
+    private void postOnError(LiveStreaming server, Exception e) {
         if (mOnEventListener != null) {
             mOnEventListener.onError(server, e);
         }

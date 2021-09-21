@@ -44,7 +44,10 @@ public final class CapabilityUtil {
                     MediaCodecInfo.CodecCapabilities codecCapabilities = codecInfo.getCapabilitiesForType(mimeType);
                     if (codecCapabilities.profileLevels != null) {
                         for (MediaCodecInfo.CodecProfileLevel c : codecCapabilities.profileLevels) {
-                            list.add(new HostMediaRecorder.ProfileLevel(c.profile, c.level));
+                            HostMediaRecorder.ProfileLevel pl = new HostMediaRecorder.ProfileLevel(c.profile, c.level);
+                            if (!list.contains(pl)) {
+                                list.add(pl);
+                            }
                         }
                     }
                 }

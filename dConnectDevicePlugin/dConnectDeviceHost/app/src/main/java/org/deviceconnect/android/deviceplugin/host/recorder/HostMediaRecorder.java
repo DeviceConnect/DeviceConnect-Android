@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.net.ssl.SSLContext;
 
@@ -367,6 +368,20 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
 
         public int getLevel() {
             return mLevel;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ProfileLevel that = (ProfileLevel) o;
+            return mProfile == that.mProfile &&
+                    mLevel == that.mLevel;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(mProfile, mLevel);
         }
     }
 

@@ -16,7 +16,7 @@ public class VideoQuality {
     private int mIntraRefresh = 0;
     private int mProfile = 0;
     private int mLevel = 0;
-    private Integer mLowLatency;
+    private Integer mLowLatency = 1;
 
     /**
      * ビットレートのモード.

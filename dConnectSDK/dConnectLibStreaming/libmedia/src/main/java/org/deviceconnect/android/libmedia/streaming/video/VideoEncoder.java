@@ -62,25 +62,6 @@ public abstract class VideoEncoder extends MediaEncoder {
     public abstract VideoQuality getVideoQuality();
 
     /**
-     * Low Latency の設定を要求します.
-     *
-     * @param lowLatency 1 の場合は、Low Latency を有効、0 の場合は、Low Latency を無効
-     */
-    public void requestLowLatency(int lowLatency) {
-        if (mMediaCodec != null) {
-            if (lowLatency == 1 || lowLatency == 0) {
-                Bundle b = new Bundle();
-                b.putInt(MediaCodec.PARAMETER_KEY_LOW_LATENCY, lowLatency);
-                try {
-                    mMediaCodec.setParameters(b);
-                } catch (Exception e) {
-                    // ignore.
-                }
-            }
-        }
-    }
-
-    /**
      * キーフレームを要求します.
      */
     public void requestSyncKeyFrame() {
@@ -235,24 +216,24 @@ public abstract class VideoEncoder extends MediaEncoder {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // エンコーダのレイテンシーを設定します。
-            // 機種依存でサポートされていない場合には、この値は無視されます。
-            format.setInteger(MediaFormat.KEY_LATENCY, 0);
+            Integer lowLatency = videoQuality.getLowLatency();
+            if (lowLatency != null) {
+                if (lowLatency == 1 || lowLatency == 0) {
+                    // エンコーダのレイテンシーを設定します。
+                    // 機種依存でサポートされていない場合には、この値は無視されます。
+                    format.setInteger(MediaFormat.KEY_LATENCY, lowLatency);
+                }
+            }
         }
+
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//            format.setInteger(MediaFormat.KEY_MAX_FPS_TO_ENCODER, videoQuality.getFrameRate());
+//        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             int intraRefresh = videoQuality.getIntraRefresh();
             if (intraRefresh != 0) {
                 format.setInteger(MediaFormat.KEY_INTRA_REFRESH_PERIOD, intraRefresh);
-            }
-        }
-
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-            Integer lowLatency = videoQuality.getLowLatency();
-            if (lowLatency != null) {
-                if (lowLatency == 1 || lowLatency == 0) {
-                    format.setInteger(MediaFormat.KEY_LOW_LATENCY, lowLatency);
-                }
             }
         }
 
@@ -347,7 +328,7 @@ public abstract class VideoEncoder extends MediaEncoder {
     }
 
 
-    private void printCodecInfo(MediaCodecInfo codecInfo) {
+    private static void printCodecInfo(MediaCodecInfo codecInfo) {
         Log.i(TAG, "CODEC: " + codecInfo.getName());
 
         String[] types = codecInfo.getSupportedTypes();
@@ -362,6 +343,21 @@ public abstract class VideoEncoder extends MediaEncoder {
                 for (int k = 0; k < capabilities.colorFormats.length; k++) {
                     int format = capabilities.colorFormats[k];
                     Log.i(TAG, "   FORMAT: " + format);
+                }
+
+                MediaCodecInfo.EncoderCapabilities encoderCapabilities = capabilities.getEncoderCapabilities();
+                if (encoderCapabilities != null) {
+                    Log.i(TAG, "    ----");
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        Log.i(TAG, "    Quality range: "
+                                + encoderCapabilities.getQualityRange().getLower()
+                                + " - "
+                                + encoderCapabilities.getQualityRange().getUpper());
+                    }
+                    Log.i(TAG, "    Complexity range: "
+                            + encoderCapabilities.getComplexityRange().getLower()
+                            + " - "
+                            + encoderCapabilities.getComplexityRange().getUpper());
                 }
 
                 MediaCodecInfo.VideoCapabilities videoCapabilities = capabilities.getVideoCapabilities();
@@ -391,7 +387,7 @@ public abstract class VideoEncoder extends MediaEncoder {
         }
     }
 
-    private void printCodecInfo() {
+    public static void printCodecInfo() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             MediaCodecList list = new MediaCodecList(MediaCodecList.ALL_CODECS);
             for (MediaCodecInfo codecInfo : list.getCodecInfos()) {

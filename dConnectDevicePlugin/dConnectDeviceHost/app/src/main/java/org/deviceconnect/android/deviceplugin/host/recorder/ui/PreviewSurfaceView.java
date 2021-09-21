@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -365,7 +366,8 @@ public class PreviewSurfaceView extends FrameLayout {
             layoutParams.width = mSurfaceWidth;
             layoutParams.height = mSurfaceHeight;
             surfaceView.setLayoutParams(layoutParams);
-            surfaceView.getHolder().setFixedSize(previewWidth, previewHeight);
+            surfaceView.getHolder().setFixedSize(mSurfaceWidth, mSurfaceHeight);
+//            surfaceView.getHolder().setFixedSize(previewWidth, previewHeight);
         });
     }
 
@@ -383,16 +385,17 @@ public class PreviewSurfaceView extends FrameLayout {
             Size viewSize = new Size(root.getWidth(), root.getHeight());
             Size changeSize = calculateViewSize(previewWidth, previewHeight, viewSize);
 
-            ViewGroup.LayoutParams layoutParams = surfaceView.getLayoutParams();
-            layoutParams.width = changeSize.getWidth();
-            layoutParams.height = changeSize.getHeight();
-            surfaceView.setLayoutParams(layoutParams);
-            surfaceView.getHolder().setFixedSize(previewWidth, previewHeight);
-
             mPreviewWidth = previewWidth;
             mPreviewHeight = previewHeight;
             mSurfaceWidth = changeSize.getWidth();
             mSurfaceHeight = changeSize.getHeight();
+
+            ViewGroup.LayoutParams layoutParams = surfaceView.getLayoutParams();
+            layoutParams.width = mSurfaceWidth;
+            layoutParams.height = mSurfaceHeight;
+            surfaceView.setLayoutParams(layoutParams);
+            surfaceView.getHolder().setFixedSize(mSurfaceWidth, mSurfaceHeight);
+//            surfaceView.getHolder().setFixedSize(previewWidth, previewHeight);
         });
     }
 

@@ -7,7 +7,7 @@ import org.deviceconnect.android.deviceplugin.host.R;
 public class SettingsPortFragment extends SettingsBaseFragment {
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        getPreferenceManager().setSharedPreferencesName(getRecorderId());
+        getPreferenceManager().setSharedPreferencesName(getRecorderId().replaceAll("/", "_"));
         setPreferencesFromResource(R.xml.settings_host_recorder_port, rootKey);
     }
 

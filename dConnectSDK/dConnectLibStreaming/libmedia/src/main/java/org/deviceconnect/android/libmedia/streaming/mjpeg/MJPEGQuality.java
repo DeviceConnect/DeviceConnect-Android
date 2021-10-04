@@ -9,7 +9,7 @@ public class MJPEGQuality {
     private int mHeight = 640;
     private int mQuality = 60;
     private int mFrameRate = 30;
-    private Rect mDrawingRange;
+    private Rect mCropRect;
 
     /**
      * Motion JPEG の横幅を取得します.
@@ -121,10 +121,10 @@ public class MJPEGQuality {
     /**
      * 描画範囲を設定します.
      *
-     * @param drawingRange 描画範囲
+     * @param cropRect 描画範囲
      */
-    public void setDrawingRange(Rect drawingRange) {
-        mDrawingRange = drawingRange;
+    public void setCropRect(Rect cropRect) {
+        mCropRect = cropRect;
     }
 
     /**
@@ -134,7 +134,7 @@ public class MJPEGQuality {
      *
      * @return 描画範囲
      */
-    public Rect getDrawingRange() {
-        return mDrawingRange;
+    public Rect getCropRect() {
+        return mCropRect;
     }
 }

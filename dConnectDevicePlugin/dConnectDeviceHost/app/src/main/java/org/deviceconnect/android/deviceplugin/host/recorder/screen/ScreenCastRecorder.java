@@ -247,6 +247,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     @Override
     public List<String> getSupportedMimeTypes() {
         List<String> mimeTypes = mScreenCastPreviewServerProvider.getSupportedMimeType();
+        mimeTypes.addAll(mScreenCastBroadcasterProvider.getSupportedMimeType());
         mimeTypes.add(0, MIME_TYPE_JPEG);
         return mimeTypes;
     }

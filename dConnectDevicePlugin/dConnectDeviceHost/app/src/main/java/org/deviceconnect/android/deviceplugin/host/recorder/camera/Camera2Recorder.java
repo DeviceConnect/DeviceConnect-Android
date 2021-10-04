@@ -311,6 +311,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     @Override
     public List<String> getSupportedMimeTypes() {
         List<String> mimeTypes = mCamera2PreviewServerProvider.getSupportedMimeType();
+        mimeTypes.addAll(mCamera2BroadcasterProvider.getSupportedMimeType());
         mimeTypes.add(0, MIME_TYPE_JPEG);
         return mimeTypes;
     }

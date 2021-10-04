@@ -25,6 +25,15 @@ public abstract class AbstractBroadcastProvider extends AbstractLiveStreamingPro
     }
 
     @Override
+    public List<String> getSupportedMimeType() {
+        List<String> mimeType = new ArrayList<>();
+        for (LiveStreaming server : getLiveStreamingList()) {
+            mimeType.add(server.getMimeType());
+        }
+        return mimeType;
+    }
+
+    @Override
     protected void hideNotification(String id) {
         NotificationManager manager = (NotificationManager) getContext()
                 .getSystemService(Service.NOTIFICATION_SERVICE);

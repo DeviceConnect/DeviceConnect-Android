@@ -151,59 +151,12 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     @Override
                     public void onAllowed() {
                         List<Bundle> recorders = new LinkedList<>();
-                        for (HostMediaRecorder recorder : mRecorderMgr.getRecorders()) {
-                            HostMediaRecorder.Settings settings = recorder.getSettings();
-
-                            Bundle info = new Bundle();
-                            setRecorderId(info, recorder.getId());
-                            setRecorderName(info, recorder.getName());
-                            setRecorderMIMEType(info, recorder.getMimeType());
-
-                            if (recorder.getState() == HostMediaRecorder.State.RECORDING) {
-                                setRecorderState(info, RecorderState.RECORDING);
-                            } else {
-                                setRecorderState(info, RecorderState.INACTIVE);
+                        if (target == null) {
+                            for (HostMediaRecorder recorder : mRecorderMgr.getRecorders()) {
+                                recorders.add(createMediaRecorderInfo(recorder));
                             }
-
-                            // 静止画の解像度
-                            Size pictureSize = settings.getPictureSize();
-                            if (pictureSize != null) {
-                                setRecorderImageWidth(info, pictureSize.getWidth());
-                                setRecorderImageHeight(info, pictureSize.getHeight());
-                            }
-
-                            // プレビュー解像度
-                            Size previewSize = settings.getPreviewSize();
-                            if (previewSize != null) {
-                                setRecorderPreviewWidth(info, previewSize.getWidth());
-                                setRecorderPreviewHeight(info, previewSize.getHeight());
-                            }
-
-                            // カメラのフレームレート
-                            Range<Integer> previewFps = settings.getPreviewFps();
-                            if (previewFps != null) {
-                                info.putString("previewFps", previewFps.getLower() + "-" + previewFps.getUpper());
-                                info.putInt("previewMaxFrameRate", previewFps.getUpper());
-                            }
-
-                            // エンコーダ設定
-                            List<Bundle> encoders = new ArrayList<>();
-                            for (String encoderId : settings.getEncoderIdList()) {
-                                HostMediaRecorder.EncoderSettings s = settings.getEncoderSetting(encoderId);
-                                if (s != null) {
-                                    encoders.add(createVideoEncoder(s));
-                                }
-                            }
-                            info.putParcelableArray("encoders", encoders.toArray(new Bundle[0]));
-
-                            info.putString("audioSource", settings.getPreviewAudioSource().getValue());
-                            info.putInt("audioBitrate", settings.getPreviewAudioBitRate() / 1024);
-                            info.putInt("audioSampleRate", settings.getPreviewSampleRate());
-                            info.putInt("audioChannel", settings.getPreviewChannel());
-                            info.putBoolean("audioEchoCanceler", settings.isUseAEC());
-
-                            setRecorderConfig(info, "");
-                            recorders.add(info);
+                        } else {
+                            recorders.add(createMediaRecorderInfo(recorder));
                         }
                         setRecorders(response, recorders.toArray(new Bundle[0]));
                         setResult(response, DConnectMessage.RESULT_OK);
@@ -247,7 +200,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             setSupportedPreviewSizes(response, settings.getSupportedPreviewSizes());
                             setSupportedVideoEncoders(response, settings.getSupportedVideoEncoders());
                             setSupportedFps(response, settings.getSupportedFps());
-                        } else if (recorder.getMimeType().startsWith("audio/")) {
+//                        } else if (recorder.getMimeType().startsWith("audio/")) {
                             // 音声系の設定
                         }
 
@@ -1507,6 +1460,68 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         return (HostDevicePlugin) getContext();
     }
 
+    private Bundle createMediaRecorderInfo(HostMediaRecorder recorder) {
+        HostMediaRecorder.Settings settings = recorder.getSettings();
+
+        Bundle info = new Bundle();
+        setRecorderId(info, recorder.getId());
+        setRecorderName(info, recorder.getName());
+        setRecorderMIMEType(info, recorder.getMimeType());
+
+        if (recorder.getState() == HostMediaRecorder.State.RECORDING) {
+            setRecorderState(info, RecorderState.RECORDING);
+        } else {
+            setRecorderState(info, RecorderState.INACTIVE);
+        }
+
+        // 静止画の解像度
+        Size pictureSize = settings.getPictureSize();
+        if (pictureSize != null) {
+            setRecorderImageWidth(info, pictureSize.getWidth());
+            setRecorderImageHeight(info, pictureSize.getHeight());
+        }
+
+        // プレビュー解像度
+        Size previewSize = settings.getPreviewSize();
+        if (previewSize != null) {
+            setRecorderPreviewWidth(info, previewSize.getWidth());
+            setRecorderPreviewHeight(info, previewSize.getHeight());
+        }
+
+        // カメラのフレームレート
+        Range<Integer> previewFps = settings.getPreviewFps();
+        if (previewFps != null) {
+            info.putString("previewFps", previewFps.getLower() + "-" + previewFps.getUpper());
+            info.putInt("previewMaxFrameRate", previewFps.getUpper());
+        }
+
+        // エンコーダ設定
+        List<Bundle> encoders = new ArrayList<>();
+        for (String encoderId : settings.getEncoderIdList()) {
+            HostMediaRecorder.EncoderSettings s = settings.getEncoderSetting(encoderId);
+            if (s != null) {
+                encoders.add(createVideoEncoder(s));
+            }
+        }
+        info.putParcelableArray("encoders", encoders.toArray(new Bundle[0]));
+
+        // 各機能の状態
+        Bundle status = new Bundle();
+        status.putBoolean("preview", recorder.isPreviewRunning());
+        status.putBoolean("broadcast", recorder.isBroadcasterRunning());
+        status.putBoolean("recording", recorder.getState() == HostMediaRecorder.State.RECORDING);
+        info.putParcelable("status", status);
+
+        info.putString("audioSource", settings.getPreviewAudioSource().getValue());
+        info.putInt("audioBitrate", settings.getPreviewAudioBitRate() / 1024);
+        info.putInt("audioSampleRate", settings.getPreviewSampleRate());
+        info.putInt("audioChannel", settings.getPreviewChannel());
+        info.putBoolean("audioEchoCanceler", settings.isUseAEC());
+
+        setRecorderConfig(info, "");
+        return info;
+    }
+
     private Bundle createVideoEncoder(HostMediaRecorder.EncoderSettings s) {
         Bundle bundle = new Bundle();
         bundle.putString("name", s.getName());
@@ -1538,6 +1553,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             if (intraRefresh != null) {
                 bundle.putInt("intraRefresh", intraRefresh);
             }
+        }
+
+        if (s.getPort() > 0) {
+            bundle.putInt("port", s.getPort());
         }
 
         // 切り抜き設定
@@ -1883,6 +1902,14 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
         if (previewWidth != null && previewHeight != null) {
             settings.setPreviewSize(new Size(previewWidth, previewHeight));
+
+            for (String encoderId : settings.getEncoderIdList()) {
+                HostMediaRecorder.EncoderSettings encoderSettings = settings.getEncoderSetting(encoderId);
+                if (encoderId != null && mimeType.equals(encoderSettings.getMimeType().getValue())) {
+                    encoderSettings.setPreviewSize(new Size(previewWidth, previewHeight));
+
+                }
+            }
         }
 
         if (fps != null) {
@@ -1890,7 +1917,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
             for (String encoderId : settings.getEncoderIdList()) {
                 HostMediaRecorder.EncoderSettings encoderSettings = settings.getEncoderSetting(encoderId);
-                if (encoderId != null) {
+                if (encoderId != null && mimeType.equals(encoderSettings.getMimeType().getValue())) {
                     encoderSettings.setPreviewMaxFrameRate(previewMaxFrameRate.intValue());
                 }
             }
@@ -1899,7 +1926,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         if (previewBitRate != null) {
             for (String encoderId : settings.getEncoderIdList()) {
                 HostMediaRecorder.EncoderSettings encoderSettings = settings.getEncoderSetting(encoderId);
-                if (encoderId != null) {
+                if (encoderId != null && mimeType.equals(encoderSettings.getMimeType().getValue())) {
                     encoderSettings.setPreviewBitRate(previewBitRate * 1024);
                 }
             }
@@ -1908,7 +1935,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         if (previewKeyFrameInterval != null) {
             for (String encoderId : settings.getEncoderIdList()) {
                 HostMediaRecorder.EncoderSettings encoderSettings = settings.getEncoderSetting(encoderId);
-                if (encoderId != null) {
+                if (encoderId != null && mimeType.equals(encoderSettings.getMimeType().getValue())) {
                     encoderSettings.setPreviewKeyFrameInterval(previewKeyFrameInterval);
                 }
             }
@@ -1917,7 +1944,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         if (previewEncoder != null) {
             for (String encoderId : settings.getEncoderIdList()) {
                 HostMediaRecorder.EncoderSettings encoderSettings = settings.getEncoderSetting(encoderId);
-                if (encoderId != null) {
+                if (encoderId != null && mimeType.equals(encoderSettings.getMimeType().getValue())) {
                     encoderSettings.setPreviewEncoder(previewEncoder);
                     encoderSettings.setProfileLevel(null);
                 }
@@ -1927,7 +1954,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         if (profileLevel != null) {
             for (String encoderId : settings.getEncoderIdList()) {
                 HostMediaRecorder.EncoderSettings encoderSettings = settings.getEncoderSetting(encoderId);
-                if (encoderId != null) {
+                if (encoderId != null && mimeType.equals(encoderSettings.getMimeType().getValue())) {
                     encoderSettings.setProfileLevel(profileLevel);
                 }
             }
@@ -1936,7 +1963,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         if (previewIntraRefresh != null) {
             for (String encoderId : settings.getEncoderIdList()) {
                 HostMediaRecorder.EncoderSettings encoderSettings = settings.getEncoderSetting(encoderId);
-                if (encoderId != null) {
+                if (encoderId != null && mimeType.equals(encoderSettings.getMimeType().getValue())) {
                     encoderSettings.setIntraRefresh(previewIntraRefresh);
                 }
             }
@@ -1945,7 +1972,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         if (previewJpegQuality != null) {
             for (String encoderId : settings.getEncoderIdList()) {
                 HostMediaRecorder.EncoderSettings encoderSettings = settings.getEncoderSetting(encoderId);
-                if (encoderId != null) {
+                if (encoderId != null && mimeType.equals(encoderSettings.getMimeType().getValue())) {
                     encoderSettings.setPreviewQuality((int) (previewJpegQuality * 100));
                 }
             }
@@ -1954,14 +1981,14 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         if (previewClipReset != null && previewClipReset) {
             for (String encoderId : settings.getEncoderIdList()) {
                 HostMediaRecorder.EncoderSettings encoderSettings = settings.getEncoderSetting(encoderId);
-                if (encoderId != null) {
+                if (encoderId != null && mimeType.equals(encoderSettings.getMimeType().getValue())) {
                     encoderSettings.setCropRect(null);
                 }
             }
         } else if (previewClipLeft != null) {
             for (String encoderId : settings.getEncoderIdList()) {
                 HostMediaRecorder.EncoderSettings encoderSettings = settings.getEncoderSetting(encoderId);
-                if (encoderId != null) {
+                if (encoderId != null && mimeType.equals(encoderSettings.getMimeType().getValue())) {
                     encoderSettings.setCropRect(new Rect(previewClipLeft, previewClipTop, previewClipRight, previewClipBottom));
                 }
             }

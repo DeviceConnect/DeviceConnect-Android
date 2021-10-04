@@ -51,19 +51,21 @@ public abstract class AbstractLiveStreaming implements LiveStreaming, CropInterf
     /**
      * 切り抜き範囲移動用スレッドからのイベントを受け取るリスナー.
      */
-    private final MovingRectThread.OnEventListener mMovingRectThreadOnEventListener = (rect) -> {
+    private final MovingRectThread.OnEventListener mMovingRectThreadOnEventListener = this::onUpdateCropRect;
+
+    /**
+     * 切り抜き範囲のイベントを通知するリスナー.
+     */
+    private final WeakReferenceList<CropInterface.OnEventListener> mOnEventListeners = new WeakReferenceList<>();
+
+    protected void onUpdateCropRect(Rect rect) {
         VideoQuality videoQuality = getVideoQuality();
         if (videoQuality != null) {
             videoQuality.setCropRect(new Rect(rect));
         }
         getEncoderSettings().setCropRect(rect);
         postOnMoved(rect);
-    };
-
-    /**
-     * 切り抜き範囲のイベントを通知するリスナー.
-     */
-    private final WeakReferenceList<CropInterface.OnEventListener> mOnEventListeners = new WeakReferenceList<>();
+    }
 
     public AbstractLiveStreaming(HostMediaRecorder recorder, String id) {
         mRecorder = recorder;

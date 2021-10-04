@@ -117,6 +117,8 @@
     <string name="host_recorder_settings_cut_out_right">Right</string>
     <string name="host_recorder_settings_cut_out_bottom">Bottom</string>
     <string name="host_recorder_settings_cut_out_reset">リセット</string>
+    <string name="host_recorder_settings_cut_out_set">配信解像度を入力する</string>
+    <string name="host_recorder_settings_clipboard_copy">クリップボードにコピーしました</string>
 
     <!-- 音声設定 -->
     <string name="host_recorder_settings_audio_enable">音声有効</string>

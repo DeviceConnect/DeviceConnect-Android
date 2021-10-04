@@ -22,12 +22,9 @@ public class SettingsMJPEGFragment extends SettingsEncoderFragment {
     }
 
     @Override
-    protected void setPreviewServerUrl(int port) {
-        EditTextPreference pref = findPreference("url");
-        if (pref != null) {
-            String ipAddress = NetworkUtil.getIPAddress(requireContext());
-            pref.setText("http://" + ipAddress + ":" + port + "/mjpeg");
-        }
+    protected String getServerUrl(int port) {
+        String ipAddress = NetworkUtil.getIPAddress(requireContext());
+        return "http://" + ipAddress + ":" + port + "/mjpeg";
     }
 
     /**

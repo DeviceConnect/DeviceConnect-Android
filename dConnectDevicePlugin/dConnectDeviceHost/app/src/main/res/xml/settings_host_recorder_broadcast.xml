@@ -129,5 +129,11 @@
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
+        <PreferenceScreen
+            app:key="preview_clip_set"
+            app:title="@string/host_recorder_settings_cut_out_set"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
     </PreferenceCategory>
 </PreferenceScreen>

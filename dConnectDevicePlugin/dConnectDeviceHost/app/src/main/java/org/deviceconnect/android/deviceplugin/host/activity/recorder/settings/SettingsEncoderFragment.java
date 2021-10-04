@@ -1,6 +1,10 @@
 package org.deviceconnect.android.deviceplugin.host.activity.recorder.settings;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.util.Size;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.preference.EditTextPreference;
@@ -8,6 +12,7 @@ import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceScreen;
 
+import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.H264Level;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.H264Profile;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.H265Level;
@@ -36,6 +41,7 @@ public abstract class SettingsEncoderFragment extends SettingsParameterFragment 
         setPreviewProfileLevelPreference(settings, settings.getPreviewEncoderName(), false);
 
         setPreviewCutOutReset();
+        setPreviewCutOutSet();
 
         setInputTypeNumber("preview_framerate");
         setInputTypeNumber("preview_bitrate");
@@ -55,13 +61,38 @@ public abstract class SettingsEncoderFragment extends SettingsParameterFragment 
 
     private void setPreviewServerPort() {
         setInputTypeNumber("port");
+
         EditTextPreference pref = findPreference("port");
         if (pref != null) {
             pref.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
         }
     }
 
-    protected abstract void setPreviewServerUrl(int port);
+    /**
+     * サーバへのURLを取得します.
+     *
+     * @param port ポート番号
+     * @return サーバへのURL
+     */
+    protected abstract String getServerUrl(int port);
+
+    /**
+     * サーバへのURLを設定します.
+     *
+     * @param port ポート番号
+     */
+    private void setPreviewServerUrl(int port) {
+        PreferenceScreen pref = findPreference("url");
+        if (pref != null) {
+            String url = getServerUrl(port);
+            pref.setOnPreferenceClickListener(preference -> {
+                copyToClipboard(requireContext(), "Host Plugin - url", url);
+                Toast.makeText(requireContext(), R.string.host_recorder_settings_clipboard_copy, Toast.LENGTH_SHORT).show();
+                return false;
+            });
+            pref.setSummary(url);
+        }
+    }
 
     /**
      * 切り抜き範囲の設定にリスナーを設定します.
@@ -83,6 +114,13 @@ public abstract class SettingsEncoderFragment extends SettingsParameterFragment 
         }
     }
 
+    private void setPreviewClip(String key, Integer value) {
+        EditTextPreference pref = findPreference(key);
+        if (pref != null) {
+            pref.setText(String.valueOf(value));
+        }
+    }
+
     /**
      * 切り抜き範囲のリセットボタンのリスナーを設定します.
      */
@@ -95,6 +133,21 @@ public abstract class SettingsEncoderFragment extends SettingsParameterFragment 
                 setEmptyText("preview_clip_right");
                 setEmptyText("preview_clip_bottom");
                 getEncoderSetting().setCropRect(null);
+                return false;
+            });
+        }
+    }
+
+    private void setPreviewCutOutSet() {
+        PreferenceScreen pref = findPreference("preview_clip_set");
+        if (pref != null) {
+            pref.setOnPreferenceClickListener(preference -> {
+                HostMediaRecorder.EncoderSettings settings = getEncoderSetting();
+                Size previewSize = settings.getPreviewSize();
+                setPreviewClip("preview_clip_left", 0);
+                setPreviewClip("preview_clip_top", 0);
+                setPreviewClip("preview_clip_right", previewSize.getWidth());
+                setPreviewClip("preview_clip_bottom", previewSize.getHeight());
                 return false;
             });
         }
@@ -331,6 +384,22 @@ public abstract class SettingsEncoderFragment extends SettingsParameterFragment 
             }
         }
         return null;
+    }
+
+    /**
+     * クリップボードにテキストをコピーします.
+     *
+     * @param context コンテキスト
+     * @param label ラベル
+     * @param text コピーするテキスト
+     */
+    private static void copyToClipboard(Context context, String label, String text) {
+        ClipboardManager clipboardManager =
+                (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboardManager == null) {
+            return;
+        }
+        clipboardManager.setPrimaryClip(ClipData.newPlainText(label, text));
     }
 
     /**

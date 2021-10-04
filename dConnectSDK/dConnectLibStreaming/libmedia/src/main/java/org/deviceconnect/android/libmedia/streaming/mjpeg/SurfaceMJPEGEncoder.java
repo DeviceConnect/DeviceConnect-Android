@@ -94,6 +94,11 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
         @Override
         public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
             if (TAG_SURFACE.equals(eglSurfaceBase.getTag())) {
+                MJPEGQuality mjpegQuality = getMJPEGQuality();
+                if (mjpegQuality != null) {
+                    eglSurfaceBase.setCropRect(mjpegQuality.getCropRect());
+                }
+
                 try {
                     drainEncoder(eglSurfaceBase, eglSurfaceBase.getWidth(), eglSurfaceBase.getHeight());
                 } catch (Throwable t) {
@@ -186,13 +191,13 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
 
         int w = quality.getWidth();
         int h = quality.getHeight();
-        Rect rect = quality.getDrawingRange();
+        Rect rect = quality.getCropRect();
         if (rect != null) {
             w = rect.width();
             h = rect.height();
         }
         mSurfaceDrawingThread.setSize(quality.getWidth(), quality.getHeight());
-        mSurfaceDrawingThread.addEGLSurfaceBase(w, h, TAG_SURFACE, quality.getDrawingRange());
+        mSurfaceDrawingThread.addEGLSurfaceBase(w, h, TAG_SURFACE, quality.getCropRect());
         mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
         mSurfaceDrawingThread.start();
     }

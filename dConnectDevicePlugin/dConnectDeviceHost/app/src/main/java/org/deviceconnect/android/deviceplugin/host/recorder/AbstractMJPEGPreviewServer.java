@@ -1,5 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
+import android.graphics.Rect;
 import android.util.Log;
 import android.util.Size;
 
@@ -30,6 +31,17 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
 
     public AbstractMJPEGPreviewServer(HostMediaRecorder recorder, String encoderId) {
         super(recorder, encoderId);
+    }
+
+    @Override
+    protected void onUpdateCropRect(Rect rect) {
+        if (mMJPEGServer != null) {
+            MJPEGEncoder encoder = mMJPEGServer.getMJPEGEncoder();
+            if (encoder != null) {
+                encoder.getMJPEGQuality().setCropRect(rect);
+            }
+        }
+        super.onUpdateCropRect(rect);
     }
 
     // PreviewServer
@@ -139,7 +151,7 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
         quality.setHeight(h);
         quality.setQuality(settings.getPreviewQuality());
         quality.setFrameRate(settings.getPreviewMaxFrameRate());
-        quality.setDrawingRange(settings.getCropRect());
+        quality.setCropRect(settings.getCropRect());
     }
 
     /**

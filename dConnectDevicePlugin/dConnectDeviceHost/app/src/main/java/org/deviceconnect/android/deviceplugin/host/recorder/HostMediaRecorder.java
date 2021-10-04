@@ -1214,8 +1214,8 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return 存在する場合はtrue、それ以外はfalse
          */
         public boolean existEncoderId(String encoderId) {
-            List<String> encorderIdList = getEncoderIdList();
-            return encorderIdList.contains(encoderId);
+            List<String> encoderIdList = getEncoderIdList();
+            return encoderIdList.contains(encoderId);
         }
 
         /**

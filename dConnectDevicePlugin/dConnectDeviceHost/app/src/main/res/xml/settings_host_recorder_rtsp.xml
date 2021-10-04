@@ -6,11 +6,9 @@
         android:title="@string/host_recorder_settings_server"
         app:iconSpaceReserved="false">
 
-        <EditTextPreference
+        <PreferenceScreen
             android:key="url"
-            android:singleLine="true"
             android:title="@string/host_recorder_settings_server_url"
-            android:enabled="false"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
@@ -118,6 +116,12 @@
         <PreferenceScreen
             app:key="preview_clip_reset"
             app:title="@string/host_recorder_settings_cut_out_reset"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <PreferenceScreen
+            app:key="preview_clip_set"
+            app:title="@string/host_recorder_settings_cut_out_set"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 

@@ -33,6 +33,13 @@ public interface LiveStreamingProvider {
     List<LiveStreaming> getLiveStreamingList();
 
     /**
+     * プレビューで配信するマイムタイプを取得します.
+     *
+     * @return プレビューで配信するマイムタイプ
+     */
+    List<String> getSupportedMimeType();
+
+    /**
      * プレビューサーバが動作している確認します.
      *
      * @return 動作中の場合は true、それ以外は false

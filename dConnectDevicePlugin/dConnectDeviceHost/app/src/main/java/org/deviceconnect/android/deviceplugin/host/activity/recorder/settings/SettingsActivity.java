@@ -25,6 +25,8 @@ public class SettingsActivity extends HostDevicePluginBindActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle("");
         }
+
+        setRequestedOrientation(getDisplayOrientation());
     }
 
     @Override

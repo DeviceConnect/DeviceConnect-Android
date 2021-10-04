@@ -19,9 +19,9 @@ class ScreenCastRTSPPreviewServer extends AbstractRTSPPreviewServer {
         switch (getEncoderSettings().getPreviewEncoderName()) {
             case H264:
             default:
-                return new ScreenCastH264VideoStream(recorder, 5006);
+                return new ScreenCastH264VideoStream(recorder, 5016);
             case H265:
-                return new ScreenCastH265VideoStream(recorder, 5006);
+                return new ScreenCastH265VideoStream(recorder, 5016);
         }
     }
 }

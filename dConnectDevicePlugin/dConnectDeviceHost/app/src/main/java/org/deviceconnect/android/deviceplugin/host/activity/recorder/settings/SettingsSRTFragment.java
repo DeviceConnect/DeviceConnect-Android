@@ -28,12 +28,9 @@ public class SettingsSRTFragment extends SettingsEncoderFragment {
     }
 
     @Override
-    protected void setPreviewServerUrl(int port) {
-        EditTextPreference pref = findPreference("url");
-        if (pref != null) {
-            String ipAddress = NetworkUtil.getIPAddress(requireContext());
-            pref.setText("srt://" + ipAddress + ":" + port);
-        }
+    protected String getServerUrl(int port) {
+        String ipAddress = NetworkUtil.getIPAddress(requireContext());
+        return "srt://" + ipAddress + ":" + port;
     }
 
     private void setSummaryOptionAuto(String name) {

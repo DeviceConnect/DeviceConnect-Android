@@ -15,11 +15,8 @@ public class SettingsRTSPFragment extends SettingsEncoderFragment {
     }
 
     @Override
-    protected void setPreviewServerUrl(int port) {
-        EditTextPreference pref = findPreference("url");
-        if (pref != null) {
-            String ipAddress = NetworkUtil.getIPAddress(requireContext());
-            pref.setText("rtsp://" + ipAddress + ":" + port);
-        }
+    protected String getServerUrl(int port) {
+        String ipAddress = NetworkUtil.getIPAddress(requireContext());
+        return "rtsp://" + ipAddress + ":" + port;
     }
 }

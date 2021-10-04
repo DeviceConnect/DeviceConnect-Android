@@ -35,13 +35,14 @@ public class SettingsBroadcastFragment extends SettingsParameterFragment {
     public void onBindService() {
         mMediaRecorder = getRecorder();
 
-        HostMediaRecorder.EncoderSettings settings = getStreamingSetting();
+        HostMediaRecorder.EncoderSettings settings = getEncoderSetting();
 
         setPreviewSizePreference(settings);
         setPreviewVideoEncoderPreference(settings);
         setPreviewProfileLevelPreference(settings, settings.getPreviewEncoderName(), false);
 
         setPreviewCutOutReset();
+        setPreviewCutOutSet();
 
         setInputTypeNumber("preview_framerate");
         setInputTypeNumber("preview_bitrate");
@@ -54,7 +55,7 @@ public class SettingsBroadcastFragment extends SettingsParameterFragment {
         setPreviewClipPreference("preview_clip_bottom");
     }
 
-    private HostMediaRecorder.EncoderSettings getStreamingSetting() {
+    private HostMediaRecorder.EncoderSettings getEncoderSetting() {
         HostMediaRecorder.Settings s = mMediaRecorder.getSettings();
         return s.getEncoderSetting(getEncoderId());
     }
@@ -79,6 +80,13 @@ public class SettingsBroadcastFragment extends SettingsParameterFragment {
         }
     }
 
+    private void setPreviewClip(String key, Integer value) {
+        EditTextPreference pref = findPreference(key);
+        if (pref != null) {
+            pref.setText(String.valueOf(value));
+        }
+    }
+
     /**
      * 切り抜き範囲のリセットボタンのリスナーを設定します.
      */
@@ -90,7 +98,22 @@ public class SettingsBroadcastFragment extends SettingsParameterFragment {
                 setEmptyText("preview_clip_top");
                 setEmptyText("preview_clip_right");
                 setEmptyText("preview_clip_bottom");
-                getStreamingSetting().setCropRect(null);
+                getEncoderSetting().setCropRect(null);
+                return false;
+            });
+        }
+    }
+
+    private void setPreviewCutOutSet() {
+        PreferenceScreen pref = findPreference("preview_clip_set");
+        if (pref != null) {
+            pref.setOnPreferenceClickListener(preference -> {
+                HostMediaRecorder.EncoderSettings settings = getEncoderSetting();
+                Size previewSize = settings.getPreviewSize();
+                setPreviewClip("preview_clip_left", 0);
+                setPreviewClip("preview_clip_top", 0);
+                setPreviewClip("preview_clip_right", previewSize.getWidth());
+                setPreviewClip("preview_clip_bottom", previewSize.getHeight());
                 return false;
             });
         }
@@ -339,7 +362,7 @@ public class SettingsBroadcastFragment extends SettingsParameterFragment {
             return false;
         }
 
-        HostMediaRecorder.EncoderSettings settings = getStreamingSetting();
+        HostMediaRecorder.EncoderSettings settings = getEncoderSetting();
 
         String key = preference.getKey();
         if ("camera_preview_size".equals(key)) {

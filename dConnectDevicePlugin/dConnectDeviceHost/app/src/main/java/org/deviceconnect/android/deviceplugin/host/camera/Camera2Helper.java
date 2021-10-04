@@ -115,7 +115,7 @@ public final class Camera2Helper {
                     }
                 }
             }
-        } catch (CameraAccessException e) {
+        } catch (IllegalArgumentException | CameraAccessException e) {
             // ignore.
         }
         return false;

@@ -319,6 +319,14 @@ public class HostMediaRecorderManager {
     }
 
     /**
+     * 端末が対応しているレコーダを読み込みし直す
+     */
+    public void reloadRecorders() {
+        destroy();
+        mRecorders.clear();
+        initRecorders();
+    }
+    /**
      * 指定されたレコーダが使用できるか確認します.
      *
      * @param recorder 使用できるか確認するレコーダ

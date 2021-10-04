@@ -463,7 +463,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         private final PropertyUtil mPref;
 
         public Settings(Context context, HostMediaRecorder recorder) {
-            mPref = new PropertyUtil(context, recorder.getId());
+            mPref = new PropertyUtil(context, recorder.getId().replaceAll("/", "_"));
         }
 
         /**

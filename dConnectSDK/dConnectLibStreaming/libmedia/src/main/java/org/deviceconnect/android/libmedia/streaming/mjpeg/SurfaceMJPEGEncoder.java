@@ -1,7 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.mjpeg;
 
 import android.graphics.Bitmap;
-import android.graphics.Rect;
 
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
@@ -189,15 +188,8 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
             mSurfaceDrawingThread = createEGLSurfaceDrawingThread();
         }
 
-        int w = quality.getWidth();
-        int h = quality.getHeight();
-        Rect rect = quality.getCropRect();
-        if (rect != null) {
-            w = rect.width();
-            h = rect.height();
-        }
         mSurfaceDrawingThread.setSize(quality.getWidth(), quality.getHeight());
-        mSurfaceDrawingThread.addEGLSurfaceBase(w, h, TAG_SURFACE, quality.getCropRect());
+        mSurfaceDrawingThread.addEGLSurfaceBase(quality.getWidth(), quality.getHeight(), TAG_SURFACE, quality.getCropRect());
         mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
         mSurfaceDrawingThread.start();
     }

@@ -155,10 +155,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             for (HostMediaRecorder recorder : mRecorderMgr.getRecorders()) {
                                 recorders.add(createMediaRecorderInfo(recorder));
                             }
+                            setRecorders(response, recorders.toArray(new Bundle[0]));
                         } else {
-                            recorders.add(createMediaRecorderInfo(recorder));
+                            response.putExtras(createMediaRecorderInfo(recorder));
                         }
-                        setRecorders(response, recorders.toArray(new Bundle[0]));
                         setResult(response, DConnectMessage.RESULT_OK);
                         sendResponse(response);
                     }
@@ -193,20 +193,16 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                     @Override
                     public void onAllowed() {
-                        HostMediaRecorder.Settings settings = recorder.getSettings();
-                        if (recorder.getMimeType().startsWith("image/") || recorder.getMimeType().startsWith("video/")) {
-                            // 映像系の設定
-                            setSupportedImageSizes(response, settings.getSupportedPictureSizes());
-                            setSupportedPreviewSizes(response, settings.getSupportedPreviewSizes());
-                            setSupportedVideoEncoders(response, settings.getSupportedVideoEncoders());
-                            setSupportedFps(response, settings.getSupportedFps());
-//                        } else if (recorder.getMimeType().startsWith("audio/")) {
-                            // 音声系の設定
+                        if (target == null) {
+                            List<Bundle> recorders = new LinkedList<>();
+                            for (HostMediaRecorder recorder : mRecorderMgr.getRecorders()) {
+                                recorders.add(createRecorderOption(recorder));
+                            }
+                            setRecorders(response, recorders.toArray(new Bundle[0]));
+                        } else {
+                            response.putExtras(createRecorderOption(recorder));
                         }
-
                         setResult(response, DConnectMessage.RESULT_OK);
-                        setMIMEType(response, recorder.getSupportedMimeTypes());
-
                         sendResponse(response);
                     }
 
@@ -1460,213 +1456,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         return (HostDevicePlugin) getContext();
     }
 
-    private Bundle createMediaRecorderInfo(HostMediaRecorder recorder) {
-        HostMediaRecorder.Settings settings = recorder.getSettings();
-
-        Bundle info = new Bundle();
-        setRecorderId(info, recorder.getId());
-        setRecorderName(info, recorder.getName());
-        setRecorderMIMEType(info, recorder.getMimeType());
-
-        if (recorder.getState() == HostMediaRecorder.State.RECORDING) {
-            setRecorderState(info, RecorderState.RECORDING);
-        } else {
-            setRecorderState(info, RecorderState.INACTIVE);
-        }
-
-        // 静止画の解像度
-        Size pictureSize = settings.getPictureSize();
-        if (pictureSize != null) {
-            setRecorderImageWidth(info, pictureSize.getWidth());
-            setRecorderImageHeight(info, pictureSize.getHeight());
-        }
-
-        // プレビュー解像度
-        Size previewSize = settings.getPreviewSize();
-        if (previewSize != null) {
-            setRecorderPreviewWidth(info, previewSize.getWidth());
-            setRecorderPreviewHeight(info, previewSize.getHeight());
-        }
-
-        // カメラのフレームレート
-        Range<Integer> previewFps = settings.getPreviewFps();
-        if (previewFps != null) {
-            info.putString("previewFps", previewFps.getLower() + "-" + previewFps.getUpper());
-            info.putInt("previewMaxFrameRate", previewFps.getUpper());
-        }
-
-        // エンコーダ設定
-        List<Bundle> encoders = new ArrayList<>();
-        for (String encoderId : settings.getEncoderIdList()) {
-            HostMediaRecorder.EncoderSettings s = settings.getEncoderSetting(encoderId);
-            if (s != null) {
-                encoders.add(createVideoEncoder(s));
-            }
-        }
-        info.putParcelableArray("encoders", encoders.toArray(new Bundle[0]));
-
-        // 各機能の状態
-        Bundle status = new Bundle();
-        status.putBoolean("preview", recorder.isPreviewRunning());
-        status.putBoolean("broadcast", recorder.isBroadcasterRunning());
-        status.putBoolean("recording", recorder.getState() == HostMediaRecorder.State.RECORDING);
-        info.putParcelable("status", status);
-
-        info.putString("audioSource", settings.getPreviewAudioSource().getValue());
-        info.putInt("audioBitrate", settings.getPreviewAudioBitRate() / 1024);
-        info.putInt("audioSampleRate", settings.getPreviewSampleRate());
-        info.putInt("audioChannel", settings.getPreviewChannel());
-        info.putBoolean("audioEchoCanceler", settings.isUseAEC());
-
-        setRecorderConfig(info, "");
-        return info;
-    }
-
-    private Bundle createVideoEncoder(HostMediaRecorder.EncoderSettings s) {
-        Bundle bundle = new Bundle();
-        bundle.putString("name", s.getName());
-        bundle.putString("mimeType", s.getMimeType().getValue());
-        bundle.putInt("width", s.getPreviewSize().getWidth());
-        bundle.putInt("height", s.getPreviewSize().getHeight());
-        bundle.putInt("bitrate", s.getPreviewBitRate() / 1024);
-
-        if ("video/x-mjpeg".equals(s.getMimeType().getValue())) {
-            bundle.putFloat("jpegQuality", s.getPreviewQuality() / 100.0f);
-        } else if (s.getMimeType().getValue().startsWith("video/")) {
-            bundle.putInt("keyFrameInterval", s.getPreviewKeyFrameInterval());
-            bundle.putString("encoder", s.getPreviewEncoder());
-            HostMediaRecorder.ProfileLevel pl = s.getProfileLevel();
-            if (pl != null) {
-                switch (HostMediaRecorder.VideoCodec.nameOf(s.getPreviewEncoder())) {
-                    case H264:
-                        bundle.putString("previewProfile", H264Profile.valueOf(pl.getProfile()).getName());
-                        bundle.putString("previewLevel", H264Level.valueOf(pl.getLevel()).getName());
-                        break;
-                    case H265:
-                        bundle.putString("previewProfile", H265Profile.valueOf(pl.getProfile()).getName());
-                        bundle.putString("previewLevel", H265Level.valueOf(pl.getLevel()).getName());
-                        break;
-                }
-            }
-            bundle.putBoolean("useSoftwareEncoder", s.isUseSoftwareEncoder());
-            Integer intraRefresh = s.getIntraRefresh();
-            if (intraRefresh != null) {
-                bundle.putInt("intraRefresh", intraRefresh);
-            }
-        }
-
-        if (s.getPort() > 0) {
-            bundle.putInt("port", s.getPort());
-        }
-
-        // 切り抜き設定
-        Rect rect = s.getCropRect();
-        if (rect != null) {
-            Bundle drawingRect = new Bundle();
-            drawingRect.putInt("left", rect.left);
-            drawingRect.putInt("top", rect.top);
-            drawingRect.putInt("right", rect.right);
-            drawingRect.putInt("bottom", rect.bottom);
-            bundle.putBundle("crop", drawingRect);
-        }
-
-        return bundle;
-    }
-
-    /**
-     * サポートしている静止画の解像度をレスポンスに格納します.
-     *
-     * @param response 静止画の解像度を格納するレスポンス
-     * @param sizes サポートしている静止画の解像度のリスト
-     */
-    private static void setSupportedImageSizes(final Intent response, final List<Size> sizes) {
-        Bundle[] array = new Bundle[sizes.size()];
-        int i = 0;
-        for (Size size : sizes) {
-            Bundle info = new Bundle();
-            setWidth(info, size.getWidth());
-            setHeight(info, size.getHeight());
-            array[i++] = info;
-        }
-        setImageSizes(response, array);
-    }
-
-    /**
-     * サポートしているプレビューの解像度をレスポンスに格納します.
-     *
-     * @param response プレビューの解像度を格納するレスポンス
-     * @param sizes サポートしているプレビューの解像度のリスト
-     */
-    private static void setSupportedPreviewSizes(final Intent response, final List<Size> sizes) {
-        Bundle[] array = new Bundle[sizes.size()];
-        int i = 0;
-        for (Size size : sizes) {
-            Bundle info = new Bundle();
-            setWidth(info, size.getWidth());
-            setHeight(info, size.getHeight());
-            array[i++] = info;
-        }
-        setPreviewSizes(response, array);
-    }
-
-    /**
-     * サポートしているエンコーダをレスポンスに格納します.
-     *
-     * @param response レスポンス
-     * @param encoderNames エンコーダのリスト
-     */
-    private static void setSupportedVideoEncoders(Intent response, List<String> encoderNames) {
-        List<Bundle> encoders = new ArrayList<>();
-        for (String name : encoderNames) {
-            HostMediaRecorder.VideoCodec videoCodec = HostMediaRecorder.VideoCodec.nameOf(name);
-            Size maxSize = CapabilityUtil.getSupportedMaxSize(videoCodec.getMimeType());
-            Bundle encoder = new Bundle();
-            encoder.putString("name", name);
-            encoder.putParcelableArray("profileLevel", getProfileLevels(videoCodec));
-            if (maxSize != null) {
-                encoder.putInt("maxWidth", maxSize.getWidth());
-                encoder.putInt("maxHeight", maxSize.getHeight());
-            }
-            encoders.add(encoder);
-        }
-        response.putExtra("encoder", encoders.toArray(new Bundle[0]));
-    }
-
-    /**
-     * エンコーダがサポートしているプロファイルとレベルを格納した Bundle の配列を取得します.
-     *
-     * @param videoCodec エンコーダ
-     * @return プロファイルとレベルを格納した Bundle の配列
-     */
-    private static Bundle[] getProfileLevels(HostMediaRecorder.VideoCodec videoCodec) {
-        List<Bundle> list = new ArrayList<>();
-        for (HostMediaRecorder.ProfileLevel pl : CapabilityUtil.getSupportedProfileLevel(videoCodec.getMimeType())) {
-            switch (videoCodec) {
-                case H264: {
-                    H264Profile p = H264Profile.valueOf(pl.getProfile());
-                    H264Level l = H264Level.valueOf(pl.getLevel());
-                    if (p != null && l != null) {
-                        Bundle encoder = new Bundle();
-                        encoder.putString("profile", p.getName());
-                        encoder.putString("level", l.getName());
-                        list.add(encoder);
-                    }
-                }   break;
-                case H265: {
-                    H265Profile p = H265Profile.valueOf(pl.getProfile());
-                    H265Level l = H265Level.valueOf(pl.getLevel());
-                    if (p != null && l != null) {
-                        Bundle encoder = new Bundle();
-                        encoder.putString("profile", p.getName());
-                        encoder.putString("level", l.getName());
-                        list.add(encoder);
-                    }
-                }   break;
-            }
-        }
-        return list.toArray(new Bundle[0]);
-    }
-
     /**
      * RecorderのMute状態を切り返す.
      * RTSPをサポートしているRecorderのみ対応する.
@@ -2032,6 +1821,278 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         return null;
     }
 
+    private Bundle createMediaRecorderInfo(HostMediaRecorder recorder) {
+        HostMediaRecorder.Settings settings = recorder.getSettings();
+
+        Bundle info = new Bundle();
+        setRecorderId(info, recorder.getId());
+        setRecorderName(info, recorder.getName());
+        setRecorderMIMEType(info, recorder.getMimeType());
+
+        if (recorder.getState() == HostMediaRecorder.State.RECORDING) {
+            setRecorderState(info, RecorderState.RECORDING);
+        } else {
+            setRecorderState(info, RecorderState.INACTIVE);
+        }
+
+        // 静止画の解像度
+        Size pictureSize = settings.getPictureSize();
+        if (pictureSize != null) {
+            setRecorderImageWidth(info, pictureSize.getWidth());
+            setRecorderImageHeight(info, pictureSize.getHeight());
+        }
+
+        // プレビュー解像度
+        Size previewSize = settings.getPreviewSize();
+        if (previewSize != null) {
+            setRecorderPreviewWidth(info, previewSize.getWidth());
+            setRecorderPreviewHeight(info, previewSize.getHeight());
+        }
+
+        // カメラのフレームレート
+        Range<Integer> previewFps = settings.getPreviewFps();
+        if (previewFps != null) {
+            info.putString("previewFps", previewFps.getLower() + "-" + previewFps.getUpper());
+            info.putInt("previewMaxFrameRate", previewFps.getUpper());
+        }
+
+        // エンコーダ設定
+        List<Bundle> encoders = new ArrayList<>();
+        for (String encoderId : settings.getEncoderIdList()) {
+            HostMediaRecorder.EncoderSettings s = settings.getEncoderSetting(encoderId);
+            if (s != null) {
+                encoders.add(createVideoEncoder(s));
+            }
+        }
+        info.putParcelableArray("encoders", encoders.toArray(new Bundle[0]));
+
+        // 各機能の状態
+        Bundle status = new Bundle();
+        status.putBoolean("preview", recorder.isPreviewRunning());
+        status.putBoolean("broadcast", recorder.isBroadcasterRunning());
+        status.putBoolean("recording", recorder.getState() == HostMediaRecorder.State.RECORDING);
+        info.putParcelable("status", status);
+
+        info.putString("audioSource", settings.getPreviewAudioSource().getValue());
+        info.putInt("audioBitrate", settings.getPreviewAudioBitRate() / 1024);
+        info.putInt("audioSampleRate", settings.getPreviewSampleRate());
+        info.putInt("audioChannel", settings.getPreviewChannel());
+        info.putBoolean("audioEchoCanceler", settings.isUseAEC());
+
+        setRecorderConfig(info, "");
+        return info;
+    }
+
+    private Bundle createVideoEncoder(HostMediaRecorder.EncoderSettings s) {
+        Bundle bundle = new Bundle();
+        bundle.putString("name", s.getName());
+        bundle.putString("mimeType", s.getMimeType().getValue());
+        bundle.putInt("width", s.getPreviewSize().getWidth());
+        bundle.putInt("height", s.getPreviewSize().getHeight());
+        bundle.putInt("bitrate", s.getPreviewBitRate() / 1024);
+
+        if ("video/x-mjpeg".equals(s.getMimeType().getValue())) {
+            bundle.putFloat("jpegQuality", s.getPreviewQuality() / 100.0f);
+        } else if (s.getMimeType().getValue().startsWith("video/")) {
+            bundle.putInt("keyFrameInterval", s.getPreviewKeyFrameInterval());
+            bundle.putString("encoder", s.getPreviewEncoder());
+            HostMediaRecorder.ProfileLevel pl = s.getProfileLevel();
+            if (pl != null) {
+                switch (HostMediaRecorder.VideoCodec.nameOf(s.getPreviewEncoder())) {
+                    case H264:
+                        bundle.putString("previewProfile", H264Profile.valueOf(pl.getProfile()).getName());
+                        bundle.putString("previewLevel", H264Level.valueOf(pl.getLevel()).getName());
+                        break;
+                    case H265:
+                        bundle.putString("previewProfile", H265Profile.valueOf(pl.getProfile()).getName());
+                        bundle.putString("previewLevel", H265Level.valueOf(pl.getLevel()).getName());
+                        break;
+                }
+            }
+            bundle.putBoolean("useSoftwareEncoder", s.isUseSoftwareEncoder());
+            Integer intraRefresh = s.getIntraRefresh();
+            if (intraRefresh != null) {
+                bundle.putInt("intraRefresh", intraRefresh);
+            }
+        }
+
+        if (s.getPort() > 0) {
+            bundle.putInt("port", s.getPort());
+        }
+
+        // 切り抜き設定
+        Rect rect = s.getCropRect();
+        if (rect != null) {
+            Bundle drawingRect = new Bundle();
+            drawingRect.putInt("left", rect.left);
+            drawingRect.putInt("top", rect.top);
+            drawingRect.putInt("right", rect.right);
+            drawingRect.putInt("bottom", rect.bottom);
+            bundle.putBundle("crop", drawingRect);
+        }
+
+        return bundle;
+    }
+
+    private Bundle createRecorderOption(HostMediaRecorder recorder) {
+        Bundle bundle = new Bundle();
+        HostMediaRecorder.Settings settings = recorder.getSettings();
+        setRecorderId(bundle, recorder.getId());
+        setRecorderName(bundle, recorder.getName());
+        if (recorder.getMimeType().startsWith("image/") || recorder.getMimeType().startsWith("video/")) {
+            setSupportedImageSizes(bundle, settings.getSupportedPictureSizes());
+            setSupportedPreviewSizes(bundle, settings.getSupportedPreviewSizes());
+            setSupportedVideoEncoders(bundle, settings.getSupportedVideoEncoders());
+            setSupportedFps(bundle, settings.getSupportedFps());
+        }
+        setMIMEType(bundle, recorder.getSupportedMimeTypes());
+        return bundle;
+    }
+
+    private static Bundle[] createSupportedImageSizes(List<Size> sizes) {
+        Bundle[] array = new Bundle[sizes.size()];
+        int i = 0;
+        for (Size size : sizes) {
+            Bundle info = new Bundle();
+            setWidth(info, size.getWidth());
+            setHeight(info, size.getHeight());
+            array[i++] = info;
+        }
+        return array;
+    }
+
+    /**
+     * サポートしている静止画の解像度をレスポンスに格納します.
+     *
+     * @param response 静止画の解像度を格納するレスポンス
+     * @param sizes サポートしている静止画の解像度のリスト
+     */
+    private static void setSupportedImageSizes(final Intent response, final List<Size> sizes) {
+        setImageSizes(response, createSupportedImageSizes(sizes));
+    }
+
+    /**
+     * サポートしている静止画の解像度をレスポンスに格納します.
+     *
+     * @param bundle 静止画の解像度を格納するレスポンス
+     * @param sizes サポートしている静止画の解像度のリスト
+     */
+    private static void setSupportedImageSizes(final Bundle bundle, final List<Size> sizes) {
+        bundle.putParcelableArray("imageSizes", createSupportedImageSizes(sizes));
+    }
+
+    private static Bundle[] createSupportedPreviewSizes(List<Size> sizes) {
+        Bundle[] array = new Bundle[sizes.size()];
+        int i = 0;
+        for (Size size : sizes) {
+            Bundle info = new Bundle();
+            setWidth(info, size.getWidth());
+            setHeight(info, size.getHeight());
+            array[i++] = info;
+        }
+        return array;
+    }
+
+    /**
+     * サポートしているプレビューの解像度をレスポンスに格納します.
+     *
+     * @param response プレビューの解像度を格納するレスポンス
+     * @param sizes サポートしているプレビューの解像度のリスト
+     */
+    private static void setSupportedPreviewSizes(final Intent response, final List<Size> sizes) {
+        setPreviewSizes(response, createSupportedPreviewSizes(sizes));
+    }
+
+    /**
+     * サポートしているプレビューの解像度をレスポンスに格納します.
+     *
+     * @param bundle プレビューの解像度を格納するレスポンス
+     * @param sizes サポートしているプレビューの解像度のリスト
+     */
+    private static void setSupportedPreviewSizes(final Bundle bundle, final List<Size> sizes) {
+        bundle.putParcelableArray("previewSizes", createSupportedPreviewSizes(sizes));
+    }
+
+    private static Bundle[] createSupportedVideoEncoders(List<String> encoderNames) {
+        List<Bundle> encoders = new ArrayList<>();
+        for (String name : encoderNames) {
+            HostMediaRecorder.VideoCodec videoCodec = HostMediaRecorder.VideoCodec.nameOf(name);
+            Size maxSize = CapabilityUtil.getSupportedMaxSize(videoCodec.getMimeType());
+            Bundle encoder = new Bundle();
+            encoder.putString("name", name);
+            encoder.putParcelableArray("profileLevel", getProfileLevels(videoCodec));
+            if (maxSize != null) {
+                encoder.putInt("maxWidth", maxSize.getWidth());
+                encoder.putInt("maxHeight", maxSize.getHeight());
+            }
+            encoders.add(encoder);
+        }
+        return encoders.toArray(new Bundle[0]);
+    }
+
+    /**
+     * サポートしているエンコーダをレスポンスに格納します.
+     *
+     * @param response レスポンス
+     * @param encoderNames エンコーダのリスト
+     */
+    private static void setSupportedVideoEncoders(Intent response, List<String> encoderNames) {
+        response.putExtra("encoder", createSupportedVideoEncoders(encoderNames));
+    }
+
+    /**
+     * サポートしているエンコーダをレスポンスに格納します.
+     *
+     * @param bundle レスポンス
+     * @param encoderNames エンコーダのリスト
+     */
+    private static void setSupportedVideoEncoders(Bundle bundle, List<String> encoderNames) {
+        bundle.putParcelableArray("encoder", createSupportedVideoEncoders(encoderNames));
+    }
+
+    /**
+     * エンコーダがサポートしているプロファイルとレベルを格納した Bundle の配列を取得します.
+     *
+     * @param videoCodec エンコーダ
+     * @return プロファイルとレベルを格納した Bundle の配列
+     */
+    private static Bundle[] getProfileLevels(HostMediaRecorder.VideoCodec videoCodec) {
+        List<Bundle> list = new ArrayList<>();
+        for (HostMediaRecorder.ProfileLevel pl : CapabilityUtil.getSupportedProfileLevel(videoCodec.getMimeType())) {
+            switch (videoCodec) {
+                case H264: {
+                    H264Profile p = H264Profile.valueOf(pl.getProfile());
+                    H264Level l = H264Level.valueOf(pl.getLevel());
+                    if (p != null && l != null) {
+                        Bundle encoder = new Bundle();
+                        encoder.putString("profile", p.getName());
+                        encoder.putString("level", l.getName());
+                        list.add(encoder);
+                    }
+                }   break;
+                case H265: {
+                    H265Profile p = H265Profile.valueOf(pl.getProfile());
+                    H265Level l = H265Level.valueOf(pl.getLevel());
+                    if (p != null && l != null) {
+                        Bundle encoder = new Bundle();
+                        encoder.putString("profile", p.getName());
+                        encoder.putString("level", l.getName());
+                        list.add(encoder);
+                    }
+                }   break;
+            }
+        }
+        return list.toArray(new Bundle[0]);
+    }
+
+    private static String[] createSupportedFps(List<Range<Integer>> supportedFps) {
+        List<String> fpsList = new ArrayList<>();
+        for (Range<Integer> fps : supportedFps) {
+            fpsList.add(fps.getLower() + "-" + fps.getUpper());
+        }
+        return fpsList.toArray(new String[0]);
+    }
+
     /**
      * カメラがサポートしている Fps のリストをレスポンスに格納します.
      *
@@ -2039,11 +2100,17 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
      * @param supportedFps サポートしている fps のリスト
      */
     private static void setSupportedFps(Intent response, List<Range<Integer>> supportedFps) {
-        List<String> fpsList = new ArrayList<>();
-        for (Range<Integer> fps : supportedFps) {
-            fpsList.add(fps.getLower() + "-" + fps.getUpper());
-        }
-        response.putExtra("frameRate", fpsList.toArray(new String[0]));
+        response.putExtra("frameRate", createSupportedFps(supportedFps));
+    }
+
+    /**
+     * カメラがサポートしている Fps のリストをレスポンスに格納します.
+     *
+     * @param bundle レスポンス
+     * @param supportedFps サポートしている fps のリスト
+     */
+    private static void setSupportedFps(Bundle bundle, List<Range<Integer>> supportedFps) {
+        bundle.putStringArray("frameRate", createSupportedFps(supportedFps));
     }
 
     /**

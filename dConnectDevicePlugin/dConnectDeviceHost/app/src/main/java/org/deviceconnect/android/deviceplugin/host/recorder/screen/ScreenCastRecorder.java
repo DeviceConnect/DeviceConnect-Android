@@ -21,7 +21,6 @@ import android.util.DisplayMetrics;
 import android.util.Range;
 import android.util.Size;
 import android.view.Display;
-import android.view.Surface;
 import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.view.WindowMetrics;
@@ -199,52 +198,36 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         if (wm == null) {
             throw new RuntimeException("WindowManager is not supported.");
         }
-        DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
-        boolean isSwap;
-        switch (wm.getDefaultDisplay().getRotation()) {
-            case Surface.ROTATION_0:
-            case Surface.ROTATION_180:
-                isSwap = false;
-                break;
-            default:
-            case Surface.ROTATION_90:
-            case Surface.ROTATION_270:
-                isSwap = true;
-                break;
-        }
+
         int insetsWidth = 0;
         int insetsHeight = 0;
         Size displaySize;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             WindowMetrics windowMetrics = wm.getCurrentWindowMetrics();
-            final WindowInsets windowInsets = windowMetrics.getWindowInsets();
+            WindowInsets windowInsets = windowMetrics.getWindowInsets();
             Insets insets = windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.navigationBars()
                     | WindowInsets.Type.displayCutout());
-
-            int width = isSwap ? windowMetrics.getBounds().height() :windowMetrics.getBounds().width();
-            int height = isSwap ? windowMetrics.getBounds().width() :windowMetrics.getBounds().height();
+            int width = windowMetrics.getBounds().width();
+            int height = windowMetrics.getBounds().height();
             insetsWidth = insets.right + insets.left;
             insetsHeight = insets.top + insets.bottom;
-
-            // Legacy size that Display#getSize reports
-            displaySize = new Size(width - insetsWidth,
-                    height - insetsHeight);
+            displaySize = new Size(width - insetsWidth, height - insetsHeight);
         } else {
-            // 画面が回転している場合には、縦横をスワップしておく。
-            int width = isSwap ? metrics.heightPixels : metrics.widthPixels;
-            int height = isSwap ? metrics.widthPixels : metrics.heightPixels;
-            displaySize =  new Size(width, height);
+            DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
+            displaySize =  new Size(metrics.widthPixels, metrics.heightPixels);
         }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Display.Mode[] modes = wm.getDefaultDisplay().getSupportedModes();
-            if(modes.length > 0){
+            if (modes.length > 0){
                 Display.Mode mode = modes[modes.length - 1];
-                int width = isSwap ? mode.getPhysicalHeight() : mode.getPhysicalWidth();
-                int height = isSwap ? mode.getPhysicalWidth() : mode.getPhysicalHeight();
-                // 4Kサイズの解像度がある場合はそちらを優先する
+                int width = mode.getPhysicalWidth();
+                int height = mode.getPhysicalHeight();
+                // 4K サイズの解像度がある場合はそちらを優先する
                 displaySize  = new Size(width - insetsWidth, height - insetsHeight);
             }
         }
+
         return displaySize;
     }
 

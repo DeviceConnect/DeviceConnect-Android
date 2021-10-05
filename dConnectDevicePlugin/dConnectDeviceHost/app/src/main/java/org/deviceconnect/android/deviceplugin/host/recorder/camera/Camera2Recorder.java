@@ -290,7 +290,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
 
     @Override
     public String getId() {
-        return ID_BASE + "_" + mCameraWrapper.getId();
+        return ID_BASE + "_" + mCameraWrapper.getId().replaceAll("/", "_");
     }
 
     @Override

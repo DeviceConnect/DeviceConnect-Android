@@ -18,6 +18,7 @@ public class SettingsActivity extends HostDevicePluginBindActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(getDisplayOrientation());
         setContentView(R.layout.activity_recorder_settings);
 
         ActionBar actionBar = getSupportActionBar();
@@ -25,14 +26,6 @@ public class SettingsActivity extends HostDevicePluginBindActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle("");
         }
-
-        setRequestedOrientation(getDisplayOrientation());
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        setRequestedOrientation(getDisplayOrientation());
     }
 
     @Override

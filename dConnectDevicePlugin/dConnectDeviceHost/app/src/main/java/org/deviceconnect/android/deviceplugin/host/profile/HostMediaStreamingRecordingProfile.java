@@ -1006,18 +1006,20 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 Integer retryCount = parseInteger(request, "retryCount");
                 Integer retryInterval = parseInteger(request, "retryInterval");
 
-                if (name == null) {
-                    MessageUtils.setInvalidRequestParameterError(response, "name is not set.");
-                    return true;
-                }
 
                 HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
                 if (recorder == null) {
-                    MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "target is invalid.");
                     return true;
                 }
 
-                String encoderId = recorder.getId() + "-" + name;
+                List<String> encoderIdList = getEncoderSettings(recorder, name);
+                if (encoderIdList.isEmpty()) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "name is invalid.");
+                    return true;
+                }
 
                 if (width != null && width < 0) {
                     MessageUtils.setInvalidRequestParameterError(response,
@@ -1084,56 +1086,79 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                     @Override
                     public void onAllowed() {
-                        HostMediaRecorder.EncoderSettings encoderSettings = recorder.getSettings().getEncoderSetting(encoderId);
+                        HostMediaRecorder.Settings settings = recorder.getSettings();
 
                         if (width != null && height != null) {
-                            encoderSettings.setPreviewSize(new Size(width, height));
+                            for (String encoderId : encoderIdList) {
+                                settings.getEncoderSetting(encoderId).setPreviewSize(new Size(width, height));
+                            }
                         }
 
                         if (frameRate != null) {
-                            encoderSettings.setPreviewMaxFrameRate(frameRate);
+                            for (String encoderId : encoderIdList) {
+                                settings.getEncoderSetting(encoderId).setPreviewMaxFrameRate(frameRate);
+                            }
                         }
 
                         if (bitRate != null) {
-                            encoderSettings.setPreviewBitRate(bitRate * 1024);
+                            for (String encoderId : encoderIdList) {
+                                settings.getEncoderSetting(encoderId).setPreviewBitRate(bitRate * 1024);
+                            }
                         }
 
                         if (keyFrameInterval != null) {
-                            encoderSettings.setPreviewKeyFrameInterval(keyFrameInterval);
+                            for (String encoderId : encoderIdList) {
+                                settings.getEncoderSetting(encoderId).setPreviewKeyFrameInterval(keyFrameInterval);
+                            }
                         }
 
                         if (codec != null) {
-                            encoderSettings.setPreviewEncoder(codec);
-                            // エンコーダが切り替えられた場合は、プロファイル・レベルは設定無しにする.
-                            encoderSettings.setProfileLevel(null);
+                            for (String encoderId : encoderIdList) {
+                                settings.getEncoderSetting(encoderId).setPreviewEncoder(codec);
+                                settings.getEncoderSetting(encoderId).setProfileLevel(null);
+                            }
                         }
 
                         if (profileLevel != null) {
-                            encoderSettings.setProfileLevel(profileLevel);
+                            for (String encoderId : encoderIdList) {
+                                settings.getEncoderSetting(encoderId).setProfileLevel(profileLevel);
+                            }
                         }
 
                         if (intraRefresh != null) {
-                            encoderSettings.setIntraRefresh(intraRefresh);
+                            for (String encoderId : encoderIdList) {
+                                settings.getEncoderSetting(encoderId).setIntraRefresh(intraRefresh);
+                            }
                         }
 
                         if (useSoftwareEncoder != null) {
-                            encoderSettings.setUseSoftwareEncoder(useSoftwareEncoder);
+                            for (String encoderId : encoderIdList) {
+                                settings.getEncoderSetting(encoderId).setUseSoftwareEncoder(useSoftwareEncoder);
+                            }
                         }
 
                         if (jpegQuality != null) {
-                            encoderSettings.setPreviewQuality((int) (jpegQuality * 100));
+                            for (String encoderId : encoderIdList) {
+                                settings.getEncoderSetting(encoderId).setPreviewQuality((int) (jpegQuality * 100));
+                            }
                         }
 
                         if (broadcastUri != null) {
-                            encoderSettings.setBroadcastURI(broadcastUri);
+                            for (String encoderId : encoderIdList) {
+                                settings.getEncoderSetting(encoderId).setBroadcastURI(broadcastUri);
+                            }
                         }
 
                         if (retryCount != null) {
-                            encoderSettings.setRetryCount(retryCount);
+                            for (String encoderId : encoderIdList) {
+                                settings.getEncoderSetting(encoderId).setRetryCount(retryCount);
+                            }
                         }
 
                         if (retryInterval != null) {
-                            encoderSettings.setRetryInterval(retryInterval);
+                            for (String encoderId : encoderIdList) {
+                                settings.getEncoderSetting(encoderId).setRetryInterval(retryInterval);
+                            }
                         }
 
                         try {
@@ -1212,11 +1237,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     return true;
                 }
 
-                if (name == null) {
-                    MessageUtils.setInvalidRequestParameterError(response, "name is not set.");
-                    return true;
-                }
-
                 if (left == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "left is not set.");
                     return true;
@@ -1237,9 +1257,9 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     return true;
                 }
 
-                String encoderId = recorder.getId() + "-" + name;
-                if (!recorder.getSettings().existEncoderId(encoderId)) {
-                    MessageUtils.setInvalidRequestParameterError(response, "name is not found.");
+                List<String> encoderIdList = getEncoderSettings(recorder, name);
+                if (encoderIdList.isEmpty()) {
+                    MessageUtils.setInvalidRequestParameterError(response, "name is invalid.");
                     return true;
                 }
 
@@ -1251,28 +1271,33 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                     @Override
                     public void onAllowed() {
-                        HostMediaRecorder.EncoderSettings encoderSettings = recorder.getSettings().getEncoderSetting(encoderId);
-                        Rect start = encoderSettings.getCropRect();
-                        if (start == null) {
-                            int width = recorder.getSettings().getPreviewSize().getWidth();
-                            int height = recorder.getSettings().getPreviewSize().getHeight();
-                            start = new Rect(0, 0, width, height);
-                        }
+                        for (String encoderId : encoderIdList) {
+                            HostMediaRecorder.EncoderSettings encoderSettings = recorder.getSettings().getEncoderSetting(encoderId);
+                            if (encoderSettings == null) {
+                                continue;
+                            }
 
-                        Rect end = new Rect(left, top, right, bottom);
+                            Rect start = encoderSettings.getCropRect();
+                            if (start == null) {
+                                int width = recorder.getSettings().getPreviewSize().getWidth();
+                                int height = recorder.getSettings().getPreviewSize().getHeight();
+                                start = new Rect(0, 0, width, height);
+                            }
 
-                        for (LiveStreaming previewServer : recorder.getServerProvider().getLiveStreamingList()) {
-                            if (encoderId.equals(previewServer.getId())) {
-                                ((CropInterface) previewServer).moveCropRect(start, end, duration);
+                            Rect end = new Rect(left, top, right, bottom);
+
+                            for (LiveStreaming previewServer : recorder.getServerProvider().getLiveStreamingList()) {
+                                if (encoderId.equals(previewServer.getId())) {
+                                    ((CropInterface) previewServer).moveCropRect(start, end, duration);
+                                }
+                            }
+
+                            for (LiveStreaming broadcaster : recorder.getBroadcasterProvider().getLiveStreamingList()) {
+                                if (encoderId.equals(broadcaster.getId())) {
+                                    ((CropInterface) broadcaster).moveCropRect(start, end, duration);
+                                }
                             }
                         }
-
-                        for (LiveStreaming broadcaster : recorder.getBroadcasterProvider().getLiveStreamingList()) {
-                            if (encoderId.equals(broadcaster.getId())) {
-                                ((CropInterface) broadcaster).moveCropRect(start, end, duration);
-                            }
-                        }
-
                         setResult(response, DConnectMessage.RESULT_OK);
                         sendResponse(response);
                     }
@@ -1306,24 +1331,26 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     return true;
                 }
 
-                String encoderId = recorder.getId() + "-" + name;
-                if (!recorder.getSettings().existEncoderId(encoderId)) {
-                    MessageUtils.setInvalidRequestParameterError(response, "name is not found.");
+                List<String> encoderIdList = getEncoderSettings(recorder, name);
+                if (encoderIdList.isEmpty()) {
+                    MessageUtils.setInvalidRequestParameterError(response, "name is invalid.");
                     return true;
                 }
 
                 recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                     @Override
                     public void onAllowed() {
-                        for (LiveStreaming previewServer : recorder.getServerProvider().getLiveStreamingList()) {
-                            if (encoderId.equals(previewServer.getId())) {
-                                ((CropInterface) previewServer).setCropRect(null);
+                        for (String encoderId : encoderIdList) {
+                            for (LiveStreaming previewServer : recorder.getServerProvider().getLiveStreamingList()) {
+                                if (encoderId.equals(previewServer.getId())) {
+                                    ((CropInterface) previewServer).setCropRect(null);
+                                }
                             }
-                        }
 
-                        for (LiveStreaming broadcaster : recorder.getBroadcasterProvider().getLiveStreamingList()) {
-                            if (encoderId.equals(broadcaster.getId())) {
-                                ((CropInterface) broadcaster).setCropRect(null);
+                            for (LiveStreaming broadcaster : recorder.getBroadcasterProvider().getLiveStreamingList()) {
+                                if (encoderId.equals(broadcaster.getId())) {
+                                    ((CropInterface) broadcaster).setCropRect(null);
+                                }
                             }
                         }
 
@@ -1341,7 +1368,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return false;
             }
         });
-
 
         // PUT /gotapi/mediaStreamRecording/broadcast
         addApi(new PutApi() {
@@ -1456,6 +1482,22 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         return (HostDevicePlugin) getContext();
     }
 
+    private List<String> getEncoderSettings(HostMediaRecorder recorder, String name) {
+        List<String> encoderIdList = new ArrayList<>();
+        if (name == null) {
+            encoderIdList.addAll(recorder.getSettings().getEncoderIdList());
+        } else {
+            String[] names = name.split(",");
+            for (String n : names) {
+                String encoderId = recorder.getId() + "-" + n;
+                if (recorder.getSettings().existEncoderId(encoderId)) {
+                    encoderIdList.add(encoderId);
+                }
+            }
+        }
+        return encoderIdList;
+    }
+
     /**
      * RecorderのMute状態を切り返す.
      * RTSPをサポートしているRecorderのみ対応する.
@@ -1526,10 +1568,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
         HostMediaRecorder.Settings settings = recorder.getSettings();
 
-        if (!isSupportedMimeType(recorder, mimeType)) {
-            MessageUtils.setInvalidRequestParameterError(response, "MIME-Type " + mimeType + " is unsupported.");
-            return;
-        }
+//        if (!isSupportedMimeType(recorder, mimeType)) {
+//            MessageUtils.setInvalidRequestParameterError(response, "MIME-Type " + mimeType + " is unsupported.");
+//            return;
+//        }
 
         if (recorder.getState() != HostMediaRecorder.State.INACTIVE
                 && recorder.getState() != HostMediaRecorder.State.PREVIEW) {

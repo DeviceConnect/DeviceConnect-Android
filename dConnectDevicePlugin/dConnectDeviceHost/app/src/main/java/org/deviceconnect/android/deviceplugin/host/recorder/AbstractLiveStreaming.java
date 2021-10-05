@@ -173,6 +173,7 @@ public abstract class AbstractLiveStreaming implements LiveStreaming, CropInterf
         checkCropRect(rect);
 
         if (rect == null || mMovingRectThread == null) {
+            mMovingRectThread.cancelMove();
             setCropRectInternal(rect);
         } else {
             mMovingRectThread.set(rect);

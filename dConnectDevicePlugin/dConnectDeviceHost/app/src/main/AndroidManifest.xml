@@ -112,6 +112,7 @@
             android:name="org.deviceconnect.android.deviceplugin.host.setting.HostSettingActivity"
             android:exported="false"
             android:launchMode="singleTask"
+            android:taskAffinity=".settings"
             android:theme="@style/AppCompatTheme" />
 
         <!-- レコーダー設定画面用の Activity -->
@@ -119,6 +120,7 @@
             android:name=".activity.recorder.settings.SettingsActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:exported="false"
+            android:taskAffinity=".recorder_settings"
             android:theme="@style/AppCompatTheme" />
 
         <!-- プラグイン本体サービス -->

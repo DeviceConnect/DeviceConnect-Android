@@ -99,6 +99,17 @@ public class MovingRectThread {
     }
 
     /**
+     * 現在動いている範囲を停止します.
+     *
+     * 動いている範囲が無い場合は何もしません。
+     */
+    public void cancelMove() {
+        if (mWorkThread != null) {
+            mWorkThread.cancel();
+        }
+    }
+
+    /**
      * 範囲の移動イベントを通知するリスナーを設定します.
      *
      * @param listener 追加するリスナー

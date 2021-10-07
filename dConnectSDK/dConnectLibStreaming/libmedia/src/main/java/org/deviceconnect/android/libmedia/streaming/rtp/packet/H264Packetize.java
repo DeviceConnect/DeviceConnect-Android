@@ -56,10 +56,18 @@ public class H264Packetize extends RtpPacketize {
 
         pts = updateTimestamp(pts * 1000L);
 
-        if (dataLength <= MAX_PACKET_SIZE - HEADER_LEN) {
-            writeSingleNALUnit(data, dataLength, pts);
-        } else {
-            writeFragmentationUnits(data, dataLength, pts);
+        int start = 0;
+        while (start < dataLength) {
+            int end = searchNalUnit(data, start + 4, dataLength);
+            int length = end - start;
+
+            if (length <= MAX_PACKET_SIZE - HEADER_LEN) {
+                writeSingleNALUnit(data, start, length, pts);
+            } else {
+                writeFragmentationUnits(data, start, length, pts);
+            }
+
+            start += length;
         }
     }
 
@@ -76,14 +84,14 @@ public class H264Packetize extends RtpPacketize {
     // |                               :...OPTIONAL RTP padding        |
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-    private void writeSingleNALUnit(byte[] data, int dataLength, long pts) {
+    private void writeSingleNALUnit(byte[] data, int offset, int dataLength, long pts) {
         RtpPacket rtpPacket = getRtpPacket();
         byte[] dest = rtpPacket.getBuffer();
 
         writeRtpHeader(dest, pts);
         writeNextPacket(dest);
 
-        System.arraycopy(data, 4, dest, RTP_HEADER_LENGTH, dataLength - 4);
+        System.arraycopy(data, offset + 4, dest, RTP_HEADER_LENGTH, dataLength - 4);
 
         send(rtpPacket, RTP_HEADER_LENGTH + dataLength - 4, pts);
     }
@@ -122,10 +130,10 @@ public class H264Packetize extends RtpPacketize {
     //|S|E|R|  Type   |
     //+---------------+
 
-    private void writeFragmentationUnits(byte[] data, int dataLength, long pts) {
+    private void writeFragmentationUnits(byte[] data, int srcOffset, int dataLength, long pts) {
         dataLength -= 5;
 
-        int offset = 5;
+        int offset = srcOffset + 5;
         while (dataLength > 0) {
             RtpPacket rtpPacket = getRtpPacket();
             byte[] dest = rtpPacket.getBuffer();
@@ -133,12 +141,12 @@ public class H264Packetize extends RtpPacketize {
             writeRtpHeader(dest, pts);
 
             // Set FU-A indicator
-            dest[RTP_HEADER_LENGTH] = (byte) (data[4] & 0xE0);
+            dest[RTP_HEADER_LENGTH] = (byte) (data[srcOffset + 4] & 0xE0);
             dest[RTP_HEADER_LENGTH] += 28; // (FU-A)
 
             // Set FU-A header
-            dest[RTP_HEADER_LENGTH + 1] = (byte) (data[4] & 0x1F);
-            if (offset == 5) {
+            dest[RTP_HEADER_LENGTH + 1] = (byte) (data[srcOffset + 4] & 0x1F);
+            if (offset == srcOffset + 5) {
                 // set start flag
                 dest[RTP_HEADER_LENGTH + 1] += 0x80;
             }
@@ -160,5 +168,21 @@ public class H264Packetize extends RtpPacketize {
             offset += length;
             dataLength -= length;
         }
+    }
+
+    private int searchNalUnit(byte[] data, int offset, int dataLength) {
+        // NALU_TYPE_SEI (6) よりも小さい nalu type の場合は、後ろに nalu unit が
+        // 存在する端末がなかったので、ここでは最後までのデータサイズを返却するようにする。
+        int naluType = data[offset] & 0x1F;
+        if (naluType < 6) {
+            return dataLength;
+        }
+
+        for (int i = offset; i < dataLength - 4; i++) {
+            if (data[i] == 0x00 && data[i + 1] == 0x00 && data[i + 2] == 0x00 && data[i + 3] == 0x01) {
+                return i;
+            }
+        }
+        return dataLength;
     }
 }

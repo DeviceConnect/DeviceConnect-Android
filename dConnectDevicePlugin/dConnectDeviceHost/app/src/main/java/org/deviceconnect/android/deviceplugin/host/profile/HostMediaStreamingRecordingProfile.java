@@ -1272,31 +1272,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     @Override
                     public void onAllowed() {
                         for (String encoderId : encoderIdList) {
-                            HostMediaRecorder.EncoderSettings encoderSettings = recorder.getSettings().getEncoderSetting(encoderId);
-                            if (encoderSettings == null) {
-                                continue;
-                            }
-
-                            Rect start = encoderSettings.getCropRect();
-                            if (start == null) {
-                                int width = recorder.getSettings().getPreviewSize().getWidth();
-                                int height = recorder.getSettings().getPreviewSize().getHeight();
-                                start = new Rect(0, 0, width, height);
-                            }
-
-                            Rect end = new Rect(left, top, right, bottom);
-
-                            for (LiveStreaming previewServer : recorder.getServerProvider().getLiveStreamingList()) {
-                                if (encoderId.equals(previewServer.getId())) {
-                                    ((CropInterface) previewServer).moveCropRect(start, end, duration);
-                                }
-                            }
-
-                            for (LiveStreaming broadcaster : recorder.getBroadcasterProvider().getLiveStreamingList()) {
-                                if (encoderId.equals(broadcaster.getId())) {
-                                    ((CropInterface) broadcaster).moveCropRect(start, end, duration);
-                                }
-                            }
+                            setCrop(recorder, encoderId, left, top, right, bottom, duration);
                         }
                         setResult(response, DConnectMessage.RESULT_OK);
                         sendResponse(response);
@@ -1341,19 +1317,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     @Override
                     public void onAllowed() {
                         for (String encoderId : encoderIdList) {
-                            for (LiveStreaming previewServer : recorder.getServerProvider().getLiveStreamingList()) {
-                                if (encoderId.equals(previewServer.getId())) {
-                                    ((CropInterface) previewServer).setCropRect(null);
-                                }
-                            }
-
-                            for (LiveStreaming broadcaster : recorder.getBroadcasterProvider().getLiveStreamingList()) {
-                                if (encoderId.equals(broadcaster.getId())) {
-                                    ((CropInterface) broadcaster).setCropRect(null);
-                                }
-                            }
+                            clearCrop(recorder, encoderId);
                         }
-
                         setResult(response, DConnectMessage.RESULT_OK);
                         sendResponse(response);
                     }
@@ -1556,9 +1521,12 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         Integer previewClipTop = parseInteger(request, "previewClipTop");
         Integer previewClipRight = parseInteger(request, "previewClipRight");
         Integer previewClipBottom = parseInteger(request, "previewClipBottom");
+        Integer previewClipDuration = parseInteger(request, "previewClipDuration");
         Boolean previewClipReset = parseBoolean(request, "previewClipReset");
+
         HostMediaRecorder.ProfileLevel profileLevel = null;
         Range<Integer> fps = null;
+        boolean isChangeConfig = false;
 
         HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
         if (recorder == null) {
@@ -1723,6 +1691,16 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         "previewClipTop is larger than previewClipBottom.");
                 return;
             }
+
+            if (previewClipDuration != null) {
+                if (previewClipDuration < 0) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "previewClipDuration is negative value.");
+                    return;
+                }
+            } else {
+                previewClipDuration = 0;
+            }
         }
 
         // 値の設定
@@ -1741,6 +1719,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
                 }
             }
+
+            isChangeConfig = true;
         }
 
         if (fps != null) {
@@ -1752,6 +1732,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     encoderSettings.setPreviewMaxFrameRate(previewMaxFrameRate.intValue());
                 }
             }
+
+            isChangeConfig = true;
         }
 
         if (previewBitRate != null) {
@@ -1761,6 +1743,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     encoderSettings.setPreviewBitRate(previewBitRate * 1024);
                 }
             }
+
+            isChangeConfig = true;
         }
 
         if (previewKeyFrameInterval != null) {
@@ -1770,6 +1754,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     encoderSettings.setPreviewKeyFrameInterval(previewKeyFrameInterval);
                 }
             }
+
+            isChangeConfig = true;
         }
 
         if (previewEncoder != null) {
@@ -1780,6 +1766,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     encoderSettings.setProfileLevel(null);
                 }
             }
+
+            isChangeConfig = true;
         }
 
         if (profileLevel != null) {
@@ -1789,6 +1777,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     encoderSettings.setProfileLevel(profileLevel);
                 }
             }
+
+            isChangeConfig = true;
         }
 
         if (previewIntraRefresh != null) {
@@ -1798,6 +1788,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     encoderSettings.setIntraRefresh(previewIntraRefresh);
                 }
             }
+
+            isChangeConfig = true;
         }
 
         if (previewJpegQuality != null) {
@@ -1813,26 +1805,71 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             for (String encoderId : settings.getEncoderIdList()) {
                 HostMediaRecorder.EncoderSettings encoderSettings = settings.getEncoderSetting(encoderId);
                 if (encoderId != null && mimeType.equals(encoderSettings.getMimeType().getValue())) {
-                    encoderSettings.setCropRect(null);
+                    clearCrop(recorder, encoderId);
                 }
             }
         } else if (previewClipLeft != null) {
             for (String encoderId : settings.getEncoderIdList()) {
                 HostMediaRecorder.EncoderSettings encoderSettings = settings.getEncoderSetting(encoderId);
                 if (encoderId != null && mimeType.equals(encoderSettings.getMimeType().getValue())) {
-                    encoderSettings.setCropRect(new Rect(previewClipLeft, previewClipTop, previewClipRight, previewClipBottom));
+                    setCrop(recorder, encoderId, previewClipLeft, previewClipTop,
+                            previewClipRight, previewClipBottom, previewClipDuration);
                 }
             }
         }
 
-        try {
-            recorder.onConfigChange();
-        } catch (Exception e) {
-            MessageUtils.setIllegalDeviceStateError(response, "Failed to change a config.");
-            return;
+        if (isChangeConfig) {
+            try {
+                recorder.onConfigChange();
+            } catch (Exception e) {
+                MessageUtils.setIllegalDeviceStateError(response, "Failed to change a config.");
+                return;
+            }
         }
 
         setResult(response, DConnectMessage.RESULT_OK);
+    }
+
+    private void setCrop(HostMediaRecorder recorder, String encoderId, int left, int top, int right, int bottom, int duration) {
+        HostMediaRecorder.EncoderSettings encoderSettings = recorder.getSettings().getEncoderSetting(encoderId);
+        if (encoderSettings == null) {
+            return;
+        }
+
+        Rect start = encoderSettings.getCropRect();
+        if (start == null) {
+            int width = recorder.getSettings().getPreviewSize().getWidth();
+            int height = recorder.getSettings().getPreviewSize().getHeight();
+            start = new Rect(0, 0, width, height);
+        }
+
+        Rect end = new Rect(left, top, right, bottom);
+
+        for (LiveStreaming previewServer : recorder.getServerProvider().getLiveStreamingList()) {
+            if (encoderId.equals(previewServer.getId())) {
+                ((CropInterface) previewServer).moveCropRect(start, end, duration);
+            }
+        }
+
+        for (LiveStreaming broadcaster : recorder.getBroadcasterProvider().getLiveStreamingList()) {
+            if (encoderId.equals(broadcaster.getId())) {
+                ((CropInterface) broadcaster).moveCropRect(start, end, duration);
+            }
+        }
+    }
+
+    private void clearCrop(HostMediaRecorder recorder, String encoderId) {
+        for (LiveStreaming previewServer : recorder.getServerProvider().getLiveStreamingList()) {
+            if (encoderId.equals(previewServer.getId())) {
+                ((CropInterface) previewServer).setCropRect(null);
+            }
+        }
+
+        for (LiveStreaming broadcaster : recorder.getBroadcasterProvider().getLiveStreamingList()) {
+            if (encoderId.equals(broadcaster.getId())) {
+                ((CropInterface) broadcaster).setCropRect(null);
+            }
+        }
     }
 
     private HostMediaRecorder.ProfileLevel convertProfileLevel(HostMediaRecorder recorder, String codec, String profile, String level) {

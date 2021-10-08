@@ -88,6 +88,7 @@
     <string name="host_recorder_settings_still_image_resolution">Still Image Resolution</string>
     <string name="host_recorder_settings_preview_resolution">Preview Resolution</string>
     <string name="host_recorder_settings_framerate">Frame rate (fps)</string>
+    <string name="host_recorder_settings_orientation">Orientation</string>
     <string name="host_recorder_settings_bitrate">Bitrate (bps)</string>
     <string name="host_recorder_settings_bitrate_mode">Bitrate Mode</string>
     <string name="host_recorder_settings_i_frame_interval">Key frame interval (sec)</string>

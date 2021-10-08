@@ -25,6 +25,14 @@
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
+            app:entries="@array/video_orientation_names"
+            app:entryValues="@array/video_orientation_values"
+            app:key="camera_orientation"
+            app:title="@string/host_recorder_settings_orientation"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
             app:key="preview_auto_focus"
             app:title="@string/host_recorder_settings_auto_focus_mode"
             app:iconSpaceReserved="false"

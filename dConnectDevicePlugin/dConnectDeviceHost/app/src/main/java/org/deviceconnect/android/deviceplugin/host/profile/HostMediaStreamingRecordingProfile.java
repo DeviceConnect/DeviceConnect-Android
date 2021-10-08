@@ -764,222 +764,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             }
         });
 
-        // POST /gotapi/mediaStreamRecording/encoder
-        addApi(new PostApi() {
-            @Override
-            public String getAttribute() {
-                return "encoder";
-            }
-
-            @Override
-            public boolean onRequest(Intent request, Intent response) {
-                String target = getTarget(request);
-                String name = request.getStringExtra("name");
-                String mimeTypeValue = request.getStringExtra("mimeType");
-                Integer port = parseInteger(request, "port");
-                Integer width = parseInteger(request, "width");
-                Integer height = parseInteger(request, "height");
-                Integer frameRate = parseInteger(request, "frameRate");
-                Integer bitRate = parseInteger(request, "bitRate");
-                Integer keyFrameInterval = parseInteger(request, "keyFrameInterval");
-                String codec = request.getStringExtra("codec");
-                String profile = request.getStringExtra("profile");
-                String level = request.getStringExtra("level");
-                Integer intraRefresh = parseInteger("intraRefresh");
-                Boolean useSoftwareEncoder = parseBoolean("useSoftwareEncoder");
-                Double jpegQuality = parseDouble(request, "jpegQuality");
-                String broadcastUri = request.getStringExtra("broadcastUri");
-                Integer retryCount = parseInteger(request, "retryCount");
-                Integer retryInterval = parseInteger(request, "retryInterval");
-
-                if (name == null) {
-                    MessageUtils.setInvalidRequestParameterError(response, "name is not set.");
-                    return true;
-                }
-
-                if (mimeTypeValue == null) {
-                    MessageUtils.setInvalidRequestParameterError(response, "mimeType is not set.");
-                    return true;
-                }
-
-                HostMediaRecorder.MimeType mimeType = HostMediaRecorder.MimeType.typeOf(mimeTypeValue);
-                if (mimeType == HostMediaRecorder.MimeType.UNKNOWN) {
-                    MessageUtils.setInvalidRequestParameterError(response, "mimeType is unknown.");
-                    return true;
-                }
-
-                final HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
-                if (recorder == null) {
-                    MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
-                    return true;
-                }
-
-                String encoderId = recorder.getId() + "-" + name;
-
-                List<String> encoderIdList = recorder.getSettings().getEncoderIdList();
-                if (encoderIdList.contains(encoderId)) {
-                    MessageUtils.setInvalidRequestParameterError(response, "name is already exists.");
-                    return true;
-                }
-
-                if (width != null && width < 0) {
-                    MessageUtils.setInvalidRequestParameterError(response,
-                            "width is invalid. value=" + width);
-                    return true;
-                }
-
-                if (height != null && height < 0) {
-                    MessageUtils.setInvalidRequestParameterError(response,
-                            "height is invalid. value=" + height);
-                    return true;
-                }
-
-                if (frameRate != null && frameRate <= 0) {
-                    MessageUtils.setInvalidRequestParameterError(response,
-                            "frameRate is invalid. value=" + frameRate);
-                    return true;
-                }
-
-                if (bitRate != null && bitRate <= 0) {
-                    MessageUtils.setInvalidRequestParameterError(response,
-                            "bitRate. value=" + bitRate);
-                    return true;
-                }
-
-                if (keyFrameInterval != null && keyFrameInterval <= 0) {
-                    MessageUtils.setInvalidRequestParameterError(response,
-                            "keyFrameInterval. value=" + keyFrameInterval);
-                    return true;
-                }
-
-                if (intraRefresh != null && intraRefresh < 0) {
-                    MessageUtils.setInvalidRequestParameterError(response,
-                            "intraRefresh is invalid. value=" + intraRefresh);
-                    return true;
-                }
-
-                if (jpegQuality != null) {
-                    if (jpegQuality < 0.0 || jpegQuality > 1.0) {
-                        MessageUtils.setInvalidRequestParameterError(response,
-                                "jpegQuality is invalid. value=" + jpegQuality);
-                        return true;
-                    }
-                }
-
-                if (retryCount != null) {
-                    if (retryCount < 0) {
-                        MessageUtils.setInvalidRequestParameterError(response,
-                                "retryCount is invalid. value=" + retryCount);
-                        return true;
-                    }
-                }
-
-                if (retryInterval != null) {
-                    if (retryInterval <= 0) {
-                        MessageUtils.setInvalidRequestParameterError(response,
-                                "retryInterval is invalid. value=" + retryInterval);
-                        return true;
-                    }
-                }
-
-                HostMediaRecorder.ProfileLevel profileLevel = convertProfileLevel(recorder, codec, profile, level);
-
-                recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
-                    @Override
-                    public void onAllowed() {
-                        HostMediaRecorder.EncoderSettings encoderSettings = new HostMediaRecorder.EncoderSettings(getContext(), encoderId);
-                        encoderSettings.setName(name);
-                        encoderSettings.setMimeType(mimeType);
-
-                        if (width != null && height != null) {
-                            encoderSettings.setPreviewSize(new Size(width, height));
-                        } else {
-                            encoderSettings.setPreviewSize(new Size(640, 480));
-                        }
-
-                        if (port != null) {
-                            encoderSettings.setPort(port);
-                        } else {
-                            encoderSettings.setPort(14000);
-                        }
-
-                        if (frameRate != null) {
-                            encoderSettings.setPreviewMaxFrameRate(frameRate);
-                        } else {
-                            encoderSettings.setPreviewMaxFrameRate(30);
-                        }
-
-                        if (bitRate != null) {
-                            encoderSettings.setPreviewBitRate(bitRate * 1024);
-                        } else {
-                            encoderSettings.setPreviewBitRate(2 * 1024 * 1024);
-                        }
-
-                        if (keyFrameInterval != null) {
-                            encoderSettings.setPreviewKeyFrameInterval(keyFrameInterval);
-                        } else {
-                            encoderSettings.setPreviewKeyFrameInterval(5);
-                        }
-
-                        if (codec != null) {
-                            encoderSettings.setPreviewEncoder(codec);
-                            // エンコーダが切り替えられた場合は、プロファイル・レベルは設定無しにする
-                            encoderSettings.setProfileLevel(null);
-                        }
-
-                        if (profileLevel != null) {
-                            encoderSettings.setProfileLevel(profileLevel);
-                        }
-
-                        if (intraRefresh != null) {
-                            encoderSettings.setIntraRefresh(intraRefresh);
-                        }
-
-                        if (useSoftwareEncoder != null) {
-                            encoderSettings.setUseSoftwareEncoder(useSoftwareEncoder);
-                        }
-
-                        if (jpegQuality != null) {
-                            encoderSettings.setPreviewQuality((int) (jpegQuality * 100));
-                        } else {
-                            encoderSettings.setPreviewQuality(80);
-                        }
-
-                        if (broadcastUri != null) {
-                            encoderSettings.setBroadcastURI(broadcastUri);
-                        } else {
-                            encoderSettings.setBroadcastURI("rtmp://localhost:1935");
-                        }
-
-                        if (retryCount != null) {
-                            encoderSettings.setRetryCount(retryCount);
-                        } else {
-                            encoderSettings.setRetryCount(0);
-                        }
-
-                        if (retryInterval != null) {
-                            encoderSettings.setRetryInterval(retryInterval);
-                        } else {
-                            encoderSettings.setRetryInterval(3000);
-                        }
-
-                        ((AbstractMediaRecorder) recorder).addEncoder(encoderId, encoderSettings);
-
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        sendResponse(response);
-                    }
-
-                    @Override
-                    public void onDisallowed() {
-                        MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
-                        sendResponse(response);
-                    }
-                });
-
-                return false;
-            }
-        });
-
         // PUT /gotapi/mediaStreamRecording/encoder
         addApi(new PutApi() {
             @Override
@@ -990,6 +774,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             @Override
             public boolean onRequest(Intent request, Intent response) {
                 String target = getTarget(request);
+                String mimeTypeValue = request.getStringExtra("mimeType");
                 String name = request.getStringExtra("name");
                 Integer width = parseInteger(request, "width");
                 Integer height = parseInteger(request, "height");
@@ -1006,7 +791,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 Integer retryCount = parseInteger(request, "retryCount");
                 Integer retryInterval = parseInteger(request, "retryInterval");
 
-
                 HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
                 if (recorder == null) {
                     MessageUtils.setInvalidRequestParameterError(response,
@@ -1014,12 +798,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     return true;
                 }
 
-                List<String> encoderIdList = getEncoderSettings(recorder, name);
-                if (encoderIdList.isEmpty()) {
-                    MessageUtils.setInvalidRequestParameterError(response,
-                            "name is invalid.");
-                    return true;
-                }
+                List<String> encoderIdList = getEncoderSettings(recorder, name, false);
 
                 if (width != null && width < 0) {
                     MessageUtils.setInvalidRequestParameterError(response,
@@ -1087,6 +866,39 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     @Override
                     public void onAllowed() {
                         HostMediaRecorder.Settings settings = recorder.getSettings();
+
+                        for (String encoderId : encoderIdList) {
+                            HostMediaRecorder.EncoderSettings encoderSettings = settings.getEncoderSetting(encoderId);
+                            if (encoderSettings == null) {
+                                if (mimeTypeValue == null) {
+                                    MessageUtils.setInvalidRequestParameterError(response, "mimeType is not set.");
+                                    sendResponse(response);
+                                    return;
+                                }
+
+                                HostMediaRecorder.MimeType mimeType = HostMediaRecorder.MimeType.typeOf(mimeTypeValue);
+                                if (mimeType == HostMediaRecorder.MimeType.UNKNOWN) {
+                                    MessageUtils.setInvalidRequestParameterError(response, "mimeType is unknown.");
+                                    sendResponse(response);
+                                    return;
+                                }
+
+                                encoderSettings = new HostMediaRecorder.EncoderSettings(getContext(), encoderId);
+                                encoderSettings.setName(name);
+                                encoderSettings.setMimeType(mimeType);
+                                encoderSettings.setPreviewSize(new Size(640, 480));
+                                encoderSettings.setPort(14000);
+                                encoderSettings.setPreviewMaxFrameRate(30);
+                                encoderSettings.setPreviewBitRate(2 * 1024 * 1024);
+                                encoderSettings.setPreviewKeyFrameInterval(5);
+                                encoderSettings.setPreviewQuality(80);
+                                encoderSettings.setBroadcastURI("rtmp://localhost:1935");
+                                encoderSettings.setRetryCount(0);
+                                encoderSettings.setRetryInterval(3000);
+
+                                ((AbstractMediaRecorder) recorder).addEncoder(encoderId, encoderSettings);
+                            }
+                        }
 
                         if (width != null && height != null) {
                             for (String encoderId : encoderIdList) {
@@ -1257,7 +1069,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     return true;
                 }
 
-                List<String> encoderIdList = getEncoderSettings(recorder, name);
+                List<String> encoderIdList = getEncoderSettings(recorder, name, true);
                 if (encoderIdList.isEmpty()) {
                     MessageUtils.setInvalidRequestParameterError(response, "name is invalid.");
                     return true;
@@ -1307,7 +1119,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     return true;
                 }
 
-                List<String> encoderIdList = getEncoderSettings(recorder, name);
+                List<String> encoderIdList = getEncoderSettings(recorder, name, true);
                 if (encoderIdList.isEmpty()) {
                     MessageUtils.setInvalidRequestParameterError(response, "name is invalid.");
                     return true;
@@ -1447,7 +1259,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         return (HostDevicePlugin) getContext();
     }
 
-    private List<String> getEncoderSettings(HostMediaRecorder recorder, String name) {
+    private List<String> getEncoderSettings(HostMediaRecorder recorder, String name, boolean checkExist) {
         List<String> encoderIdList = new ArrayList<>();
         if (name == null) {
             encoderIdList.addAll(recorder.getSettings().getEncoderIdList());
@@ -1455,7 +1267,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             String[] names = name.split(",");
             for (String n : names) {
                 String encoderId = recorder.getId() + "-" + n;
-                if (recorder.getSettings().existEncoderId(encoderId)) {
+                if (!checkExist || recorder.getSettings().existEncoderId(encoderId)) {
                     encoderIdList.add(encoderId);
                 }
             }
@@ -1716,7 +1528,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 HostMediaRecorder.EncoderSettings encoderSettings = settings.getEncoderSetting(encoderId);
                 if (encoderId != null && mimeType.equals(encoderSettings.getMimeType().getValue())) {
                     encoderSettings.setPreviewSize(new Size(previewWidth, previewHeight));
-
                 }
             }
 

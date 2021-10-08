@@ -29,11 +29,15 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
 
     @Override
     public int getDisplayRotation() {
-        WindowManager wm = (WindowManager) mRecorder.getContext().getSystemService(Context.WINDOW_SERVICE);
-        if (wm == null) {
-            throw new RuntimeException("WindowManager is not supported.");
+        int orientation = mRecorder.getSettings().getOrientation();
+        if (orientation == -1) {
+            WindowManager wm = (WindowManager) mRecorder.getContext().getSystemService(Context.WINDOW_SERVICE);
+            if (wm == null) {
+                throw new RuntimeException("WindowManager is not supported.");
+            }
+            return wm.getDefaultDisplay().getRotation();
         }
-        return wm.getDefaultDisplay().getRotation();
+        return orientation;
     }
 
     @Override

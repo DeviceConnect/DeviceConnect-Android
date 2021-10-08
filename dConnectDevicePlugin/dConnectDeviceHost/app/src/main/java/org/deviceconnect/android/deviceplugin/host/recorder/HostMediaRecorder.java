@@ -1241,7 +1241,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          */
         public void removeEncoder(String encoderId) {
             EncoderSettings encoderSettings = getEncoderSetting(encoderId);
-            if (encoderId != null) {
+            if (encoderId != null && encoderSettings != null) {
                 encoderSettings.clear();
             }
 
@@ -1251,6 +1251,24 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         }
 
         // カメラ設定
+
+        /**
+         * カメラの向きを取得します.
+         *
+         * @return カメラの向き
+         */
+        public int getOrientation() {
+            return mProperty.getInteger("camera_orientation", -1);
+        }
+
+        /**
+         * カメラの向きを設定します.
+         *
+         * @param orientation カメラの向き
+         */
+        public void setOrientation(int orientation) {
+            mProperty.put("camera_orientation", orientation);
+        }
 
         /**
          * 写真サイズを取得します.

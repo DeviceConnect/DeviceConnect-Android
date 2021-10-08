@@ -21,6 +21,7 @@ import android.util.DisplayMetrics;
 import android.util.Range;
 import android.util.Size;
 import android.view.Display;
+import android.view.Surface;
 import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.view.WindowMetrics;
@@ -135,6 +136,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         if (!mSettings.isInitialized()) {
             mSettings.setPreviewSize(mSettings.getSupportedPreviewSizes().get(0));
             mSettings.setPictureSize(mSettings.getSupportedPictureSizes().get(0));
+            mSettings.setOrientation(Surface.ROTATION_90);
 
             // 音声設定
             mSettings.setPreviewAudioSource(null);

@@ -176,7 +176,9 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
     @Override
     public void onDisplayRotation(int rotation) {
-        onConfigChange();
+        if (getSettings().getOrientation() == -1) {
+            onConfigChange();
+        }
     }
 
     @Override
@@ -444,19 +446,20 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
      * @param encoderId エンコーダ
      */
     public void removeEncoder(String encoderId) {
-        EncoderSettings encoderSettings = getSettings().getEncoderSetting(encoderId);
-        switch (encoderSettings.getMimeType()) {
-            case MJPEG:
-            case RTSP:
-            case SRT:
-                getServerProvider().removeLiveStreaming(encoderId);
-                break;
-            case RTMP:
-                getBroadcasterProvider().removeLiveStreaming(encoderId);
-                break;
+        if (getSettings().existEncoderId(encoderId)) {
+            EncoderSettings encoderSettings = getSettings().getEncoderSetting(encoderId);
+            switch (encoderSettings.getMimeType()) {
+                case MJPEG:
+                case RTSP:
+                case SRT:
+                    getServerProvider().removeLiveStreaming(encoderId);
+                    break;
+                case RTMP:
+                    getBroadcasterProvider().removeLiveStreaming(encoderId);
+                    break;
+            }
+            getSettings().removeEncoder(encoderId);
         }
-
-        getSettings().removeEncoder(encoderId);
     }
 
     /**

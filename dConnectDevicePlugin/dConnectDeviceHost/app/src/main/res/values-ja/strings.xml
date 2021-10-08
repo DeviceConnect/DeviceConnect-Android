@@ -90,6 +90,7 @@
     <string name="host_recorder_settings_still_image_resolution">静止画解像度</string>
     <string name="host_recorder_settings_preview_resolution">プレビュー解像度</string>
     <string name="host_recorder_settings_framerate">フレームレート (fps)</string>
+    <string name="host_recorder_settings_orientation">向き</string>
     <string name="host_recorder_settings_bitrate">ビットレート (bps)</string>
     <string name="host_recorder_settings_bitrate_mode">ビットレートモード</string>
     <string name="host_recorder_settings_i_frame_interval">キーフレームインターバル(秒)</string>

@@ -216,6 +216,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
             if (supportedFpsList.size() > 0) {
                 mSettings.setPreviewFps(supportedFpsList.get(supportedFpsList.size() - 1));
             }
+            mSettings.setOrientation(Surface.ROTATION_90);
 
             // 音声設定
             mSettings.setPreviewAudioSource(null);
@@ -480,8 +481,13 @@ public class Camera2Recorder extends AbstractMediaRecorder {
                     return;
                 }
 
+                int currentRotation = mCurrentRotation;
+                if (getSettings().getOrientation() != -1) {
+                    currentRotation = getSettings().getOrientation();
+                }
+
                 byte[] jpeg = ImageUtil.convertToJPEG(photo);
-                int deviceRotation = ROTATIONS.get(mCurrentRotation);
+                int deviceRotation = ROTATIONS.get(currentRotation);
                 int cameraRotation = mCameraWrapper.getSensorOrientation();
                 int degrees = (360 - deviceRotation + cameraRotation) % 360;
                 if (mFacing == CameraFacing.FRONT) {

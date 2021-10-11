@@ -784,8 +784,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 String codec = request.getStringExtra("codec");
                 String profile = request.getStringExtra("profile");
                 String level = request.getStringExtra("level");
-                Integer intraRefresh = parseInteger("intraRefresh");
-                Boolean useSoftwareEncoder = parseBoolean("useSoftwareEncoder");
+                Integer intraRefresh = parseInteger(request,"intraRefresh");
+                Boolean useSoftwareEncoder = parseBoolean(request,"useSoftwareEncoder");
                 Double jpegQuality = parseDouble(request, "jpegQuality");
                 String broadcastUri = request.getStringExtra("broadcastUri");
                 Integer retryCount = parseInteger(request, "retryCount");
@@ -824,7 +824,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     return true;
                 }
 
-                if (keyFrameInterval != null && keyFrameInterval <= 0) {
+                if (keyFrameInterval != null && keyFrameInterval < 0) {
                     MessageUtils.setInvalidRequestParameterError(response,
                             "keyFrameInterval. value=" + keyFrameInterval);
                     return true;

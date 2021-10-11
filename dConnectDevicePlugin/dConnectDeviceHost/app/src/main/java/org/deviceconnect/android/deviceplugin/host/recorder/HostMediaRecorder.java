@@ -789,8 +789,8 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @param previewKeyFrameInterval キーフレームを発行する間隔(ミリ秒)
          */
         public void setPreviewKeyFrameInterval(int previewKeyFrameInterval) {
-            if (previewKeyFrameInterval <= 0) {
-                throw new IllegalArgumentException("previewKeyFrameInterval is zero or negative.");
+            if (previewKeyFrameInterval < 0) {
+                throw new IllegalArgumentException("previewKeyFrameInterval is negative.");
             }
             mProperty.put("preview_i_frame_interval", previewKeyFrameInterval);
         }

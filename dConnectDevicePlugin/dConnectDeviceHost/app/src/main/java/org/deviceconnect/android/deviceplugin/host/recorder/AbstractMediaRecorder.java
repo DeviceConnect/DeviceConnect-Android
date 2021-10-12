@@ -160,6 +160,8 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
             previewProvider.release();
         }
 
+        stopRecordingInternal(null);
+
         mRequestHandler.getLooper().quit();
     }
 

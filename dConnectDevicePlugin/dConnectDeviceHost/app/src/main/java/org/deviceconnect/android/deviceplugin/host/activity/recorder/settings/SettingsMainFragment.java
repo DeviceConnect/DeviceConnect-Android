@@ -6,6 +6,7 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
 
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.activity.fragment.AlertDialogFragment;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 
 import java.util.List;
@@ -26,6 +27,12 @@ public class SettingsMainFragment extends SettingsBaseFragment {
 
     @Override
     public boolean onPreferenceTreeClick(final Preference preference) {
+        HostMediaRecorder recorder = getRecorder();
+        if (recorder == null) {
+            showErrorDialog();
+            return false;
+        }
+
         if ("recorder_settings_video".equals(preference.getKey())) {
             findNavController(this).navigate(R.id.action_main_to_video);
         } else if ("recorder_settings_audio".equals(preference.getKey())) {
@@ -33,7 +40,6 @@ public class SettingsMainFragment extends SettingsBaseFragment {
         } else {
             Bundle params = new Bundle();
             params.putString("encoder_id", preference.getKey());
-            HostMediaRecorder recorder = getRecorder();
             HostMediaRecorder.Settings settings = recorder.getSettings();
             HostMediaRecorder.EncoderSettings s = settings.getEncoderSetting(preference.getKey());
             if (s != null) {
@@ -61,12 +67,25 @@ public class SettingsMainFragment extends SettingsBaseFragment {
         addEncoderList();
     }
 
+    private void showErrorDialog() {
+        Bundle args = AlertDialogFragment.createParam("error-dialog",
+                getString(R.string.host_recorder_settings_error_not_found_camera_title),
+                getString(R.string.host_recorder_settings_error_not_found_camera_message),
+                getString(R.string.host_recorder_settings_error_not_found_camera_btn),
+                null);
+        findNavController(this).navigate(R.id.action_open_error_dialog, args);
+    }
+
     private boolean isNotExistPreference(String key) {
         return findPreference(key) == null;
     }
 
     private void addEncoderList() {
         HostMediaRecorder recorder = getRecorder();
+        if (recorder == null) {
+            return;
+        }
+
         HostMediaRecorder.Settings settings = recorder.getSettings();
         List<String> encoderList = settings.getEncoderIdList();
 

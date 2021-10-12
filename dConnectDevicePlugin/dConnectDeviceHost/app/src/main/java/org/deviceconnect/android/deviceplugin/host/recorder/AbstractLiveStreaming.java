@@ -102,6 +102,7 @@ public abstract class AbstractLiveStreaming implements LiveStreaming, CropInterf
 
     @Override
     public void release() {
+        stop();
         stopMovingRectThread();
     }
 

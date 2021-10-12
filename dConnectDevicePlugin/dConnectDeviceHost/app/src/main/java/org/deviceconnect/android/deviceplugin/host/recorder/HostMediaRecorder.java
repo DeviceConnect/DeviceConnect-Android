@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 import android.content.Context;
 import android.graphics.Rect;
 import android.os.Build;
-import android.util.Log;
 import android.util.Range;
 import android.util.Size;
 

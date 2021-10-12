@@ -50,7 +50,6 @@ public abstract class AbstractLiveStreamingProvider implements LiveStreamingProv
     public void removeLiveStreaming(String encoderId) {
         for (LiveStreaming streaming : mLiveStreamingList) {
             if (streaming.getId().equals(encoderId)) {
-                streaming.stop();
                 streaming.release();
                 mLiveStreamingList.remove(streaming);
                 return;
@@ -165,6 +164,8 @@ public abstract class AbstractLiveStreamingProvider implements LiveStreamingProv
 
     @Override
     public void release() {
+        stop();
+
         for (LiveStreaming streaming : getLiveStreamingList()) {
             streaming.release();
         }

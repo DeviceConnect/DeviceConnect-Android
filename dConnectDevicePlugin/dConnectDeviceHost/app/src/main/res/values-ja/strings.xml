@@ -85,6 +85,9 @@
     <string name="host_recorder_settings_rtmp">RTMP</string>
     <string name="host_recorder_settings_port">ポート設定</string>
     <string name="host_recorder_settings_server">サーバ設定</string>
+    <string name="host_recorder_settings_error_not_found_camera_title">接続エラー</string>
+    <string name="host_recorder_settings_error_not_found_camera_message">カメラが接続されていません。</string>
+    <string name="host_recorder_settings_error_not_found_camera_btn">はい</string>
 
     <!-- 映像設定画面 -->
     <string name="host_recorder_settings_still_image_resolution">静止画解像度</string>

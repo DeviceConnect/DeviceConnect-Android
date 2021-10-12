@@ -24,6 +24,9 @@ public class SettingsAudioFragment extends SettingsParameterFragment {
     @Override
     public void onBindService() {
         mMediaRecorder = getRecorder();
+        if (mMediaRecorder == null) {
+            return;
+        }
 
         setPreviewAudioSource(mMediaRecorder.getSettings());
         setPreviewSampleRate(mMediaRecorder.getSettings());

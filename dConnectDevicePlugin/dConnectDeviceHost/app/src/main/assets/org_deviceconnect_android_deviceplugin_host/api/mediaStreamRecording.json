@@ -23,6 +23,13 @@
                         "type": "string"
                     }, 
                     {
+                        "name": "target",
+                        "in": "formData",
+                        "description": "ターゲット。レコーダーを識別するID。<br> 省略された場合にはデフォルトのレコーダーを使用する。<br> デバイスが音声・動画の両方のレコーダーをサポートする場合、 どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+                        "required": false,
+                        "type": "string"
+                    }, 
+                    {
                         "name": "name",
                         "in": "formData",
                         "description": "範囲指定を行うサーバの名前。 省略された場合は、全てのサーバに範囲指定を行います。",
@@ -100,6 +107,13 @@
                         "type": "string"
                     }, 
                     {
+                        "name": "target",
+                        "in": "query",
+                        "description": "ターゲット。レコーダーを識別するID。<br> 省略された場合にはデフォルトのレコーダーを使用する。<br> デバイスが音声・動画の両方のレコーダーをサポートする場合、 どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+                        "required": false,
+                        "type": "string"
+                    }, 
+                    {
                         "name": "name",
                         "in": "query",
                         "description": "解除するサーバの名前。 省略された場合は、全ての範囲指定を解除します。",
@@ -136,6 +150,13 @@
                         "in": "formData",
                         "description": "サービスID。取得対象スマートデバイス",
                         "required": true,
+                        "type": "string"
+                    }, 
+                    {
+                        "name": "target",
+                        "in": "formData",
+                        "description": "ターゲット。レコーダーを識別するID。<br> 省略された場合にはデフォルトのレコーダーを使用する。<br> デバイスが音声・動画の両方のレコーダーをサポートする場合、 どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+                        "required": false,
                         "type": "string"
                     }, 
                     {
@@ -288,6 +309,13 @@
                         "in": "query",
                         "description": "サービスID。取得対象スマートデバイス",
                         "required": true,
+                        "type": "string"
+                    }, 
+                    {
+                        "name": "target",
+                        "in": "query",
+                        "description": "ターゲット。レコーダーを識別するID。<br> 省略された場合にはデフォルトのレコーダーを使用する。<br> デバイスが音声・動画の両方のレコーダーをサポートする場合、 どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+                        "required": false,
                         "type": "string"
                     }, 
                     {

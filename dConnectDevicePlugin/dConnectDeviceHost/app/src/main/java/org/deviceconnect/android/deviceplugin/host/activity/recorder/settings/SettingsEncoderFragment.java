@@ -25,12 +25,18 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import static androidx.navigation.fragment.NavHostFragment.findNavController;
+
 public abstract class SettingsEncoderFragment extends SettingsParameterFragment {
     private HostMediaRecorder mMediaRecorder;
 
     @Override
     public void onBindService() {
         mMediaRecorder = getRecorder();
+        if (mMediaRecorder == null) {
+            findNavController(this).popBackStack();
+            return;
+        }
 
         HostMediaRecorder.EncoderSettings settings = getEncoderSetting();
 

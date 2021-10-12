@@ -6,8 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
-import java.util.List;
-
 public interface PreviewServerProvider extends LiveStreamingProvider {
 
 }

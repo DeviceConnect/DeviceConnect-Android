@@ -84,6 +84,9 @@
     <string name="host_recorder_settings_rtmp">RTMP</string>
     <string name="host_recorder_settings_port">Port Settings</string>
     <string name="host_recorder_settings_server">Server Settings</string>
+    <string name="host_recorder_settings_error_not_found_camera_title">Error</string>
+    <string name="host_recorder_settings_error_not_found_camera_message">The camera is not connected.</string>
+    <string name="host_recorder_settings_error_not_found_camera_btn">OK</string>
 
     <string name="host_recorder_settings_still_image_resolution">Still Image Resolution</string>
     <string name="host_recorder_settings_preview_resolution">Preview Resolution</string>

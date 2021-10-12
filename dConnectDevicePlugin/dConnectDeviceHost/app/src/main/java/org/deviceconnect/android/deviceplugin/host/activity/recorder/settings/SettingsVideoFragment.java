@@ -23,18 +23,24 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import static androidx.navigation.fragment.NavHostFragment.findNavController;
+
 public class SettingsVideoFragment extends SettingsParameterFragment {
     private HostMediaRecorder mMediaRecorder;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        getPreferenceManager().setSharedPreferencesName(getRecorderId().replaceAll("/", "_"));
+        getPreferenceManager().setSharedPreferencesName(getRecorderId());
         setPreferencesFromResource(R.xml.settings_host_recorder_video, rootKey);
     }
 
     @Override
     public void onBindService() {
         mMediaRecorder = getRecorder();
+        if (mMediaRecorder == null) {
+            findNavController(this).popBackStack();
+            return;
+        }
 
         HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
 

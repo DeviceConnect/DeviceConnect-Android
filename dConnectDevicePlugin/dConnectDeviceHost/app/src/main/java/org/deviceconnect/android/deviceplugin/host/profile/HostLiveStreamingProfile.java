@@ -111,6 +111,14 @@ public class HostLiveStreamingProfile extends DConnectProfile {
         }
 
         @Override
+        public void onFoundRecorder(HostMediaRecorder recorder) {
+        }
+
+        @Override
+        public void onLostRecorder(HostMediaRecorder recorder) {
+        }
+
+        @Override
         public void onError(HostMediaRecorder recorder, Exception e) {
         }
     };

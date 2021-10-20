@@ -67,6 +67,20 @@ public interface LiveStreaming {
     boolean requestSyncFrame();
 
     /**
+     * 映像のエンコーダーにビットレートの更新を要求する.
+     *
+     * @return 更新を受け付けた場合は<code>true</code>, そうでない場合は<code>false</code>
+     */
+    boolean requestBitRate();
+
+    /**
+     * JPEG 品質の更新を要求する.
+     *
+     * @return 更新を受け付けた場合は<code>true</code>, そうでない場合は<code>false</code>
+     */
+    boolean requestJpegQuality();
+
+    /**
      * プレビューサーバから配信したデータの BPS を取得します.
      *
      * @return プレビューサーバから配信したデータの BPS

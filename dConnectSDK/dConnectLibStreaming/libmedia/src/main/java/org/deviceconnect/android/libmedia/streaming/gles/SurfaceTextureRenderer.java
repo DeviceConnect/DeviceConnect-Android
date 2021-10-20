@@ -77,7 +77,7 @@ public class SurfaceTextureRenderer {
      * コンストラクタ.
      * @param inverse テクスチャの反転フラグ
      */
-    SurfaceTextureRenderer(boolean inverse) {
+    public SurfaceTextureRenderer(boolean inverse) {
         mInverse = inverse;
         mTriangleVertices = ByteBuffer.allocateDirect(
                 TRIANGLE_VERTICES_DATA.length * FLOAT_SIZE_BYTES)

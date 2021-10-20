@@ -101,6 +101,18 @@ public abstract class AbstractMJPEGPreviewServer extends AbstractPreviewServer {
     }
 
     @Override
+    public boolean requestJpegQuality() {
+        if (mMJPEGServer != null) {
+            MJPEGEncoder encoder = mMJPEGServer.getMJPEGEncoder();
+            if (encoder != null) {
+                encoder.getMJPEGQuality().setQuality(getEncoderSettings().getPreviewQuality());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public void onConfigChange() {
         setEncoderQuality();
         restartEncoder();

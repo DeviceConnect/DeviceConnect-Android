@@ -874,6 +874,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     @Override
                     public void onAllowed() {
                         HostMediaRecorder.Settings settings = recorder.getSettings();
+                        boolean isChangeConfig = false;
 
                         for (String encoderId : encoderIdList) {
                             HostMediaRecorder.EncoderSettings encoderSettings = settings.getEncoderSetting(encoderId);
@@ -912,24 +913,29 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             for (String encoderId : encoderIdList) {
                                 settings.getEncoderSetting(encoderId).setPreviewSize(new Size(width, height));
                             }
+                            isChangeConfig = true;
                         }
 
                         if (frameRate != null) {
                             for (String encoderId : encoderIdList) {
                                 settings.getEncoderSetting(encoderId).setPreviewMaxFrameRate(frameRate);
                             }
+                            isChangeConfig = true;
                         }
 
                         if (bitRate != null) {
                             for (String encoderId : encoderIdList) {
                                 settings.getEncoderSetting(encoderId).setPreviewBitRate(bitRate * 1024);
                             }
+
+                            recorder.requestBitRate();
                         }
 
                         if (keyFrameInterval != null) {
                             for (String encoderId : encoderIdList) {
                                 settings.getEncoderSetting(encoderId).setPreviewKeyFrameInterval(keyFrameInterval);
                             }
+                            isChangeConfig = true;
                         }
 
                         if (codec != null) {
@@ -937,36 +943,42 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                 settings.getEncoderSetting(encoderId).setPreviewEncoder(codec);
                                 settings.getEncoderSetting(encoderId).setProfileLevel(null);
                             }
+                            isChangeConfig = true;
                         }
 
                         if (profileLevel != null) {
                             for (String encoderId : encoderIdList) {
                                 settings.getEncoderSetting(encoderId).setProfileLevel(profileLevel);
                             }
+                            isChangeConfig = true;
                         }
 
                         if (intraRefresh != null) {
                             for (String encoderId : encoderIdList) {
                                 settings.getEncoderSetting(encoderId).setIntraRefresh(intraRefresh);
                             }
+                            isChangeConfig = true;
                         }
 
                         if (useSoftwareEncoder != null) {
                             for (String encoderId : encoderIdList) {
                                 settings.getEncoderSetting(encoderId).setUseSoftwareEncoder(useSoftwareEncoder);
                             }
+                            isChangeConfig = true;
                         }
 
                         if (jpegQuality != null) {
                             for (String encoderId : encoderIdList) {
                                 settings.getEncoderSetting(encoderId).setPreviewQuality((int) (jpegQuality * 100));
                             }
+                            recorder.requestJpegQuality();
                         }
 
                         if (broadcastUri != null) {
                             for (String encoderId : encoderIdList) {
                                 settings.getEncoderSetting(encoderId).setBroadcastURI(broadcastUri);
                             }
+                            isChangeConfig = true;
                         }
 
                         if (retryCount != null) {
@@ -982,7 +994,9 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         }
 
                         try {
-                            recorder.onConfigChange();
+                            if (isChangeConfig) {
+                                recorder.onConfigChange();
+                            }
                             setResult(response, DConnectMessage.RESULT_OK);
                         } catch (Exception e) {
                             MessageUtils.setIllegalDeviceStateError(response, "Failed to change a config.");
@@ -1563,7 +1577,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 }
             }
 
-            isChangeConfig = true;
+            recorder.requestBitRate();
         }
 
         if (previewKeyFrameInterval != null) {
@@ -1618,6 +1632,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     encoderSettings.setPreviewQuality((int) (previewJpegQuality * 100));
                 }
             }
+            recorder.requestJpegQuality();
         }
 
         if (previewClipReset != null && previewClipReset) {

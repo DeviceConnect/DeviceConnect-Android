@@ -133,14 +133,24 @@ public abstract class AbstractLiveStreamingProvider implements LiveStreamingProv
     }
 
     @Override
-    public List<LiveStreaming> requestSyncFrame() {
-        List<LiveStreaming> result = new ArrayList<>();
+    public void requestSyncFrame() {
         for (LiveStreaming streaming : getLiveStreamingList()) {
-            if (streaming.requestSyncFrame()) {
-                result.add(streaming);
-            }
+            streaming.requestSyncFrame();
         }
-        return result;
+    }
+
+    @Override
+    public void requestBitRate() {
+        for (LiveStreaming streaming : getLiveStreamingList()) {
+            streaming.requestBitRate();
+        }
+    }
+
+    @Override
+    public void requestJpegQuality() {
+        for (LiveStreaming streaming : getLiveStreamingList()) {
+            streaming.requestJpegQuality();
+        }
     }
 
     @Override

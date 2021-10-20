@@ -63,17 +63,21 @@ public abstract class VideoEncoder extends MediaEncoder {
 
     /**
      * キーフレームを要求します.
+     *
+     * @return 要求を受け付けた場合はtrue、それ以外はfalse
      */
-    public void requestSyncKeyFrame() {
+    public boolean requestSyncKeyFrame() {
         if (mMediaCodec != null) {
             Bundle b = new Bundle();
             b.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
             try {
                 mMediaCodec.setParameters(b);
+                return true;
             } catch (Exception e) {
                 // ignore.
             }
         }
+        return false;
     }
 
     /**
@@ -83,17 +87,21 @@ public abstract class VideoEncoder extends MediaEncoder {
      * エンコード中にビットレートを変更したい場合に指定します。
      * {@link VideoQuality#getBitRate()} で取得できるビットレートを再設定します。
      * </p>
+     *
+     * @return 要求を受け付けた場合はtrue、それ以外はfalse
      */
-    public void requestBitRate() {
+    public boolean requestBitRate() {
         if (mMediaCodec != null) {
             Bundle b = new Bundle();
             b.putInt(MediaCodec.PARAMETER_KEY_VIDEO_BITRATE, getVideoQuality().getBitRate());
             try {
                 mMediaCodec.setParameters(b);
+                return true;
             } catch (Exception e) {
                 // ignore.
             }
         }
+        return false;
     }
 
     /**

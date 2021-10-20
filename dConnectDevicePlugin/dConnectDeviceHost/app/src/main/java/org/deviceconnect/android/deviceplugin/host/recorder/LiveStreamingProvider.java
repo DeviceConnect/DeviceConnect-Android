@@ -61,11 +61,19 @@ public interface LiveStreamingProvider {
     void stop();
 
     /**
-     * 全てのサーバの映像のエンコーダーに対して sync frame の即時生成を要求する.
-     *
-     * @return 実際に即時生成を受け付けたサーバのリスト
+     * 映像のエンコーダーに対して sync frame の即時生成を要求する.
      */
-    List<LiveStreaming> requestSyncFrame();
+    void requestSyncFrame();
+
+    /**
+     * 映像のエンコーダーに対してビットレートの更新を要求する。
+     */
+    void requestBitRate();
+
+    /**
+     * 映像のエンコーダーに対して JPEG の品質の更新を要求する。
+     */
+    void requestJpegQuality();
 
     /**
      * 設定が変更されたことを通知します.

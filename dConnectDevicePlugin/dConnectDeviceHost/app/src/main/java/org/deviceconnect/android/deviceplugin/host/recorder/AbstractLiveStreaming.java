@@ -125,9 +125,23 @@ public abstract class AbstractLiveStreaming implements LiveStreaming, CropInterf
     public boolean requestSyncFrame() {
         VideoEncoder videoEncoder = getVideoEncoder();
         if (videoEncoder != null) {
-            videoEncoder.requestSyncKeyFrame();
-            return true;
+            return videoEncoder.requestSyncKeyFrame();
         }
+        return false;
+    }
+
+    @Override
+    public boolean requestBitRate() {
+        VideoEncoder videoEncoder = getVideoEncoder();
+        if (videoEncoder != null) {
+            videoEncoder.getVideoQuality().setBitRate(getEncoderSettings().getPreviewBitRate());
+            return videoEncoder.requestBitRate();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestJpegQuality() {
         return false;
     }
 

@@ -189,6 +189,16 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
     void requestKeyFrame();
 
     /**
+     * ビットレートの更新を要求します.
+     */
+    void requestBitRate();
+
+    /**
+     * JPEG 品質の更新を要求します.
+     */
+    void requestJpegQuality();
+
+    /**
      * ミュート設定を行います.
      *
      * @param mute ミュート設定

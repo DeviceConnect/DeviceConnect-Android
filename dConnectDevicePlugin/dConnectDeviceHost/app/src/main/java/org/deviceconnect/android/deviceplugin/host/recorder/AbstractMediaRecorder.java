@@ -270,6 +270,27 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     }
 
     @Override
+    public void requestBitRate() {
+        PreviewServerProvider previewProvider = getServerProvider();
+        if (previewProvider != null) {
+            previewProvider.requestBitRate();
+        }
+
+        BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
+        if (broadcasterProvider != null) {
+            broadcasterProvider.requestBitRate();
+        }
+    }
+
+    @Override
+    public void requestJpegQuality() {
+        PreviewServerProvider previewProvider = getServerProvider();
+        if (previewProvider != null) {
+            previewProvider.requestJpegQuality();
+        }
+    }
+
+    @Override
     public void setMute(boolean mute) {
         Settings settings = getSettings();
         settings.setMute(mute);

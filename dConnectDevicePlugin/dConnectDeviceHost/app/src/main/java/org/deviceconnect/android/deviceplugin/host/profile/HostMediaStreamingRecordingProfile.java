@@ -1802,7 +1802,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         bundle.putString("mimeType", s.getMimeType().getValue());
         bundle.putInt("width", s.getPreviewSize().getWidth());
         bundle.putInt("height", s.getPreviewSize().getHeight());
-        bundle.putInt("bitrate", s.getPreviewBitRate() / 1024);
+        bundle.putInt("bitRate", s.getPreviewBitRate() / 1024);
 
         if ("video/x-mjpeg".equals(s.getMimeType().getValue())) {
             bundle.putFloat("jpegQuality", s.getPreviewQuality() / 100.0f);

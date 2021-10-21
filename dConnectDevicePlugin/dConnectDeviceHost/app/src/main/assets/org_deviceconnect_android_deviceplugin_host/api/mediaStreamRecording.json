@@ -198,7 +198,7 @@
                         "format": "int64"
                     }, 
                     {
-                        "name": "bitrate",
+                        "name": "bitRate",
                         "in": "formData",
                         "description": "配信する映像のビットレートを指定します。",
                         "required": false,
@@ -937,7 +937,25 @@
                         "type": "number",
                         "minimum": 0,
                         "exclusiveMinimum": true
-                    }, 
+                    },
+                    {
+                        "name": "previewBitRate",
+                        "in": "formData",
+                        "description": "プレビューのビットレート。単位はKbps。",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "previewJpegQuality",
+                        "in": "formData",
+                        "description": "JPEGの品質。範囲は0.0から1.0。MotionJPEGのみサポート。",
+                        "required": false,
+                        "type": "number",
+                        "minimum": 0,
+                        "exclusiveMinimum": false,
+                        "maximum": 1,
+                        "exclusiveMaximum": false
+                    },
                     {
                         "name": "mimeType",
                         "in": "formData",

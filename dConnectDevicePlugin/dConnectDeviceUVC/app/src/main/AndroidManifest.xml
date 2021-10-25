@@ -8,7 +8,11 @@
 
     <uses-feature android:name="android.hardware.usb.host" />
 
-    <application android:allowBackup="false">
+    <application
+        android:allowBackup="false"
+        android:icon="@drawable/dconnect_icon"
+        android:label="@string/app_name_uvc"
+        android:theme="@style/AppTheme">
 
         <!-- プラグインの設定画面用の Activity -->
         <activity android:name=".activity.UVCSettingsActivity"
@@ -23,15 +27,6 @@
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/org_deviceconnect_android_deviceplugin_uvc" />
-
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin.name"
-                android:value="@string/app_name_uvc" />
-
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin.icon"
-                android:resource="@drawable/dconnect_icon" />
-
         </service>
 
         <!-- Device Connect API リクエストのレシーバー -->

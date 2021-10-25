@@ -1,5 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.gles;
 
+import android.graphics.Rect;
 import android.opengl.EGL14;
 import android.opengl.EGLSurface;
 import android.opengl.GLES20;
@@ -15,6 +16,7 @@ public abstract class EGLSurfaceBase {
     private int mWidth = -1;
     private int mHeight = -1;
     private Object mTag;
+    private Rect mCropRect;
 
     EGLSurfaceBase() {
     }
@@ -81,6 +83,26 @@ public abstract class EGLSurfaceBase {
         } else {
             return mHeight;
         }
+    }
+
+    /**
+     * 描画範囲を設定します.
+     *
+     * @param rect 描画範囲
+     */
+    public void setCropRect(Rect rect) {
+        mCropRect = rect;
+    }
+
+    /**
+     * 描画範囲を取得します.
+     *
+     * 未設定の場合には null を返却します。
+     *
+     * @return 描画範囲
+     */
+    public Rect getCropRect() {
+        return mCropRect;
     }
 
     /**

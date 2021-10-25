@@ -7,7 +7,7 @@ public abstract class AudioStream extends MediaStream {
     /**
      * 音声を配信するポート番号を定義します.
      */
-    private static final int AUDIO_PORT = 5006;
+    private static final int AUDIO_PORT = 5004;
 
     public AudioStream() {
         setDestinationPort(AUDIO_PORT);

@@ -191,9 +191,9 @@ public class DevicePlugin extends DConnectService {
         // 統計を取る.
         if (calculatesStats()) {
             if (BuildConfig.DEBUG) {
-                mLogger.info("Plug-in PackageName: " + getPackageName());
-                mLogger.info("Request: " + DConnectUtil.convertRequestToString(request));
-                mLogger.info("ResponseTime: " + (end - start));
+                mLogger.info("Plug-in PackageName: " + getPackageName() + "\n" +
+                        "         Request: " + DConnectUtil.convertRequestToString(request) + "\n" +
+                        "         ResponseTime: " + (end - start));
             }
 
             long baudRate = info.getRoundTripTime();
@@ -448,9 +448,6 @@ public class DevicePlugin extends DConnectService {
         for (int cnt = 0; cnt < MAX_CONNECTION_TRY; cnt++) {
             try {
                 mConnection.connect();
-                if (BuildConfig.DEBUG) {
-                    mLogger.info("Connected to the plug-in: " + getPackageName());
-                }
                 return true;
             } catch (ConnectingException e) {
                 mLogger.log(Level.WARNING, "Failed to connect to the plug-in: " + getPackageName(), e);

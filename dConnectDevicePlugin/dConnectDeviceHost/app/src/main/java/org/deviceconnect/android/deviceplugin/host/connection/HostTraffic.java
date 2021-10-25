@@ -6,6 +6,8 @@ public class HostTraffic {
     long mTx;
     long mBitrateRx;
     long mBitrateTx;
+    long mStartTime;
+    long mEndTime;
 
     /**
      * ネットワークタイプを取得します.
@@ -52,12 +54,32 @@ public class HostTraffic {
         return mBitrateTx;
     }
 
+    /**
+     * 計測開始時間を取得します.
+     *
+     * @return 計測開始時間
+     */
+    public long getStartTime() {
+        return mStartTime;
+    }
+
+    /**
+     * 計測終了時間を取得します.
+     *
+     * @return 計測終了時間
+     */
+    public long getEndTime() {
+        return mEndTime;
+    }
+
     @Override
     public String toString() {
-        return "networkType: " + mNetworkType + "\n"
-                +  "rx: " + mRx + "\n"
-                +  "tx: " + mTx + "\n"
-                +  "BitrateRx: " + mBitrateRx + "\n"
-                +  "BitrateTx: " + mBitrateTx + "\n";
+        return "{\n"
+                +  "  networkType: " + mNetworkType + "\n"
+                +  "  rx: " + mRx + "\n"
+                +  "  tx: " + mTx + "\n"
+                +  "  BitrateRx: " + mBitrateRx + "\n"
+                +  "  BitrateTx: " + mBitrateTx + "\n"
+                +  "}";
     }
 }

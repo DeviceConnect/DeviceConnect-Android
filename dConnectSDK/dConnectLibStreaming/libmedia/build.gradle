@@ -8,7 +8,7 @@ if (githubPropertiesFile.exists()) {
 }
 
 def getVersionName = { ->
-    return "1.2.2"
+    return "1.3.0"
 }
 
 def getArtificatId = { ->
@@ -16,7 +16,7 @@ def getArtificatId = { ->
 }
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
 
     defaultConfig {
         minSdkVersion 21

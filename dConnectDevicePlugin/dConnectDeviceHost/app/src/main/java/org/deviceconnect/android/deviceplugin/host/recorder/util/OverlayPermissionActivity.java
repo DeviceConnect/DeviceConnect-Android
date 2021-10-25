@@ -45,6 +45,13 @@ public class OverlayPermissionActivity extends AppCompatActivity implements Simp
     }
 
     @Override
+    public void finish() {
+        super.finish();
+        // Activity の遷移アニメーションを削除
+        overridePendingTransition(0, 0);
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 

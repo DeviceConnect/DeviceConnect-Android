@@ -1,5 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.mjpeg;
 
+import android.graphics.Rect;
 import android.hardware.camera2.CameraCharacteristics;
 
 public class MJPEGQuality {
@@ -8,6 +9,7 @@ public class MJPEGQuality {
     private int mHeight = 640;
     private int mQuality = 60;
     private int mFrameRate = 30;
+    private Rect mCropRect;
 
     /**
      * Motion JPEG の横幅を取得します.
@@ -81,6 +83,15 @@ public class MJPEGQuality {
     }
 
     /**
+     * フレームレートをミリ秒に変換して取得します.
+     *
+     * @return フレームレート(ミリ秒)
+     */
+    public int getFrameRateMSEC() {
+        return 1000 / mFrameRate;
+    }
+
+    /**
      * フレームレートを設定します.
      *
      * @param frameRate フレームレート
@@ -89,11 +100,41 @@ public class MJPEGQuality {
         mFrameRate = frameRate;
     }
 
+    /**
+     * カメラの向きを取得します.
+     *
+     * @return カメラの向き
+     */
     public int getFacing() {
         return mFacing;
     }
 
+    /**
+     * カメラの向きを設定します.
+     *
+     * @param facing カメラの向き
+     */
     public void setFacing(int facing) {
         mFacing = facing;
+    }
+
+    /**
+     * 描画範囲を設定します.
+     *
+     * @param cropRect 描画範囲
+     */
+    public void setCropRect(Rect cropRect) {
+        mCropRect = cropRect;
+    }
+
+    /**
+     * 描画範囲を取得します.
+     *
+     * 描画範囲が全体の場合には null が返却されます。
+     *
+     * @return 描画範囲
+     */
+    public Rect getCropRect() {
+        return mCropRect;
     }
 }

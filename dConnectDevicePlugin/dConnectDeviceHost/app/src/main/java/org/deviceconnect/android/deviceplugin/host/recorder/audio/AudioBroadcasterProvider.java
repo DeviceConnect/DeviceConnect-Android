@@ -3,25 +3,20 @@ package org.deviceconnect.android.deviceplugin.host.recorder.audio;
 import android.content.Context;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractBroadcastProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.LiveStreaming;
 
 public class AudioBroadcasterProvider extends AbstractBroadcastProvider {
 
-    private final HostAudioRecorder mRecorder;
-
     public AudioBroadcasterProvider(Context context, HostAudioRecorder recorder) {
         super(context, recorder);
-        mRecorder = recorder;
     }
 
     @Override
-    public Broadcaster createBroadcaster(String broadcastURI) {
-        if (broadcastURI.startsWith("srt://")) {
-            return new AudioSRTBroadcaster(mRecorder, broadcastURI);
-        } else if (broadcastURI.startsWith("rtmp://") || broadcastURI.startsWith("rtmps://")) {
-            return new AudioRTMPBroadcaster(mRecorder, broadcastURI);
-        } else {
-            return null;
+    public LiveStreaming createLiveStreaming(String encoderId, HostMediaRecorder.EncoderSettings encoderSettings) {
+        if (encoderSettings.getMimeType() == HostMediaRecorder.MimeType.RTMP) {
+            return new AudioRTMPBroadcaster((HostAudioRecorder) getRecorder(), encoderId);
         }
+        return null;
     }
 }

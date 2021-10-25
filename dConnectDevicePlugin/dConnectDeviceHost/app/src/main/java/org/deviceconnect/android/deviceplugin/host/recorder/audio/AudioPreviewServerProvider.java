@@ -4,6 +4,7 @@ import android.content.Context;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.LiveStreaming;
 
 public class AudioPreviewServerProvider extends AbstractPreviewServerProvider {
     /**
@@ -14,10 +15,16 @@ public class AudioPreviewServerProvider extends AbstractPreviewServerProvider {
      */
     public AudioPreviewServerProvider(Context context, HostMediaRecorder recorder) {
         super(context, recorder);
+    }
 
-        HostMediaRecorder.Settings settings = recorder.getSettings();
-
-        addServer(new AudioRTSPPreviewServer(context, recorder, settings.getRtspPort()));
-        addServer(new AudioSRTPreviewServer(context, recorder, settings.getSrtPort()));
+    @Override
+    public LiveStreaming createLiveStreaming(String encoderId, HostMediaRecorder.EncoderSettings encoderSettings) {
+        switch (encoderSettings.getMimeType()) {
+            case RTSP:
+                return new AudioRTSPPreviewServer(getRecorder(), encoderId);
+            case SRT:
+                return new AudioSRTPreviewServer(getRecorder(), encoderId);
+        }
+        return null;
     }
 }

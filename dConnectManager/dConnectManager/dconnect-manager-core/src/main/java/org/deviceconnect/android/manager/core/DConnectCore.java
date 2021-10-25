@@ -181,10 +181,6 @@ public class DConnectCore extends DevicePluginContext {
         mPluginManager.addEventListener(new DevicePluginManager.DevicePluginEventListener() {
             @Override
             public void onDeviceFound(final DevicePlugin plugin) {
-                if (mSettings.isRegisterNetworkServiceDiscovery()) {
-                    // 見つけたプラグインを有効にする
-                    plugin.apply();
-                }
                 getServiceProvider().addService(plugin);
             }
 

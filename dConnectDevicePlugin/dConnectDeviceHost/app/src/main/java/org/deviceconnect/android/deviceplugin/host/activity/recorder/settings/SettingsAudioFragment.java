@@ -17,13 +17,16 @@ public class SettingsAudioFragment extends SettingsParameterFragment {
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        getPreferenceManager().setSharedPreferencesName(getRecorderId().replaceAll("/", "_"));
+        getPreferenceManager().setSharedPreferencesName(getRecorderId());
         setPreferencesFromResource(R.xml.settings_host_recorder_audio, rootKey);
     }
 
     @Override
     public void onBindService() {
         mMediaRecorder = getRecorder();
+        if (mMediaRecorder == null) {
+            return;
+        }
 
         setPreviewAudioSource(mMediaRecorder.getSettings());
         setPreviewSampleRate(mMediaRecorder.getSettings());

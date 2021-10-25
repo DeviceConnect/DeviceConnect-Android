@@ -79,13 +79,21 @@
     <string name="host_recorder_settings_video">映像設定</string>
     <string name="host_recorder_settings_audio">音声設定</string>
     <string name="host_recorder_settings_broadcast">配信設定</string>
-    <string name="host_recorder_settings_srt">SRT 設定</string>
+    <string name="host_recorder_settings_mjpeg">MJPEG</string>
+    <string name="host_recorder_settings_rtsp">RTSP</string>
+    <string name="host_recorder_settings_srt">SRT</string>
+    <string name="host_recorder_settings_rtmp">RTMP</string>
     <string name="host_recorder_settings_port">ポート設定</string>
+    <string name="host_recorder_settings_server">サーバ設定</string>
+    <string name="host_recorder_settings_error_not_found_camera_title">接続エラー</string>
+    <string name="host_recorder_settings_error_not_found_camera_message">カメラが接続されていません。</string>
+    <string name="host_recorder_settings_error_not_found_camera_btn">はい</string>
 
     <!-- 映像設定画面 -->
     <string name="host_recorder_settings_still_image_resolution">静止画解像度</string>
     <string name="host_recorder_settings_preview_resolution">プレビュー解像度</string>
     <string name="host_recorder_settings_framerate">フレームレート (fps)</string>
+    <string name="host_recorder_settings_orientation">向き</string>
     <string name="host_recorder_settings_bitrate">ビットレート (bps)</string>
     <string name="host_recorder_settings_bitrate_mode">ビットレートモード</string>
     <string name="host_recorder_settings_i_frame_interval">キーフレームインターバル(秒)</string>
@@ -113,6 +121,8 @@
     <string name="host_recorder_settings_cut_out_right">Right</string>
     <string name="host_recorder_settings_cut_out_bottom">Bottom</string>
     <string name="host_recorder_settings_cut_out_reset">リセット</string>
+    <string name="host_recorder_settings_cut_out_set">配信解像度を入力する</string>
+    <string name="host_recorder_settings_clipboard_copy">クリップボードにコピーしました</string>
 
     <!-- 音声設定 -->
     <string name="host_recorder_settings_audio_enable">音声有効</string>
@@ -142,6 +152,7 @@
     <string name="host_recorder_settings_port_rtsp">RTSP 設定</string>
     <string name="host_recorder_settings_port_srt">SRT 設定</string>
     <string name="host_recorder_settings_port_number">ポート番号</string>
+    <string name="host_recorder_settings_server_url">URL</string>
 
     <!-- SRT設定 -->
     <string name="host_setting_srt_option_auto">自動</string>

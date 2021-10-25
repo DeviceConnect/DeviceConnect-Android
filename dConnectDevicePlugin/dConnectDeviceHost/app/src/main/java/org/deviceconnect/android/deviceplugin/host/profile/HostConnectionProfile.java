@@ -28,7 +28,13 @@ import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Connection プロファイル.
@@ -277,7 +283,6 @@ public class HostConnectionProfile extends ConnectionProfile {
 
     // GET /gotapi/connection/network
     private final DConnectApi mGetNetworkApi = new GetApi() {
-
         @Override
         public String getAttribute() {
             return "network";
@@ -289,7 +294,8 @@ public class HostConnectionProfile extends ConnectionProfile {
                 @Override
                 public void onAllowed() {
                     setResult(response, DConnectMessage.RESULT_OK);
-                    response.putExtra("network", mHostConnectionManager.getActivityNetworkString());
+
+                    response.putExtra("network", createNetworkCaps());
                     sendResponse(response);
                 }
 
@@ -389,42 +395,76 @@ public class HostConnectionProfile extends ConnectionProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            if (HostConnectionManager.checkUsageAccessSettings(getContext())) {
-                List<HostTraffic> trafficList = mHostConnectionManager.getTrafficList();
-                for (HostTraffic traffic : trafficList) {
-                    response.putExtra(convertNetworkTypeToString(
-                            traffic.getNetworkType()), createNetworkBitrate(traffic));
+            String sinceString = request.getStringExtra("since");
+            String untilString = request.getStringExtra("until");
+            Long since = null;
+            Long until = null;
+
+            if (sinceString != null) {
+                try {
+                    since = df.parse(sinceString).getTime();
+                } catch (ParseException e) {
+                    // ignore.
                 }
-                setResult(response, DConnectMessage.RESULT_OK);
-                return true;
-            } else {
+            }
+
+            if (untilString != null) {
+                try {
+                    until = df.parse(untilString).getTime();
+                } catch (ParseException e) {
+                    // ignore.
+                }
+            }
+
+            if (!HostConnectionManager.checkUsageAccessSettings(getContext())) {
                 HostConnectionManager.openUsageAccessSettings(getContext());
 
-                // 使用履歴が有効になるのをポーリングしながら待機
-                for (int i = 0; i < 10; i++) {
+                // 使用履歴が有効になるのをポーリングしながら待機します。
+                for (int i = 0; i < 30; i++) {
                     try {
-                        Thread.sleep(3000);
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         break;
                     }
+
                     if (HostConnectionManager.checkUsageAccessSettings(getContext())) {
                         break;
                     }
                 }
-
-                if (HostConnectionManager.checkUsageAccessSettings(getContext())) {
-                    List<HostTraffic> trafficList = mHostConnectionManager.getTrafficList();
-                    for (HostTraffic traffic : trafficList) {
-                        response.putExtra(convertNetworkTypeToString(
-                                traffic.getNetworkType()), createNetworkBitrate(traffic));
-                    }
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } else {
-                    MessageUtils.setIllegalServerStateError(response, "Failed to start collecting a traffic.");
-                }
-
-                return true;
             }
+
+            if (HostConnectionManager.checkUsageAccessSettings(getContext())) {
+                final int[] networkTypeList = {
+                        ConnectivityManager.TYPE_MOBILE,
+                        ConnectivityManager.TYPE_WIFI
+                };
+
+                for (int networkType : networkTypeList) {
+                    List<HostTraffic> trafficList = mHostConnectionManager.getTrafficList(networkType);
+                    ArrayList<Bundle> trafficArray = new ArrayList<>();
+                    for (HostTraffic traffic : trafficList) {
+                        if (until != null) {
+                            if (until < traffic.getStartTime()) {
+                                continue;
+                            }
+                        }
+
+                        if (since != null) {
+                            if (traffic.getEndTime() < since) {
+                                continue;
+                            }
+                        }
+
+                        trafficArray.add(createNetworkBitrate(traffic));
+                    }
+                    response.putExtra(convertNetworkTypeToString(networkType), trafficArray);
+                }
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setIllegalServerStateError(response, "Failed to start collecting a traffic.");
+            }
+
+            return true;
         }
     };
 
@@ -565,6 +605,10 @@ public class HostConnectionProfile extends ConnectionProfile {
                 return "mobile";
             case ConnectivityManager.TYPE_WIFI:
                 return "wifi";
+            case ConnectivityManager.TYPE_BLUETOOTH:
+                return "bluetooth";
+            case ConnectivityManager.TYPE_ETHERNET:
+                return "ethernet";
             default:
                 return "unknown";
         }
@@ -582,7 +626,58 @@ public class HostConnectionProfile extends ConnectionProfile {
         Bundle data = new Bundle();
         data.putBundle("send", send);
         data.putBundle("receive", receive);
+        data.putString("start", df.format(new Date(traffic.getStartTime())));
+        data.putString("end", df.format(new Date(traffic.getEndTime())));
         return data;
+    }
+
+    private final DateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault());
+
+    private HostTraffic getNetworkBitrate(int type) {
+        List<HostTraffic> trafficList = mHostConnectionManager.getLastTrafficForAllNetwork();
+        for (HostTraffic traffic : trafficList) {
+            if (type == traffic.getNetworkType()) {
+                return traffic;
+            }
+        }
+        return null;
+    }
+
+    private Bundle createNetworkCaps() {
+        HostConnectionManager.NetworkCaps networkCaps = mHostConnectionManager.getNetworkCaps();
+        Bundle network = new Bundle();
+        network.putString("type", networkCaps.getTypeString());
+        network.putInt("strengthLevel", networkCaps.getStrengthLevel());
+        network.putInt("upstream", networkCaps.getUpstreamBW());
+        network.putInt("downstream", networkCaps.getDownstreamBW());
+
+        if (HostConnectionManager.checkUsageAccessSettings(getContext())) {
+            switch (networkCaps.getType()) {
+                case TYPE_BLUETOOTH:
+                case TYPE_ETHERNET:
+                    break;
+                case TYPE_WIFI:
+                {
+                    HostTraffic traffic = getNetworkBitrate(ConnectivityManager.TYPE_WIFI);
+                    if (traffic != null) {
+                        network.putBundle("traffic", createNetworkBitrate(traffic));
+                    }
+                }   break;
+                case TYPE_MOBILE:
+                case TYPE_LTE_CA:
+                case TYPE_NR_NSA:
+                case TYPE_NR_NSA_MMWAV:
+                case TYPE_LTE_ADVANCED_PRO:
+                {
+                    HostTraffic traffic = getNetworkBitrate(ConnectivityManager.TYPE_MOBILE);
+                    if (traffic != null) {
+                        network.putBundle("traffic", createNetworkBitrate(traffic));
+                    }
+                }   break;
+            }
+        }
+
+        return network;
     }
 
     /**
@@ -592,10 +687,11 @@ public class HostConnectionProfile extends ConnectionProfile {
         List<Event> events = EventManager.INSTANCE.getEventList(HostDevicePlugin.SERVICE_ID,
                 HostConnectionProfile.PROFILE_NAME, "network", "onChange");
 
+        Bundle network = createNetworkCaps();
         for (int i = 0; i < events.size(); i++) {
             Event event = events.get(i);
             Intent intent = EventManager.createEventMessage(event);
-            intent.putExtra("network", mHostConnectionManager.getActivityNetworkString());
+            intent.putExtra("network", network);
             sendEvent(intent, event.getAccessToken());
         }
     }

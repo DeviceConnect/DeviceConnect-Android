@@ -7,12 +7,12 @@ import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 
 import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.SRTSettings;
+import org.deviceconnect.android.deviceplugin.host.util.NetworkUtil;
 
-public class SettingsSRTFragment extends SettingsBaseFragment {
+public class SettingsSRTFragment extends SettingsEncoderFragment {
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        getPreferenceManager().setSharedPreferencesName(SRTSettings.FILE_NAME);
+        getPreferenceManager().setSharedPreferencesName(getEncoderId());
         setPreferencesFromResource(R.xml.settings_host_recorder_srt, rootKey);
 
         setSummaryOptionAuto(getString(R.string.pref_key_settings_srt_inputbw));
@@ -25,6 +25,12 @@ public class SettingsSRTFragment extends SettingsBaseFragment {
         setInputTypeNumber(getString(R.string.pref_key_settings_srt_conntimeo));
         setInputTypeNumber(getString(R.string.pref_key_settings_srt_peeridletimeo));
         setInputTypeNumber(getString(R.string.pref_key_settings_srt_packetfilter));
+    }
+
+    @Override
+    protected String getServerUrl(int port) {
+        String ipAddress = NetworkUtil.getIPAddress(requireContext());
+        return "srt://" + ipAddress + ":" + port;
     }
 
     private void setSummaryOptionAuto(String name) {

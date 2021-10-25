@@ -39,11 +39,35 @@ import org.deviceconnect.android.provider.FileManager;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 public class Camera2Recorder extends AbstractMediaRecorder {
+    protected static final List<Size> ENCODE_SIZE_LIST = Arrays.asList(
+            new Size(128, 96),
+            new Size(320, 240),
+            new Size(640, 480),
+            new Size(800, 600),
+            new Size(1024, 768),
+            new Size(1280, 960),
+            new Size(1440, 1080),
+            new Size(1600, 1200),
+            new Size(320, 180),
+            new Size(640, 360),
+            new Size(854, 480),
+            new Size(1280, 720),
+            new Size(1366, 768),
+            new Size(1920, 1080),
+            new Size(2560, 1440),
+            new Size(3840, 2160),
+            new Size(5760, 3240),
+            new Size(7680, 4320)
+    );
+
     /**
      * カメラターゲットIDの定義.
      */
@@ -151,48 +175,95 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     }
 
     /**
+     * サイズの小さい方からソートを行うための比較演算子.
+     */
+    private static final Comparator<Size> SIZE_COMPARATOR = (lhs, rhs) -> {
+        // We cast here to ensure the multiplications won't overflow
+        return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
+                (long) rhs.getWidth() * rhs.getHeight());
+    };
+
+    private List<Size> getEncoderSizeList() {
+        Size maxSize = CapabilityUtil.getSupportedMaxSize(VideoCodec.H264.getMimeType());
+        List<Size> sizes = new ArrayList<>();
+        for (Size size : ENCODE_SIZE_LIST) {
+            if (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight()) {
+                sizes.add(size);
+            }
+        }
+        Collections.sort(sizes, SIZE_COMPARATOR);
+        return sizes;
+    }
+
+    /**
      * レコーダの設定を初期化します.
      */
     private void initSupportedSettings() {
         CameraWrapper.Options options = mCameraWrapper.getOptions();
 
-        // MediaCodec でエンコードできる最大解像度を取得
-        // TODO h264, h265 で最大解像度が違う場合はどうするべきか？
-        // TODO ハードウェアエンコーダとソフトウェアエンコーダで最大解像度が違うのはどうするべきか？
-        Size maxSize = CapabilityUtil.getSupportedMaxSize("video/avc");
-        List<Size> supportPreviewSizes = new ArrayList<>();
-        for (Size size : options.getSupportedPreviewSizeList()) {
-            if (maxSize != null) {
-                if (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight()) {
-                    supportPreviewSizes.add(size);
-                }
-            }
-        }
-
+        List<Range<Integer>> supportedFpsList = options.getSupportedFpsList();
         mSettings.mSupportedPictureSize = new ArrayList<>(options.getSupportedPictureSizeList());
-        mSettings.mSupportedPreviewSize = supportPreviewSizes;
+        mSettings.mSupportedPreviewSize = new ArrayList<>(options.getSupportedPreviewSizeList());
+        mSettings.mSupportedEncoderSize = getEncoderSizeList();
 
         if (!mSettings.isInitialized()) {
+            // カメラ設定
             mSettings.setPictureSize(options.getDefaultPictureSize());
             mSettings.setPreviewSize(options.getDefaultPreviewSize());
-            mSettings.setPreviewBitRate(2 * 1024 * 1024);
-            mSettings.setPreviewMaxFrameRate(30);
-            mSettings.setPreviewKeyFrameInterval(1);
-            mSettings.setPreviewQuality(80);
             mSettings.setPreviewAutoFocusMode(options.getAutoFocusMode());
             mSettings.setPreviewWhiteBalance(options.getAutoWhiteBalanceMode());
             mSettings.setPreviewWhiteBalanceTemperature(5600);
+            if (supportedFpsList.size() > 0) {
+                mSettings.setPreviewFps(supportedFpsList.get(supportedFpsList.size() - 1));
+            }
+            mSettings.setOrientation(Surface.ROTATION_90);
 
+            // 音声設定
             mSettings.setPreviewAudioSource(null);
-            mSettings.setPreviewAudioBitRate(64 * 1024);
-            mSettings.setPreviewSampleRate(16000);
+            mSettings.setPreviewAudioBitRate(128 * 1024);
+            mSettings.setPreviewSampleRate(48000);
             mSettings.setPreviewChannel(1);
             mSettings.setUseAEC(true);
 
-            mSettings.setMjpegPort(11000 + mFacing.mValue);
-            mSettings.setMjpegSSLPort(11100 + mFacing.mValue);
-            mSettings.setRtspPort(12000 + mFacing.mValue);
-            mSettings.setSrtPort(13000 + mFacing.mValue);
+            // 各サーバ設定
+            mSettings.addEncoder(getId() + "-MJPEG");
+            EncoderSettings mjpeg = mSettings.getEncoderSetting(getId() + "-MJPEG");
+            mjpeg.setName("MJPEG");
+            mjpeg.setMimeType(MimeType.MJPEG);
+            mjpeg.setPort(11000 + mFacing.mValue);
+            mjpeg.setPreviewSize(options.getDefaultPreviewSize());
+            mjpeg.setPreviewQuality(80);
+            mjpeg.setPreviewMaxFrameRate(30);
+
+            mSettings.addEncoder(getId() + "-RTSP");
+            EncoderSettings rtsp = mSettings.getEncoderSetting(getId() + "-RTSP");
+            rtsp.setName("RTSP");
+            rtsp.setMimeType(MimeType.RTSP);
+            rtsp.setPort(12000 + mFacing.mValue);
+            rtsp.setPreviewSize(options.getDefaultPreviewSize());
+            rtsp.setPreviewBitRate(2 * 1024 * 1024);
+            rtsp.setPreviewMaxFrameRate(30);
+            rtsp.setPreviewKeyFrameInterval(5);
+
+            mSettings.addEncoder(getId() + "-SRT");
+            EncoderSettings srt = mSettings.getEncoderSetting(getId() + "-SRT");
+            srt.setName("SRT");
+            srt.setMimeType(MimeType.SRT);
+            srt.setPort(13000 + mFacing.mValue);
+            srt.setPreviewSize(options.getDefaultPreviewSize());
+            srt.setPreviewBitRate(2 * 1024 * 1024);
+            srt.setPreviewMaxFrameRate(30);
+            srt.setPreviewKeyFrameInterval(5);
+
+            mSettings.addEncoder(getId() + "-RTMP");
+            EncoderSettings rtmp = mSettings.getEncoderSetting(getId() + "-RTMP");
+            rtmp.setName("RTMP");
+            rtmp.setMimeType(MimeType.RTMP);
+            rtmp.setPreviewSize(options.getDefaultPreviewSize());
+            rtmp.setPreviewBitRate(2 * 1024 * 1024);
+            rtmp.setPreviewMaxFrameRate(30);
+            rtmp.setPreviewKeyFrameInterval(5);
+            rtmp.setBroadcastURI("rtmp://localhost:1935");
 
             mSettings.finishInitialization();
         }
@@ -207,8 +278,8 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     @Override
     public synchronized void clean() {
         super.clean();
-        mCamera2BroadcasterProvider.stopBroadcaster();
-        mCamera2PreviewServerProvider.stopServers();
+        mCamera2BroadcasterProvider.stop();
+        mCamera2PreviewServerProvider.stop();
         mCameraSurfaceDrawingThread.stop(true);
     }
 
@@ -220,7 +291,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
 
     @Override
     public String getId() {
-        return ID_BASE + "_" + mCameraWrapper.getId();
+        return ID_BASE + "_" + mCameraWrapper.getId().replaceAll("/", "_");
     }
 
     @Override
@@ -241,6 +312,7 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     @Override
     public List<String> getSupportedMimeTypes() {
         List<String> mimeTypes = mCamera2PreviewServerProvider.getSupportedMimeType();
+        mimeTypes.addAll(mCamera2BroadcasterProvider.getSupportedMimeType());
         mimeTypes.add(0, MIME_TYPE_JPEG);
         return mimeTypes;
     }
@@ -409,8 +481,13 @@ public class Camera2Recorder extends AbstractMediaRecorder {
                     return;
                 }
 
+                int currentRotation = mCurrentRotation;
+                if (getSettings().getOrientation() != -1) {
+                    currentRotation = getSettings().getOrientation();
+                }
+
                 byte[] jpeg = ImageUtil.convertToJPEG(photo);
-                int deviceRotation = ROTATIONS.get(mCurrentRotation);
+                int deviceRotation = ROTATIONS.get(currentRotation);
                 int cameraRotation = mCameraWrapper.getSensorOrientation();
                 int degrees = (360 - deviceRotation + cameraRotation) % 360;
                 if (mFacing == CameraFacing.FRONT) {
@@ -493,12 +570,22 @@ public class Camera2Recorder extends AbstractMediaRecorder {
     }
 
     private class CameraSettings extends Settings {
-
         private List<Size> mSupportedPictureSize = new ArrayList<>();
         private List<Size> mSupportedPreviewSize = new ArrayList<>();
+        private List<Size> mSupportedEncoderSize;
 
         CameraSettings(Context context, HostMediaRecorder recorder) {
             super(context, recorder);
+        }
+
+        @Override
+        protected EncoderSettings createEncoderSettings(String encoderId) {
+            return new EncoderSettings(getContext(), encoderId) {
+                @Override
+                public List<Size> getSupportedEncoderSizes() {
+                    return mSupportedEncoderSize;
+                }
+            };
         }
 
         @Override

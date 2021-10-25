@@ -41,9 +41,9 @@ public class BinderConnection extends AbstractConnection {
 
     private Future<ConnectingResult> mRunningTask;
 
-    private ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
-    private Logger mLogger = Logger.getLogger("dconnect.manager");
+    private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     public BinderConnection(final Context context,
                             final String pluginId,
@@ -61,10 +61,10 @@ public class BinderConnection extends AbstractConnection {
 
     @Override
     public synchronized void connect() throws ConnectingException {
-        if (BuildConfig.DEBUG) {
-            mLogger.info("BinderConnection.connect: " + mPluginName.getPackageName());
-        }
         if (!(ConnectionState.DISCONNECTED == getState() || ConnectionState.SUSPENDED == getState())) {
+            if (BuildConfig.DEBUG) {
+                mLogger.info("BinderConnection.connect: state is already connected. plugin=" + mPluginName);
+            }
             return;
         }
         setConnectingState();
@@ -110,9 +110,6 @@ public class BinderConnection extends AbstractConnection {
 
     @Override
     public void send(final Intent message) throws MessagingException {
-        if (BuildConfig.DEBUG) {
-            mLogger.info("BinderConnection.send: sending: target = " + mPluginName.getPackageName());
-        }
         synchronized (this) {
             if (ConnectionState.SUSPENDED == getState()) {
                 throw new MessagingException(MessagingException.Reason.CONNECTION_SUSPENDED);
@@ -123,22 +120,14 @@ public class BinderConnection extends AbstractConnection {
         }
         try {
             mPlugin.sendMessage(message);
-            if (BuildConfig.DEBUG) {
-                mLogger.info("BinderConnection.send: sent: target = " + mPluginName.getPackageName());
-            }
         } catch (RemoteException e) {
             throw new MessagingException(e, MessagingException.Reason.NOT_CONNECTED);
         }
     }
 
     private class ConnectingTask implements Callable<ConnectingResult> {
-
         @Override
         public ConnectingResult call() throws Exception {
-            if (BuildConfig.DEBUG) {
-                mLogger.info("ConnectingTask.call: " + mPluginName);
-            }
-
             final Object lockObj = new Object();
             final ConnectingResult result = new ConnectingResult();
 
@@ -148,7 +137,9 @@ public class BinderConnection extends AbstractConnection {
                 @Override
                 public void onServiceConnected(final ComponentName componentName, final IBinder binder) {
                     if (BuildConfig.DEBUG) {
-                        mLogger.info("onServiceConnected: componentName = " + componentName + ", binder = " + binder);
+                        mLogger.info("BinderConnection.onServiceConnected: \n" +
+                                "        componentName = " + componentName + "\n" +
+                                "        binder = " + binder);
                     }
                     try {
                         IDConnectPlugin plugin = IDConnectPlugin.Stub.asInterface(binder);
@@ -160,7 +151,6 @@ public class BinderConnection extends AbstractConnection {
                             result.mServiceConnection = this;
                             lockObj.notifyAll();
                         }
-
                     } catch (RemoteException e) {
                         e.printStackTrace(); // TODO エラーハンドリング
                     }
@@ -169,7 +159,8 @@ public class BinderConnection extends AbstractConnection {
                 @Override
                 public void onServiceDisconnected(final ComponentName componentName) {
                     if (BuildConfig.DEBUG) {
-                        mLogger.info("onServiceDisconnected: componentName = " + componentName);
+                        mLogger.info("BinderConnection.onServiceDisconnected: " +
+                                "        componentName = " + componentName);
                     }
                     synchronized (BinderConnection.this) {
                         mServiceConnection = null;

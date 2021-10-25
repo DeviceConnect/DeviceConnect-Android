@@ -61,6 +61,11 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     private EncoderThread mEncoderThread;
 
     /**
+     * JPEG の送信時間を格納する.
+     */
+    private long mSendTime;
+
+    /**
      * EGLSurfaceDrawingThread のイベントを受け取るリスナー.
      */
     private final EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
@@ -88,6 +93,11 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
         @Override
         public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
             if (TAG_SURFACE.equals(eglSurfaceBase.getTag())) {
+                MJPEGQuality mjpegQuality = getMJPEGQuality();
+                if (mjpegQuality != null) {
+                    eglSurfaceBase.setCropRect(mjpegQuality.getCropRect());
+                }
+
                 try {
                     drainEncoder(eglSurfaceBase, eglSurfaceBase.getWidth(), eglSurfaceBase.getHeight());
                 } catch (Throwable t) {
@@ -165,8 +175,6 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
      */
     private synchronized void startDrawingThreadInternal() {
         MJPEGQuality quality = getMJPEGQuality();
-        int w = quality.getWidth();
-        int h = quality.getHeight();
 
         if (mEncoderThread != null) {
             mEncoderThread.terminate();
@@ -179,8 +187,9 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
         if (mInternalCreateSurfaceDrawingThread) {
             mSurfaceDrawingThread = createEGLSurfaceDrawingThread();
         }
-        mSurfaceDrawingThread.setSize(w, h);
-        mSurfaceDrawingThread.addEGLSurfaceBase(quality.getWidth(), quality.getHeight(), TAG_SURFACE);
+
+        mSurfaceDrawingThread.setSize(quality.getWidth(), quality.getHeight());
+        mSurfaceDrawingThread.addEGLSurfaceBase(quality.getWidth(), quality.getHeight(), TAG_SURFACE, quality.getCropRect());
         mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
         mSurfaceDrawingThread.start();
     }
@@ -216,10 +225,16 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
      * @param height 映像の縦幅
      */
     private void drainEncoder(EGLSurfaceBase surface, int width, int height) {
+        long nowTime = System.currentTimeMillis();
+        if (nowTime - mSendTime < getMJPEGQuality().getFrameRateMSEC()) {
+            return;
+        }
+
         if (mEncodeFlag || mEncoderThread == null) {
             return;
         }
         mEncodeFlag = true;
+        mSendTime = nowTime;
 
         // OpenGLES からピクセルデータを取得するバッファを作成
         if (mBuffer == null || width != mBitmap.getWidth() || height != mBitmap.getHeight()) {

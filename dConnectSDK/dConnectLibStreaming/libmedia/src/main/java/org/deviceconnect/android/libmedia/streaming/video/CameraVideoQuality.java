@@ -1,12 +1,18 @@
 package org.deviceconnect.android.libmedia.streaming.video;
 
 import android.hardware.camera2.CameraCharacteristics;
+import android.util.Range;
 
 public class CameraVideoQuality extends VideoQuality {
     /**
      * カメラのタイプ.
      */
     private int mFacing = CameraCharacteristics.LENS_FACING_BACK;
+
+    /**
+     * カメラのFPS.
+     */
+    private Range<Integer> mFps;
 
     /**
      * コンストラクタ.
@@ -24,6 +30,9 @@ public class CameraVideoQuality extends VideoQuality {
     public void set(CameraVideoQuality quality) {
         super.set(quality);
         mFacing = quality.getFacing();
+        if (quality.mFps != null) {
+            mFps = new Range<>(quality.mFps.getLower(), quality.mFps.getUpper());
+        }
     }
 
     /**
@@ -51,5 +60,25 @@ public class CameraVideoQuality extends VideoQuality {
      */
     public void setFacing(int facing) {
         mFacing = facing;
+    }
+
+    /**
+     * カメラの fps を取得します.
+     *
+     * 設定されていない場合は null を返却します.
+     *
+     * @return fps
+     */
+    public Range<Integer> getFps() {
+        return mFps;
+    }
+
+    /**
+     * カメラの fps を設定します.
+     *
+     * @param fps カメラの FPS
+     */
+    public void setFps(Range<Integer> fps) {
+        mFps = fps;
     }
 }

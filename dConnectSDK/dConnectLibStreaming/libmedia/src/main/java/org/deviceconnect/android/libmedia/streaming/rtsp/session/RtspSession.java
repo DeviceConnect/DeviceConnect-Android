@@ -296,22 +296,24 @@ public class RtspSession {
                     encodedData.limit(bufferInfo.offset + bufferInfo.size);
                     encodedData.get(mConfigData, 0, bufferInfo.size);
                     mConfigLength = bufferInfo.size;
-                }
 
-                boolean isKeyFrame = (bufferInfo.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0;
-                if (isKeyFrame && mConfigData != null) {
-                    // H264 の SPS、PPS はキーフレームごとに送信するようにする。
                     videoStream.writePacket(mConfigData, mConfigLength, pts);
-                }
+                } else {
+                    boolean isKeyFrame = (bufferInfo.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0;
+                    if (isKeyFrame && mConfigData != null) {
+                        // H264 の SPS、PPS はキーフレームごとに送信するようにする。
+                        videoStream.writePacket(mConfigData, mConfigLength, pts);
+                    }
 
-                if (mVideoBuffer.length < bufferInfo.size) {
-                    mVideoBuffer = new byte[bufferInfo.size];
-                }
-                encodedData.position(bufferInfo.offset);
-                encodedData.limit(bufferInfo.offset + bufferInfo.size);
-                encodedData.get(mVideoBuffer, 0, bufferInfo.size);
+                    if (mVideoBuffer.length < bufferInfo.size) {
+                        mVideoBuffer = new byte[bufferInfo.size];
+                    }
+                    encodedData.position(bufferInfo.offset);
+                    encodedData.limit(bufferInfo.offset + bufferInfo.size);
+                    encodedData.get(mVideoBuffer, 0, bufferInfo.size);
 
-                videoStream.writePacket(mVideoBuffer, bufferInfo.size, pts);
+                    videoStream.writePacket(mVideoBuffer, bufferInfo.size, pts);
+                }
             }
         }
 

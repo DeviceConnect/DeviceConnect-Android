@@ -3,11 +3,13 @@ package org.deviceconnect.android.deviceplugin.host.activity.recorder.settings;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.MenuItem;
 
 import androidx.appcompat.app.ActionBar;
 
+import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.HostDevicePluginBindActivity;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
@@ -17,6 +19,7 @@ public class SettingsActivity extends HostDevicePluginBindActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(getDisplayOrientation());
         setContentView(R.layout.activity_recorder_settings);
 
         ActionBar actionBar = getSupportActionBar();
@@ -27,9 +30,8 @@ public class SettingsActivity extends HostDevicePluginBindActivity {
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        setRequestedOrientation(getDisplayOrientation());
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
     }
 
     @Override
@@ -60,17 +62,20 @@ public class SettingsActivity extends HostDevicePluginBindActivity {
         return ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
     }
 
-    public HostMediaRecorder getRecorder() {
-        String recorderId = null;
+    public String getRecorderId() {
         Intent intent = getIntent();
         if (intent != null) {
-            recorderId = intent.getStringExtra("recorder_id");
+            return intent.getStringExtra("recorder_id");
         }
-        return getHostDevicePlugin().getHostMediaRecorderManager().getRecorder(recorderId);
+        return null;
     }
 
-    public String getRecorderId() {
-        return getRecorder().getId();
+    public HostMediaRecorder getRecorder() {
+        HostDevicePlugin plugin = getHostDevicePlugin();
+        if (plugin != null) {
+            return plugin.getHostMediaRecorderManager().getRecorder(getRecorderId());
+        }
+        return null;
     }
 
     public static Intent createSettingsActivityIntent(Context context, String recorderId, Integer rotationFlag) {

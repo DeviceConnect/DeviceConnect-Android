@@ -311,7 +311,7 @@ public class HostDevicePlugin extends DConnectMessageService {
             }
             mSSLContext = createSSLContext(keyStore, DEFAULT_PASSWORD);
         } catch (Exception e) {
-            mLogger.log(Level.SEVERE, "Failed to update keystore", e);
+            mLogger.log(Level.WARNING, "Failed to update keystore", e);
         }
     }
 

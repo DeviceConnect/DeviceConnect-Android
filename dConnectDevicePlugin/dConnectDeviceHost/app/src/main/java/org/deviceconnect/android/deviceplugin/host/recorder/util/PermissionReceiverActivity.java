@@ -69,6 +69,13 @@ public class PermissionReceiverActivity extends AppCompatActivity {
     }
 
     @Override
+    public void finish() {
+        super.finish();
+        // Activity の遷移アニメーションを削除
+        overridePendingTransition(0, 0);
+    }
+
+    @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 

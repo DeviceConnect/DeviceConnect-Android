@@ -131,7 +131,7 @@ public abstract class CanvasVideoEncoder extends SurfaceVideoEncoder {
             interrupt();
 
             try {
-                join(200);
+                join(500);
             } catch (InterruptedException e) {
                 // ignore.
             }

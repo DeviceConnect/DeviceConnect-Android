@@ -10,6 +10,7 @@ import android.content.Context;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.LiveStreaming;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.OverlayManager;
 
@@ -34,20 +35,12 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
      */
     Camera2PreviewServerProvider(final Context context, final Camera2Recorder recorder) {
         super(context, recorder);
-
         mOverlayManager = new OverlayManager(context, recorder);
-
-        HostMediaRecorder.Settings settings = recorder.getSettings();
-
-        addServer(new Camera2MJPEGPreviewServer(context, recorder, settings.getMjpegPort(), false));
-        addServer(new Camera2MJPEGPreviewServer(context, recorder, settings.getMjpegSSLPort(), true));
-        addServer(new Camera2RTSPPreviewServer(context, recorder, settings.getRtspPort()));
-        addServer(new Camera2SRTPreviewServer(context, recorder, settings.getSrtPort()));
     }
 
     @Override
-    public List<PreviewServer> startServers() {
-        List<PreviewServer> servers = super.startServers();
+    public List<LiveStreaming> start() {
+        List<LiveStreaming> servers = super.start();
         if (!servers.isEmpty()) {
             mOverlayManager.registerBroadcastReceiver();
         }
@@ -55,14 +48,27 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
     }
 
     @Override
-    public void stopServers() {
+    public void stop() {
         mOverlayManager.destroy();
-        super.stopServers();
+        super.stop();
     }
 
     @Override
     public void onConfigChange() {
         super.onConfigChange();
         mOverlayManager.onConfigChange();
+    }
+
+    @Override
+    public LiveStreaming createLiveStreaming(String encoderId, HostMediaRecorder.EncoderSettings encoderSettings) {
+        switch (encoderSettings.getMimeType()) {
+            case MJPEG:
+                return new Camera2MJPEGPreviewServer((Camera2Recorder) getRecorder(), encoderId);
+            case RTSP:
+                return new Camera2RTSPPreviewServer((Camera2Recorder) getRecorder(), encoderId);
+            case SRT:
+                return new Camera2SRTPreviewServer((Camera2Recorder) getRecorder(), encoderId);
+        }
+        return null;
     }
 }

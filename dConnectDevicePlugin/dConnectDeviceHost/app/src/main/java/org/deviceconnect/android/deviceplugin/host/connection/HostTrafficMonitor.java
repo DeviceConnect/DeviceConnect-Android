@@ -29,6 +29,7 @@ class HostTrafficMonitor {
     private final Map<Integer, List<Stats>> mStatsMap = new HashMap<>();
     private final long mInterval;
     private Timer mTimer;
+    private int mCacheSize = 50;
 
     private NetworkStatsManager mNetworkStatsManager;
     private OnTrafficListener mOnTrafficListener;
@@ -48,6 +49,15 @@ class HostTrafficMonitor {
         for (int networkType : NETWORK_TYPE_LIST) {
             mStatsMap.put(networkType, new ArrayList<>());
         }
+    }
+
+    /**
+     * 通信量の情報をキャッシュするサイズを設定します.
+     *
+     * @param cacheSize キャッシュサイズ
+     */
+    void setCacheSize(int cacheSize) {
+        mCacheSize = cacheSize;
     }
 
     /**
@@ -85,40 +95,71 @@ class HostTrafficMonitor {
     }
 
     /**
-     * ネットワークごとの通信量を取得します.
+     * Stats の情報を HostTraffic に変換します.
      *
      * @param networkType ネットワークタイプ
-     * @return ネットワークごとの通信量
+     * @param stats 通信情報
+     * @param pre 通信情報
+     * @return HostTraffic
      */
-    private HostTraffic getTraffic(int networkType) {
+    private HostTraffic conv(int networkType, Stats stats, Stats pre) {
+        long rx = (stats.getTotalRxBytes() - pre.getTotalRxBytes());
+        long tx = (stats.getTotalTxBytes() - pre.getTotalTxBytes());
+        long bitrateRx = 8 * rx / ((stats.getEndTime() - pre.getEndTime()) / 1000);
+        long bitrateTx = 8 * tx / ((stats.getEndTime() - pre.getEndTime()) / 1000);
+        HostTraffic traffic = new HostTraffic();
+        traffic.mNetworkType = networkType;
+        traffic.mRx = rx;
+        traffic.mTx = tx;
+        traffic.mBitrateRx = bitrateRx;
+        traffic.mBitrateTx = bitrateTx;
+        traffic.mStartTime = stats.mEndTime - mInterval;
+        traffic.mEndTime = stats.mEndTime;
+        return traffic;
+    }
+
+    /**
+     * 指定されたネットワークの最新の通信量を取得します.
+     *
+     * @param networkType ネットワークタイプ
+     * @return 指定されたネットワークの最新の通信量
+     */
+    private HostTraffic getLastTraffic(int networkType) {
         List<Stats> statsList = mStatsMap.get(networkType);
         if (statsList != null && statsList.size() > 1) {
             Stats pre = statsList.get(statsList.size() - 2);
             Stats stats = statsList.get(statsList.size() - 1);
-            long rx = (stats.getTotalRxBytes() - pre.getTotalRxBytes());
-            long tx = (stats.getTotalTxBytes() - pre.getTotalTxBytes());
-            long bitrateRx = 8 * rx / ((stats.getEndTime() - pre.getEndTime()) / 1000);
-            long bitrateTx = 8 * tx / ((stats.getEndTime() - pre.getEndTime()) / 1000);
-            HostTraffic traffic = new HostTraffic();
-            traffic.mNetworkType = networkType;
-            traffic.mRx = rx;
-            traffic.mTx = tx;
-            traffic.mBitrateRx = bitrateRx;
-            traffic.mBitrateTx = bitrateTx;
-            return traffic;
+            return conv(networkType, stats, pre);
         }
         return null;
     }
 
     /**
-     * ネットワークの通信量を取得します.
+     * 指定されたネットワークの通信量のリストを取得します.
      *
-     * @return ネットワークの通信量
+     * @param networkType ネットワークタイプ
+     * @return 指定されたネットワークの通信量のリスト
      */
-    List<HostTraffic> getTrafficList() {
+    List<HostTraffic> getTrafficList(int networkType) {
+        List<HostTraffic> trafficList = new ArrayList<>();
+        List<Stats> statsList = mStatsMap.get(networkType);
+        for (int i = 1; i < statsList.size(); i++) {
+            Stats pre = statsList.get(i - 1);
+            Stats stats = statsList.get(i);
+            trafficList.add(conv(networkType, stats, pre));
+        }
+        return trafficList;
+    }
+
+    /**
+     * 各ネットワーク毎の最新の通信量をリストに格納して返却します.
+     *
+     * @return 各ネットワーク毎の最新の通信量
+     */
+    List<HostTraffic> getLastTrafficForAllNetwork() {
         List<HostTraffic> trafficList = new ArrayList<>();
         for (int networkType : NETWORK_TYPE_LIST) {
-            HostTraffic traffic = getTraffic(networkType);
+            HostTraffic traffic = getLastTraffic(networkType);
             if (traffic != null) {
                 trafficList.add(traffic);
             }
@@ -144,6 +185,12 @@ class HostTrafficMonitor {
         }
     }
 
+    /**
+     * 指定されたネットワークタイプの通信情報を取得します.
+     *
+     * @param networkType ネットワークタイプ
+     * @return ネットワーク情報
+     */
     private HostTraffic getNetworkStats(int networkType) {
         HostTraffic traffic = null;
 
@@ -163,12 +210,12 @@ class HostTrafficMonitor {
 
         statsList.add(stats);
 
-        if (statsList.size() > 100) {
+        if (statsList.size() > mCacheSize) {
             statsList.remove(0);
         }
 
         if (statsList.size() > 1) {
-            traffic = getTraffic(networkType);
+            traffic = getLastTraffic(networkType);
         }
 
         return traffic;

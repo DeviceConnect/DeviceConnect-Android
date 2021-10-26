@@ -31,6 +31,23 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "URL_HELP_HTML", "\"file:///android_asset/html/help/index.html\""
         buildConfigField "String", "URL_DEMO_HTML", "\"file:///android_asset/html/demo/index.html\""
+        packagingOptions {
+            pickFirst 'lib/armeabi-v7a/libsrt.so'
+            pickFirst 'lib/x86_64/libsrt.so'
+            pickFirst 'lib/x86/libsrt.so'
+            pickFirst 'lib/arm64-v8a/libsrt.so'
+            pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+            pickFirst 'lib/x86_64/libsrt-native-interface.so'
+            pickFirst 'lib/arm64-v8a/libc++_shared.so'
+            pickFirst 'lib/x86_64/libc++_shared.so'
+            pickFirst 'lib/armeabi-v7a/libsrt-native-interface.so'
+            pickFirst 'lib/x86/libc++_shared.so'
+            pickFirst 'lib/arm64-v8a/libsrt-native-interface.so'
+            pickFirst 'lib/x86/libsrt-native-interface.so'
+            pickFirst 'lib/armeabi-v7a/libnative-lib.so'
+            pickFirst 'lib/arm64-v8a/libnative-lib.so'
+            pickFirst 'lib/x86/libnative-lib.so'
+        }
     }
 
     packagingOptions {
@@ -82,7 +99,7 @@ android {
     repositories {
         maven {
             name = "DeviceConnect-Android"
-            url = uri("https://maven.pkg.github.com/TakayukiHoshi1984/DeviceConnect-Android")
+            url = uri("https://maven.pkg.github.com/DeviceConnect/DeviceConnect-Android")
 
             credentials {
                 username = System.getenv("GPR_USER") ?: githubProperties['gpr.usr']

@@ -214,12 +214,7 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                         }
                     }
 
-                    // 映像が有効な時の音声設定を行う
-                    if (VIDEO_URI_FALSE.equals(video)) {
-                        settings.setPreviewAudioSource(null);
-                    } else {
-                        settings.setPreviewAudioSource(HostMediaRecorder.AudioSource.typeOf(audio));
-                    }
+                    settings.setPreviewAudioSource(getAudioSource(audio));
                 } catch (Exception e) {
                     MessageUtils.setInvalidRequestParameterError(response, "Parameter is invalid.");
                     return true;
@@ -435,7 +430,17 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     return mHostMediaRecorderManager.getRecorder(video);
             }
         }
-        return mHostMediaRecorderManager.getRecorder(audio);
+        return mHostMediaRecorderManager.getRecorder("audio");
+    }
+
+    private HostMediaRecorder.AudioSource getAudioSource(String audio) {
+        if (AUDIO_URI_FALSE.equals(audio)) {
+            return null;
+        } else if (AUDIO_URI_TRUE.equals(audio)) {
+            return HostMediaRecorder.AudioSource.DEFAULT;
+        } else {
+            return HostMediaRecorder.AudioSource.typeOf(audio);
+        }
     }
 
     private Bundle createStreamingBundle(LiveStreaming broadcaster, String status) {

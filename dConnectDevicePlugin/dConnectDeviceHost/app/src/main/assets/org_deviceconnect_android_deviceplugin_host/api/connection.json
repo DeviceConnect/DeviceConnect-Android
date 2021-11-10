@@ -293,7 +293,7 @@
         "/network/bitrate": {
             "get": {
                 "summary": "スマートデバイスの接続ネットワークのビットレートを取得する。",
-                "description": "接続しているネットワークのビットレートを取得する。",
+                "description": "接続しているネットワークのビットレートを取得する。<br> until が省略された場合には、since から今の時刻までの間のビットレート情報を取得します。<br> since と until が省略された場合には、Host プラグインの起動時からのビットレートの情報を取得します。",
                 "operationId": "connectionNetworkBitrateGet",
                 "parameters": [
                     {
@@ -301,6 +301,20 @@
                         "in": "query",
                         "description": "サービスID。取得対象スマートデバイス",
                         "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "since",
+                        "in": "query",
+                        "description": "取得開始時刻 (yyyy/MM/dd HH:mm:ss)",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "until",
+                        "in": "query",
+                        "description": "取得終了時刻 (yyyy/MM/dd HH:mm:ss)",
+                        "required": false,
                         "type": "string"
                     }
                 ],
@@ -335,7 +349,7 @@
                         "description": "サービスID。取得対象スマートデバイス",
                         "required": true,
                         "type": "string"
-                    }, 
+                    },
                     {
                         "name": "interval",
                         "in": "formData",
@@ -545,7 +559,7 @@
                         "description": "サービスID。取得対象スマートデバイス",
                         "required": true,
                         "type": "string"
-                    }, 
+                    },
                     {
                         "name": "interval",
                         "in": "formData",
@@ -663,7 +677,7 @@
                         "description": "サービスID。取得対象スマートデバイス",
                         "required": true,
                         "type": "string"
-                    }, 
+                    },
                     {
                         "name": "interval",
                         "in": "formData",
@@ -781,7 +795,7 @@
                         "description": "サービスID。取得対象スマートデバイス",
                         "required": true,
                         "type": "string"
-                    }, 
+                    },
                     {
                         "name": "interval",
                         "in": "formData",
@@ -899,7 +913,7 @@
                         "description": "サービスID。取得対象スマートデバイス",
                         "required": true,
                         "type": "string"
-                    }, 
+                    },
                     {
                         "name": "interval",
                         "in": "formData",
@@ -1071,7 +1085,7 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonResponse"
-                }, 
+                },
                 {
                     "type": "object",
                     "required": ["network"],
@@ -1089,7 +1103,7 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonEvent"
-                }, 
+                },
                 {
                     "required": ["network"],
                     "properties": {
@@ -1106,7 +1120,7 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonResponse"
-                }, 
+                },
                 {
                     "required": ["mobile", "wifi"],
                     "properties": {
@@ -1180,7 +1194,7 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonResponse"
-                }, 
+                },
                 {
                     "type": "object",
                     "required": ["enable"],
@@ -1212,7 +1226,7 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonResponse"
-                }, 
+                },
                 {
                     "required": ["connectStatus"],
                     "properties": {
@@ -1236,7 +1250,7 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonEvent"
-                }, 
+                },
                 {
                     "required": ["connectStatus"],
                     "properties": {
@@ -1260,7 +1274,7 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonResponse"
-                }, 
+                },
                 {
                     "type": "object",
                     "required": ["enable"],
@@ -1292,7 +1306,7 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonResponse"
-                }, 
+                },
                 {
                     "required": ["connectStatus"],
                     "properties": {
@@ -1316,7 +1330,7 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonEvent"
-                }, 
+                },
                 {
                     "required": ["connectStatus"],
                     "properties": {
@@ -1354,7 +1368,7 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonResponse"
-                }, 
+                },
                 {
                     "type": "object",
                     "required": ["enable"],
@@ -1386,7 +1400,7 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonResponse"
-                }, 
+                },
                 {
                     "required": ["connectStatus"],
                     "properties": {
@@ -1410,7 +1424,7 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonEvent"
-                }, 
+                },
                 {
                     "required": ["connectStatus"],
                     "properties": {
@@ -1434,7 +1448,7 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonResponse"
-                }, 
+                },
                 {
                     "type": "object",
                     "required": ["enable"],
@@ -1466,7 +1480,7 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonResponse"
-                }, 
+                },
                 {
                     "required": ["connectStatus"],
                     "properties": {
@@ -1490,7 +1504,7 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonEvent"
-                }, 
+                },
                 {
                     "required": ["connectStatus"],
                     "properties": {

@@ -201,6 +201,17 @@ public abstract class AbstractLiveStreaming implements LiveStreaming, CropInterf
     }
 
     @Override
+    public void setCropVisible(boolean visible) {
+        getEncoderSettings().setCropVisible(visible);
+        postOnVisibleChanged(visible);
+    }
+
+    @Override
+    public boolean getCropVisible() {
+        return getEncoderSettings().getCropVisible();
+    }
+
+    @Override
     public void addOnEventListener(CropInterface.OnEventListener listener) {
         mOnEventListeners.add(listener);
     }
@@ -244,6 +255,12 @@ public abstract class AbstractLiveStreaming implements LiveStreaming, CropInterf
     private void postOnMoved(Rect rect) {
         for (CropInterface.OnEventListener l : mOnEventListeners.get()) {
             l.onMoved(this, rect);
+        }
+    }
+
+    private void postOnVisibleChanged(boolean visible) {
+        for (CropInterface.OnEventListener l : mOnEventListeners.get()) {
+            l.onVisibleChanged(this, visible);
         }
     }
 

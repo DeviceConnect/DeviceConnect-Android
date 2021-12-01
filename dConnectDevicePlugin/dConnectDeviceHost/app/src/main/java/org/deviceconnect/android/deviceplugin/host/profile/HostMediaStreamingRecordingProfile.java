@@ -1065,6 +1065,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 Integer right = parseInteger(request, "right");
                 Integer bottom = parseInteger(request, "bottom");
                 Integer duration = parseInteger(request, "duration");
+                Boolean visible = parseBoolean(request, "visible");
 
                 HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
                 if (recorder == null) {
@@ -1072,24 +1073,36 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     return true;
                 }
 
-                if (left == null) {
-                    MessageUtils.setInvalidRequestParameterError(response, "left is not set.");
-                    return true;
-                }
+                if (left != null || top != null || right != null || bottom != null || duration != null) {
+                    if (left == null) {
+                        MessageUtils.setInvalidRequestParameterError(response, "left is not set.");
+                        return true;
+                    }
 
-                if (top == null) {
-                    MessageUtils.setInvalidRequestParameterError(response, "top is not set.");
-                    return true;
-                }
+                    if (top == null) {
+                        MessageUtils.setInvalidRequestParameterError(response, "top is not set.");
+                        return true;
+                    }
 
-                if (right == null) {
-                    MessageUtils.setInvalidRequestParameterError(response, "right is not set.");
-                    return true;
-                }
+                    if (right == null) {
+                        MessageUtils.setInvalidRequestParameterError(response, "right is not set.");
+                        return true;
+                    }
 
-                if (bottom == null) {
-                    MessageUtils.setInvalidRequestParameterError(response, "bottom is not set.");
-                    return true;
+                    if (bottom == null) {
+                        MessageUtils.setInvalidRequestParameterError(response, "bottom is not set.");
+                        return true;
+                    }
+
+                    if (left >= right || top >= bottom) {
+                        MessageUtils.setInvalidRequestParameterError(response, "parameter is invalid.");
+                        return true;
+                    }
+
+                    if (duration == null) {
+                        MessageUtils.setInvalidRequestParameterError(response, "duration is not set.");
+                        return true;
+                    }
                 }
 
                 List<String> encoderIdList = getEncoderSettings(recorder, name, true);
@@ -1098,16 +1111,16 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     return true;
                 }
 
-                if (left >= right || top >= bottom) {
-                    MessageUtils.setInvalidRequestParameterError(response, "parameter is invalid.");
-                    return true;
-                }
-
                 recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                     @Override
                     public void onAllowed() {
                         for (String encoderId : encoderIdList) {
-                            setCrop(recorder, encoderId, left, top, right, bottom, duration);
+                            if (left != null && top != null && right != null && bottom != null) {
+                                setCrop(recorder, encoderId, left, top, right, bottom, duration);
+                            }
+                            if (visible != null) {
+                                setCropVisible(recorder, encoderId, visible);
+                            }
                         }
                         setResult(response, DConnectMessage.RESULT_OK);
                         sendResponse(response);
@@ -1358,6 +1371,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         Integer previewClipBottom = parseInteger(request, "previewClipBottom");
         Integer previewClipDuration = parseInteger(request, "previewClipDuration");
         Boolean previewClipReset = parseBoolean(request, "previewClipReset");
+        Boolean previewClipVisible = parseBoolean(request, "previewClipVisible");
 
         HostMediaRecorder.ProfileLevel profileLevel = null;
         Range<Integer> fps = null;
@@ -1653,6 +1667,15 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             }
         }
 
+        if (previewClipVisible != null) {
+            for (String encoderId : settings.getEncoderIdList()) {
+                HostMediaRecorder.EncoderSettings encoderSettings = settings.getEncoderSetting(encoderId);
+                if (encoderId != null && mimeType.equals(encoderSettings.getMimeType().getValue())) {
+                    setCropVisible(recorder, encoderId, previewClipVisible);
+                }
+            }
+        }
+
         if (isChangeConfig) {
             try {
                 recorder.onConfigChange();
@@ -1663,6 +1686,25 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
 
         setResult(response, DConnectMessage.RESULT_OK);
+    }
+
+    private void setCropVisible(HostMediaRecorder recorder, String encoderId, boolean visible) {
+        HostMediaRecorder.EncoderSettings encoderSettings = recorder.getSettings().getEncoderSetting(encoderId);
+        if (encoderSettings == null) {
+            return;
+        }
+
+        for (LiveStreaming previewServer : recorder.getServerProvider().getLiveStreamingList()) {
+            if (encoderId.equals(previewServer.getId())) {
+                ((CropInterface) previewServer).setCropVisible(visible);
+            }
+        }
+
+        for (LiveStreaming broadcaster : recorder.getBroadcasterProvider().getLiveStreamingList()) {
+            if (encoderId.equals(broadcaster.getId())) {
+                ((CropInterface) broadcaster).setCropVisible(visible);
+            }
+        }
     }
 
     private void setCrop(HostMediaRecorder recorder, String encoderId, int left, int top, int right, int bottom, int duration) {
@@ -1858,6 +1900,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             drawingRect.putInt("right", rect.right);
             drawingRect.putInt("bottom", rect.bottom);
             bundle.putBundle("crop", drawingRect);
+            bundle.putBoolean("cropVisible", s.getCropVisible());
         }
 
         return bundle;

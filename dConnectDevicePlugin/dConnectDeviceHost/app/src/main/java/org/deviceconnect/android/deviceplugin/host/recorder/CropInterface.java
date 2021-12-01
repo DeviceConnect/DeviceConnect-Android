@@ -35,6 +35,20 @@ public interface CropInterface {
     Rect getCropRect();
 
     /**
+     * クロップ範囲の表示フラグを設定します.
+     *
+     * @param visible クロップ範囲の表示フラグ
+     */
+    void setCropVisible(boolean visible);
+
+    /**
+     * クロップ範囲の表示フラグを取得します.
+     *
+     * @return クロップ範囲の表示フラグ
+     */
+    boolean getCropVisible();
+
+    /**
      * イベントリスナーを追加します.
      *
      * @param listener 追加するリスナー
@@ -63,5 +77,10 @@ public interface CropInterface {
          * クロップする矩形が移動したことを通知します.
          */
         void onMoved(CropInterface crop, Rect cropRect);
+
+        /**
+         * クロップ範囲を表示設定が変更されたことを通知します.
+         */
+        void onVisibleChanged(CropInterface crop, boolean visible);
     }
 }

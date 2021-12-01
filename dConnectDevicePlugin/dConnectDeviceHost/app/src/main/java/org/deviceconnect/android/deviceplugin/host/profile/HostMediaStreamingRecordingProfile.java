@@ -26,6 +26,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderMan
 import org.deviceconnect.android.deviceplugin.host.recorder.LiveStreaming;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
+import org.deviceconnect.android.deviceplugin.host.util.NetworkUtil;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -1827,6 +1828,21 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             if (intraRefresh != null) {
                 bundle.putInt("intraRefresh", intraRefresh);
             }
+        }
+
+        String host = NetworkUtil.getIPAddress(getContext());
+        if (host.equals("0.0.0.0")) {
+            host = "localhost";
+        }
+
+        if ("video/x-mjpeg".equals(s.getMimeType().getValue())) {
+            bundle.putString("uri", "http://" + host + ":" + s.getPort() + "/mjpeg");
+        } else if ("video/x-rtp".equals(s.getMimeType().getValue())) {
+            bundle.putString("uri", "rtsp://" + host +  ":" + s.getPort());
+        } else if ("video/MP2T".equals(s.getMimeType().getValue())) {
+            bundle.putString("uri", "srt://" + host + ":" + s.getPort());
+        } else if ("video/x-rtmp".equals(s.getMimeType().getValue())) {
+            bundle.putString("uri", s.getBroadcastURI());
         }
 
         if (s.getPort() > 0) {

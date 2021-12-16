@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -57,7 +56,7 @@ public class PreviewSurfaceView extends FrameLayout {
             @Override
             public boolean onScale(ScaleGestureDetector detector) {
                 CropRectHolder holder = getFocusedHolder();
-                if (holder == null) {
+                if (holder == null || !holder.mVisible) {
                     return false;
                 }
 
@@ -144,7 +143,7 @@ public class PreviewSurfaceView extends FrameLayout {
                 {
                     for (CropRectHolder holder : mCropRectMap.values()) {
                         Rect cropRect = holder.mCropRect;
-                        if (cropRect.contains(orgX, orgY)) {
+                        if (holder.mVisible && cropRect.contains(orgX, orgY)) {
                             clearFocusCropRect();
                             mDragStartX = x;
                             mDragStartY = y;
@@ -285,6 +284,22 @@ public class PreviewSurfaceView extends FrameLayout {
     }
 
     /**
+     * 切り抜き範囲の表示フラグを設定します.
+     *
+     * @param key 切り抜き範囲の枠を識別するキー
+     * @param visible 表示フラグ
+     */
+    public void setCropVisible(Object key, boolean visible) {
+        post(() -> {
+            CropRectHolder holder = mCropRectMap.get(key);
+            if (holder != null) {
+                holder.mVisible = visible;
+                setCropRectView(holder);
+            }
+        });
+    }
+
+    /**
      * 切り抜き範囲の枠の値が変更された時に呼び出されます.
      *
      * @param key キー
@@ -310,7 +325,7 @@ public class PreviewSurfaceView extends FrameLayout {
             MarginLayoutParams mlp = (MarginLayoutParams) layoutParams;
             mlp.setMargins(left, top, 0, 0);
             frameView.setLayoutParams(layoutParams);
-            frameView.setVisibility(VISIBLE);
+            frameView.setVisibility(holder.mVisible ? VISIBLE : GONE);
         }
     }
 
@@ -367,7 +382,6 @@ public class PreviewSurfaceView extends FrameLayout {
             layoutParams.height = mSurfaceHeight;
             surfaceView.setLayoutParams(layoutParams);
             surfaceView.getHolder().setFixedSize(mSurfaceWidth, mSurfaceHeight);
-//            surfaceView.getHolder().setFixedSize(previewWidth, previewHeight);
         });
     }
 
@@ -395,7 +409,6 @@ public class PreviewSurfaceView extends FrameLayout {
             layoutParams.height = mSurfaceHeight;
             surfaceView.setLayoutParams(layoutParams);
             surfaceView.getHolder().setFixedSize(mSurfaceWidth, mSurfaceHeight);
-//            surfaceView.getHolder().setFixedSize(previewWidth, previewHeight);
         });
     }
 
@@ -438,5 +451,6 @@ public class PreviewSurfaceView extends FrameLayout {
         private Rect mCropRect;
         private View mView;
         private boolean mFocused;
+        private boolean mVisible;
     }
 }

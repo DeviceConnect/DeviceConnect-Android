@@ -845,6 +845,28 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
         }
 
         /**
+         * 切り抜き範囲の表示フラグを取得します.
+         *
+         * @return 切り抜き範囲の表示フラグ
+         */
+        public Boolean getCropVisible() {
+            return mProperty.getBoolean("preview_clip_visible", true);
+        }
+
+        /**
+         * 切り抜き範囲の表示フラグを設定します.
+         *
+         * @param visible 切り抜き範囲の表示フラグ
+         */
+        public void setCropVisible(Boolean visible) {
+            if (visible == null) {
+                mProperty.remove("preview_clip_visible");
+            } else {
+                mProperty.put("preview_clip_visible", visible);
+            }
+        }
+
+        /**
          * 切り抜き範囲を取得します.
          *
          * 範囲ば設定されていない場合には、null を返却します.

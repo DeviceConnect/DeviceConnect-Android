@@ -120,6 +120,7 @@
     <string name="host_recorder_settings_cut_out_bottom">Bottom</string>
     <string name="host_recorder_settings_cut_out_reset">Reset</string>
     <string name="host_recorder_settings_cut_out_set">Set by delivery resolution</string>
+    <string name="host_recorder_settings_cut_out_visible">Visible</string>
     <string name="host_recorder_settings_clipboard_copy">Copied to the clipboard</string>
 
     <string name="host_recorder_settings_audio_enable">Enable</string>

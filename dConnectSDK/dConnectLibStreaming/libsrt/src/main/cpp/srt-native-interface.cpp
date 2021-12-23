@@ -290,7 +290,7 @@ JNI_METHOD_NAME(getPeerName)(JNIEnv *env, jclass clazz, jlong nativeSocket) {
     }
 
     // クライアントのIPアドレス
-    char buf[15];
+    char buf[32];
     sprintf(buf, "%d.%d.%d.%d", addr.sa_data[2], addr.sa_data[3], addr.sa_data[4], addr.sa_data[5]);
     jstring address = env->NewStringUTF(buf);
     return address;

@@ -6,30 +6,32 @@
         android:title="@string/host_recorder_settings_title"
         app:iconSpaceReserved="false">
 
-        <PreferenceScreen
+        <Preference
             app:iconSpaceReserved="false"
             app:key="recorder_settings_video"
             app:title="@string/host_recorder_settings_video" />
 
-        <PreferenceScreen
+        <Preference
             app:iconSpaceReserved="false"
             app:key="recorder_settings_audio"
             app:title="@string/host_recorder_settings_audio" />
 
-        <PreferenceScreen
-            app:iconSpaceReserved="false"
-            app:key="recorder_settings_broadcast"
-            app:title="@string/host_recorder_settings_broadcast" />
+    </PreferenceCategory>
 
-        <PreferenceScreen
-            app:iconSpaceReserved="false"
-            app:key="recorder_settings_srt"
-            app:title="@string/host_recorder_settings_srt" />
+    <PreferenceCategory
+        app:key="recorder_settings_preview_server"
+        android:title="@string/host_recorder_settings_server"
+        app:isPreferenceVisible="false"
+        app:iconSpaceReserved="false">
 
-        <PreferenceScreen
-            app:iconSpaceReserved="false"
-            app:key="recorder_settings_port"
-            app:title="@string/host_recorder_settings_port" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:key="recorder_settings_broadcaster"
+        android:title="@string/host_recorder_settings_broadcast"
+        app:isPreferenceVisible="false"
+        app:iconSpaceReserved="false">
+
     </PreferenceCategory>
 
 </PreferenceScreen>

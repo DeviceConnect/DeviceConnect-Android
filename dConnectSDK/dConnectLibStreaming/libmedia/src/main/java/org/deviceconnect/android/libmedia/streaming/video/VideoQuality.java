@@ -1,5 +1,7 @@
 package org.deviceconnect.android.libmedia.streaming.video;
 
+import android.graphics.Rect;
+
 public class VideoQuality {
     private static final int DEFAULT_FRAME_RATE = 30;
     private static final int DEFAULT_IFRAME_INTERVAL = 3;
@@ -14,6 +16,7 @@ public class VideoQuality {
     private int mIntraRefresh = 0;
     private int mProfile = 0;
     private int mLevel = 0;
+    private Integer mLowLatency = 1;
 
     /**
      * ビットレートのモード.
@@ -24,6 +27,17 @@ public class VideoQuality {
      * ソフトウェアエンコーダを優先的に使用するフラグ.
      */
     private boolean mUseSoftwareEncoder;
+
+    /**
+     * 描画範囲.
+     * null の場合は範囲してい無し。
+     */
+    private Rect mCropRect;
+
+    /**
+     * 画面の向き.
+     */
+    private int mOrientation;
 
     /**
      * コンストラクタ.
@@ -50,6 +64,9 @@ public class VideoQuality {
         mUseSoftwareEncoder = quality.isUseSoftwareEncoder();
         mProfile = quality.getProfile();
         mLevel = quality.getLevel();
+        if (quality.mCropRect != null) {
+            mCropRect = new Rect(quality.mCropRect);
+        }
     }
 
     /**
@@ -261,6 +278,50 @@ public class VideoQuality {
      */
     public void setBitRateMode(BitRateMode bitRateMode) {
         mBitRateMode = bitRateMode;
+    }
+
+    /**
+     * 描画範囲を取得します.
+     *
+     * 描画範囲指定されていない場合は null を返却します。
+     *
+     * @return 描画範囲
+     */
+    public Rect getCropRect() {
+        return mCropRect;
+    }
+
+    /**
+     * 描画範囲を設定します.
+     *
+     * null が指定された場合には、描画範囲を削除します。
+     *
+     * @param cropRect 描画範囲
+     */
+    public void setCropRect(Rect cropRect) {
+        mCropRect = cropRect;
+    }
+
+    /**
+     * Low Latency フラグを設定します.
+     *
+     * 1: 有効
+     * 0: 無効
+     * null: デフォルト設定
+     *
+     * @param lowLatency Low Latency フラグ
+     */
+    public void setLowLatency(Integer lowLatency) {
+        mLowLatency = lowLatency;
+    }
+
+    /**
+     * Low Latency フラグを取得します.
+     *
+     * @return Low Latency フラグ
+     */
+    public Integer getLowLatency() {
+        return mLowLatency;
     }
 
     /**

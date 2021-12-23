@@ -11,6 +11,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Insets;
 import android.graphics.PixelFormat;
 import android.media.ImageReader;
 import android.os.Build;
@@ -19,8 +20,11 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Range;
 import android.util.Size;
+import android.view.Display;
 import android.view.Surface;
+import android.view.WindowInsets;
 import android.view.WindowManager;
+import android.view.WindowMetrics;
 
 import androidx.annotation.NonNull;
 
@@ -86,17 +90,23 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         mScreenCastBroadcasterProvider = new ScreenCastBroadcasterProvider(context, this);
     }
 
+    private List<Size> getEncoderSizeList(List<Size> supportPreviewSizes) {
+        List<Size> sizes = new ArrayList<>();
+        Size maxSize = CapabilityUtil.getSupportedMaxSize(VideoCodec.H264.getMimeType());
+        for (Size size : supportPreviewSizes) {
+            if (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight()
+                    || size.getWidth() <= maxSize.getHeight() && size.getHeight() <= maxSize.getWidth()) {
+                sizes.add(size);
+            }
+        }
+        return sizes;
+    }
+
     /**
      * レコーダの設定を初期化します.
      */
     private void initSupportedSettings() {
-        // MediaCodec でエンコードできる最大解像度を取得
-        // TODO h264, h265 で最大解像度が違う場合はどうするべきか？
-        // TODO ハードウェアエンコーダとソフトウェアエンコーダで最大解像度が違うのはどうするべきか？
-        Size maxSize = CapabilityUtil.getSupportedMaxSize("video/avc");
-
         Size originalSize = getDisplaySize();
-
         List<Size> supportPictureSizes = new ArrayList<>();
         List<Size> supportPreviewSizes = new ArrayList<>();
         final int num = 4;
@@ -113,14 +123,11 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
 
             Size size = new Size(width, height);
             supportPictureSizes.add(size);
-            if (maxSize != null) {
-                if (size.getWidth() <= maxSize.getWidth() && size.getHeight() <= maxSize.getHeight()) {
-                    supportPreviewSizes.add(size);
-                }
-            }
+            supportPreviewSizes.add(size);
         }
         mSettings.mSupportedPreviewSize = supportPreviewSizes;
         mSettings.mSupportedPictureSize = supportPictureSizes;
+        mSettings.mSupportEncoderSizeList = getEncoderSizeList(supportPreviewSizes);
 
         List<Range<Integer>> supportFps = new ArrayList<>();
         supportFps.add(new Range<>(30, 30));
@@ -129,20 +136,55 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         if (!mSettings.isInitialized()) {
             mSettings.setPreviewSize(mSettings.getSupportedPreviewSizes().get(0));
             mSettings.setPictureSize(mSettings.getSupportedPictureSizes().get(0));
-            mSettings.setPreviewBitRate(2 * 1024 * 1024);
-            mSettings.setPreviewMaxFrameRate(30);
-            mSettings.setPreviewKeyFrameInterval(1);
-            mSettings.setPreviewQuality(80);
+            mSettings.setOrientation(Surface.ROTATION_90);
 
-            mSettings.setPreviewAudioBitRate(64 * 1024);
-            mSettings.setPreviewSampleRate(16000);
+            // 音声設定
+            mSettings.setPreviewAudioSource(null);
+            mSettings.setPreviewAudioBitRate(128 * 1024);
+            mSettings.setPreviewSampleRate(48000);
             mSettings.setPreviewChannel(1);
             mSettings.setUseAEC(true);
 
-            mSettings.setMjpegPort(21000);
-            mSettings.setMjpegSSLPort(21100);
-            mSettings.setRtspPort(22000);
-            mSettings.setSrtPort(23000);
+            // プレビュー配信サーバ設定
+            mSettings.addEncoder(getId() + "-MJPEG");
+            EncoderSettings mjpeg = mSettings.getEncoderSetting(getId() + "-MJPEG");
+            mjpeg.setName("MJPEG");
+            mjpeg.setMimeType(MimeType.MJPEG);
+            mjpeg.setPort(21000);
+            mjpeg.setPreviewSize(mSettings.getSupportedPreviewSizes().get(0));
+            mjpeg.setPreviewQuality(80);
+            mjpeg.setPreviewMaxFrameRate(30);
+
+            mSettings.addEncoder(getId() + "-RTSP");
+            EncoderSettings rtsp = mSettings.getEncoderSetting(getId() + "-RTSP");
+            rtsp.setName("RTSP");
+            rtsp.setMimeType(MimeType.RTSP);
+            rtsp.setPort(22000);
+            rtsp.setPreviewSize(mSettings.getSupportedPreviewSizes().get(0));
+            rtsp.setPreviewBitRate(2 * 1024 * 1024);
+            rtsp.setPreviewMaxFrameRate(30);
+            rtsp.setPreviewKeyFrameInterval(5);
+
+            mSettings.addEncoder(getId() + "-SRT");
+            EncoderSettings srt = mSettings.getEncoderSetting(getId() + "-SRT");
+            srt.setName("SRT");
+            srt.setMimeType(MimeType.SRT);
+            srt.setPort(23000);
+            srt.setPreviewSize(mSettings.getSupportedPreviewSizes().get(0));
+            srt.setPreviewBitRate(2 * 1024 * 1024);
+            srt.setPreviewMaxFrameRate(30);
+            srt.setPreviewKeyFrameInterval(5);
+
+            // 配信設定
+            mSettings.addEncoder(getId() + "-RTMP");
+            EncoderSettings rtmp = mSettings.getEncoderSetting(getId() + "-RTMP");
+            rtmp.setName("RTMP");
+            rtmp.setMimeType(MimeType.RTMP);
+            rtmp.setPreviewSize(mSettings.getSupportedPreviewSizes().get(0));
+            rtmp.setPreviewBitRate(2 * 1024 * 1024);
+            rtmp.setPreviewMaxFrameRate(30);
+            rtmp.setPreviewKeyFrameInterval(5);
+            rtmp.setBroadcastURI("rtmp://localhost:1935");
 
             mSettings.finishInitialization();
         }
@@ -158,23 +200,37 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         if (wm == null) {
             throw new RuntimeException("WindowManager is not supported.");
         }
-        DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
-        boolean isSwap;
-        switch (wm.getDefaultDisplay().getRotation()) {
-            case Surface.ROTATION_0:
-            case Surface.ROTATION_180:
-                isSwap = false;
-                break;
-            default:
-            case Surface.ROTATION_90:
-            case Surface.ROTATION_270:
-                isSwap = true;
-                break;
+
+        int insetsWidth = 0;
+        int insetsHeight = 0;
+        Size displaySize;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowMetrics windowMetrics = wm.getCurrentWindowMetrics();
+            WindowInsets windowInsets = windowMetrics.getWindowInsets();
+            Insets insets = windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.navigationBars()
+                    | WindowInsets.Type.displayCutout());
+            int width = windowMetrics.getBounds().width();
+            int height = windowMetrics.getBounds().height();
+            insetsWidth = insets.right + insets.left;
+            insetsHeight = insets.top + insets.bottom;
+            displaySize = new Size(width - insetsWidth, height - insetsHeight);
+        } else {
+            DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
+            displaySize =  new Size(metrics.widthPixels, metrics.heightPixels);
         }
-        // 画面が回転している場合には、縦横をスワップしておく。
-        int width = isSwap ? metrics.heightPixels : metrics.widthPixels;
-        int height = isSwap ? metrics.widthPixels : metrics.heightPixels;
-        return new Size(width, height);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Display.Mode[] modes = wm.getDefaultDisplay().getSupportedModes();
+            if (modes.length > 0){
+                Display.Mode mode = modes[modes.length - 1];
+                int width = mode.getPhysicalWidth();
+                int height = mode.getPhysicalHeight();
+                // 4K サイズの解像度がある場合はそちらを優先する
+                displaySize  = new Size(width - insetsWidth, height - insetsHeight);
+            }
+        }
+
+        return displaySize;
     }
 
     @Override
@@ -185,8 +241,8 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     @Override
     public void clean() {
         super.clean();
-        mScreenCastBroadcasterProvider.stopBroadcaster();
-        mScreenCastPreviewServerProvider.stopServers();
+        mScreenCastBroadcasterProvider.stop();
+        mScreenCastPreviewServerProvider.stop();
         mScreenCastMgr.clean();
     }
 
@@ -209,6 +265,7 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
     @Override
     public List<String> getSupportedMimeTypes() {
         List<String> mimeTypes = mScreenCastPreviewServerProvider.getSupportedMimeType();
+        mimeTypes.addAll(mScreenCastBroadcasterProvider.getSupportedMimeType());
         mimeTypes.add(0, MIME_TYPE_JPEG);
         return mimeTypes;
     }
@@ -346,13 +403,24 @@ public class ScreenCastRecorder extends AbstractMediaRecorder {
         }
     }
 
-    private static class ScreenCastSettings extends Settings {
+    private class ScreenCastSettings extends Settings {
         private List<Size> mSupportedPictureSize = new ArrayList<>();
         private List<Size> mSupportedPreviewSize = new ArrayList<>();
         private List<Range<Integer>> mSupportedFps = new ArrayList<>();
+        private List<Size> mSupportEncoderSizeList = new ArrayList<>();
 
         ScreenCastSettings(Context context, HostMediaRecorder recorder) {
             super(context, recorder);
+        }
+
+        @Override
+        protected EncoderSettings createEncoderSettings(String encoderId) {
+            return new EncoderSettings(getContext(), encoderId) {
+                @Override
+                public List<Size> getSupportedEncoderSizes() {
+                    return mSupportEncoderSizeList;
+                }
+            };
         }
 
         @Override

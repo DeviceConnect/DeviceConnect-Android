@@ -25,6 +25,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.util.MP4Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaProjectionProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceMP4Recorder;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
@@ -103,19 +104,19 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     public void initialize() {
         BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
         if (broadcasterProvider != null) {
-            broadcasterProvider.setOnEventListener(new BroadcasterProvider.OnEventListener() {
+            broadcasterProvider.setOnEventListener(new LiveStreamingProvider.OnEventListener() {
                 @Override
-                public void onStarted(Broadcaster broadcaster) {
-                    postOnBroadcasterStarted(broadcaster);
+                public void onStarted(List<LiveStreaming> broadcasters) {
+                    postOnBroadcasterStarted(broadcasters);
                 }
 
                 @Override
-                public void onStopped(Broadcaster broadcaster) {
-                    postOnBroadcasterStopped(broadcaster);
+                public void onStopped() {
+                    postOnBroadcasterStopped();
                 }
 
                 @Override
-                public void onError(Broadcaster broadcaster, Exception e) {
+                public void onError(LiveStreaming broadcaster, Exception e) {
                     postOnBroadcasterError(broadcaster, e);
                 }
             });
@@ -123,9 +124,9 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
         PreviewServerProvider previewProvider = getServerProvider();
         if (previewProvider != null) {
-            previewProvider.setOnEventListener(new PreviewServerProvider.OnEventListener() {
+            previewProvider.setOnEventListener(new LiveStreamingProvider.OnEventListener() {
                 @Override
-                public void onStarted(List<PreviewServer> servers) {
+                public void onStarted(List<LiveStreaming> servers) {
                     postOnPreviewStarted(servers);
                 }
 
@@ -135,7 +136,7 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
                 }
 
                 @Override
-                public void onError(PreviewServer server, Exception e) {
+                public void onError(LiveStreaming server, Exception e) {
                     postOnPreviewError(e);
                 }
             });
@@ -149,6 +150,18 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
     @Override
     public void destroy() {
+        BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
+        if (broadcasterProvider != null) {
+            broadcasterProvider.release();
+        }
+
+        PreviewServerProvider previewProvider = getServerProvider();
+        if (previewProvider != null) {
+            previewProvider.release();
+        }
+
+        stopRecordingInternal(null);
+
         mRequestHandler.getLooper().quit();
     }
 
@@ -165,25 +178,27 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
     @Override
     public void onDisplayRotation(int rotation) {
-        PreviewServerProvider previewServerProvider = getServerProvider();
-        if (previewServerProvider != null) {
-            previewServerProvider.onConfigChange();
-        }
-
-        BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
-        if (broadcasterProvider != null) {
-            broadcasterProvider.onConfigChange();
+        if (getSettings().getOrientation() == -1) {
+            onConfigChange();
         }
     }
 
     @Override
     public void onConfigChange() {
         PreviewServerProvider previewServerProvider = getServerProvider();
+        BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
+
+        // 設定が変更された場合には、一度描画用のスレッドを停止しておく
+        EGLSurfaceDrawingThread drawingThread = getSurfaceDrawingThread();
+        if (drawingThread != null && drawingThread.isRunning()
+                && (previewServerProvider.isRunning() || broadcasterProvider.isRunning())) {
+            drawingThread.stop(true);
+        }
+
         if (previewServerProvider != null) {
             previewServerProvider.onConfigChange();
         }
 
-        BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
         if (broadcasterProvider != null) {
             broadcasterProvider.onConfigChange();
         }
@@ -192,13 +207,13 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     }
 
     @Override
-    public List<PreviewServer> startPreview() {
+    public List<LiveStreaming> startPreview() {
         PreviewServerProvider provider = getServerProvider();
         if (provider == null) {
             return new ArrayList<>();
         }
 
-        List<PreviewServer> servers = provider.startServers();
+        List<LiveStreaming> servers = provider.start();
         if (!servers.isEmpty()) {
             provider.setMute(getSettings().isMute());
         }
@@ -209,7 +224,7 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     public void stopPreview() {
         PreviewServerProvider provider = getServerProvider();
         if (provider != null) {
-            provider.stopServers();
+            provider.stop();
         }
     }
 
@@ -220,28 +235,24 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     }
 
     @Override
-    public Broadcaster startBroadcaster(String uri) {
-        if (uri == null) {
-            return null;
-        }
-
+    public List<LiveStreaming> startBroadcaster(String uri) {
         BroadcasterProvider provider = getBroadcasterProvider();
         if (provider == null) {
-            return null;
+            return new ArrayList<>();
         }
 
-        Broadcaster broadcaster = provider.startBroadcaster(uri);
-        if (broadcaster != null) {
+        List<LiveStreaming> broadcasters = provider.start();
+        for (LiveStreaming broadcaster : broadcasters) {
             broadcaster.setMute(getSettings().isMute());
         }
-        return broadcaster;
+        return broadcasters;
     }
 
     @Override
     public void stopBroadcaster() {
         BroadcasterProvider provider = getBroadcasterProvider();
         if (provider != null) {
-            provider.stopBroadcaster();
+            provider.stop();
         }
     }
 
@@ -250,6 +261,32 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
         PreviewServerProvider previewProvider = getServerProvider();
         if (previewProvider != null) {
             previewProvider.requestSyncFrame();
+        }
+
+        BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
+        if (broadcasterProvider != null) {
+            broadcasterProvider.requestSyncFrame();
+        }
+    }
+
+    @Override
+    public void requestBitRate() {
+        PreviewServerProvider previewProvider = getServerProvider();
+        if (previewProvider != null) {
+            previewProvider.requestBitRate();
+        }
+
+        BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
+        if (broadcasterProvider != null) {
+            broadcasterProvider.requestBitRate();
+        }
+    }
+
+    @Override
+    public void requestJpegQuality() {
+        PreviewServerProvider previewProvider = getServerProvider();
+        if (previewProvider != null) {
+            previewProvider.requestJpegQuality();
         }
     }
 
@@ -280,8 +317,10 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     public void setSSLContext(SSLContext sslContext) {
         PreviewServerProvider previewProvider = getServerProvider();
         if (previewProvider != null) {
-            for (PreviewServer server : previewProvider.getServers()) {
-                server.setSSLContext(sslContext);
+            for (LiveStreaming server : previewProvider.getLiveStreamingList()) {
+                if (server instanceof PreviewServer) {
+                    ((PreviewServer) server).setSSLContext(sslContext);
+                }
             }
         }
     }
@@ -293,16 +332,24 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
 
     @Override
     public long getBPS() {
+        long bps = 0;
+
         PreviewServerProvider previewProvider = getServerProvider();
-        if (previewProvider == null) {
-            return 0;
+        if (previewProvider != null) {
+            List<LiveStreaming> servers = previewProvider.getLiveStreamingList();
+            for (LiveStreaming streaming : servers) {
+                bps += streaming.getBPS();
+            }
         }
 
-        long bps = 0;
-        List<PreviewServer> servers = previewProvider.getServers();
-        for (PreviewServer previewServer : servers) {
-            bps += previewServer.getBPS();
+        BroadcasterProvider broadcasterProvider = getBroadcasterProvider();
+        if (broadcasterProvider != null) {
+            List<LiveStreaming> broadcasters = broadcasterProvider.getLiveStreamingList();
+            for (LiveStreaming streaming : broadcasters) {
+                bps += streaming.getBPS();
+            }
         }
+
         return bps;
     }
 
@@ -381,22 +428,61 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
     }
 
     /**
-     * Runnable を順番に実行します.
-     *
-     * @param run 実行する Runnable
-     * @param delay 実行するまでの遅延
-     */
-    protected void postRequestHandler(Runnable run, long delay) {
-        mRequestHandler.postDelayed(run, delay);
-    }
-
-    /**
      * レコーダの状態を設定します.
      *
      * @param state レコーダの状態
      */
     protected void setState(State state) {
         mState = state;
+    }
+
+    /**
+     * エンコーダを追加します.
+     *
+     * @param encoderId エンコーダID
+     * @param encoderSettings エンコーダの設定
+     */
+    public void addEncoder(String encoderId, EncoderSettings encoderSettings) {
+        getSettings().addEncoder(encoderId);
+
+        switch (encoderSettings.getMimeType()) {
+            case MJPEG:
+            case RTSP:
+            case SRT: {
+                LiveStreaming streaming = getServerProvider().createLiveStreaming(encoderId, encoderSettings);
+                if (streaming != null) {
+                    getServerProvider().addLiveStreaming(streaming);
+                }
+            }   break;
+            case RTMP: {
+                LiveStreaming streaming = getBroadcasterProvider().createLiveStreaming(encoderId, encoderSettings);
+                if (streaming != null) {
+                    getBroadcasterProvider().addLiveStreaming(streaming);
+                }
+            }   break;
+        }
+    }
+
+    /**
+     * エンコーダを削除します.
+     *
+     * @param encoderId エンコーダ
+     */
+    public void removeEncoder(String encoderId) {
+        if (getSettings().existEncoderId(encoderId)) {
+            EncoderSettings encoderSettings = getSettings().getEncoderSetting(encoderId);
+            switch (encoderSettings.getMimeType()) {
+                case MJPEG:
+                case RTSP:
+                case SRT:
+                    getServerProvider().removeLiveStreaming(encoderId);
+                    break;
+                case RTMP:
+                    getBroadcasterProvider().removeLiveStreaming(encoderId);
+                    break;
+            }
+            getSettings().removeEncoder(encoderId);
+        }
     }
 
     /**
@@ -417,6 +503,12 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
         return mFileManager;
     }
 
+    /**
+     * 指定されたパーミッションの要求を行います.
+     *
+     * @param permissions パーミッションのリスト
+     * @param callback パーミッション要求の結果を通知するコールバック
+     */
     protected void requestPermission(String[] permissions, PermissionCallback callback) {
         Handler handler = new Handler(Looper.getMainLooper());
         PermissionUtility.requestPermissions(getContext(), handler, permissions, new PermissionUtility.PermissionRequestCallback() {
@@ -432,6 +524,11 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
         });
     }
 
+    /**
+     * MediaProjection の許可要求を行います.
+     *
+     * @param callback 要求の結果を通知するコールバック
+     */
     protected void requestMediaProjection(PermissionCallback callback) {
         getMediaProjectionProvider().requestPermission(new MediaProjectionProvider.Callback() {
             @Override
@@ -647,7 +744,7 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
         }
     }
 
-    protected void postOnPreviewStarted(List<PreviewServer> servers) {
+    protected void postOnPreviewStarted(List<LiveStreaming> servers) {
         if (mOnEventListener != null) {
             mOnEventListener.onPreviewStarted(servers);
         }
@@ -665,19 +762,19 @@ public abstract class AbstractMediaRecorder implements HostMediaRecorder {
         }
     }
 
-    protected void postOnBroadcasterStarted(Broadcaster broadcaster) {
+    protected void postOnBroadcasterStarted(List<LiveStreaming> broadcasters) {
         if (mOnEventListener != null) {
-            mOnEventListener.onBroadcasterStarted(broadcaster);
+            mOnEventListener.onBroadcasterStarted(broadcasters);
         }
     }
 
-    protected void postOnBroadcasterStopped(Broadcaster broadcaster) {
+    protected void postOnBroadcasterStopped() {
         if (mOnEventListener != null) {
-            mOnEventListener.onBroadcasterStopped(broadcaster);
+            mOnEventListener.onBroadcasterStopped();
         }
     }
 
-    protected void postOnBroadcasterError(Broadcaster broadcaster, Exception e) {
+    protected void postOnBroadcasterError(LiveStreaming broadcaster, Exception e) {
         if (mOnEventListener != null) {
             mOnEventListener.onBroadcasterError(broadcaster, e);
         }

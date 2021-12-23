@@ -38,7 +38,7 @@ public class EGLSurfaceDrawingThread {
     /**
      * レンダリングのタイムアウト(ミリ秒).
      */
-    private int mTimeout = 10 * 1000;
+    private int mRenderingTimeout = 10 * 1000;
 
     /**
      * イベントを通知するリスナー.
@@ -49,11 +49,6 @@ public class EGLSurfaceDrawingThread {
      * 描画を実行するスレッド.
      */
     private DrawingThread mDrawingThread;
-
-    /**
-     * 描画範囲.
-     */
-    private Rect mDrawingRange;
 
     /**
      * イベントを通知するリスナーを追加します.
@@ -87,11 +82,11 @@ public class EGLSurfaceDrawingThread {
      *
      * @param timeout タイムアウト
      */
-    public void setTimeout(int timeout) {
+    public void setRenderingTimeout(int timeout) {
         if (timeout < 0) {
             throw new IllegalArgumentException("timeout cannot set negative value.");
         }
-        mTimeout = timeout;
+        mRenderingTimeout = timeout;
     }
 
     /**
@@ -99,30 +94,15 @@ public class EGLSurfaceDrawingThread {
      *
      * @return タイムアウト
      */
-    public int getTimeout() {
-        return mTimeout;
+    public int getRenderingTimeout() {
+        return mRenderingTimeout;
     }
 
     /**
-     * 描画範囲を設定します.
+     * カメラなどの映像ソースのサイズを設定します.
      *
-     * @param rect 描画範囲
-     */
-    public void setDrawingRange(Rect rect) {
-        mDrawingRange = rect;
-    }
-
-    /**
-     * 描画範囲設定を取得します.
-     *
-     * @return 描画範囲
-     */
-    public Rect getDrawingRange() {
-        return mDrawingRange;
-    }
-
-    /**
-     * 描画を行う Surface のサイズを設定します.
+     * 映像ソースのサイズと配信先のサイズから映像が崩れないように
+     * アスペクト比を計算を行い描画を行います。
      *
      * @param width 横幅
      * @param height 縦幅
@@ -196,7 +176,22 @@ public class EGLSurfaceDrawingThread {
      * @param surface 追加する EGLSurfaceBase に設定する Surface
      */
     public void addEGLSurfaceBase(Surface surface) {
-        addEGLSurfaceBase(surface, surface);
+        addEGLSurfaceBase(surface, surface, null);
+    }
+
+    /**
+     * 描画先の EGLSurfaceBase を追加します.
+     *
+     * 引数に設定した Surface の EGLSurfaceBase を作成します。
+     * また、タグには、引数に指定された surface を設定します。
+     *
+     * 作成した EGLSurfaceBase に引数で指定された drawingRange を描画範囲に設定します。
+     *
+     * @param surface 追加する EGLSurfaceBase に設定する Surface
+     * @param drawingRange 描画範囲
+     */
+    public void addEGLSurfaceBase(Surface surface, Rect drawingRange) {
+        addEGLSurfaceBase(surface, surface, drawingRange);
     }
 
     /**
@@ -206,9 +201,10 @@ public class EGLSurfaceDrawingThread {
      *
      * @param surface 追加する EGLSurfaceBase に設定する Surface
      */
-    public void addEGLSurfaceBase(Surface surface, Object tag) {
+    public void addEGLSurfaceBase(Surface surface, Object tag, Rect drawingRange) {
         EGLSurfaceBase eglSurfaceBase = createEGLSurfaceBase(surface);
         eglSurfaceBase.setTag(tag);
+        eglSurfaceBase.setCropRect(drawingRange);
         addEGLSurfaceBase(eglSurfaceBase);
     }
 
@@ -224,6 +220,22 @@ public class EGLSurfaceDrawingThread {
     public void addEGLSurfaceBase(int width, int height, Object tag) {
         EGLSurfaceBase eglSurfaceBase = createEGLSurfaceBase(width, height);
         eglSurfaceBase.setTag(tag);
+        addEGLSurfaceBase(width, height, tag, null);
+    }
+
+    /**
+     * 描画先の EGLSurfaceBase を追加します.
+     *
+     * 引数に指定された width と height でオフスクリーンの EGLSurfaceBase を作成します。
+     *
+     * @param width 横幅
+     * @param height 縦幅
+     * @param tag タグ
+     */
+    public void addEGLSurfaceBase(int width, int height, Object tag, Rect drawingRange) {
+        EGLSurfaceBase eglSurfaceBase = createEGLSurfaceBase(width, height);
+        eglSurfaceBase.setTag(tag);
+        eglSurfaceBase.setCropRect(drawingRange);
         addEGLSurfaceBase(eglSurfaceBase);
     }
 
@@ -371,9 +383,6 @@ public class EGLSurfaceDrawingThread {
         SurfaceTextureManager manager = new SurfaceTextureManager();
         SurfaceTexture st = manager.getSurfaceTexture();
         st.setDefaultBufferSize(mWidth, mHeight);
-        if (mDrawingRange != null) {
-            manager.setDrawingRange(mDrawingRange, mWidth, mHeight);
-        }
         return manager;
     }
 
@@ -465,7 +474,11 @@ public class EGLSurfaceDrawingThread {
 
     private void postOnDrawn(EGLSurfaceBase eglSurfaceBase) {
         for (OnDrawingEventListener l : mOnDrawingEventListeners) {
-            l.onDrawn(eglSurfaceBase);
+            try {
+                l.onDrawn(eglSurfaceBase);
+            } catch (Exception e) {
+                // ignore.
+            }
         }
     }
 
@@ -523,7 +536,7 @@ public class EGLSurfaceDrawingThread {
                 mEGLCore.makeCurrent();
 
                 mStManager = createStManager();
-                mStManager.setTimeout(mTimeout);
+                mStManager.setTimeout(mRenderingTimeout);
 
                 synchronized (mEGLSurfaceBases) {
                     for (EGLSurfaceBase surfaceBase : mEGLSurfaceBases) {
@@ -536,6 +549,7 @@ public class EGLSurfaceDrawingThread {
                 onStarted();
                 postOnStarted();
 
+                ViewSize size = new ViewSize();
                 SurfaceTexture st = mStManager.getSurfaceTexture();
                 while (mState == STATE_RUNNING) {
                     mStManager.awaitNewImage();
@@ -543,7 +557,26 @@ public class EGLSurfaceDrawingThread {
                     synchronized (mEGLSurfaceBases) {
                         for (EGLSurfaceBase eglSurfaceBase : mEGLSurfaceBases) {
                             eglSurfaceBase.makeCurrent();
-                            mStManager.setViewport(0, 0, eglSurfaceBase.getWidth(), eglSurfaceBase.getHeight());
+                            int viewportX = 0;
+                            int viewportY = 0;
+                            int viewportW = eglSurfaceBase.getWidth();
+                            int viewportH = eglSurfaceBase.getHeight();
+                            Rect cropRect = eglSurfaceBase.getCropRect();
+                            if (cropRect != null) {
+                                mStManager.setCropRect(cropRect, mWidth, mHeight);
+                                calculateViewSize(cropRect.width(), cropRect.height(), viewportW, viewportH, size);
+                            } else {
+                                mStManager.clearCropRect();
+                                calculateViewSize(mWidth, mHeight, viewportW, viewportH, size);
+                            }
+                            if (viewportW > size.getWidth()) {
+                                viewportX = (viewportW - size.getWidth()) / 2;
+                                viewportW = size.getWidth();
+                            } else if (viewportH > size.getHeight()) {
+                                viewportY = (viewportH - size.getHeight()) / 2;
+                                viewportH = size.getHeight();
+                            }
+                            mStManager.setViewport(viewportX, viewportY,viewportW, viewportH);
                             mStManager.drawImage(getDisplayRotation());
                             eglSurfaceBase.setPresentationTime(st.getTimestamp());
                             eglSurfaceBase.swapBuffers();
@@ -586,6 +619,46 @@ public class EGLSurfaceDrawingThread {
         }
     }
 
+    private static class ViewSize {
+        int mWidth;
+        int mHeight;
+
+        public int getWidth() {
+            return mWidth;
+        }
+
+        public int getHeight() {
+            return mHeight;
+        }
+    }
+
+    /**
+     * 指定された View のサイズにフィットするサイズを計算します.
+     *
+     * @param width 横幅
+     * @param height 縦幅
+     * @param viewWidth View のサイズ
+     * @param viewHeight View のサイズ
+     * @param dest 出力先
+     */
+    private void calculateViewSize(int width, int height, int viewWidth, int viewHeight, ViewSize dest) {
+        int h =  (int) (height * (viewWidth / (float) width));
+        if (viewHeight < h) {
+            int w = (int) (width * (viewHeight / (float) height));
+            if (w % 2 != 0) {
+                w--;
+            }
+            dest.mWidth = w;
+            dest.mHeight = viewHeight;
+        } else {
+            dest.mWidth = viewWidth;
+            dest.mHeight = h;
+        }
+    }
+
+    /**
+     * 描画イベントを通知するリスナー.
+     */
     public interface OnDrawingEventListener {
         /**
          * 描画の開始を通知します.

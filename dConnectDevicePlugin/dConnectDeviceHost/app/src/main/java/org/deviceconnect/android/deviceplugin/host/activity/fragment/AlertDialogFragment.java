@@ -67,7 +67,15 @@ public class AlertDialogFragment extends DialogFragment {
      * @return AlertDialogFragmentのインスタンス
      */
     public static AlertDialogFragment create(final String tag, final String title, final String message,
-                                                                   final String positive, final String negative) {
+                                             final String positive, final String negative) {
+        Bundle args = createParam(tag, title, message, positive, negative);
+        AlertDialogFragment dialog = new AlertDialogFragment();
+        dialog.setArguments(args);
+        return dialog;
+    }
+
+    public static Bundle createParam(final String tag, final String title, final String message,
+                                     final String positive, final String negative) {
         Bundle args = new Bundle();
         args.putString(KEY_TAG, tag);
         args.putString(KEY_TITLE, title);
@@ -78,10 +86,7 @@ public class AlertDialogFragment extends DialogFragment {
         if (negative != null) {
             args.putString(KEY_NEGATIVE, negative);
         }
-
-        AlertDialogFragment dialog = new AlertDialogFragment();
-        dialog.setArguments(args);
-        return dialog;
+        return args;
     }
 
     @Override

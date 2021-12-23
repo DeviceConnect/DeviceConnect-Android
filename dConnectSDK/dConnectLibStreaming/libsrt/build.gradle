@@ -6,7 +6,7 @@ if (githubPropertiesFile.exists()) {
     githubProperties.load(new FileInputStream(githubPropertiesFile))
 }
 def getVersionName = { ->
-    return "1.2.2" // Replace with version Name
+    return "1.3.0" // Replace with version Name
 }
 
 def getArtificatId = { ->
@@ -93,7 +93,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'org.deviceconnect:libmedia:1.2.2'
+    implementation 'org.deviceconnect:libmedia:1.3.0'
 //    implementation project(':libmedia')
 
     testImplementation 'junit:junit:4.13.2'

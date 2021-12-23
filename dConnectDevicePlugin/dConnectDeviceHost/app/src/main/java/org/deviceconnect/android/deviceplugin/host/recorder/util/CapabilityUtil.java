@@ -44,7 +44,10 @@ public final class CapabilityUtil {
                     MediaCodecInfo.CodecCapabilities codecCapabilities = codecInfo.getCapabilitiesForType(mimeType);
                     if (codecCapabilities.profileLevels != null) {
                         for (MediaCodecInfo.CodecProfileLevel c : codecCapabilities.profileLevels) {
-                            list.add(new HostMediaRecorder.ProfileLevel(c.profile, c.level));
+                            HostMediaRecorder.ProfileLevel pl = new HostMediaRecorder.ProfileLevel(c.profile, c.level);
+                            if (!list.contains(pl)) {
+                                list.add(pl);
+                            }
                         }
                     }
                 }
@@ -52,6 +55,16 @@ public final class CapabilityUtil {
         }
 
         return list;
+    }
+
+    public static boolean isSupportedProfileLevel(String mimeType, int profile, int level) {
+        List<HostMediaRecorder.ProfileLevel> list = getSupportedProfileLevel(mimeType);
+        for (HostMediaRecorder.ProfileLevel pl : list) {
+            if (pl.getProfile() == profile && pl.getLevel() == level) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static List<String> getSupportedEncoders(String mimeType) {

@@ -19,16 +19,6 @@ public abstract class VideoEncoder extends MediaEncoder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "VIDEO-ENCODER";
 
-    /**
-     * キーフレームの同期フラグ.
-     */
-    private boolean mSyncKeyFrame;
-
-    /**
-     * 映像のビットレート変更要求フラグ.
-     */
-    private boolean mRequestChangeBitRate;
-
     // MediaEncoder
 
     @Override
@@ -73,9 +63,21 @@ public abstract class VideoEncoder extends MediaEncoder {
 
     /**
      * キーフレームを要求します.
+     *
+     * @return 要求を受け付けた場合はtrue、それ以外はfalse
      */
-    public void requestSyncKeyFrame() {
-        mSyncKeyFrame = true;
+    public boolean requestSyncKeyFrame() {
+        if (mMediaCodec != null) {
+            Bundle b = new Bundle();
+            b.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
+            try {
+                mMediaCodec.setParameters(b);
+                return true;
+            } catch (Exception e) {
+                // ignore.
+            }
+        }
+        return false;
     }
 
     /**
@@ -85,42 +87,21 @@ public abstract class VideoEncoder extends MediaEncoder {
      * エンコード中にビットレートを変更したい場合に指定します。
      * {@link VideoQuality#getBitRate()} で取得できるビットレートを再設定します。
      * </p>
+     *
+     * @return 要求を受け付けた場合はtrue、それ以外はfalse
      */
-    public void requestBitRate() {
-        mRequestChangeBitRate = true;
-    }
-
-    /**
-     * MediaCodec にキーフレームの作成を行います.
-     */
-    private void syncKeyFrame() {
-        Bundle b = new Bundle();
-        b.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
-        mMediaCodec.setParameters(b);
-        mSyncKeyFrame = false;
-    }
-
-    /**
-     * MediaCodec にビットレートの変更を行います.
-     */
-    private void changeBitRate() {
-        Bundle b = new Bundle();
-        b.putInt(MediaCodec.PARAMETER_KEY_VIDEO_BITRATE, getVideoQuality().getBitRate());
-        mMediaCodec.setParameters(b);
-        mRequestChangeBitRate = false;
-    }
-
-    /**
-     * MediaCodec へのリクエスト処理を行います.
-     */
-    protected void executeRequest() {
-        if (mSyncKeyFrame) {
-            syncKeyFrame();
+    public boolean requestBitRate() {
+        if (mMediaCodec != null) {
+            Bundle b = new Bundle();
+            b.putInt(MediaCodec.PARAMETER_KEY_VIDEO_BITRATE, getVideoQuality().getBitRate());
+            try {
+                mMediaCodec.setParameters(b);
+                return true;
+            } catch (Exception e) {
+                // ignore.
+            }
         }
-
-        if (mRequestChangeBitRate) {
-            changeBitRate();
-        }
+        return false;
     }
 
     /**
@@ -243,10 +224,19 @@ public abstract class VideoEncoder extends MediaEncoder {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // エンコーダのレイテンシーを設定します。
-            // 機種依存でサポートされていない場合には、この値は無視されます。
-            format.setInteger(MediaFormat.KEY_LATENCY, 0);
+            Integer lowLatency = videoQuality.getLowLatency();
+            if (lowLatency != null) {
+                if (lowLatency == 1 || lowLatency == 0) {
+                    // エンコーダのレイテンシーを設定します。
+                    // 機種依存でサポートされていない場合には、この値は無視されます。
+                    format.setInteger(MediaFormat.KEY_LATENCY, lowLatency);
+                }
+            }
         }
+
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//            format.setInteger(MediaFormat.KEY_MAX_FPS_TO_ENCODER, videoQuality.getFrameRate());
+//        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             int intraRefresh = videoQuality.getIntraRefresh();
@@ -346,7 +336,7 @@ public abstract class VideoEncoder extends MediaEncoder {
     }
 
 
-    private void printCodecInfo(MediaCodecInfo codecInfo) {
+    private static void printCodecInfo(MediaCodecInfo codecInfo) {
         Log.i(TAG, "CODEC: " + codecInfo.getName());
 
         String[] types = codecInfo.getSupportedTypes();
@@ -361,6 +351,21 @@ public abstract class VideoEncoder extends MediaEncoder {
                 for (int k = 0; k < capabilities.colorFormats.length; k++) {
                     int format = capabilities.colorFormats[k];
                     Log.i(TAG, "   FORMAT: " + format);
+                }
+
+                MediaCodecInfo.EncoderCapabilities encoderCapabilities = capabilities.getEncoderCapabilities();
+                if (encoderCapabilities != null) {
+                    Log.i(TAG, "    ----");
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        Log.i(TAG, "    Quality range: "
+                                + encoderCapabilities.getQualityRange().getLower()
+                                + " - "
+                                + encoderCapabilities.getQualityRange().getUpper());
+                    }
+                    Log.i(TAG, "    Complexity range: "
+                            + encoderCapabilities.getComplexityRange().getLower()
+                            + " - "
+                            + encoderCapabilities.getComplexityRange().getUpper());
                 }
 
                 MediaCodecInfo.VideoCapabilities videoCapabilities = capabilities.getVideoCapabilities();
@@ -390,7 +395,7 @@ public abstract class VideoEncoder extends MediaEncoder {
         }
     }
 
-    private void printCodecInfo() {
+    public static void printCodecInfo() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             MediaCodecList list = new MediaCodecList(MediaCodecList.ALL_CODECS);
             for (MediaCodecInfo codecInfo : list.getCodecInfos()) {

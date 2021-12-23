@@ -118,7 +118,7 @@ public class HostMediaRecorderManager {
         mHostDevicePluginContext = pluginContext;
         mMediaProjectionProvider = new MediaProjectionProvider(pluginContext.getContext());
         mFileManager = fileManager;
-        initRecorders();
+        createRecorders();
     }
 
     private Context getContext() {
@@ -126,13 +126,13 @@ public class HostMediaRecorderManager {
     }
 
     /**
-     * レコーダの初期化処理を行います.
+     * 使用するレコーダの一覧を作成します.
      *
      * <p>
      * ここで使用できるレコーダの登録を行います。
      * </p>
      */
-    private void initRecorders() {
+    private void createRecorders() {
         if (checkCameraHardware(getContext())) {
             try {
                 mCameraWrapperManager = new CameraWrapperManager(getContext());
@@ -156,80 +156,6 @@ public class HostMediaRecorderManager {
             } catch (Exception e) {
                 // ignore.
             }
-        }
-
-        for (HostMediaRecorder recorder : mRecorders) {
-            recorder.setOnEventListener(new HostMediaRecorder.OnEventListener() {
-                @Override
-                public void onMuteChanged(boolean mute) {
-                    postOnMuteChanged(recorder, mute);
-                }
-
-                @Override
-                public void onConfigChanged() {
-                    postOnConfigChanged(recorder);
-                }
-
-                @Override
-                public void onPreviewStarted(List<PreviewServer> servers) {
-                    postOnPreviewStarted(recorder, servers);
-                }
-
-                @Override
-                public void onPreviewStopped() {
-                    postOnPreviewStopped(recorder);
-                }
-
-                @Override
-                public void onPreviewError(Exception e) {
-                    postOnPreviewError(recorder, e);
-                }
-
-                @Override
-                public void onBroadcasterStarted(Broadcaster broadcaster) {
-                    postOnBroadcasterStarted(recorder, broadcaster);
-                }
-
-                @Override
-                public void onBroadcasterStopped(Broadcaster broadcaster) {
-                    postOnBroadcasterStopped(recorder, broadcaster);
-                }
-
-                @Override
-                public void onBroadcasterError(Broadcaster broadcaster, Exception e) {
-                    postOnBroadcasterError(recorder, broadcaster, e);
-                }
-
-                @Override
-                public void onError(Exception e) {
-                    postOnError(recorder, e);
-                }
-
-                @Override
-                public void onTakePhoto(String uri, String filePath, String mimeType) {
-                    postOnTakePhoto(recorder, uri, filePath, mimeType);
-                }
-
-                @Override
-                public void onRecordingStarted(String fileName) {
-                    postOnRecordingStarted(recorder, fileName);
-                }
-
-                @Override
-                public void onRecordingPause() {
-                    postOnRecordingPause(recorder);
-                }
-
-                @Override
-                public void onRecordingResume() {
-                    postOnRecordingResume(recorder);
-                }
-
-                @Override
-                public void onRecordingStopped(String fileName) {
-                    postOnRecordingStopped(recorder, fileName);
-                }
-            });
         }
     }
 
@@ -271,11 +197,91 @@ public class HostMediaRecorderManager {
     }
 
     /**
+     * レコーダの初期化処理を行います.
+     *
+     * @param recorder 初期化するレコーダ
+     */
+    private void initRecorder(HostMediaRecorder recorder) {
+        recorder.setOnEventListener(new HostMediaRecorder.OnEventListener() {
+            @Override
+            public void onMuteChanged(boolean mute) {
+                postOnMuteChanged(recorder, mute);
+            }
+
+            @Override
+            public void onConfigChanged() {
+                postOnConfigChanged(recorder);
+            }
+
+            @Override
+            public void onPreviewStarted(List<LiveStreaming> servers) {
+                postOnPreviewStarted(recorder, servers);
+            }
+
+            @Override
+            public void onPreviewStopped() {
+                postOnPreviewStopped(recorder);
+            }
+
+            @Override
+            public void onPreviewError(Exception e) {
+                postOnPreviewError(recorder, e);
+            }
+
+            @Override
+            public void onBroadcasterStarted(List<LiveStreaming> broadcasters) {
+                postOnBroadcasterStarted(recorder, broadcasters);
+            }
+
+            @Override
+            public void onBroadcasterStopped() {
+                postOnBroadcasterStopped(recorder);
+            }
+
+            @Override
+            public void onBroadcasterError(LiveStreaming broadcaster, Exception e) {
+                postOnBroadcasterError(recorder, broadcaster, e);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                postOnError(recorder, e);
+            }
+
+            @Override
+            public void onTakePhoto(String uri, String filePath, String mimeType) {
+                postOnTakePhoto(recorder, uri, filePath, mimeType);
+            }
+
+            @Override
+            public void onRecordingStarted(String fileName) {
+                postOnRecordingStarted(recorder, fileName);
+            }
+
+            @Override
+            public void onRecordingPause() {
+                postOnRecordingPause(recorder);
+            }
+
+            @Override
+            public void onRecordingResume() {
+                postOnRecordingResume(recorder);
+            }
+
+            @Override
+            public void onRecordingStopped(String fileName) {
+                postOnRecordingStopped(recorder, fileName);
+            }
+        });
+        recorder.initialize();
+    }
+
+    /**
      * 初期化処理を行います.
      */
     public void initialize() {
         for (HostMediaRecorder recorder : getRecorders()) {
-            recorder.initialize();
+            initRecorder(recorder);
         }
         onDisplayRotationChanged(getContext());
 
@@ -316,6 +322,70 @@ public class HostMediaRecorderManager {
             recorder.destroy();
         }
         mCameraWrapperManager.destroy();
+    }
+
+    /**
+     * レコーダが存在するか確認します.
+     *
+     * @param cameraId カメラID
+     * @return 存在する場合は true、それ以外は false
+     */
+    private boolean existRecorder(String cameraId) {
+        for (HostMediaRecorder recorder : mRecorders) {
+            if (recorder instanceof Camera2Recorder) {
+                String id = ((Camera2Recorder) recorder).getCameraWrapper().getId();
+                if (cameraId.equals(id)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * ロストしたカメラを一旦レコーダから削除します.
+     */
+    private void removeLostCamera() {
+        List<Camera2Recorder> removeList = new ArrayList<>();
+        for (HostMediaRecorder recorder : mRecorders) {
+            if (recorder instanceof Camera2Recorder) {
+                String cameraId = ((Camera2Recorder) recorder).getCameraWrapper().getId();
+                if (mCameraWrapperManager.getCameraById(cameraId) == null) {
+                    removeList.add((Camera2Recorder) recorder);
+                }
+            }
+        }
+
+        for (Camera2Recorder recorder : removeList) {
+            recorder.destroy();
+            mRecorders.remove(recorder);
+            postOnLostRecorder(recorder);
+        }
+    }
+
+    /**
+     * 端末が対応しているレコーダを読み込みし直す
+     */
+    public void reloadRecorders() {
+        try {
+            mCameraWrapperManager.reload();
+
+            removeLostCamera();
+
+            for (CameraWrapper camera : mCameraWrapperManager.getCameraList()) {
+                if (existRecorder(camera.getId())) {
+                    continue;
+                }
+
+                Camera2Recorder recorder = new Camera2Recorder(getContext(), camera, mFileManager, mMediaProjectionProvider);
+                initRecorder(recorder);
+                mRecorders.add(recorder);
+
+                postOnFoundRecorder(recorder);
+            }
+        } catch (Exception e) {
+            // ignore.
+        }
     }
 
     /**
@@ -410,6 +480,8 @@ public class HostMediaRecorderManager {
      * @return レコーダ
      */
     public HostMediaRecorder getRecorder(final String id) {
+        reloadRecorders();
+
         if (mRecorders.size() == 0) {
             return null;
         }
@@ -584,7 +656,7 @@ public class HostMediaRecorderManager {
         }
     }
 
-    private void postOnPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers) {
+    private void postOnPreviewStarted(HostMediaRecorder recorder, List<LiveStreaming> servers) {
         for (OnEventListener l : mOnEventListeners) {
             l.onPreviewStarted(recorder, servers);
         }
@@ -602,19 +674,19 @@ public class HostMediaRecorderManager {
         }
     }
 
-    private void postOnBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster) {
+    private void postOnBroadcasterStarted(HostMediaRecorder recorder, List<LiveStreaming> broadcasters) {
         for (OnEventListener l : mOnEventListeners) {
-            l.onBroadcasterStarted(recorder, broadcaster);
+            l.onBroadcasterStarted(recorder, broadcasters);
         }
     }
 
-    private void postOnBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster) {
+    private void postOnBroadcasterStopped(HostMediaRecorder recorder) {
         for (OnEventListener l : mOnEventListeners) {
-            l.onBroadcasterStopped(recorder, broadcaster);
+            l.onBroadcasterStopped(recorder);
         }
     }
 
-    private void postOnBroadcasterError(HostMediaRecorder recorder, Broadcaster broadcaster, Exception e) {
+    private void postOnBroadcasterError(HostMediaRecorder recorder, LiveStreaming broadcaster, Exception e) {
         for (OnEventListener l : mOnEventListeners) {
             l.onBroadcasterError(recorder, broadcaster, e);
         }
@@ -650,6 +722,26 @@ public class HostMediaRecorderManager {
         }
     }
 
+    private void postOnFoundRecorder(HostMediaRecorder recorder) {
+        for (OnEventListener l : mOnEventListeners) {
+            try {
+                l.onFoundRecorder(recorder);
+            } catch (Exception e) {
+                // ignore.
+            }
+        }
+    }
+
+    private void postOnLostRecorder(HostMediaRecorder recorder) {
+        for (OnEventListener l : mOnEventListeners) {
+            try {
+                l.onLostRecorder(recorder);
+            } catch (Exception e) {
+                // ignore.
+            }
+        }
+    }
+
     private void postOnError(HostMediaRecorder recorder, Exception e) {
         for (OnEventListener l : mOnEventListeners) {
             l.onError(recorder, e);
@@ -660,13 +752,13 @@ public class HostMediaRecorderManager {
         void onMuteChanged(HostMediaRecorder recorder, boolean mute);
         void onConfigChanged(HostMediaRecorder recorder);
 
-        void onPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers);
+        void onPreviewStarted(HostMediaRecorder recorder, List<LiveStreaming> servers);
         void onPreviewStopped(HostMediaRecorder recorder);
         void onPreviewError(HostMediaRecorder recorder, Exception e);
 
-        void onBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster);
-        void onBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster);
-        void onBroadcasterError(HostMediaRecorder recorder, Broadcaster broadcaster, Exception e);
+        void onBroadcasterStarted(HostMediaRecorder recorder, List<LiveStreaming> broadcasters);
+        void onBroadcasterStopped(HostMediaRecorder recorder);
+        void onBroadcasterError(HostMediaRecorder recorder, LiveStreaming broadcaster, Exception e);
 
         void onTakePhoto(HostMediaRecorder recorder, String uri, String filePath, String mimeType);
 
@@ -674,6 +766,9 @@ public class HostMediaRecorderManager {
         void onRecordingPause(HostMediaRecorder recorder);
         void onRecordingResume(HostMediaRecorder recorder);
         void onRecordingStopped(HostMediaRecorder recorder, String fileName);
+
+        void onFoundRecorder(HostMediaRecorder recorder);
+        void onLostRecorder(HostMediaRecorder recorder);
 
         void onError(HostMediaRecorder recorder, Exception e);
     }

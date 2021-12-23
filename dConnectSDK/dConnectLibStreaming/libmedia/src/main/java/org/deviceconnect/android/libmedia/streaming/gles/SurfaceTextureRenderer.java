@@ -39,6 +39,7 @@ public class SurfaceTextureRenderer {
     };
 
     private final FloatBuffer mTriangleVertices;
+    private final boolean mInverse;
 
     private static final String VERTEX_SHADER =
             "uniform mat4 uMVPMatrix;\n" +
@@ -76,7 +77,8 @@ public class SurfaceTextureRenderer {
      * コンストラクタ.
      * @param inverse テクスチャの反転フラグ
      */
-    SurfaceTextureRenderer(boolean inverse) {
+    public SurfaceTextureRenderer(boolean inverse) {
+        mInverse = inverse;
         mTriangleVertices = ByteBuffer.allocateDirect(
                 TRIANGLE_VERTICES_DATA.length * FLOAT_SIZE_BYTES)
                 .order(ByteOrder.nativeOrder()).asFloatBuffer();
@@ -220,8 +222,27 @@ public class SurfaceTextureRenderer {
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
     }
 
-    public void setDrawingRange(Rect rect, int width, int height) {
-        setDrawingRange(rect.left, rect.top, rect.right, rect.bottom, width, height);
+    /**
+     * 描画範囲を削除します.
+     */
+    public void clearCropRect() {
+        mTriangleVertices.clear();
+        if (mInverse) {
+            mTriangleVertices.put(TRIANGLE_VERTICES_DATA_2).position(0);
+        } else {
+            mTriangleVertices.put(TRIANGLE_VERTICES_DATA).position(0);
+        }
+    }
+
+    /**
+     * 描画範囲を設定します.
+     *
+     * @param rect 範囲
+     * @param width 描画元の横幅
+     * @param height 描画元の縦幅
+     */
+    public void setCropRect(Rect rect, int width, int height) {
+        setCropRect(rect.left, rect.top, rect.right, rect.bottom, width, height);
     }
 
     /**
@@ -234,15 +255,15 @@ public class SurfaceTextureRenderer {
      * @param width 画像の横幅
      * @param height 画像の縦幅
      */
-    public void setDrawingRange(int left, int top, int right, int bottom, int width, int height) {
+    public void setCropRect(int left, int top, int right, int bottom, int width, int height) {
         float l = left / (float) width;
         float t = top / (float) height;
         float r = right / (float) width;
         float b = bottom / (float) height;
-        setDrawingRange(l, t, r, b);
+        setCropRect(l, t, r, b);
     }
 
-    private void setDrawingRange(float l, float t, float r, float b) {
+    private void setCropRect(float l, float t, float r, float b) {
         // 映像がはみ出した分は縮めて描画するように座標を計算
         float sx = -1.0f;
         float sy = 1.0f;
@@ -255,6 +276,14 @@ public class SurfaceTextureRenderer {
         if (b > 1.0f) {
             ey = -2.0f / b + 1.0f;
             b = 1.0f;
+        }
+        if (l < 0.0f) {
+            sx = sx - l;
+            l = 0.0f;
+        }
+        if (t < 0.0f) {
+            sy = sy - t;
+            t = 0.0f;
         }
         float[] triangleVerticesData = {
                 // X, Y, Z, U, V

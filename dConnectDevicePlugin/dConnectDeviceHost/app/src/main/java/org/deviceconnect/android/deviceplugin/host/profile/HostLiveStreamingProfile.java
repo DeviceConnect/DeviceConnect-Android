@@ -3,14 +3,14 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Range;
 import android.util.Size;
 
 import org.deviceconnect.android.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
-import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.LiveStreaming;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -22,6 +22,7 @@ import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class HostLiveStreamingProfile extends DConnectProfile {
@@ -59,7 +60,7 @@ public class HostLiveStreamingProfile extends DConnectProfile {
         }
 
         @Override
-        public void onPreviewStarted(HostMediaRecorder recorder, List<PreviewServer> servers) {
+        public void onPreviewStarted(HostMediaRecorder recorder, List<LiveStreaming> servers) {
         }
 
         @Override
@@ -71,17 +72,21 @@ public class HostLiveStreamingProfile extends DConnectProfile {
         }
 
         @Override
-        public void onBroadcasterStarted(HostMediaRecorder recorder, Broadcaster broadcaster) {
-            postOnStart(broadcaster);
+        public void onBroadcasterStarted(HostMediaRecorder recorder, List<LiveStreaming> broadcasters) {
+            if (mHostMediaRecorder == null) {
+                mHostMediaRecorder = recorder;
+            }
+            postOnStart(broadcasters);
         }
 
         @Override
-        public void onBroadcasterStopped(HostMediaRecorder recorder, Broadcaster broadcaster) {
-            postOnStop(broadcaster);
+        public void onBroadcasterStopped(HostMediaRecorder recorder) {
+            postOnStop(recorder.getBroadcasterProvider().getLiveStreamingList());
+            mHostMediaRecorder = null;
         }
 
         @Override
-        public void onBroadcasterError(HostMediaRecorder recorder, Broadcaster broadcaster, Exception e) {
+        public void onBroadcasterError(HostMediaRecorder recorder, LiveStreaming broadcaster, Exception e) {
             postOnError(broadcaster);
         }
 
@@ -103,6 +108,14 @@ public class HostLiveStreamingProfile extends DConnectProfile {
 
         @Override
         public void onRecordingStopped(HostMediaRecorder recorder, String fileName) {
+        }
+
+        @Override
+        public void onFoundRecorder(HostMediaRecorder recorder) {
+        }
+
+        @Override
+        public void onLostRecorder(HostMediaRecorder recorder) {
         }
 
         @Override
@@ -158,24 +171,50 @@ public class HostLiveStreamingProfile extends DConnectProfile {
 
                 HostMediaRecorder.Settings settings = recorder.getSettings();
                 try {
+                    if (broadcastURI != null) {
+                        for (String encoderId : recorder.getSettings().getEncoderIdList()) {
+                            HostMediaRecorder.EncoderSettings encoderSettings = recorder.getSettings().getEncoderSetting(encoderId);
+                            if (encoderSettings != null && encoderSettings.getMimeType().equals(HostMediaRecorder.MimeType.RTMP)) {
+                                encoderSettings.setBroadcastURI(broadcastURI);
+                            }
+                        }
+                    }
+                    
                     if (width != null && height != null) {
                         settings.setPreviewSize(new Size(width, height));
+
+                        for (String encoderId : recorder.getSettings().getEncoderIdList()) {
+                            HostMediaRecorder.EncoderSettings encoderSettings = recorder.getSettings().getEncoderSetting(encoderId);
+                            if (encoderSettings != null && encoderSettings.getMimeType().equals(HostMediaRecorder.MimeType.RTMP)) {
+                                encoderSettings.setPreviewSize(new Size(width, height));
+                            }
+                        }
                     }
 
                     if (bitrate != null) {
-                        settings.setPreviewBitRate(bitrate);
+                        for (String encoderId : recorder.getSettings().getEncoderIdList()) {
+                            HostMediaRecorder.EncoderSettings encoderSettings = recorder.getSettings().getEncoderSetting(encoderId);
+                            if (encoderSettings != null && encoderSettings.getMimeType().equals(HostMediaRecorder.MimeType.RTMP)) {
+                                encoderSettings.setPreviewBitRate(bitrate);
+                            }
+                        }
                     }
 
                     if (frameRate != null) {
-                        settings.setPreviewMaxFrameRate(frameRate);
+                        Range<Integer> fps = recorder.getSettings().getPreviewFpsFromFrameRate(frameRate);
+                        if (fps != null) {
+                            settings.setPreviewFps(fps);
+                        }
+
+                        for (String encoderId : recorder.getSettings().getEncoderIdList()) {
+                            HostMediaRecorder.EncoderSettings encoderSettings = recorder.getSettings().getEncoderSetting(encoderId);
+                            if (encoderSettings != null && encoderSettings.getMimeType().equals(HostMediaRecorder.MimeType.RTMP)) {
+                                encoderSettings.setPreviewMaxFrameRate(frameRate);
+                            }
+                        }
                     }
 
-                    // 映像が有効な時の音声設定を行う
-                    if (VIDEO_URI_FALSE.equals(video)) {
-                        settings.setPreviewAudioSource(null);
-                    } else {
-                        settings.setPreviewAudioSource(HostMediaRecorder.AudioSource.typeOf(audio));
-                    }
+                    settings.setPreviewAudioSource(getAudioSource(audio));
                 } catch (Exception e) {
                     MessageUtils.setInvalidRequestParameterError(response, "Parameter is invalid.");
                     return true;
@@ -186,8 +225,8 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     public void onAllowed() {
                         mHostMediaRecorder = recorder;
 
-                        Broadcaster broadcaster = recorder.startBroadcaster(broadcastURI);
-                        if (broadcaster != null) {
+                        List<LiveStreaming> broadcasters = recorder.startBroadcaster(broadcastURI);
+                        if (!broadcasters.isEmpty() ) {
                             setResult(response, DConnectMessage.RESULT_OK);
                         } else {
                             MessageUtils.setUnknownError(response, "Failed to start a live streaming.");
@@ -242,18 +281,16 @@ public class HostLiveStreamingProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                Bundle streaming;
+                List<Bundle> streaming = new ArrayList<>();
                 if (mHostMediaRecorder != null) {
                     BroadcasterProvider provider = mHostMediaRecorder.getBroadcasterProvider();
-                    if (provider != null && provider.isRunning()) {
-                        streaming = createStreamingBundle(provider.getBroadcaster(), "streaming");
-                    } else {
-                        streaming = createStreamingBundle(null, "stop");
+                    for (LiveStreaming broadcaster : provider.getLiveStreamingList()) {
+                        streaming.add(createStreamingBundle(broadcaster, broadcaster.isRunning() ? "streaming" : "stop"));
                     }
                 } else {
-                    streaming = createStreamingBundle(null, "stop");
+                    streaming.add(createStreamingBundle(null, "stop"));
                 }
-                response.putExtra(PARAM_KEY_STREAMING, streaming);
+                response.putExtra(PARAM_KEY_STREAMING, streaming.toArray(new Bundle[0]));
 
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
@@ -393,13 +430,23 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     return mHostMediaRecorderManager.getRecorder(video);
             }
         }
-        return mHostMediaRecorderManager.getRecorder(audio);
+        return mHostMediaRecorderManager.getRecorder("audio");
     }
 
-    private Bundle createStreamingBundle(Broadcaster broadcaster, String status) {
+    private HostMediaRecorder.AudioSource getAudioSource(String audio) {
+        if (AUDIO_URI_FALSE.equals(audio)) {
+            return null;
+        } else if (AUDIO_URI_TRUE.equals(audio)) {
+            return HostMediaRecorder.AudioSource.DEFAULT;
+        } else {
+            return HostMediaRecorder.AudioSource.typeOf(audio);
+        }
+    }
+
+    private Bundle createStreamingBundle(LiveStreaming broadcaster, String status) {
         Bundle streaming = new Bundle();
         if (broadcaster != null) {
-            streaming.putString(PARAM_KEY_URI, broadcaster.getBroadcastURI());
+            streaming.putString(PARAM_KEY_URI, broadcaster.getUri());
         }
         streaming.putString(PARAM_KEY_STATUS, status);
 
@@ -409,37 +456,47 @@ public class HostLiveStreamingProfile extends DConnectProfile {
             video.putString(PARAM_KEY_URI, mHostMediaRecorder.getId());
             video.putInt(PARAM_KEY_WIDTH, settings.getPreviewSize().getWidth());
             video.putInt(PARAM_KEY_HEIGHT, settings.getPreviewSize().getHeight());
-            video.putInt(PARAM_KEY_BITRATE, settings.getPreviewBitRate());
-            video.putInt(PARAM_KEY_FRAME_RATE, settings.getPreviewMaxFrameRate());
+//            video.putInt(PARAM_KEY_BITRATE, settings.getPreviewBitRate());
+//            video.putInt(PARAM_KEY_FRAME_RATE, settings.getPreviewMaxFrameRate());
             video.putString(PARAM_KEY_MIME_TYPE, broadcaster.getMimeType());
             streaming.putParcelable(PARAM_KEY_VIDEO, video);
         }
         return streaming;
     }
 
-    private void postOnStart(Broadcaster broadcaster) {
+    private void postOnStart(List<LiveStreaming> broadcasters) {
         List<Event> evtList = EventManager.INSTANCE.getEventList(getService().getId(),
                 PROFILE_NAME, null, AT_ON_STATUS_CHANGE);
 
+        List<Bundle> b = new ArrayList<>();
+        for (LiveStreaming broadcaster : broadcasters) {
+            b.add(createStreamingBundle(broadcaster, "normal"));
+        }
+
         for (Event event : evtList) {
             Intent intent = EventManager.createEventMessage(event);
-            intent.putExtra(PARAM_KEY_STREAMING, createStreamingBundle(broadcaster, "normal"));
+            intent.putExtra(PARAM_KEY_STREAMING, b.toArray(new Bundle[0]));
             sendEvent(intent, event.getAccessToken());
         }
     }
 
-    private void postOnStop(Broadcaster broadcaster) {
+    private void postOnStop(List<LiveStreaming> broadcasters) {
         List<Event> evtList = EventManager.INSTANCE.getEventList(getService().getId(),
                 PROFILE_NAME, null, AT_ON_STATUS_CHANGE);
 
+        List<Bundle> b = new ArrayList<>();
+        for (LiveStreaming broadcaster : broadcasters) {
+            b.add(createStreamingBundle(broadcaster, "stop"));
+        }
+
         for (Event event : evtList) {
             Intent intent = EventManager.createEventMessage(event);
-            intent.putExtra(PARAM_KEY_STREAMING, createStreamingBundle(broadcaster, "stop"));
+            intent.putExtra(PARAM_KEY_STREAMING, b.toArray(new Bundle[0]));
             sendEvent(intent, event.getAccessToken());
         }
     }
 
-    private void postOnError(Broadcaster broadcaster) {
+    private void postOnError(LiveStreaming broadcaster) {
         List<Event> evtList = EventManager.INSTANCE.getEventList(getService().getId(),
                 PROFILE_NAME, null, AT_ON_STATUS_CHANGE);
 

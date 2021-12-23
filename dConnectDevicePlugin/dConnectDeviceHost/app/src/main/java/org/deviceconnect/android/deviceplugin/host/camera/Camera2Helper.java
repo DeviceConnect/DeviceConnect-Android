@@ -49,7 +49,7 @@ public final class Camera2Helper {
             CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
             Integer sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
             return sensorOrientation == null ? 0 : sensorOrientation;
-        } catch (CameraAccessException e) {
+        } catch (Exception e) {
             return 0;
         }
     }
@@ -115,7 +115,7 @@ public final class Camera2Helper {
                     }
                 }
             }
-        } catch (CameraAccessException e) {
+        } catch (IllegalArgumentException | CameraAccessException e) {
             // ignore.
         }
         return false;

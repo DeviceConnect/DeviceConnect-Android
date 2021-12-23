@@ -94,10 +94,8 @@ public class DevicePluginManager {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            mLogger.info("PluginManager: Received: action=" + action);
             if (Intent.ACTION_PACKAGE_ADDED.equals(action)) {
                 String packageName = getPackageName(intent);
-                mLogger.info("PluginManager: added package: name=" + packageName);
                 if (packageName != null) {
                     checkAndAddDevicePlugin(packageName);
                 }
@@ -112,9 +110,11 @@ public class DevicePluginManager {
 
     private String getPackageName(final Intent intent) {
         String pkgName = intent.getDataString();
-        int idx = pkgName.indexOf(":");
-        if (idx != -1) {
-            pkgName = pkgName.substring(idx + 1);
+        if (pkgName != null) {
+            int idx = pkgName.indexOf(":");
+            if (idx != -1) {
+                pkgName = pkgName.substring(idx + 1);
+            }
         }
         return pkgName;
     }
@@ -137,7 +137,7 @@ public class DevicePluginManager {
     /**
      * イベントを通知するスレッド.
      */
-    private ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     /**
      * コンテキスト.
@@ -152,13 +152,10 @@ public class DevicePluginManager {
     /**
      * 接続管理用インスタンスのイベントリスナー.
      */
-    private final ConnectionStateListener mStateListener = new ConnectionStateListener() {
-        @Override
-        public void onConnectionStateChanged(final String pluginId, final ConnectionState state) {
-            DevicePlugin plugin = mPlugins.get(pluginId);
-            if (plugin != null) {
-                notifyStateChange(plugin, state);
-            }
+    private final ConnectionStateListener mStateListener = (pluginId, state) -> {
+        DevicePlugin plugin = mPlugins.get(pluginId);
+        if (plugin != null) {
+            notifyStateChange(plugin, state);
         }
     };
 
@@ -185,10 +182,10 @@ public class DevicePluginManager {
         packageFilter.addDataScheme("package");
         try {
             mContext.registerReceiver(mPackageReceiver, packageFilter);
-            mLogger.info("PluginManager: Started plugin monitoring.");
         } catch (Exception e) {
-            // ignore.
-            mLogger.severe("PluginManager: Failed to start plugin monitoring: " + e.getMessage());
+            if (BuildConfig.DEBUG) {
+                mLogger.severe("PluginManager: Failed to start plugin monitoring: " + e.getMessage());
+            }
         }
     }
 
@@ -198,12 +195,11 @@ public class DevicePluginManager {
     public void stopMonitoring() {
         try {
             mContext.unregisterReceiver(mPackageReceiver);
-            mLogger.info("PluginManager: Stopped plugin monitoring.");
         } catch (Exception e) {
-            // ignore.
-            mLogger.severe("PluginManager: Failed to stop plugin monitoring: " + e.getMessage());
+            if (BuildConfig.DEBUG) {
+                mLogger.severe("PluginManager: Failed to stop plugin monitoring: " + e.getMessage());
+            }
         }
-
     }
 
     /**
@@ -244,12 +240,13 @@ public class DevicePluginManager {
         if (mConnectionFactory != null) {
             plugin.setConnection(mConnectionFactory.createConnectionForPlugin(plugin));
             plugin.addConnectionStateListener(mStateListener);
-            mLogger.info("PluginManager: created connection to plugin: package=" + plugin.getPackageName());
         } else {
-            mLogger.info("PluginManager: No connection factory: package=" + plugin.getPackageName());
+            if (BuildConfig.DEBUG) {
+                mLogger.info("PluginManager: No connection factory: package=" + plugin.getPackageName());
+            }
         }
         mPlugins.put(plugin.getPluginId(), plugin);
-        mLogger.info("PluginManager: added to plugin list: package=" + plugin.getPackageName() + ", ID=" + plugin.getPluginId());
+        plugin.apply();
         notifyFound(plugin);
     }
 
@@ -266,7 +263,7 @@ public class DevicePluginManager {
             allPlugins = getInstalledPlugins(pkgMgr);
         } catch (Exception e) {
             PluginDetectionException.Reason reason;
-            if (Build.VERSION.SDK_INT >= 15) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
                 if (e.getClass() == TransactionTooLargeException.class) {
                     reason = PluginDetectionException.Reason.TOO_MANY_PACKAGES;
                 } else {
@@ -425,10 +422,8 @@ public class DevicePluginManager {
         try {
             int flag = PackageManager.GET_SERVICES | PackageManager.GET_RECEIVERS | PackageManager.GET_PROVIDERS;
             PackageInfo pkg = pkgMgr.getPackageInfo(packageName, flag);
-            mLogger.info("PluginManager: get package info: " + pkg);
             if (pkg != null) {
                 List<DevicePlugin> plugins = getInstalledPluginsForPackage(pkgMgr, pkg);
-                mLogger.info("PluginManager: installed plugins: size=" + plugins.size());
                 for (DevicePlugin plugin : filterPlugin(plugins)) {
                     addDevicePlugin(plugin);
                 }
@@ -461,24 +456,23 @@ public class DevicePluginManager {
         for (int index = 0; index < array.size(); index++) {
             List<DevicePlugin> list = array.valueAt(index);
             if (list != null && list.size() > 0) {
-                Collections.sort(list, new Comparator<DevicePlugin>() {
-                    @Override
-                    public int compare(final DevicePlugin p1, final DevicePlugin p2) {
-                        // BroadcastよりもBinderを優先する.
-                        if (p1.getConnectionType() == p2.getConnectionType()) {
-                            return 0;
-                        } else if (p1.getConnectionType() == ConnectionType.BINDER) {
-                            return -1;
-                        } else {
-                            return 1;
-                        }
-                    }
-                });
+                Collections.sort(list, COMPARATOR);
                 result.add(list.get(0));
             }
         }
         return result;
     }
+
+    private static final Comparator<DevicePlugin> COMPARATOR = (Comparator<DevicePlugin>) (p1, p2) -> {
+        // BroadcastよりもBinderを優先する.
+        if (p1.getConnectionType() == p2.getConnectionType()) {
+            return 0;
+        } else if (p1.getConnectionType() == ConnectionType.BINDER) {
+            return -1;
+        } else {
+            return 1;
+        }
+    };
 
     /**
      * 指定されたコンポーネントの ServiceInfo を取得します.
@@ -567,17 +561,17 @@ public class DevicePluginManager {
         Integer iconId = (Integer) metaData.get(PLUGIN_META_PLUGIN_ICON);
 
         if (BuildConfig.DEBUG) {
-            mLogger.info("Added DevicePlugin: [" + hash + "]");
-            mLogger.info("    PackageName: " + packageName);
-            mLogger.info("    className: " + className);
-            mLogger.info("    versionName: " + versionName);
-            mLogger.info("    sdkVersionName: " + sdkVersionName);
-        }
+            mLogger.info("Added DevicePlugin: [" + hash + "]\n" +
+                    "    PackageName: " + packageName + "\n" +
+                    "    className: " + className + "\n" +
+                    "    versionName: " + versionName + "\n" +
+                    "    sdkVersionName: " + sdkVersionName);
 
-        // MEMO 既に同じ名前のデバイスプラグインが存在した場合の処理
-        // 現在は警告を表示し、上書きする.
-        if (mPlugins.containsKey(hash)) {
-            mLogger.warning("DevicePlugin[" + hash + "] already exists.");
+            // MEMO 既に同じ名前のデバイスプラグインが存在した場合の処理
+            // 現在は警告を表示し、上書きする.
+            if (mPlugins.containsKey(hash)) {
+                mLogger.warning("DevicePlugin[" + hash + "] already exists.");
+            }
         }
 
         ConnectionType type;
@@ -779,10 +773,12 @@ public class DevicePluginManager {
      */
     public void splitPluginIdToServiceId(final Intent request) {
         String serviceId = request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
-        List<DevicePlugin> plugins = getDevicePlugins(serviceId);
-        // 各デバイスプラグインへ渡すサービスIDを作成
-        String id = DevicePluginManager.splitServiceId(plugins.get(0), serviceId);
-        request.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID, id);
+        if (serviceId != null) {
+            List<DevicePlugin> plugins = getDevicePlugins(serviceId);
+            // 各デバイスプラグインへ渡すサービスIDを作成
+            String id = DevicePluginManager.splitServiceId(plugins.get(0), serviceId);
+            request.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID, id);
+        }
     }
 
     /**

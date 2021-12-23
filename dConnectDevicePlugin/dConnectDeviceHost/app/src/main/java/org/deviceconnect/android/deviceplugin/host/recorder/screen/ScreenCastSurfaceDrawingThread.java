@@ -31,7 +31,7 @@ public class ScreenCastSurfaceDrawingThread extends EGLSurfaceDrawingThread {
 
         // 画面の更新が発生しない場合は、MediaCodec に更新イベントが発生しないので
         // ここでは、画面更新のタイムアウトを 0 にして、タイムアウトが発生しないように設定
-        setTimeout(0);
+        setRenderingTimeout(0);
     }
 
     // EGLSurfaceDrawingThread
@@ -44,7 +44,20 @@ public class ScreenCastSurfaceDrawingThread extends EGLSurfaceDrawingThread {
 
     @Override
     public boolean isSwappedDimensions() {
-        return mRecorder.getScreenCastMgr().isSwappedDimensions();
+        int orientation = mRecorder.getSettings().getOrientation();
+        if (orientation == -1) {
+            return mRecorder.getScreenCastMgr().isSwappedDimensions();
+        }
+
+        switch (orientation) {
+            case Surface.ROTATION_0:
+            case Surface.ROTATION_180:
+                return false;
+            case Surface.ROTATION_90:
+            case Surface.ROTATION_270:
+            default:
+                return true;
+        }
     }
 
     @Override
@@ -61,13 +74,10 @@ public class ScreenCastSurfaceDrawingThread extends EGLSurfaceDrawingThread {
     public void start() {
         HostMediaRecorder.Settings settings = mRecorder.getSettings();
         Size previewSize = settings.getPreviewSize();
-        if (previewSize != null) {
-            int width = isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
-            int height = isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
-            setSize(width, height);
-            setDrawingRange(settings.getDrawingRange());
-            super.start();
-        }
+        int width = isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
+        int height = isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
+        setSize(width, height);
+        super.start();
     }
 
     private void startScreenCast(SurfaceTexture surfaceTexture) {

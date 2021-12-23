@@ -31,11 +31,6 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
      */
     private boolean mIsBound = false;
 
-    /**
-     * 画面の回転固定フラグ.
-     */
-    private boolean mDisplayRotationFixed = false;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -179,9 +174,18 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
      * @param fixed 固定する場合はtrue、それ以外はfalse
      */
     public void setDisplayRotation(boolean fixed) {
-        mDisplayRotationFixed = fixed;
+        setDisplayRotation(fixed, getDisplayOrientation());
+    }
+
+    /**
+     * 画面に表示されている状態で回転を固定します.
+     *
+     * @param fixed 固定する場合はtrue、それ以外はfalse
+     * @param orientation 固定する向き
+     */
+    public void setDisplayRotation(boolean fixed, int orientation) {
         if (fixed) {
-            setRequestedOrientation(getDisplayOrientation());
+            setRequestedOrientation(orientation);
         } else {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         }
@@ -193,14 +197,14 @@ public class HostDevicePluginBindActivity extends AppCompatActivity {
      * @return 画面が固定されている場合はtrue、それ以外はfalse
      */
     public boolean isDisplayRotationFixed() {
-        return mDisplayRotationFixed;
+        return getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
     }
 
     /**
      * 画面固定を切り替えます.
      */
     public void toggleDisplayRotation() {
-        setDisplayRotation(!mDisplayRotationFixed);
+        setDisplayRotation(!isDisplayRotationFixed());
     }
 
     /**

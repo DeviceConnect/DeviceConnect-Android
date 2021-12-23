@@ -16,6 +16,7 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.NetworkRequest;
 import android.net.Uri;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -39,9 +40,12 @@ import org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActiv
 import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
 import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.util.NotificationUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.sql.ConnectionEventListener;
 
 public class HostConnectionManager {
     private static final int NOTIFICATION_ID = 3527;
@@ -52,6 +56,7 @@ public class HostConnectionManager {
     private final ConnectivityManager mConnectivityManager;
     private  TelephonyManager mTelephonyManager;
     private NetworkType mMobileNetworkType = NetworkType.TYPE_NONE;
+    private int mStrengthLevel = 0;
     private HostTrafficMonitor mTrafficMonitor;
     private final Handler mCallbackHandler = new Handler(Looper.getMainLooper());
     private final WeakReferenceList<ConnectionEventListener> mConnectionEventListeners = new WeakReferenceList<>();
@@ -118,8 +123,8 @@ public class HostConnectionManager {
         public void onSignalStrengthsChanged(SignalStrength signalStrength) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 for (CellSignalStrength strength : signalStrength.getCellSignalStrengths()) {
-                    int level = strength.getLevel();
-                    switch (level) {
+                    mStrengthLevel = strength.getLevel();
+                    switch (mStrengthLevel) {
                         case CellSignalStrength.SIGNAL_STRENGTH_NONE_OR_UNKNOWN:
                         case CellSignalStrength.SIGNAL_STRENGTH_POOR:
                         case CellSignalStrength.SIGNAL_STRENGTH_MODERATE:
@@ -128,7 +133,10 @@ public class HostConnectionManager {
                             break;
                     }
                 }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                mStrengthLevel = signalStrength.getLevel();
             }
+            postOnChangeNetwork();
         }
     };
 
@@ -185,9 +193,17 @@ public class HostConnectionManager {
      *
      * @return 有効になっているネットワーク名
      */
-    public String getActivityNetworkString() {
+    public String getActivityNetworkString(NetworkType networkType) {
         Context context = mPluginContext.getContext();
-        switch (getActivityNetwork()) {
+        if (context == null) {
+            return "No Connect";
+        }
+
+        if (networkType == null) {
+            return context.getString(R.string.host_connection_network_type_no_connect);
+        }
+
+        switch (networkType) {
             case TYPE_MOBILE:
                 return context.getString(R.string.host_connection_network_type_mobile);
             case TYPE_WIFI:
@@ -213,30 +229,11 @@ public class HostConnectionManager {
     /**
      * 有効になっているネットワークタイプを取得します.
      *
-     * @return ネットワークタイプ
+     * @return ネットワークの情報
      */
-    public NetworkType getActivityNetwork() {
-        NetworkType networkType = NetworkType.TYPE_NONE;
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            NetworkInfo networkInfo = mConnectivityManager.getActiveNetworkInfo();
-            if (networkInfo != null) {
-                switch (networkInfo.getType()) {
-                    case ConnectivityManager.TYPE_MOBILE:
-                        networkType = NetworkType.TYPE_MOBILE;
-                        break;
-                    case ConnectivityManager.TYPE_WIFI:
-                        networkType = NetworkType.TYPE_WIFI;
-                        break;
-                    case ConnectivityManager.TYPE_ETHERNET:
-                        networkType = NetworkType.TYPE_ETHERNET;
-                        break;
-                    case ConnectivityManager.TYPE_BLUETOOTH:
-                        networkType = NetworkType.TYPE_BLUETOOTH;
-                        break;
-                }
-            }
-        } else {
+    public NetworkCaps getNetworkCaps() {
+        NetworkCaps caps = new NetworkCaps();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Network n = mConnectivityManager.getActiveNetwork();
             NetworkCapabilities capabilities = mConnectivityManager.getNetworkCapabilities(n);
             if (capabilities != null) {
@@ -245,26 +242,119 @@ public class HostConnectionManager {
                 boolean isBluetooth = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH);
                 boolean isEthernet = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET);
                 if (isWifi) {
-                    networkType = NetworkType.TYPE_WIFI;
+                    caps.mStrengthLevel = getWifiStrengthLevel();
+                    caps.mType = NetworkType.TYPE_WIFI;
                 } else if (isEthernet) {
-                    networkType = NetworkType.TYPE_ETHERNET;
+                    caps.mType = NetworkType.TYPE_ETHERNET;
                 } else if (isBluetooth) {
-                    networkType = NetworkType.TYPE_BLUETOOTH;
+                    caps.mType = NetworkType.TYPE_BLUETOOTH;
                 } else if (isMobile) {
-                    networkType = NetworkType.TYPE_MOBILE;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        caps.mStrengthLevel = capabilities.getSignalStrength();
+                    } else {
+                        caps.mStrengthLevel = mStrengthLevel;
+                    }
+                    caps.mType = NetworkType.TYPE_MOBILE;
                     if (mMobileNetworkType != null && mMobileNetworkType != NetworkType.TYPE_NONE) {
-                        networkType = mMobileNetworkType;
+                        caps.mType = mMobileNetworkType;
                     }
                 } else {
-                    networkType = NetworkType.TYPE_NONE;
+                    caps.mType = NetworkType.TYPE_NONE;
                     if (mMobileNetworkType != null && mMobileNetworkType != NetworkType.TYPE_NONE) {
-                        networkType = mMobileNetworkType;
+                        caps.mType = mMobileNetworkType;
                     }
+                }
+                caps.mDownstreamBW = capabilities.getLinkDownstreamBandwidthKbps();
+                caps.mUpstreamBW = capabilities.getLinkUpstreamBandwidthKbps();
+            }
+        } else {
+            NetworkInfo networkInfo = mConnectivityManager.getActiveNetworkInfo();
+            if (networkInfo != null) {
+                switch (networkInfo.getType()) {
+                    case ConnectivityManager.TYPE_MOBILE:
+                        caps.mStrengthLevel = mStrengthLevel;
+                        caps.mType = NetworkType.TYPE_MOBILE;
+                        break;
+                    case ConnectivityManager.TYPE_WIFI:
+                        caps.mStrengthLevel = getWifiStrengthLevel();
+                        caps.mType = NetworkType.TYPE_WIFI;
+                        break;
+                    case ConnectivityManager.TYPE_ETHERNET:
+                        caps.mType = NetworkType.TYPE_ETHERNET;
+                        break;
+                    case ConnectivityManager.TYPE_BLUETOOTH:
+                        caps.mType = NetworkType.TYPE_BLUETOOTH;
+                        break;
                 }
             }
         }
+        return caps;
+    }
 
-        return networkType;
+    /**
+     * ネットワークの情報を格納するクラス.
+     */
+    public class NetworkCaps {
+        private NetworkType mType = NetworkType.TYPE_NONE;
+        private int mUpstreamBW;
+        private int mDownstreamBW;
+        private int mStrengthLevel;
+
+        /**
+         * ネットワークタイプを取得します.
+         *
+         * @return ネットワークタイプ
+         */
+        public NetworkType getType() {
+            return mType;
+        }
+
+        /**
+         * ネットワークタイプの文字列を取得します.
+         *
+         * @return ネットワークタイプ
+         */
+        public String getTypeString() {
+            return getActivityNetworkString(mType);
+        }
+
+        /**
+         * upstream の帯域幅を取得します.
+         *
+         * @return upstream の帯域幅
+         */
+        public int getUpstreamBW() {
+            return mUpstreamBW;
+        }
+
+        /**
+         * downstream の帯域幅を取得します.
+         *
+         * @return downstream の帯域幅
+         */
+        public int getDownstreamBW() {
+            return mDownstreamBW;
+        }
+
+        /**
+         * 電波強度を取得します.
+         *
+         * @return 電波強度
+         */
+        public int getStrengthLevel() {
+            return mStrengthLevel;
+        }
+
+        @NotNull
+        @Override
+        public String toString() {
+            return "NetworkCaps{" +
+                    "mType=" + mType +
+                    ", mUpstreamBW=" + mUpstreamBW +
+                    ", mDownstreamBW=" + mDownstreamBW +
+                    ", mStrengthLevel=" + mStrengthLevel +
+                    '}';
+        }
     }
 
     public enum NetworkType {
@@ -282,23 +372,21 @@ public class HostConnectionManager {
     private boolean mRegisterTelephonyManager;
 
     private synchronized void registerTelephony() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (mRegisterTelephonyManager) {
-                return;
-            }
+        if (mRegisterTelephonyManager) {
+            return;
+        }
 
-            try {
-                mTelephonyManager = (TelephonyManager) mPluginContext.getContext()
-                        .getSystemService(Context.TELEPHONY_SERVICE);
-                if (mTelephonyManager != null) {
-                    int events = PhoneStateListener.LISTEN_SIGNAL_STRENGTHS;
-                    events |= PhoneStateListener.LISTEN_DISPLAY_INFO_CHANGED;
-                    mTelephonyManager.listen(mPhoneStateListener, events);
-                    mRegisterTelephonyManager = true;
-                }
-            } catch (Exception e) {
-                // ignore.
+        try {
+            mTelephonyManager = (TelephonyManager) mPluginContext.getContext()
+                    .getSystemService(Context.TELEPHONY_SERVICE);
+            if (mTelephonyManager != null) {
+                int events = PhoneStateListener.LISTEN_SIGNAL_STRENGTHS;
+                events |= PhoneStateListener.LISTEN_DISPLAY_INFO_CHANGED;
+                mTelephonyManager.listen(mPhoneStateListener, events);
+                mRegisterTelephonyManager = true;
             }
+        } catch (Exception e) {
+            // ignore.
         }
     }
 
@@ -337,14 +425,14 @@ public class HostConnectionManager {
      * ネットワークの接続イベントを受信するための Receiver を解除します.
      */
     private void unregisterNetworkCallback() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            try {
+        try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
                 mPluginContext.getContext().unregisterReceiver(mHostConnectionReceiver);
-            } catch (Exception e) {
-                // ignore.
+            } else {
+                mConnectivityManager.unregisterNetworkCallback(mNetworkCallback);
             }
-        } else {
-            mConnectivityManager.unregisterNetworkCallback(mNetworkCallback);
+        } catch (Exception e) {
+            // ignore.
         }
     }
 
@@ -355,6 +443,34 @@ public class HostConnectionManager {
      */
     public boolean isWifiEnabled() {
         return mWifiManager != null && mWifiManager.isWifiEnabled();
+    }
+
+    /**
+     * 接続している WiFi の電波強度を取得します.
+     *
+     * WiFi の RSSI から下記の範囲で値を返却します。
+     * 優れた> -50 dBm
+     * 良好-50〜-60 dBm
+     * 普通-60〜-70 dBm
+     * 弱い<-70dBm
+     *
+     * @return WiFi の電波強度
+     */
+    public int getWifiStrengthLevel() {
+        WifiInfo wifiInfo = mWifiManager.getConnectionInfo();
+        if (wifiInfo != null) {
+            int rssi = wifiInfo.getRssi();
+            if (rssi > -50) {
+                return 4;
+            } else if (rssi > -60) {
+                return 3;
+            } else if (rssi > -70) {
+                return 2;
+            } else {
+                return 1;
+            }
+        }
+        return 0;
     }
 
     /**
@@ -468,7 +584,20 @@ public class HostConnectionManager {
     }
 
     /**
-     * ネットワーク通信量のリストを取得します.
+     * 指定されたネットワークの通信量履歴を取得します.
+     *
+     * @param networkType ネットワークタイプ
+     * @return ネットワークの通信量履歴
+     */
+    public synchronized List<HostTraffic> getTrafficList(int networkType) {
+        if (mTrafficMonitor != null) {
+            return mTrafficMonitor.getTrafficList(networkType);
+        }
+        return new ArrayList<>();
+    }
+
+    /**
+     * ネットワーク毎の最新の通信量をリストにして取得します.
      *
      * リストには、各ネットワークの通信量が格納されています。
      *
@@ -476,8 +605,8 @@ public class HostConnectionManager {
      *
      * @return ネットワーク通信量のリスト
      */
-    public synchronized List<HostTraffic> getTrafficList() {
-        return mTrafficMonitor != null ? mTrafficMonitor.getTrafficList() : new ArrayList<>();
+    public synchronized List<HostTraffic> getLastTrafficForAllNetwork() {
+        return mTrafficMonitor != null ? mTrafficMonitor.getLastTrafficForAllNetwork() : new ArrayList<>();
     }
 
     /**
@@ -547,10 +676,14 @@ public class HostConnectionManager {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return true;
         }
-        AppOpsManager appOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
-        int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
-                android.os.Process.myUid(), context.getPackageName());
-        return mode == AppOpsManager.MODE_ALLOWED;
+        try {
+            AppOpsManager appOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
+            int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
+                    android.os.Process.myUid(), context.getPackageName());
+            return mode == AppOpsManager.MODE_ALLOWED;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -663,8 +796,18 @@ public class HostConnectionManager {
         void onDisallowed();
     }
 
+    /**
+     * 処理結果を通知するコールバック.
+     */
     public interface Callback {
+        /**
+         * 処理に成功した場合に呼び出します.
+         */
         void onSuccess();
+
+        /**
+         * 処理に失敗した場合に呼び出します.
+         */
         void onFailure();
     }
 

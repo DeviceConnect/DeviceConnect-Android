@@ -113,6 +113,7 @@ public class RtmpMuxer implements IMediaMuxer {
         };
 
         mSrsFlvMuxer = new SrsFlvMuxer(rtmpAdapter);
+        mSrsFlvMuxer.setLogs(false);
         if (videoQuality != null) {
             mSrsFlvMuxer.setVideoResolution(videoQuality.getVideoWidth(), videoQuality.getVideoHeight());
         }

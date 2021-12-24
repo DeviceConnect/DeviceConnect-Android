@@ -54,6 +54,12 @@ public class GeolocationAlertDialogActivity extends AppCompatActivity {
                                     android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                             try {
                                 startActivity(callGPSSettingIntent);
+                                if (mResponse != null) {
+                                    MessageUtils.setIllegalDeviceStateError(mResponse,
+                                            "Please retry running Geolocation.");
+                                    getBaseContext().sendBroadcast(mResponse);
+                                }
+
                             } catch (ActivityNotFoundException e) {
                                 if (mResponse != null) {
                                     MessageUtils.setIllegalDeviceStateError(mResponse,

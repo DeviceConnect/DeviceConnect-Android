@@ -304,7 +304,7 @@ public class DConnectService extends Service {
             }
         }
     }
-   /**
+    /*
      * DConnectManagerを停止します.
      */
     private void stopManager() {

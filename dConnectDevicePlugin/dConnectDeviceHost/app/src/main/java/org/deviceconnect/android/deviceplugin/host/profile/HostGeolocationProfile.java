@@ -1,25 +1,35 @@
 /*
  HostGeolocationProfile.java
- Copyright (c) 2017 NTT DOCOMO,INC.
+ Copyright (c) 2021 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
 package org.deviceconnect.android.deviceplugin.host.profile;
 
 import android.Manifest;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.SettingsClient;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.R;
@@ -37,19 +47,68 @@ import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.android.util.NotificationUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.utils.RFC3339DateUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
+import static com.google.android.gms.common.ConnectionResult.RESOLUTION_REQUIRED;
 
 /**
  * Geolocation Profile.
  * @author NTT DOCOMO, INC.
  */
-public class HostGeolocationProfile extends GeolocationProfile implements LocationListener {
-    /** LocationManager. */
-    private LocationManager mLocationManager;
+public class HostGeolocationProfile extends GeolocationProfile {
+    interface GeolocationDiaglogCallback {
+        void onSuccess();
+    }
 
+    // Fused Location Provider API
+    private FusedLocationProviderClient mFusedLocationClient;
+
+    // Location Setting APIs.
+    private SettingsClient mSettingsClient;
+    // Event用のCallback
+    private LocationCallback mLocationEventCallback = new LocationCallback() {
+        @Override
+        public void onLocationResult(@NonNull @NotNull LocationResult locationResult) {
+            super.onLocationResult(locationResult);
+            Bundle position = createPositionObject(locationResult.getLastLocation());
+
+            if (isEmptyEventList()) {
+                stopGPS();
+                return;
+            }
+
+            List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
+                    GeolocationProfile.PROFILE_NAME, null,
+                    GeolocationProfile.ATTRIBUTE_ON_WATCH_POSITION.toLowerCase());
+
+            for (int i = 0; i < events.size(); i++) {
+                Event event = events.get(i);
+                Intent intent = EventManager.createEventMessage(event);
+                intent.putExtra(GeolocationProfile.PARAM_POSITION, position);
+                sendEvent(intent, event.getAccessToken());
+            }
+        }
+    };
+    // OneShot用Callback
+    private Intent mOneShotResponse = null;
+    private LocationCallback mOneShotLocationCallback = new LocationCallback() {
+        @Override
+        public void onLocationResult(@NonNull @NotNull LocationResult locationResult) {
+            super.onLocationResult(locationResult);
+            if (mOneShotResponse != null) {
+                Bundle position = createPositionObject(locationResult.getLastLocation());
+
+                DConnectProfile.setResult(mOneShotResponse, DConnectMessage.RESULT_OK);
+                mOneShotResponse.putExtra(GeolocationProfile.PARAM_POSITION, position);
+                sendResponse(mOneShotResponse);
+                mOneShotResponse = null;
+            }
+            mFusedLocationClient.removeLocationUpdates(this);
+        }
+    };
     /** ServiceID. */
     private String mServiceId;
 
@@ -66,6 +125,7 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
      * Constructor.
      */
     public HostGeolocationProfile() {
+
         DConnectApi mGetOnGeolocationApi = new GetApi() {
 
             @Override
@@ -87,8 +147,8 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
                                     response.putExtra(GeolocationProfile.PARAM_POSITION, mLocationCache);
                                     sendResponse(response);
                                 } else {
-                                    getLocationManager(response);
-                                    getGPS(getHighAccuracy(request), response);
+                                    getLocationManager(response, () -> getGPS(getHighAccuracy(request), response));
+
                                 }
                             }
 
@@ -120,20 +180,22 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
                         new PermissionUtility.PermissionRequestCallback() {
                             @Override
                             public void onSuccess() {
-                                getLocationManager(response);
-                                String serviceId = getServiceID(request);
-                                // イベントの登録
-                                EventError error = EventManager.INSTANCE.addEvent(request);
-                                if (error == EventError.NONE) {
-                                    startGPS(getHighAccuracy(request), (int) getInterval(request));
-                                    mServiceId = serviceId;
-                                    DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                                    response.putExtra(DConnectMessage.EXTRA_VALUE,
-                                            "Register OnWatchPosition event");
-                                } else {
-                                    MessageUtils.setUnknownError(response, "Can not register event.");
-                                }
-                                sendResponse(response);
+                                getLocationManager(response, () -> {
+                                    String serviceId = getServiceID(request);
+                                    // イベントの登録
+                                    EventError error = EventManager.INSTANCE.addEvent(request);
+                                    if (error == EventError.NONE) {
+                                        // デフォルトは5000msec
+                                        startGPS(getHighAccuracy(request), (int) getInterval(request));
+                                        mServiceId = serviceId;
+                                        DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                                        response.putExtra(DConnectMessage.EXTRA_VALUE,
+                                                "Register OnWatchPosition event");
+                                    } else {
+                                        MessageUtils.setUnknownError(response, "Can not register event.");
+                                    }
+                                    sendResponse(response);
+                                });
                             }
 
                             @Override
@@ -164,18 +226,20 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
                         new PermissionUtility.PermissionRequestCallback() {
                             @Override
                             public void onSuccess() {
-                                getLocationManager(response);
-                                // イベントの解除
-                                EventError error = EventManager.INSTANCE.removeEvent(request);
-                                if (error == EventError.NONE) {
-                                    stopGPS();
-                                    DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                                    response.putExtra(DConnectMessage.EXTRA_VALUE,
-                                            "Unregister OnWatchPosition event");
-                                } else {
-                                    MessageUtils.setUnknownError(response, "Can not unregister event.");
-                                }
-                                sendResponse(response);
+                                getLocationManager(response, () -> {
+                                    // イベントの解除
+                                    EventError error = EventManager.INSTANCE.removeEvent(request);
+                                    if (error == EventError.NONE) {
+                                        stopGPS();
+                                        DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                                        response.putExtra(DConnectMessage.EXTRA_VALUE,
+                                                "Unregister OnWatchPosition event");
+                                    } else {
+                                        MessageUtils.setUnknownError(response, "Can not unregister event.");
+                                    }
+                                    sendResponse(response);
+
+                                });
                             }
 
                             @Override
@@ -194,29 +258,36 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
 
     /**
      * 位置情報管理クラスを取得する.
-     * @return 位置情報管理クラス
      */
-    private LocationManager getLocationManager(final Intent response) {
-        if (mLocationManager == null) {
-            mLocationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
+    private void getLocationManager(final Intent response, final GeolocationDiaglogCallback callback) {
+        if (mFusedLocationClient == null) {
+            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext());
         }
-        // GPSセンサー利用可否判定.
-        if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-                && !mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            Intent intent = new Intent(getContext(), GeolocationAlertDialogActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            Bundle bundle = new Bundle();
-            bundle.putParcelable("response", response);
-            intent.putExtra("Intent", bundle);
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                getContext().startActivity(intent);
-            } else {
-                NotificationUtils.createNotificationChannel(getContext());
-                NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, intent,
-                        getContext().getString(R.string.host_notification_geolocation_warnning));
-            }
+        if (mSettingsClient == null) {
+            mSettingsClient = LocationServices.getSettingsClient(getContext());
         }
-        return mLocationManager;
+
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
+        LocationRequest locationRequest = createLocationRequest(true, 5000);
+        builder.addLocationRequest(locationRequest);
+        LocationSettingsRequest locationSettingsRequest = builder.build();
+
+        mSettingsClient.checkLocationSettings(locationSettingsRequest)
+                .addOnSuccessListener(locationSettingsResponse -> callback.onSuccess()).addOnFailureListener(e -> {
+                    Intent intent = new Intent(getContext(), GeolocationAlertDialogActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    Bundle bundle = new Bundle();
+                    bundle.putParcelable("response", response);
+                    intent.putExtra("Intent", bundle);
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                        getContext().startActivity(intent);
+                    } else {
+                        NotificationUtils.createNotificationChannel(getContext());
+                        NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, intent,
+                                getContext().getString(R.string.host_notification_geolocation_warnning));
+                    }
+                    //レスポンスはGeolocationAlertDialogActivity側で返す
+                });
     }
 
     /**
@@ -232,38 +303,9 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
             return;
         }
 
-        Criteria criteria = new Criteria();
-        if (accuracy) {
-            criteria.setAccuracy(Criteria.ACCURACY_FINE);
-        } else {
-            criteria.setAccuracy(Criteria.ACCURACY_COARSE);
-        }
-
-        mLocationManager.requestSingleUpdate(mLocationManager.getBestProvider(criteria, true), new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-                Bundle position = createPositionObject(location);
-
-                DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                response.putExtra(GeolocationProfile.PARAM_POSITION, position);
-                sendResponse(response);
-            }
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-                // NOP
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-                // NOP
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-                // NOP
-            }
-        }, Looper.getMainLooper());
+        LocationRequest locationRequest = createLocationRequest(accuracy, 5000);
+        mOneShotResponse = response;
+        mFusedLocationClient.requestLocationUpdates(locationRequest, mOneShotLocationCallback, Looper.getMainLooper());
     }
 
     /**
@@ -277,29 +319,35 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
             return;
         }
 
-        Criteria criteria = new Criteria();
-        if (accuracy) {
-            criteria.setAccuracy(Criteria.ACCURACY_FINE);
-        } else {
-            criteria.setAccuracy(Criteria.ACCURACY_COARSE);
-        }
-
-        mLocationManager.requestLocationUpdates(mLocationManager.getBestProvider(criteria, true), interval, 0, this, Looper.getMainLooper());
+        LocationRequest locationRequest = createLocationRequest(accuracy, interval);
+        mFusedLocationClient.requestLocationUpdates(locationRequest, mLocationEventCallback, Looper.getMainLooper());
     }
 
     /**
      * 位置情報取得停止.
      */
     private void stopGPS() {
-        if (mLocationManager != null) {
+        if (mFusedLocationClient != null) {
             if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                     && ActivityCompat.checkSelfPermission(getContext(), ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
-            mLocationManager.removeUpdates(this);
+            mFusedLocationClient.removeLocationUpdates(mLocationEventCallback);
         }
     }
+    private LocationRequest createLocationRequest(boolean accuracy, int interval) {
+        LocationRequest locationRequest = LocationRequest.create();
 
+        if (accuracy) {
+            locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        } else  {
+            locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        }
+
+        locationRequest.setInterval(interval);
+        locationRequest.setFastestInterval(5000);
+        return locationRequest;
+    }
     /**
      * イベント登録が空か確認する.
      * @return 空の場合はtrue、それ以外はfalse
@@ -333,42 +381,6 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
         mLocationLastTime = location.getTime();
 
         return position;
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        Bundle position = createPositionObject(location);
-
-        if (isEmptyEventList()) {
-            stopGPS();
-            return;
-        }
-
-        List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
-                GeolocationProfile.PROFILE_NAME, null,
-                GeolocationProfile.ATTRIBUTE_ON_WATCH_POSITION.toLowerCase());
-
-        for (int i = 0; i < events.size(); i++) {
-            Event event = events.get(i);
-            Intent intent = EventManager.createEventMessage(event);
-            intent.putExtra(GeolocationProfile.PARAM_POSITION, position);
-            sendEvent(intent, event.getAccessToken());
-        }
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-        // NOP
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-        // NOP
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-        // NOP
     }
 
 }

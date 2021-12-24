@@ -100,6 +100,8 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel:2.2.0'
     implementation 'androidx.lifecycle:lifecycle-livedata:2.2.0'
     implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
+    implementation 'com.google.android.gms:play-services-location:18.0.0'
+    implementation 'com.google.android.gms:play-services-maps:17.0.1'
     implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.9.7'
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.6'
     implementation 'org.deviceconnect:dconnect-demo-lib:1.0.1'

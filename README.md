@@ -150,17 +150,8 @@ curl  -X GET \
 ## デバイスプラグイン
 | プロジェクト名|内容  |
 |:-----------|:---------|
-|[dConnectDeviceAndroidWear](dConnectDevicePlugin/dConnectDeviceAndroidWear)|AndroidWearのデバイスプラグイン。|
-|[dConnectDeviceChromeCast](dConnectDevicePlugin/dConnectDeviceChromeCast)|Chromecastのデバイスプラグイン。 |
-|[dConnectDeviceFaBo](dConnectDevicePlugin/dConnectDeviceFaBo)|FaBoのデバイスプラグイン。|
-|[dConnectDeviceHeartRate](dConnectDevicePlugin/dConnectDeviceHeartRate)|Mio AlphaなどのHeartRateのデバイスプラグイン。|
-|[dConnectDeviceHOGP](dConnectDevicePlugin/dConnectDeviceHOGP)|HOGPのデバイスプラグイン。|
 |[dConnectDeviceHost](dConnectDevicePlugin/dConnectDeviceHost)|Androidのデバイスプラグイン。|
-|[dConnectDeviceHue](dConnectDevicePlugin/dConnectDeviceHue)|Hueのデバイスプラグイン。|
-|[dConnectDeviceIRKit](dConnectDevicePlugin/dConnectDeviceIRKit)|IRKitのデバイスプラグイン。|
 |[dConnectDeviceLinking](dConnectDevicePlugin/dConnectDeviceLinking)|Linkingのデバイスプラグイン。|
-|[dConnectDeviceSwitchBot](dConnectDevicePlugin/dConnectDeviceSwitchBot)|SwitchBotのデバイスプラグイン。|
-|[dConnectDeviceTheta](dConnectDevicePlugin/dConnectDeviceTheta)|THETAのデバイスプラグイン。|
 |[dConnectDeviceUVC](dConnectDevicePlugin/dConnectDeviceUVC)|UVCカメラのデバイスプラグイン。|
 |[dConnectDeviceTest](dConnectDevicePlugin/dConnectDeviceTest)|DeviceConnectのテスト用のデバイスプラグイン。|
 |[dConnectDevicePluginSDK](dConnectDevicePlugin/dConnectDevicePluginSDK)|DevicePluginを作成するためのSDK。<br>dConnectSDKForAndroidが必要。|

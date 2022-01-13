@@ -1,4 +1,4 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 // Create github.properties in root project folder file with
 // gpr.usr=GITHUB_USER_ID
@@ -24,7 +24,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "org.deviceconnect.android.deviceplugin.uvc"
+//        applicationId "org.deviceconnect.android.deviceplugin.uvc"
         minSdkVersion 21
         targetSdkVersion 29
         versionCode 1

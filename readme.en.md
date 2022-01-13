@@ -156,16 +156,8 @@ If the following response is returned, you can check that Device Connect Manager
 ## Device Plugin
 | Project Name|Content  |
 |:-----------|:---------|
-|[dConnectDeviceAndroidWear](dConnectDevicePlugin/dConnectDeviceAndroidWear)|Device Plug-in for AndroidWear.|
-|[dConnectDeviceChromeCast](dConnectDevicePlugin/dConnectDeviceChromeCast)|Device Plug-in for ChromeCast.|
-|[dConnectDeviceFaBo](dConnectDevicePlugin/dConnectDeviceFaBo)|Device Plug-in for FaBo.|
-|[dConnectDeviceHeartRate](dConnectDevicePlugin/dConnectDeviceHeartRate)|Device Plug-in for HeartRate such as Mio Alpha.|
-|[dConnectDeviceHOGP](dConnectDevicePlugin/dConnectDeviceHOGP)|Device Plug-in for HOGP.|
 |[dConnectDeviceHost](dConnectDevicePlugin/dConnectDeviceHost)|Device Plug-in for Android.|
-|[dConnectDeviceHue](dConnectDevicePlugin/dConnectDeviceHue)|Device Plug-in for Hue.|
-|[dConnectDeviceIRKit](dConnectDevicePlugin/dConnectDeviceIRKit)|Device Plug-in for IRKit.|
 |[dConnectDeviceLinking](dConnectDevicePlugin/dConnectDeviceLinking)|Device Plug-in for Linking.|
-|[dConnectDeviceTheta](dConnectDevicePlugin/dConnectDeviceTheta)|Device Plug-in for THETA.|
 |[dConnectDeviceUVC](dConnectDevicePlugin/dConnectDeviceUVC)|Device Plug-in for UVC Camera.|
 |[dConnectDeviceTest](dConnectDevicePlugin/dConnectDeviceTest)|Device Plug-in for test of DeviceConnect.|
 |[dConnectDevicePluginSDK](dConnectDevicePlugin/dConnectDevicePluginSDK)|SDK for creating DevicePlugin. dConnectSDKForAndroid necessary.|
@@ -231,14 +223,6 @@ $ ./gradlew generateJavadocForPlugin
 People who want to develop the DeviceConnectManager and device Plug-ins, please build in accordance with this build instructions.
 
 * [DeviceConnectManager](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DeviceConnectManager-Build)
-* [ChromeCast](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/ChromeCast-Build)
-* [FaBo](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/FaBo-Build)
-* [HeartRate](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HeartRateDevice-Build)
-* [HOGP](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HOGP-Build)
 * [Host](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Host-Build)
-* [Hue](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hue-Build)
-* [IRKit](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/IRKit-Build)
 * [Linking](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Linking-Build)
-* [Theta](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Theta-Build)
 * [UVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/UVC-Build)
-* [AndroidWear](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AndroidWear-Build)

@@ -1,7 +1,0 @@
-<resources>
-    <dimen name="activity_horizontal_margin">12dp</dimen>
-    <dimen name="activity_vertical_margin">12dp</dimen>
-    <dimen name="activity_margin_km_btn">16dp</dimen>
-    <dimen name="activity_margin_cancel_btn">12dp</dimen>
-    <dimen name="activity_margin_ok_btn">12dp</dimen>
-</resources>

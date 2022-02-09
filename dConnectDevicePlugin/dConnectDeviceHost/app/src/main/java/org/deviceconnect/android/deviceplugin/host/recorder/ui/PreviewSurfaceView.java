@@ -229,8 +229,9 @@ public class PreviewSurfaceView extends FrameLayout {
      *
      * @param key 切り抜き範囲の枠を識別するキー
      * @param cropRect 切り抜き範囲の枠
+     * @param visible 表示フラグ
      */
-    public void addCropRect(Object key, Rect cropRect) {
+    public void addCropRect(Object key, Rect cropRect, boolean visible) {
         if (key == null || cropRect == null) {
             return;
         }
@@ -241,6 +242,7 @@ public class PreviewSurfaceView extends FrameLayout {
                 holder = new CropRectHolder();
                 holder.mTag = key;
                 holder.mCropRect = cropRect;
+                holder.mVisible = visible;
                 holder.mView = inflate(getContext(), R.layout.item_crop_frame, null);
 
                 TextView tv = holder.mView.findViewById(R.id.textview);

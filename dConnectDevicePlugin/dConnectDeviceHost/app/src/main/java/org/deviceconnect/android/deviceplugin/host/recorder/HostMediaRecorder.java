@@ -2375,7 +2375,7 @@ public interface HostMediaRecorder extends HostDevicePhotoRecorder, HostDeviceSt
          * @return プレビュー音声のチャンネル数
          */
         public int getPreviewChannel() {
-            return mProperty.getInteger("preview_audio_channel", 1);
+            return mProperty.getInteger("preview_audio_channel", 2);
         }
 
         /**

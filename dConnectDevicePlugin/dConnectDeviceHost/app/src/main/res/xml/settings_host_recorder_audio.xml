@@ -39,10 +39,11 @@
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
-        <EditTextPreference
-            android:defaultValue="1"
+        <ListPreference
+            android:defaultValue="@string/settings_audio_channel"
+            android:entries="@array/settings_audio_channel_names"
+            android:entryValues="@array/settings_audio_channel_values"
             android:key="preview_audio_channel"
-            android:singleLine="true"
             android:title="@string/host_recorder_settings_audio_channel"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />

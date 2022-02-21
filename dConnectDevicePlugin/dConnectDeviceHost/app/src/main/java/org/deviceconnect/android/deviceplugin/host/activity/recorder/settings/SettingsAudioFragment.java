@@ -32,7 +32,6 @@ public class SettingsAudioFragment extends SettingsParameterFragment {
         setPreviewSampleRate(mMediaRecorder.getSettings());
         setPreviewAudioCoefficient(mMediaRecorder.getSettings());
         setInputTypeNumber("preview_audio_bitrate");
-        setInputTypeNumber("preview_audio_channel");
     }
 
     /**

@@ -286,4 +286,14 @@
         <item>7350</item>
     </string-array>
 
+    <string name="settings_audio_channel">2</string>
+    <string-array name="settings_audio_channel_names">
+        <item>モノラル</item>
+        <item>ステレオ</item>
+    </string-array>
+    <string-array name="settings_audio_channel_values">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
 </resources>

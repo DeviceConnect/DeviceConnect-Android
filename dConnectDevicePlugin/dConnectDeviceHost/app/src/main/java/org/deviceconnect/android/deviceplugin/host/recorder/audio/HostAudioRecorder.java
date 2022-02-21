@@ -79,7 +79,7 @@ public class HostAudioRecorder extends AbstractMediaRecorder {
             mSettings.setPreviewAudioSource(AudioSource.DEFAULT);
             mSettings.setPreviewAudioBitRate(128 * 1024);
             mSettings.setPreviewSampleRate(48000);
-            mSettings.setPreviewChannel(1);
+            mSettings.setPreviewChannel(2);
             mSettings.setUseAEC(true);
 
             // 各サーバ設定

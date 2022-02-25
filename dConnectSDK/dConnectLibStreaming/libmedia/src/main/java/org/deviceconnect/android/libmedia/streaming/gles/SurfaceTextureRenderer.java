@@ -25,19 +25,12 @@ public class SurfaceTextureRenderer {
     private static final float[] TRIANGLE_VERTICES_DATA = {
             // X, Y, Z, U, V
             -1.0f, -1.0f, 0.f, 0.f, 0.f,
-             1.0f, -1.0f, 0.f, 1.f, 0.f,
+            1.0f, -1.0f, 0.f, 1.f, 0.f,
             -1.0f,  1.0f, 0.f, 0.f, 1.f,
-             1.0f,  1.0f, 0.f, 1.f, 1.f,
+            1.0f,  1.0f, 0.f, 1.f, 1.f,
     };
 
-    private static final float[] TRIANGLE_VERTICES_DATA_2 = {
-            // X, Y, Z, U, V
-            -1.0f, -1.0f, 0.f, 0.f, 1.f,
-             1.0f, -1.0f, 0.f, 1.f, 1.f,
-            -1.0f,  1.0f, 0.f, 0.f, 0.f,
-             1.0f,  1.0f, 0.f, 1.f, 0.f,
-    };
-
+    private final FloatBuffer mDefaultTriangleVertices;
     private final FloatBuffer mTriangleVertices;
     private final boolean mInverse;
 
@@ -78,18 +71,52 @@ public class SurfaceTextureRenderer {
      * @param inverse テクスチャの反転フラグ
      */
     public SurfaceTextureRenderer(boolean inverse) {
+        this(inverse, TRIANGLE_VERTICES_DATA);
+    }
+
+    /**
+     * コンストラクタ.
+     * @param inverse テクスチャの反転フラグ
+     * @param vertices テクスチャの頂点バッファ（初期値）
+     */
+    public SurfaceTextureRenderer(boolean inverse, float[] vertices) {
         mInverse = inverse;
+        if (inverse) {
+            vertices = inverseVertices(vertices);
+        }
+
+        mDefaultTriangleVertices = ByteBuffer.allocateDirect(
+                TRIANGLE_VERTICES_DATA.length * FLOAT_SIZE_BYTES)
+                .order(ByteOrder.nativeOrder()).asFloatBuffer();
+        mDefaultTriangleVertices.put(vertices).position(0);
+
         mTriangleVertices = ByteBuffer.allocateDirect(
                 TRIANGLE_VERTICES_DATA.length * FLOAT_SIZE_BYTES)
                 .order(ByteOrder.nativeOrder()).asFloatBuffer();
-        if (inverse) {
-            mTriangleVertices.put(TRIANGLE_VERTICES_DATA_2).position(0);
-        } else {
-            mTriangleVertices.put(TRIANGLE_VERTICES_DATA).position(0);
-        }
+        mTriangleVertices.put(vertices).position(0);
 
         Matrix.setIdentityM(mSTMatrix, 0);
         Matrix.setIdentityM(mMVPMatrix, 0);
+    }
+
+    private static float[] inverseVertices(final float[] vertices) {
+        int len = vertices.length;
+        float[] inverse = new float[len];
+        System.arraycopy(vertices, 0, inverse, 0, len);
+        inverse[3] = vertices[13];
+        inverse[4] = vertices[14];
+        inverse[13] = vertices[3];
+        inverse[14] = vertices[4];
+        inverse[8] = vertices[18];
+        inverse[9] = vertices[19];
+        inverse[18] = vertices[8];
+        inverse[19] = vertices[9];
+        return inverse;
+    }
+
+    public void setTextureVertices(final float[] vertices) {
+        mTriangleVertices.clear();
+        mTriangleVertices.put(vertices).position(0);
     }
 
     /**
@@ -227,11 +254,7 @@ public class SurfaceTextureRenderer {
      */
     public void clearCropRect() {
         mTriangleVertices.clear();
-        if (mInverse) {
-            mTriangleVertices.put(TRIANGLE_VERTICES_DATA_2).position(0);
-        } else {
-            mTriangleVertices.put(TRIANGLE_VERTICES_DATA).position(0);
-        }
+        mTriangleVertices.put(mDefaultTriangleVertices).position(0);
     }
 
     /**
@@ -293,8 +316,7 @@ public class SurfaceTextureRenderer {
                 ex, ey, 0.f, r, (1 - b),
         };
 
-        mTriangleVertices.clear();
-        mTriangleVertices.put(triangleVerticesData).position(0);
+        setTextureVertices(triangleVerticesData);
     }
 
     private int loadShader(int shaderType, String source) {

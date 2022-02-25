@@ -254,6 +254,7 @@ public class SurfaceTextureRenderer {
      */
     public void clearCropRect() {
         mTriangleVertices.clear();
+        mDefaultTriangleVertices.position(0);
         mTriangleVertices.put(mDefaultTriangleVertices).position(0);
     }
 

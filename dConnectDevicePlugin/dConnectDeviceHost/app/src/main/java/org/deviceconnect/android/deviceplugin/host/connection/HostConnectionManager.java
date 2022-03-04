@@ -1,5 +1,7 @@
 package org.deviceconnect.android.deviceplugin.host.connection;
 
+import static android.net.NetworkCapabilities.SIGNAL_STRENGTH_UNSPECIFIED;
+
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -250,7 +252,12 @@ public class HostConnectionManager {
                     caps.mType = NetworkType.TYPE_BLUETOOTH;
                 } else if (isMobile) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        caps.mStrengthLevel = capabilities.getSignalStrength();
+                        // 信号強度が提供されていないときは
+                        if (capabilities.getSignalStrength() == SIGNAL_STRENGTH_UNSPECIFIED) {
+                            caps.mStrengthLevel = mStrengthLevel;
+                        } else {
+                            caps.mStrengthLevel = capabilities.getSignalStrength();
+                        }
                     } else {
                         caps.mStrengthLevel = mStrengthLevel;
                     }

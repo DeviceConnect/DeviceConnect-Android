@@ -72,7 +72,7 @@ public class EndPointKeyStoreManagerTest {
             latch.await(20, TimeUnit.SECONDS);
         }
 
-        assertNull("ERROR: " + keyStoreError, keyStoreError);
+        assertNull("ERROR: " + keyStoreError, keyStoreError.get());
 
         KeyStore keyStore = result.get();
         assertNotNull(keyStore);

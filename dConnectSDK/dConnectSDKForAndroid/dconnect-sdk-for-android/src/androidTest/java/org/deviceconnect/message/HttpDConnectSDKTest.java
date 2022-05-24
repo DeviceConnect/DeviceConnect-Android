@@ -6,8 +6,18 @@
  */
 package org.deviceconnect.message;
 
+import static android.R.attr.key;
+import static android.R.attr.value;
+import static junit.framework.Assert.fail;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.core.IsNull.notNullValue;
+import static org.junit.Assert.assertThat;
+import static fi.iki.elonen.NanoHTTPD.newFixedLengthResponse;
+
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.net.Uri;
+import android.util.Base64;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -35,6 +45,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.security.KeyStore;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -43,16 +57,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManagerFactory;
+
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoWSD;
-
-import static android.R.attr.key;
-import static android.R.attr.value;
-import static fi.iki.elonen.NanoHTTPD.newFixedLengthResponse;
-import static junit.framework.Assert.fail;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.core.IsNull.notNullValue;
-import static org.junit.Assert.assertThat;
 
 /**
  * HttpDConnectSDKのテスト.
@@ -84,6 +97,15 @@ public class HttpDConnectSDKTest {
         }
     }
 
+    public byte[] readPrivateKey(InputStream in) throws Exception {
+        String lines = new String(getFile(in), Charset.defaultCharset());
+        String privateKeyPEM = lines
+                .replace("-----BEGIN PRIVATE KEY-----", "")
+                .replaceAll(System.lineSeparator(), "")
+                .replace("-----END PRIVATE KEY-----", "");
+        return Base64.decode(privateKeyPEM, Base64.DEFAULT);
+    }
+
     private void writeFile(final File file, final byte[] data) {
         FileOutputStream out = null;
         try {
@@ -104,10 +126,16 @@ public class HttpDConnectSDKTest {
     }
 
     private byte[] getFile(final File file) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        FileInputStream fis = null;
         try {
-            fis = new FileInputStream(file);
+            return getFile(new FileInputStream(file));
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private byte[] getFile(final InputStream fis) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
             int len;
             byte[] buf = new byte[1024];
             while ((len = fis.read(buf)) != -1) {
@@ -1659,6 +1687,111 @@ public class HttpDConnectSDKTest {
         assertThat(response.getString(AvailabilityProfileConstants.PARAM_PRODUCT), is(product));
         assertThat(response.getString(AvailabilityProfileConstants.PARAM_NAME), is(name));
         assertThat(response.getString(AvailabilityProfileConstants.PARAM_UUID), is(uuid));
+    }
+
+    /**
+     * デフォルト設定では特に https 通信時の接続先が制限されないこと。
+     * <pre>
+     * 【期待する動作】
+     * ・OnResponseListenerにDConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * </pre>
+     */
+    @Test
+    public void https_hostname_allowed() {
+        makeSecure();
+        mTestServer.setServerCallback(new TestServer.ServerCallback() {
+            @Override
+            public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
+                                            final Map<String, String> parms, final Map<String, String> files) {
+                if (!method.equals(NanoHTTPD.Method.GET)) {
+                    return newBadRequest("Method is not GET.");
+                }
+
+                try {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                    return newJsonResponse(jsonObject);
+                } catch (JSONException e) {
+                    return newInternalServerError(e.getMessage());
+                }
+            }
+        });
+
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
+
+        DConnectResponseMessage response = sdk.get("https://localhost:4035");
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+    }
+
+    /**
+     * {@link HttpsURLConnection#setDefaultHostnameVerifier}
+     * によって https 通信時の接続先を制限できること。
+     * <pre>
+     * 【期待する動作】
+     * ・OnResponseListenerにDConnectResponseMessageが返却されること。
+     * ・resultに1が返却されること。
+     * ・エラーコードがUNKNOWNであること。
+     * </pre>
+     */
+    @Test
+    public void https_hostname_not_allowed() {
+        makeSecure();
+        mTestServer.setServerCallback(new TestServer.ServerCallback() {
+            @Override
+            public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
+                                            final Map<String, String> parms, final Map<String, String> files) {
+                if (!method.equals(NanoHTTPD.Method.GET)) {
+                    return newBadRequest("Method is not GET.");
+                }
+
+                try {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                    return newJsonResponse(jsonObject);
+                } catch (JSONException e) {
+                    return newInternalServerError(e.getMessage());
+                }
+            }
+        });
+
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
+
+        HostnameVerifier defaultVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
+        HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+            @Override
+            public boolean verify(final String hostname, final SSLSession session) {
+                return false;
+            }
+        });
+        DConnectResponseMessage response = sdk.get("https://localhost:4035");
+        HttpsURLConnection.setDefaultHostnameVerifier(defaultVerifier);
+
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
+        assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.UNKNOWN.getCode()));
+    }
+
+    private void makeSecure() {
+        try {
+            mTestServer.stop();
+            AssetManager assets = InstrumentationRegistry.getInstrumentation()
+                    .getContext()
+                    .getAssets();
+            KeyStore keyStore = KeyStore.getInstance("PKCS12");
+            keyStore.load(assets.open("test-server.pkcs12"), "0000".toCharArray());
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            keyManagerFactory.init(keyStore, "0000".toCharArray());
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            trustManagerFactory.init(keyStore);
+            sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
+            mTestServer.makeSecure(sslContext.getServerSocketFactory(), null);
+            mTestServer.start();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

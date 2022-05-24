@@ -38,10 +38,8 @@ import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.Random;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
@@ -112,12 +110,6 @@ class HttpDConnectSDK extends DConnectSDK {
      */
     private HttpsURLConnection makeHttpsURLConnection(final URL url) throws IOException, NoSuchAlgorithmException, KeyManagementException {
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
-        connection.setHostnameVerifier(new HostnameVerifier() {
-            @Override
-            public boolean verify(final String hostname, final SSLSession sslSession) {
-                return true;
-            }
-        });
 
         TrustManager[] transManagers = {
                 new X509TrustManager() {

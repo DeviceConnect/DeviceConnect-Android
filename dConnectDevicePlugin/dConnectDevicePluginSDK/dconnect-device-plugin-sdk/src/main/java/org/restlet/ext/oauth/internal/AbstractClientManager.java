@@ -46,13 +46,14 @@ import org.restlet.ext.oauth.PackageInfoOAuth;
 import org.restlet.ext.oauth.ResponseType;
 import org.restlet.ext.oauth.internal.Client.ClientType;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+
 /**
  * 
  * @author Shotaro Uchida <fantom@xmaker.mx>
  */
 public abstract class AbstractClientManager implements ClientManager {
-
-    public static final int RESEED_CLIENTS = 100;
 
     public static final Object[] DEFAULT_SUPPORTED_FLOWS_PUBLIC = new Object[] { ResponseType.token, };
 
@@ -60,17 +61,15 @@ public abstract class AbstractClientManager implements ClientManager {
             ResponseType.code, GrantType.authorization_code,
             GrantType.client_credentials, GrantType.refresh_token };
 
-    private SecureRandom random;
-
     private boolean issueClientSecretToPublicClients = false;
 
     private Map<ClientType, Object[]> defaultSupportedFlow;
 
-    private volatile int count = 0;
+    private final KeyGenerator keyGenerator;
 
     public AbstractClientManager() {
         try {
-            random = SecureRandom.getInstance("SHA1PRNG");
+            keyGenerator = KeyGenerator.getInstance("AES");
         } catch (NoSuchAlgorithmException ex) {
             throw new IllegalStateException(ex);
         }
@@ -114,12 +113,10 @@ public abstract class AbstractClientManager implements ClientManager {
         if (clientType == ClientType.CONFIDENTIAL
                 || (clientType == ClientType.PUBLIC && isIssueClientSecretToPublicClients())) {
             // Issue a client secret to the confidential client.
-            if (count++ > RESEED_CLIENTS) {
-                count = 0;
-                random.setSeed(random.generateSeed(20));
-            }
-            byte[] secret = new byte[20];
-            random.nextBytes(secret);
+            SecureRandom secureRandom = new SecureRandom();
+            keyGenerator.init(20 * 8, secureRandom);
+            SecretKey key = keyGenerator.generateKey();
+            byte[] secret = key.getEncoded();
             clientSecret = Base64.encode(secret, false).toCharArray();
         }
 

@@ -201,6 +201,12 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
     }
 
     @Override
+    public boolean clean() throws KeyStoreException, IOException {
+        mSANs.clear();
+        return super.clean();
+    }
+
+    @Override
     public void requestKeyStore(final String ipAddress, final KeyStoreCallback callback) {
         mExecutor.execute(() -> {
             if (BuildConfig.DEBUG) {

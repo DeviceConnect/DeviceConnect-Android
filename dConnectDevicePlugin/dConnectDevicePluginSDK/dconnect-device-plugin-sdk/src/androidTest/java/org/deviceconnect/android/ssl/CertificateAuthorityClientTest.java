@@ -1,8 +1,10 @@
 package org.deviceconnect.android.ssl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import android.content.ComponentName;
 import android.content.Context;
-import android.widget.Toast;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -30,7 +32,6 @@ import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
@@ -43,9 +44,6 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 import javax.security.auth.x500.X500Principal;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 @RunWith(AndroidJUnit4.class)
 public class CertificateAuthorityClientTest {
@@ -81,7 +79,7 @@ public class CertificateAuthorityClientTest {
 
         CertificationRequest request = createCSR(keyPair, "localhost", generalNames);
         CertificateAuthorityClient client = new CertificateAuthorityClient(context, authorityName);
-        client.executeCertificateRequest(request, new CertificateRequestCallback() {
+        client.executeCertificateRequest(new org.bouncycastle.pkcs.PKCS10CertificationRequest(request), new CertificateRequestCallback() {
             @Override
             public void onCreate(final Certificate certificate, final Certificate rootCertificate) {
                 result1.set(certificate);

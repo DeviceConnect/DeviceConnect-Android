@@ -33,11 +33,14 @@
 
 package org.restlet.ext.oauth.internal;
 
+import org.deviceconnect.android.localoauth.LocalOAuth2Settings;
+import org.restlet.ext.oauth.OAuthException;
+
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
-import org.deviceconnect.android.localoauth.LocalOAuth2Settings;
-import org.restlet.ext.oauth.OAuthException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 
 /**
  * 
@@ -45,21 +48,17 @@ import org.restlet.ext.oauth.OAuthException;
  */
 public abstract class AbstractTokenManager implements TokenManager {
 
-    public static final int RESEED_TOKENS = 1000;
-
     public static final long DEFAULT_TOKEN_EXPIRE_PERIOD = LocalOAuth2Settings.DEFAULT_TOKEN_EXPIRE_PERIOD;
-
-    private SecureRandom random;
 
     private long expirePeriod = DEFAULT_TOKEN_EXPIRE_PERIOD; /* [sec] */
 
     private boolean updateRefreshToken = true;
 
-    private volatile int count = 0;
+    private final KeyGenerator keyGenerator;
 
     public AbstractTokenManager() {
         try {
-            random = SecureRandom.getInstance("SHA1PRNG");
+            keyGenerator = KeyGenerator.getInstance("AES");
         } catch (NoSuchAlgorithmException ex) {
             throw new IllegalStateException(ex);
         }
@@ -75,13 +74,11 @@ public abstract class AbstractTokenManager implements TokenManager {
         return generate(40);
     }
 
-    protected String generate(int len) {
-        if (count++ > RESEED_TOKENS) {
-            count = 0;
-            random.setSeed(random.generateSeed(20));
-        }
-        byte[] token = new byte[len];
-        random.nextBytes(token);
+    protected String generate(final int len) {
+        SecureRandom secureRandom = new SecureRandom();
+        keyGenerator.init(len * 8, secureRandom);
+        SecretKey key = keyGenerator.generateKey();
+        byte[] token = key.getEncoded();
         return toHex(token);
     }
 

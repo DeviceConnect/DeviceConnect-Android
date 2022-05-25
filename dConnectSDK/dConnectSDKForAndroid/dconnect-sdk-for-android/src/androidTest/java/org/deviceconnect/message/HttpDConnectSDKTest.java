@@ -84,24 +84,6 @@ public class HttpDConnectSDKTest {
     public void setUp() {
         try {
             mTestServer = new TestServer();
-
-            try {
-                AssetManager assets = InstrumentationRegistry.getInstrumentation()
-                        .getContext()
-                        .getAssets();
-                KeyStore keyStore = KeyStore.getInstance("PKCS12");
-                keyStore.load(assets.open("test-server.pkcs12"), "0000".toCharArray());
-                SSLContext sslContext = SSLContext.getInstance("TLS");
-                KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-                keyManagerFactory.init(keyStore, "0000".toCharArray());
-                TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-                trustManagerFactory.init(keyStore);
-                sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
-                mTestServer.makeSecure(sslContext.getServerSocketFactory(), null);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-
             mTestServer.start();
         } catch (IOException e) {
             fail("Test Server could not be started. e=" + e.getMessage());
@@ -1717,6 +1699,7 @@ public class HttpDConnectSDKTest {
      */
     @Test
     public void https_hostname_allowed() {
+        makeSecure();
         mTestServer.setServerCallback(new TestServer.ServerCallback() {
             @Override
             public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
@@ -1754,6 +1737,7 @@ public class HttpDConnectSDKTest {
      */
     @Test
     public void https_hostname_not_allowed() {
+        makeSecure();
         mTestServer.setServerCallback(new TestServer.ServerCallback() {
             @Override
             public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
@@ -1774,6 +1758,7 @@ public class HttpDConnectSDKTest {
 
         DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
 
+        HostnameVerifier defaultVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
         HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
             @Override
             public boolean verify(final String hostname, final SSLSession session) {
@@ -1781,9 +1766,32 @@ public class HttpDConnectSDKTest {
             }
         });
         DConnectResponseMessage response = sdk.get("https://localhost:4035");
+        HttpsURLConnection.setDefaultHostnameVerifier(defaultVerifier);
+
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
         assertThat(response.getErrorCode(), is(DConnectMessage.ErrorCode.UNKNOWN.getCode()));
+    }
+
+    private void makeSecure() {
+        try {
+            mTestServer.stop();
+            AssetManager assets = InstrumentationRegistry.getInstrumentation()
+                    .getContext()
+                    .getAssets();
+            KeyStore keyStore = KeyStore.getInstance("PKCS12");
+            keyStore.load(assets.open("test-server.pkcs12"), "0000".toCharArray());
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            keyManagerFactory.init(keyStore, "0000".toCharArray());
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            trustManagerFactory.init(keyStore);
+            sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
+            mTestServer.makeSecure(sslContext.getServerSocketFactory(), null);
+            mTestServer.start();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

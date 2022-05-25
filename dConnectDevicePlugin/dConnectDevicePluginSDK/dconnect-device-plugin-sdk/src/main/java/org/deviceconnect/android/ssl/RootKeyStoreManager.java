@@ -9,8 +9,6 @@ package org.deviceconnect.android.ssl;
 
 import android.content.Context;
 
-import com.google.fix.PRNGFixes;
-
 import org.deviceconnect.android.BuildConfig;
 
 import java.security.GeneralSecurityException;
@@ -69,9 +67,6 @@ class RootKeyStoreManager extends AbstractKeyStoreManager implements KeyStoreMan
                         final String keyStorePassword) {
         super(context, keyStoreFileName, keyStorePassword);
         mSubjectName = subjectName;
-
-        // Java Cryptography Architectureの乱数種に関するセキュリティ問題への対処.
-        PRNGFixes.apply();
     }
 
     @Override

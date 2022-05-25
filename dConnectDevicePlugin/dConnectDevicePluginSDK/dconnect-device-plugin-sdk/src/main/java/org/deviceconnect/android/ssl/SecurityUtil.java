@@ -8,9 +8,6 @@ package org.deviceconnect.android.ssl;
 
 import android.os.Build;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
-import java.security.Security;
 
 /**
  * セキュリティ関連のユーティリティ.
@@ -21,7 +18,7 @@ final class SecurityUtil {
 
     static {
         if (canUseBouncyCastleProvider()) {
-            Security.addProvider(new BouncyCastleProvider());
+//            Security.addProvider(new BouncyCastleProvider());
             SECURITY_PROVIDER = "BC";
         } else {
             SECURITY_PROVIDER = null; // デフォルトのプロバイダーを使用.

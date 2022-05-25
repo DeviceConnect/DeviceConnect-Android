@@ -40,6 +40,7 @@ import java.util.Random;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
@@ -130,7 +131,11 @@ class HttpDConnectSDK extends DConnectSDK {
 
         SSLContext sslcontext = SSLContext.getInstance("SSL");
         sslcontext.init(null, transManagers, new SecureRandom());
-        connection.setSSLSocketFactory(sslcontext.getSocketFactory());
+        SSLSocketFactory socketFactory = sslcontext.getSocketFactory();
+        if (socketFactory == null) {
+            throw new IOException("Failed to create SSLSocketFactory object.");
+        }
+        connection.setSSLSocketFactory(socketFactory);
 
         return connection;
     }

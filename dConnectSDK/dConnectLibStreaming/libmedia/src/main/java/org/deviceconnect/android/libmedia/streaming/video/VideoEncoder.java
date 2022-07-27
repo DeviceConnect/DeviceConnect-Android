@@ -182,9 +182,6 @@ public abstract class VideoEncoder extends MediaEncoder {
             format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
         }
 
-        // 一定期間 Surface に更新がなかった場合に前の映像をエンコードします.(単位: microseconds)
-        format.setLong(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, 1000000 / videoQuality.getFrameRate());
-
         // ビットレートモードに設定します。
         // 機種ごとにサポートできるパラメータが異なるので、設定できない場合はデフォルトで動作します。
         if (videoQuality.getBitRateMode() != null) {

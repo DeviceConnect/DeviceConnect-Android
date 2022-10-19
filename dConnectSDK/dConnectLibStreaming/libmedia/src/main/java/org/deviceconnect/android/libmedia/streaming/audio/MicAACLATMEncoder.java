@@ -3,6 +3,7 @@ package org.deviceconnect.android.libmedia.streaming.audio;
 import android.media.AudioFormat;
 import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.AudioRecord;
+import android.media.MediaCodec;
 import android.media.MediaRecorder;
 import android.media.audiofx.AcousticEchoCanceler;
 import android.media.audiofx.AudioEffect;
@@ -52,7 +53,7 @@ public class MicAACLATMEncoder extends AudioEncoder {
     /**
      * ミュート用の音声データを確保するバッファ.
      */
-    private byte[] mMuteBuffer;
+    private final byte[] mMuteBuffer = new byte[80];
 
     @Override
     public AudioQuality getAudioQuality() {
@@ -80,8 +81,7 @@ public class MicAACLATMEncoder extends AudioEncoder {
     @Override
     protected void onInputData(ByteBuffer inputData, int index) {
         inputData.clear();
-
-        if (mAudioRecord == null || mAudioThread == null || mMuteBuffer == null) {
+        if (mAudioRecord == null || mAudioThread == null) {
             mMediaCodec.queueInputBuffer(index, 0, 0, getPTSUs(), 0);
         } else if (isMute()) {
             // ミュート設定の場合には、AudioRecord からデータを取得しない
@@ -172,13 +172,10 @@ public class MicAACLATMEncoder extends AudioEncoder {
         if (mBufferSize < minBufferSize) {
             mBufferSize = ((minBufferSize / SAMPLES_PER_FRAME) + 1) * SAMPLES_PER_FRAME * 2;
         }
-
         if (DEBUG) {
             Log.d(TAG, "AudioQuality: " + mAudioQuality);
             Log.d(TAG, "  bufferSize: " + mBufferSize);
         }
-
-        mMuteBuffer = new byte[mBufferSize];
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             AudioRecord.Builder builder = new AudioRecord.Builder()

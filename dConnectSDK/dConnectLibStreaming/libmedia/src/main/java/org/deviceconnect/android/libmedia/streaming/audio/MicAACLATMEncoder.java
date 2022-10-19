@@ -53,7 +53,7 @@ public class MicAACLATMEncoder extends AudioEncoder {
     /**
      * ミュート用の音声データを確保するバッファ.
      */
-    private final byte[] mMuteBuffer = new byte[80];
+    private byte[] mMuteBuffer;
 
     @Override
     public AudioQuality getAudioQuality() {
@@ -85,12 +85,12 @@ public class MicAACLATMEncoder extends AudioEncoder {
             mMediaCodec.queueInputBuffer(index, 0, 0, getPTSUs(), 0);
         } else if (isMute()) {
             // ミュート設定の場合には、AudioRecord からデータを取得しない
-            int length = mMuteBuffer.length;
-            if (inputData.remaining() < length) {
-                length = inputData.remaining();
+            int len = mAudioRecord.read(inputData, mBufferSize);
+            if (DEBUG && len < 0) {
+                Log.e(TAG, "An error occurred with the AudioRecord API ! len=" + len);
             }
-            inputData.put(mMuteBuffer, 0, length);
-            mMediaCodec.queueInputBuffer(index, 0, length, getPTSUs(), 0);
+            inputData.put(mMuteBuffer, 0, len);
+            mMediaCodec.queueInputBuffer(index, 0, len, getPTSUs(), 0);
         } else {
             mAudioThread.add(() -> {
                 int len = mAudioRecord.read(inputData, mBufferSize);
@@ -176,7 +176,7 @@ public class MicAACLATMEncoder extends AudioEncoder {
             Log.d(TAG, "AudioQuality: " + mAudioQuality);
             Log.d(TAG, "  bufferSize: " + mBufferSize);
         }
-
+        mMuteBuffer = new byte[mBufferSize];
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             AudioRecord.Builder builder = new AudioRecord.Builder()
                     .setAudioFormat(new AudioFormat.Builder()

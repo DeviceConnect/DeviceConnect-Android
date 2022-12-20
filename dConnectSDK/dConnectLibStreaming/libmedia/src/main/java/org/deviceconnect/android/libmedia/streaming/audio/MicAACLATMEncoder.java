@@ -3,6 +3,7 @@ package org.deviceconnect.android.libmedia.streaming.audio;
 import android.media.AudioFormat;
 import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.AudioRecord;
+import android.media.MediaCodec;
 import android.media.MediaRecorder;
 import android.media.audiofx.AcousticEchoCanceler;
 import android.media.audiofx.AudioEffect;
@@ -80,17 +81,16 @@ public class MicAACLATMEncoder extends AudioEncoder {
     @Override
     protected void onInputData(ByteBuffer inputData, int index) {
         inputData.clear();
-
-        if (mAudioRecord == null || mAudioThread == null || mMuteBuffer == null) {
+        if (mAudioRecord == null || mAudioThread == null) {
             mMediaCodec.queueInputBuffer(index, 0, 0, getPTSUs(), 0);
         } else if (isMute()) {
             // ミュート設定の場合には、AudioRecord からデータを取得しない
-            int length = mMuteBuffer.length;
-            if (inputData.remaining() < length) {
-                length = inputData.remaining();
+            int len = mAudioRecord.read(inputData, mBufferSize);
+            if (DEBUG && len < 0) {
+                Log.e(TAG, "An error occurred with the AudioRecord API ! len=" + len);
             }
-            inputData.put(mMuteBuffer, 0, length);
-            mMediaCodec.queueInputBuffer(index, 0, length, getPTSUs(), 0);
+            inputData.put(mMuteBuffer, 0, len);
+            mMediaCodec.queueInputBuffer(index, 0, len, getPTSUs(), 0);
         } else {
             mAudioThread.add(() -> {
                 int len = mAudioRecord.read(inputData, mBufferSize);
@@ -165,21 +165,14 @@ public class MicAACLATMEncoder extends AudioEncoder {
      * AudioRecord を開始します.
      */
     private void startAudioRecord() {
-        int minBufferSize = AudioRecord.getMinBufferSize(mAudioQuality.getSamplingRate(),
-                mAudioQuality.getChannel(), mAudioQuality.getFormat()) * 2;
-
-        mBufferSize = SAMPLES_PER_FRAME * FRAMES_PER_BUFFER;
-        if (mBufferSize < minBufferSize) {
-            mBufferSize = ((minBufferSize / SAMPLES_PER_FRAME) + 1) * SAMPLES_PER_FRAME * 2;
-        }
+        mBufferSize = AudioRecord.getMinBufferSize(mAudioQuality.getSamplingRate(),
+                mAudioQuality.getChannel(), mAudioQuality.getFormat());
 
         if (DEBUG) {
             Log.d(TAG, "AudioQuality: " + mAudioQuality);
             Log.d(TAG, "  bufferSize: " + mBufferSize);
         }
-
         mMuteBuffer = new byte[mBufferSize];
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             AudioRecord.Builder builder = new AudioRecord.Builder()
                     .setAudioFormat(new AudioFormat.Builder()

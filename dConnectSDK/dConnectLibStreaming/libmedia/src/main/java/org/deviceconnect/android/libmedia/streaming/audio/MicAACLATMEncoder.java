@@ -83,23 +83,19 @@ public class MicAACLATMEncoder extends AudioEncoder {
         inputData.clear();
         if (mAudioRecord == null || mAudioThread == null) {
             mMediaCodec.queueInputBuffer(index, 0, 0, getPTSUs(), 0);
-        } else if (isMute()) {
-            // ミュート設定の場合には、AudioRecord からデータを取得しない
-            int len = mAudioRecord.read(inputData, mBufferSize);
-            if (DEBUG && len < 0) {
-                Log.e(TAG, "An error occurred with the AudioRecord API ! len=" + len);
-            }
-            inputData.put(mMuteBuffer, 0, len);
-            mMediaCodec.queueInputBuffer(index, 0, len, getPTSUs(), 0);
         } else {
             mAudioThread.add(() -> {
                 int len = mAudioRecord.read(inputData, mBufferSize);
                 if (DEBUG && len < 0) {
                     Log.e(TAG, "An error occurred with the AudioRecord API ! len=" + len);
                 }
-                Filter filter = mAudioQuality.getFilter();
-                if (filter != null && len > 0) {
-                    filter.onProcessing(inputData, len);
+                if (isMute()) {
+                    inputData.put(mMuteBuffer, 0, len);
+                } else {
+                    Filter filter = mAudioQuality.getFilter();
+                    if (filter != null && len > 0) {
+                        filter.onProcessing(inputData, len);
+                    }
                 }
                 mMediaCodec.queueInputBuffer(index, 0, len, getPTSUs(), 0);
             });

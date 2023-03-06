@@ -17,6 +17,7 @@ public final class SRT {
     public static final int SRTO_LOSSMAXTTL = 42;
     public static final int SRTO_RCVLATENCY = 43;
     public static final int SRTO_PEERLATENCY = 44;
+    public static final int SRTO_MINVERSION = 45;
     public static final int SRTO_PEERIDLETIMEO = 55;
     public static final int SRTO_PACKETFILTER = 60;
 

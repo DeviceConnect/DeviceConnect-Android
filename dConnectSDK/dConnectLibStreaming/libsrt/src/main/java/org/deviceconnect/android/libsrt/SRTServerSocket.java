@@ -56,11 +56,22 @@ public class SRTServerSocket implements Closeable {
      *
      * @throws SRTSocketException ソケットの作成に失敗した場合に発生
      */
-    public SRTServerSocket() throws SRTSocketException {
+    public SRTServerSocket(Map<Integer, Object> sockOptions) throws SRTSocketException {
         mNativeSocket = NdkHelper.createSrtSocket();
         if (mNativeSocket < 0) {
             throw new SRTSocketException("Failed to create server socket: " + mServerAddress + ":" + mServerPort, -1);
         }
+        setOption(SRT.SRTO_MINVERSION, 0x010300);
+        // This is obligatory only in live mode, if you predict to connect
+        // to a peer with SRT version 1.2.0 or older. Not required since
+        // 1.3.0, and all older versions support only live mode.
+//        mServerSocket.setOption(SRT.SRTO_SENDER, true);
+        // In order to make sure that the client supports non-live message
+        // mode, let's require this.
+        setOption(SRT.SRTO_MAXBW, 0L);
+
+        // アプリ側から指定されたオプションを設定
+        setOptions(sockOptions);
     }
 
     /**
@@ -71,8 +82,8 @@ public class SRTServerSocket implements Closeable {
      * @param serverPort サーバのポート番号
      * @throws SRTSocketException ソケットの作成に失敗した場合に発生
      */
-    public SRTServerSocket(final int serverPort) throws SRTSocketException {
-        this("0.0.0.0", serverPort);
+    public SRTServerSocket(final int serverPort, final Map<Integer, Object> sockOptions) throws SRTSocketException {
+        this("0.0.0.0", serverPort, sockOptions);
     }
 
     /**
@@ -86,8 +97,8 @@ public class SRTServerSocket implements Closeable {
      * @param serverPort サーバのポート番号
      * @throws SRTSocketException ソケットの作成に失敗した場合に発生
      */
-    public SRTServerSocket(final String serverAddress, final int serverPort) throws SRTSocketException {
-        this(serverAddress, serverPort, DEFAULT_BACKLOG);
+    public SRTServerSocket(final String serverAddress, final int serverPort, final Map<Integer, Object> sockOptions) throws SRTSocketException {
+        this(serverAddress, serverPort, DEFAULT_BACKLOG, sockOptions);
     }
 
     /**
@@ -98,8 +109,8 @@ public class SRTServerSocket implements Closeable {
      * @param backlog サーバにacceptされていないクライアントからの接続要求を保持しておくキューの最大値
      * @throws SRTSocketException ソケットの作成に失敗した場合に発生
      */
-    public SRTServerSocket(final String serverAddress, final int serverPort, final int backlog) throws SRTSocketException {
-        this();
+    public SRTServerSocket(final String serverAddress, final int serverPort, final int backlog, final Map<Integer, Object> sockOptions) throws SRTSocketException {
+        this(sockOptions);
 
         if (backlog <= 0) {
             mBacklog = DEFAULT_BACKLOG;

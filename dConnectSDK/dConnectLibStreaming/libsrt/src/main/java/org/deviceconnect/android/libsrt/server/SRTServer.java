@@ -264,14 +264,14 @@ public class SRTServer {
             mServerSocketThread = null;
         }
 
-        mServerSocket = new SRTServerSocket(mPort);
-        mServerSocket.setOption(SRT.SRTO_SENDER, true);
-        mServerSocket.setOption(SRT.SRTO_MAXBW, 0L);
-
-        // アプリ側から指定されたオプションを設定
-        if (mCustomSocketOptions != null) {
-            mServerSocket.setOptions(mCustomSocketOptions);
-        }
+        mServerSocket = new SRTServerSocket(mPort, mCustomSocketOptions);
+        // This is obligatory only in live mode, if you predict to connect
+        // to a peer with SRT version 1.2.0 or older. Not required since
+        // 1.3.0, and all older versions support only live mode.
+//        mServerSocket.setOption(SRT.SRTO_SENDER, true);
+        // In order to make sure that the client supports non-live message
+        // mode, let's require this.
+       // mServerSocket.setOption(SRT.SRTO_MAXBW, 0L);
 
         mServerStarted = true;
         mErrorFlag = false;

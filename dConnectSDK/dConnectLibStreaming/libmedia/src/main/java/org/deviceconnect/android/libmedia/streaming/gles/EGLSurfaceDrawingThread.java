@@ -552,6 +552,7 @@ public class EGLSurfaceDrawingThread {
                 ViewSize size = new ViewSize();
                 SurfaceTexture st = mStManager.getSurfaceTexture();
                 while (mState == STATE_RUNNING) {
+                    calcFps();
                     mStManager.awaitNewImage();
 
                     synchronized (mEGLSurfaceBases) {
@@ -683,5 +684,38 @@ public class EGLSurfaceDrawingThread {
          * @param eglSurfaceBase 描画が完了した EGLSurfaceBase
          */
         void onDrawn(EGLSurfaceBase eglSurfaceBase);
+    }
+
+    // FPS計測用のパラメータ
+    private long mStartTime = 0;
+    private int frameCount = 0;
+    private float mFps = 0.0f;
+    /**
+     * FPSを計測する.
+     */
+    private void calcFps() {
+        long currentTimeMillis = System.currentTimeMillis();
+        if (mStartTime > 0) {
+            long timeSpan = currentTimeMillis - mStartTime;
+            frameCount++;
+
+            // intervalとして500ms以上のとき
+            if (timeSpan > 500) {
+                mFps = frameCount * 1000 / (float) timeSpan;
+
+                mStartTime = currentTimeMillis;
+                frameCount = 0;
+            }
+        } else {
+            mStartTime = currentTimeMillis;
+        }
+    }
+
+    /**
+     * FPSを取得する.
+     * @return fps
+     */
+    public float getFps() {
+        return mFps;
     }
 }

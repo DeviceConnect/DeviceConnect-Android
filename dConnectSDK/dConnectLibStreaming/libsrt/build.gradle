@@ -6,7 +6,7 @@ if (githubPropertiesFile.exists()) {
     githubProperties.load(new FileInputStream(githubPropertiesFile))
 }
 def getVersionName = { ->
-    return "1.4.0" // Replace with version Name
+    return "1.5.0" // Replace with version Name
 }
 
 def getArtificatId = { ->
@@ -110,8 +110,8 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'org.deviceconnect:libmedia:1.4.1'
-//    implementation project(':libmedia')
+//    implementation 'org.deviceconnect:libmedia:1.4.1'
+    implementation project(':libmedia')
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
@@ -119,7 +119,7 @@ dependencies {
 }
 
 // 推奨 SRT バージョンを指定します。
-def SRT_VERSION = '1.4.1'
+def SRT_VERSION = '1.5.1'
 
 // ビルド時に SRT のバージョンチェックを実行します.
 // jniLibs に存在する SRT ライブラリのバージョンが指定したものでない場合、ビルドを失敗させます.

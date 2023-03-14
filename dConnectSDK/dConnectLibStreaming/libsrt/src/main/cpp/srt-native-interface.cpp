@@ -107,6 +107,7 @@ JNI_METHOD_NAME(setSockFlag)(JNIEnv *env, jclass clazz, jlong nativePtr, jint op
         case SRTO_OHEADBW:
         case SRTO_CONNTIMEO:
         case SRTO_PEERIDLETIMEO:
+        case SRTO_MINVERSION:
         {
             jmethodID intValueMethodId = env->GetMethodID(valueClass, "intValue", "()I");
             if (intValueMethodId != nullptr) {

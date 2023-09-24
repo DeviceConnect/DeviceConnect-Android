@@ -275,7 +275,7 @@ public abstract class Mpeg2TsMuxer implements IMediaMuxer {
      */
     private void addADTStoPacket(byte[] packet, int packetLen) {
         packet[0] = (byte) 0xFF;
-        packet[1] = (byte) 0xF9;
+        packet[1] = (byte) 0xF1;
         packet[2] = (byte) (((mProfile - 1) << 6) + (mFreqIdx << 2) + (mChannelConfig >> 2));
         packet[3] = (byte) (((mChannelConfig & 3) << 6) + (packetLen >> 11));
         packet[4] = (byte) ((packetLen & 0x7FF) >> 3);
